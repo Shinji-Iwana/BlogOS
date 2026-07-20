@@ -1,0 +1,19 @@
+body{
+
+    margin:0;
+
+    padding:20px;
+
+    font-family:sans-serif;
+
+}
+
+.card{
+
+    border:1px solid #ccc;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+}
