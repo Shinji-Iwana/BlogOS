@@ -1,28 +1,4 @@
 /* ==========================================
-   Reactor Background
-========================================== */
-
-.reactor-bg{
-    position:relative;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    width: 100%;
-    height: 100%;
-
-    overflow:hidden;
-
-    background:
-        radial-gradient(circle at center,
-        #07111f 0%,
-        #03070d 45%,
-        #000000 100%);
-}
-
-
-/* ==========================================
    Reactor Image
 ========================================== */
 
