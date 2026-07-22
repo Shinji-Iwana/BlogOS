@@ -1,0 +1,328 @@
+/* ==========================================
+   Reactor Background
+========================================== */
+
+.reactor-bg{
+    position:relative;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    width: 100%;
+    height: 100%;
+
+    overflow:hidden;
+
+    background:
+        radial-gradient(circle at center,
+        #07111f 0%,
+        #03070d 45%,
+        #000000 100%);
+}
+
+
+/* ==========================================
+   Reactor Image
+========================================== */
+
+.arc-reactor{
+
+    width:clamp(180px,18vw,320px);
+    height:auto;
+
+    position:relative;
+    z-index:10;
+
+    user-select:none;
+    pointer-events:none;
+
+    filter:
+        drop-shadow(0 0 15px #00bfff)
+        drop-shadow(0 0 40px #00d9ff)
+        drop-shadow(0 0 80px #00e5ff);
+
+}
+
+.reactor-core{
+
+    position:relative;
+
+    width:clamp(180px,18vw,320px);
+
+    aspect-ratio:1;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+/* ==========================================
+   Reactor Rings
+========================================== */
+
+.reactor-ring{
+
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    translate:-50% -50%;
+
+    border-radius:50%;
+
+    animation:
+        reactorRotate linear infinite,
+        reactorGlow ease-in-out infinite;
+
+    filter:
+        drop-shadow(0 0 6px #00d9ff)
+        drop-shadow(0 0 18px #00d9ff)
+        drop-shadow(0 0 35px #00d9ff);
+
+}
+
+
+/* ---------- Ring1 ---------- */
+
+.ring1{
+
+    width:120%;
+    aspect-ratio:1;
+
+    animation-duration:18s,3.5s;
+
+    background:
+        conic-gradient(
+
+            rgba(0,220,255,.95) 0deg 18deg,
+            transparent 18deg 40deg,
+
+            rgba(0,220,255,.75) 40deg 70deg,
+            transparent 70deg 96deg,
+
+            rgba(0,220,255,.95) 96deg 122deg,
+            transparent 122deg 150deg,
+
+            rgba(0,220,255,.70) 150deg 186deg,
+            transparent 186deg 214deg,
+
+            rgba(0,220,255,.95) 214deg 246deg,
+            transparent 246deg 282deg,
+
+            rgba(0,220,255,.80) 282deg 314deg,
+            transparent 314deg 340deg,
+
+            rgba(0,220,255,.95) 340deg 360deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(circle,
+            transparent 63%,
+            #000 65%,
+            #000 69%,
+            transparent 71%);
+
+    mask:
+        radial-gradient(circle,
+            transparent 63%,
+            #000 65%,
+            #000 69%,
+            transparent 71%);
+
+}
+
+
+/* ---------- Ring2 ---------- */
+
+.ring2{
+
+    width:200%;
+    aspect-ratio:1;
+
+    opacity:.55;
+
+    animation-duration:26s,4.5s;
+    animation-direction:reverse,normal;
+
+    background:
+        conic-gradient(
+
+            rgba(0,220,255,.85) 0deg 8deg,
+            transparent 8deg 22deg,
+
+            rgba(0,220,255,.65) 22deg 35deg,
+            transparent 35deg 56deg,
+
+            rgba(0,220,255,.85) 56deg 68deg,
+            transparent 68deg 90deg,
+
+            rgba(0,220,255,.70) 90deg 104deg,
+            transparent 104deg 126deg,
+
+            rgba(0,220,255,.90) 126deg 145deg,
+            transparent 145deg 176deg,
+
+            rgba(0,220,255,.70) 176deg 194deg,
+            transparent 194deg 220deg,
+
+            rgba(0,220,255,.90) 220deg 244deg,
+            transparent 244deg 268deg,
+
+            rgba(0,220,255,.80) 268deg 286deg,
+            transparent 286deg 312deg,
+
+            rgba(0,220,255,.95) 312deg 338deg,
+            transparent 338deg 360deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(circle,
+            transparent 73%,
+            #000 75%,
+            #000 78%,
+            transparent 80%);
+
+    mask:
+        radial-gradient(circle,
+            transparent 73%,
+            #000 75%,
+            #000 78%,
+            transparent 80%);
+
+}
+
+
+/* ---------- Ring3 ---------- */
+
+.ring3{
+
+    width:300%;
+    aspect-ratio:1;
+
+    opacity:.28;
+
+    animation-duration:40s,6s;
+
+    background:
+        repeating-conic-gradient(
+
+            rgba(0,220,255,.75) 0deg 2deg,
+            transparent 2deg 10deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(circle,
+            transparent 82%,
+            #000 84%,
+            #000 86%,
+            transparent 88%);
+
+    mask:
+        radial-gradient(circle,
+            transparent 82%,
+            #000 84%,
+            #000 86%,
+            transparent 88%);
+
+}
+.energy{
+
+    position:absolute;
+    inset:0;
+
+    border-radius:50%;
+
+    pointer-events:none;
+
+    filter:
+        blur(.8px)
+        drop-shadow(0 0 6px #00dfff)
+        drop-shadow(0 0 14px #00dfff);
+
+    animation-name:energyRotate;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+
+}
+.e1{
+
+    background:
+        conic-gradient(
+            transparent 0deg,
+            transparent 8deg,
+            rgba(255,255,255,.95) 11deg,
+            rgba(0,220,255,1) 18deg,
+            transparent 26deg,
+            transparent 360deg
+        );
+
+    animation-duration:1.8s;
+
+}
+
+.e2{
+
+    background:
+        conic-gradient(
+            transparent 55deg,
+            rgba(255,255,255,.9) 60deg,
+            rgba(0,220,255,.95) 71deg,
+            transparent 82deg
+        );
+
+    animation-duration:2.5s;
+    animation-direction:reverse;
+
+}
+
+.e3{
+
+    background:
+        conic-gradient(
+            transparent 150deg,
+            rgba(255,255,255,.8) 158deg,
+            rgba(0,220,255,.9) 176deg,
+            transparent 192deg
+        );
+
+    animation-duration:3.1s;
+
+}
+
+.e4{
+
+    background:
+        conic-gradient(
+            transparent 245deg,
+            rgba(255,255,255,.85) 252deg,
+            rgba(0,220,255,.9) 266deg,
+            transparent 282deg
+        );
+
+    animation-duration:4.4s;
+    animation-direction:reverse;
+
+}
+
+.e5{
+
+    background:
+        conic-gradient(
+            transparent 315deg,
+            rgba(255,255,255,.95) 320deg,
+            rgba(0,220,255,1) 336deg,
+            transparent 352deg
+        );
+
+    animation-duration:2.9s;
+
+}

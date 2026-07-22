@@ -19,4 +19,12 @@ class ThemeService
     {
         return "/themes/" . self::current() . "/css/style.css";
     }
+
+    /**
+     * indexファイルのパスを取得
+     */
+    public static function index()
+    {
+        return "themes." . self::current() . ".index";
+    }
 }
