@@ -1,0 +1,33 @@
+.arc-reactor{
+
+    width:clamp(180px,18vw,320px);
+    height:auto;
+
+    position:relative;
+    z-index:10;
+
+    user-select:none;
+    pointer-events:none;
+
+    filter:
+        drop-shadow(0 0 15px #00bfff)
+        drop-shadow(0 0 40px #00d9ff)
+        drop-shadow(0 0 80px #00e5ff);
+
+}
+
+.reactor-core{
+
+    position:relative;
+
+    width:clamp(180px,18vw,320px);
+
+    aspect-ratio:1;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}

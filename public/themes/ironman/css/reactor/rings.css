@@ -1,0 +1,223 @@
+/* ==========================================
+   Reactor Rings
+========================================== */
+
+.reactor-ring{
+
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    translate:-50% -50%;
+
+    border-radius:50%;
+
+    animation:
+        reactorRotate linear infinite,
+        reactorGlow ease-in-out infinite;
+
+    filter:
+        drop-shadow(0 0 6px #00d9ff)
+        drop-shadow(0 0 18px #00d9ff)
+        drop-shadow(0 0 35px #00d9ff);
+
+}
+
+/* ==========================================
+   Main Ring
+========================================== */
+
+.ring1 {
+
+    width: 122%;
+    aspect-ratio: 1;
+
+    animation-duration: 18s, 3.5s;
+
+    background:
+
+        conic-gradient(
+
+            rgba(255,255,255,.95) 0deg 5deg,
+            rgba(0,220,255,.95) 5deg 18deg,
+            transparent 18deg 34deg,
+
+            rgba(255,255,255,.85) 34deg 39deg,
+            rgba(0,220,255,.75) 39deg 66deg,
+            transparent 66deg 90deg,
+
+            rgba(255,255,255,.95) 90deg 96deg,
+            rgba(0,220,255,.95) 96deg 122deg,
+            transparent 122deg 148deg,
+
+            rgba(255,255,255,.90) 148deg 154deg,
+            rgba(0,220,255,.70) 154deg 182deg,
+            transparent 182deg 210deg,
+
+            rgba(255,255,255,.95) 210deg 216deg,
+            rgba(0,220,255,.95) 216deg 242deg,
+            transparent 242deg 268deg,
+
+            rgba(255,255,255,.85) 268deg 274deg,
+            rgba(0,220,255,.80) 274deg 302deg,
+            transparent 302deg 328deg,
+
+            rgba(255,255,255,.95) 328deg 334deg,
+            rgba(0,220,255,.95) 334deg 360deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 61%,
+            #000 63%,
+            #000 69%,
+            transparent 71%
+        );
+
+    mask:
+        radial-gradient(
+            circle,
+            transparent 61%,
+            #000 63%,
+            #000 69%,
+            transparent 71%
+        );
+
+}
+
+/* ==========================================
+   Second Ring
+========================================== */
+
+.ring2 {
+
+    width: 200%;
+    aspect-ratio: 1;
+
+    opacity: .60;
+
+    animation-duration: 26s, 4.5s;
+    animation-direction: reverse, normal;
+
+    background:
+
+        conic-gradient(
+
+            rgba(255,255,255,.90) 0deg 4deg,
+            rgba(0,220,255,.85) 4deg 12deg,
+            transparent 12deg 26deg,
+
+            rgba(255,255,255,.75) 26deg 30deg,
+            rgba(0,220,255,.65) 30deg 44deg,
+            transparent 44deg 62deg,
+
+            rgba(255,255,255,.90) 62deg 66deg,
+            rgba(0,220,255,.90) 66deg 82deg,
+            transparent 82deg 98deg,
+
+            rgba(255,255,255,.70) 98deg 102deg,
+            rgba(0,220,255,.70) 102deg 118deg,
+            transparent 118deg 136deg,
+
+            rgba(255,255,255,.90) 136deg 140deg,
+            rgba(0,220,255,.90) 140deg 158deg,
+            transparent 158deg 176deg,
+
+            rgba(255,255,255,.75) 176deg 180deg,
+            rgba(0,220,255,.70) 180deg 198deg,
+            transparent 198deg 216deg,
+
+            rgba(255,255,255,.90) 216deg 220deg,
+            rgba(0,220,255,.90) 220deg 238deg,
+            transparent 238deg 256deg,
+
+            rgba(255,255,255,.75) 256deg 260deg,
+            rgba(0,220,255,.70) 260deg 278deg,
+            transparent 278deg 296deg,
+
+            rgba(255,255,255,.90) 296deg 300deg,
+            rgba(0,220,255,.90) 300deg 318deg,
+            transparent 318deg 336deg,
+
+            rgba(255,255,255,.90) 336deg 340deg,
+            rgba(0,220,255,.85) 340deg 360deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 73%,
+            #000 75%,
+            #000 78%,
+            transparent 80%
+        );
+
+    mask:
+        radial-gradient(
+            circle,
+            transparent 73%,
+            #000 75%,
+            #000 78%,
+            transparent 80%
+        );
+
+}
+
+/* ==========================================
+   Outer Ring
+========================================== */
+
+.ring3 {
+
+    width: 300%;
+    aspect-ratio: 1;
+
+    opacity: .32;
+
+    animation-duration: 42s, 6s;
+
+    background:
+
+        repeating-conic-gradient(
+
+            rgba(255,255,255,.35) 0deg 1deg,
+
+            rgba(0,220,255,.70) 1deg 3deg,
+
+            transparent 3deg 11deg,
+
+            rgba(0,220,255,.45) 11deg 12deg,
+
+            transparent 12deg 18deg
+
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 84%,
+            #000 85%,
+            #000 87%,
+            transparent 88%
+        );
+
+    mask:
+        radial-gradient(
+            circle,
+            transparent 84%,
+            #000 85%,
+            #000 87%,
+            transparent 88%
+        );
+
+    filter:
+
+        drop-shadow(0 0 6px #00d9ff)
+        drop-shadow(0 0 15px #00d9ff)
+        drop-shadow(0 0 30px #00d9ff);
+
+}

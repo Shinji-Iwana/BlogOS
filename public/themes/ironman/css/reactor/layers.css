@@ -1,0 +1,50 @@
+/* ==========================================
+   Reactor Layers
+========================================== */
+
+.layer-frame,
+.layer-rings,
+.layer-core,
+.layer-effects{
+
+    position:absolute;
+
+    inset:0;
+
+}
+
+/* ==========================================
+   Layer Order
+========================================== */
+
+.layer-frame{
+
+    z-index:5;
+
+}
+
+.layer-rings{
+
+    z-index:10;
+
+}
+
+.layer-core{
+
+    z-index:20;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.layer-effects{
+
+    z-index:30;
+
+    pointer-events:none;
+
+}

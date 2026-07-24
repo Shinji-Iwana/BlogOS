@@ -2,4 +2,10 @@
 @import url("base.css");
 @import url("layout.css");
 @import url("background.css");
-@import url("reactor.css");
+
+@import url("reactor/layers.css");
+@import url("reactor/core.css");
+@import url("reactor/rings.css");
+@import url("reactor/glow.css");
+@import url("reactor/frame.css");
+@import url("reactor/effects.css");

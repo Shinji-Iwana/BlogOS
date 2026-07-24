@@ -1,0 +1,105 @@
+/* ==========================================
+   Support Frame
+========================================== */
+
+.support-frame{
+
+    position:absolute;
+
+    inset:0;
+
+}
+
+/* ==========================================
+   Support Module
+========================================== */
+
+.support-module{
+
+    position:absolute;
+
+    left:50%;
+
+    top:50%;
+
+    width:24px;
+
+    height:90px;
+
+    border-radius:8px;
+
+    background:
+
+        linear-gradient(
+
+            to bottom,
+
+            rgba(255,255,255,.95),
+
+            rgba(170,230,255,.95) 15%,
+
+            rgba(40,170,255,.90) 45%,
+
+            rgba(0,90,150,.85) 80%,
+
+            rgba(0,40,70,.95)
+
+        );
+
+    border:1px solid rgba(180,240,255,.45);
+
+    box-shadow:
+
+        inset 0 0 10px rgba(255,255,255,.35),
+
+        0 0 8px rgba(0,220,255,.40),
+
+        0 0 20px rgba(0,220,255,.20);
+
+}
+
+/* ---------- Top ---------- */
+
+.module-top{
+
+    transform:
+
+        translate(-50%,-175%);
+
+}
+
+/* ---------- Right ---------- */
+
+.module-right{
+
+    transform:
+
+        translate(285%,-50%)
+
+        rotate(90deg);
+
+}
+
+/* ---------- Bottom ---------- */
+
+.module-bottom{
+
+    transform:
+
+        translate(-50%,75%)
+
+        rotate(180deg);
+
+}
+
+/* ---------- Left ---------- */
+
+.module-left{
+
+    transform:
+
+        translate(-385%,-50%)
+
+        rotate(270deg);
+
+}
