@@ -1,33 +1,235 @@
-.arc-reactor{
+/* ==========================================================
+   core.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer07（Core）の見た目管理
+   ・Core形状
+   ・Core発光
+   ・Core内部表現
 
-    width:clamp(180px,18vw,320px);
-    height:auto;
+   対象
+   ・core-shadow
+   ・core-glow
+   ・core-light
+   ・core-center
 
-    position:relative;
-    z-index:10;
+   ※Animationは禁止
+   ※HUD禁止
+   ※Effects禁止
+   ========================================================== */
 
-    user-select:none;
-    pointer-events:none;
 
-    filter:
-        drop-shadow(0 0 15px #00bfff)
-        drop-shadow(0 0 40px #00d9ff)
-        drop-shadow(0 0 80px #00e5ff);
+/* ========================================
+   Layer07 : Core
+======================================== */
+
+.layer-core {
+
+    position: absolute;
+
+    inset: 0;
+
+    overflow: visible;
 
 }
 
-.reactor-core{
 
-    position:relative;
 
-    width:clamp(180px,18vw,320px);
+/* ========================================
+   Core 共通
+======================================== */
 
-    aspect-ratio:1;
+.core-shadow,
+.core-glow,
+.core-light,
+.core-center {
 
-    display:flex;
+    position: absolute;
 
-    justify-content:center;
+    top: 50%;
+    left: 50%;
 
-    align-items:center;
+    transform:
+
+        translate(-50%, -50%);
+
+    border-radius: 50%;
+
+}
+
+
+
+/* ========================================
+   Core Shadow
+   最外周の暗いエネルギー層
+======================================== */
+
+.core-shadow {
+
+    width: 42%;
+    height: 42%;
+
+
+    background:
+
+        radial-gradient(
+
+            circle,
+
+            rgba(0,0,0,0)
+
+            40%,
+
+            rgba(0,0,0,.75)
+
+            100%
+
+        );
+
+
+}
+
+
+
+/* ========================================
+   Core Glow
+   青い発光層
+======================================== */
+
+.core-glow {
+
+    width: 36%;
+    height: 36%;
+
+
+    background:
+
+        radial-gradient(
+
+            circle,
+
+            rgba(220,250,255,1)
+
+            0%,
+
+
+            rgba(80,210,255,.9)
+
+            30%,
+
+
+            rgba(0,120,255,.45)
+
+            60%,
+
+
+            rgba(0,0,0,0)
+
+            100%
+
+        );
+
+
+    filter:
+
+        blur(4px);
+
+}
+
+
+
+/* ========================================
+   Core Light
+   中央光源
+======================================== */
+
+.core-light {
+
+    width: 24%;
+    height: 24%;
+
+
+    background:
+
+        radial-gradient(
+
+            circle,
+
+            rgba(255,255,255,1)
+
+            0%,
+
+
+            rgba(180,240,255,.95)
+
+            25%,
+
+
+            rgba(0,180,255,.75)
+
+            55%,
+
+
+            rgba(0,100,255,.15)
+
+            100%
+
+        );
+
+
+}
+
+
+
+/* ========================================
+   Core Center
+   最中心部
+======================================== */
+
+.core-center {
+
+    width: 12%;
+    height: 12%;
+
+
+    background:
+
+        radial-gradient(
+
+            circle,
+
+            #ffffff
+
+            0%,
+
+
+            rgba(200,250,255,1)
+
+            35%,
+
+
+            rgba(0,180,255,.8)
+
+            70%,
+
+
+            rgba(0,120,255,.2)
+
+            100%
+
+        );
+
+
+    box-shadow:
+
+
+        0 0 20px
+
+        rgba(150,230,255,.9),
+
+
+        0 0 50px
+
+        rgba(0,150,255,.8);
 
 }

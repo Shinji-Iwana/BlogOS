@@ -1,0 +1,188 @@
+/* ==========================================================
+   front.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer08 Front Animation管理
+   ・Glass Reflection
+   ・Frame Glow
+   ・Surface Shine
+
+   対象：
+   ・glass
+   ・frame
+   ・reflections::before
+
+
+   ※見た目はreactor/front.css管理
+   ※HUD禁止
+   ※Effects禁止
+   ========================================================== */
+
+
+
+/* ========================================
+   Glass Breathing
+======================================== */
+
+
+@keyframes glassBreath {
+
+
+    0% {
+
+        opacity:
+
+            0.35;
+
+    }
+
+
+    50% {
+
+        opacity:
+
+            0.75;
+
+    }
+
+
+    100% {
+
+        opacity:
+
+            0.35;
+
+    }
+
+}
+
+
+
+/* ========================================
+   Frame Glow
+======================================== */
+
+
+@keyframes frameGlow {
+
+
+    0% {
+
+
+        filter:
+
+            brightness(1);
+
+
+
+    }
+
+
+    50% {
+
+
+        filter:
+
+            brightness(1.35);
+
+
+
+    }
+
+
+    100% {
+
+
+        filter:
+
+            brightness(1);
+
+
+
+    }
+
+}
+
+
+
+
+
+
+/* ========================================
+   Apply
+======================================== */
+
+
+/*
+    ガラス全体の呼吸
+*/
+
+.glass {
+
+
+    animation:
+
+
+        glassBreath
+
+        6s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+/*
+    金属フレーム発光
+*/
+
+.frame {
+
+
+    animation:
+
+
+        frameGlow
+
+        5s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+/*
+    表面反射移動
+
+    front.cssで作った
+
+    .reflections::before
+
+    を動かす
+
+*/
+
+.reflections::before {
+
+
+    animation:
+
+
+        reflectionMove
+
+        8s
+
+        linear
+
+        infinite;
+
+
+}

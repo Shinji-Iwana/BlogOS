@@ -1,11 +1,134 @@
-@import url("animation.css");
+/* ==========================================================
+   BlogOS IronMan Theme
+   style.css
+
+   読み込み順
+   ------------------------------------------
+   1. 共通設定
+   2. レイアウト
+   3. 共通背景
+   4. レイヤー配置
+   5. Reactor各Layer
+   6. Animation
+   ========================================================== */
+
+
+/* ==========================================
+   Base
+   ========================================== */
+
 @import url("base.css");
 @import url("layout.css");
 @import url("background.css");
 
+
+/* ==========================================
+   Reactor Layout
+   ========================================== */
+
 @import url("reactor/layers.css");
-@import url("reactor/core.css");
-@import url("reactor/rings.css");
+
+
+/* ==========================================
+   Reactor Layer01
+   Background
+   ========================================== */
+
+@import url("reactor/background.css");
+
+
+/* ==========================================
+   Reactor Layer02
+   Back Glow
+   ========================================== */
+
 @import url("reactor/glow.css");
-@import url("reactor/frame.css");
+
+
+/* ==========================================
+   Reactor Layer03
+   Back Ring
+   ========================================== */
+
+@import url("reactor/back-ring.css");
+
+
+/* ==========================================
+   Reactor Layer04
+   Support Frame
+   ========================================== */
+
+@import url("reactor/support.css");
+
+
+/* ==========================================
+   Reactor Layer05
+   Mechanical Frame
+   ========================================== */
+
+@import url("reactor/mechanical.css");
+
+
+/* ==========================================
+   Reactor Layer06
+   Rotation Rings
+   ========================================== */
+
+@import url("reactor/rings.css");
+
+/* ==========================================
+   Reactor Layer06
+   Energy
+   ========================================== */
+
+@import url("reactor/energy.css");
+
+
+/* ==========================================
+   Reactor Layer07
+   Core
+   ========================================== */
+
+@import url("reactor/core.css");
+
+
+/* ==========================================
+   Reactor Layer08
+   Front Frame
+   ========================================== */
+
+@import url("reactor/front.css");
+
+
+/* ==========================================
+   Reactor Layer09
+   HUD
+   ========================================== */
+
+@import url("reactor/hud.css");
+
+
+/* ==========================================
+   Reactor Layer10
+   Effects
+   ========================================== */
+
 @import url("reactor/effects.css");
+
+
+/* ==========================================
+   Animation
+   共通 → Reactor → HUD → Card
+   → Page → Mouse → Effects
+   ========================================== */
+
+@import url("animation/common.css");
+@import url("animation/reactor.css");
+@import url("animation/energy.css");
+@import url("animation/core.css");
+@import url("animation/front.css");
+@import url("animation/hud.css");
+@import url("animation/card.css");
+@import url("animation/page.css");
+@import url("animation/mouse.css");
+@import url("animation/effects.css");

@@ -1,0 +1,76 @@
+/* ==========================================================
+   layout.css
+   ----------------------------------------------------------
+   役割：
+   ・画面全体のレイアウト管理
+   ・reactor-bgを全画面表示
+   ・reactor-coreを画面中央へ配置
+   ・Flexによる中央寄せ
+   ・レスポンシブ対応
+
+   ※見た目（色・影・装飾）は管理しない
+   ========================================================== */
+
+
+/* ========================================
+   Body Layout
+======================================== */
+
+body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+/* ========================================
+   アークリアクター背景領域
+======================================== */
+
+.reactor-bg {
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 100vh;
+
+    overflow: hidden;
+
+    background-color: #000;
+}
+
+
+/* ========================================
+   アークリアクター本体
+======================================== */
+
+.reactor-core {
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: min(90vw, 900px);
+    aspect-ratio: 1 / 1;
+
+    flex-shrink: 0;
+
+    overflow: visible;
+}
+
+
+/* ========================================
+   レスポンシブ対応
+======================================== */
+
+@media (max-width: 768px) {
+
+    .reactor-core {
+        width: min(95vw, 600px);
+    }
+
+}

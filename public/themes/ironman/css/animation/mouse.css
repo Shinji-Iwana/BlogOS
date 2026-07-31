@@ -1,0 +1,97 @@
+/* ==========================================================
+   mouse.css
+   ----------------------------------------------------------
+   役割：
+   ・マウス関連アニメーションのみ管理
+   ・Glow
+   ・Follow
+
+   ※実際のマウス座標制御はJS管理
+   ※Reactorは管理しない
+   ※HUDは管理しない
+   ※Cardは管理しない
+   ※Pageは管理しない
+   ※Effectsは管理しない
+   ========================================================== */
+
+/* ========================================
+   Mouse Glow Keyframe
+======================================== */
+@keyframes mouse-glow-pulse {
+
+    0% {
+        opacity:
+            0.25;
+        filter:
+            brightness(1);
+    }
+
+    50% {
+        opacity:
+            0.8;
+        filter:
+            brightness(1.8);
+    }
+
+    100% {
+        opacity:
+            0.25;
+        filter:
+            brightness(1);
+    }
+
+}
+
+/* ========================================
+   Mouse Follow Keyframe
+======================================== */
+@keyframes mouse-follow-float {
+
+    0% {
+        transform:
+            translate(-50%, -50%)
+            translateY(0);
+    }
+
+    50% {
+        transform:
+            translate(-50%, -50%)
+            translateY(-10px);
+    }
+
+    100% {
+        transform:
+            translate(-50%, -50%)
+            translateY(0);
+    }
+
+}
+
+/* ========================================
+   Apply
+======================================== */
+/*
+    Mouse Glow
+*/
+.mouse-glow {
+
+    animation:
+        mouse-glow-pulse
+        3s
+        ease-in-out
+        infinite;
+
+}
+
+/*
+    Mouse Follow
+*/
+.mouse-follow {
+
+    animation:
+        mouse-follow-float
+        5s
+        ease-in-out
+        infinite;
+
+}

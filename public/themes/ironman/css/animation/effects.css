@@ -1,0 +1,306 @@
+/* ==========================================================
+   effects.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer10（Effects）のアニメーション管理
+   ・Particles
+   ・Sparks
+   ・Flashes
+
+   ※見た目はreactor/effects.css管理
+   ※Reactor本体は禁止
+   ※HUD禁止
+   ※Mouse禁止
+   ※Card禁止
+   ※Page禁止
+   ========================================================== */
+
+
+
+/* ========================================
+   Particles Animation
+======================================== */
+
+
+@keyframes particles-float {
+
+
+    0% {
+
+
+        transform:
+
+            translate(-50%, -50%)
+
+            translateY(0);
+
+
+
+    }
+
+
+    50% {
+
+
+        transform:
+
+            translate(-50%, -50%)
+
+            translateY(-15px);
+
+
+
+    }
+
+
+    100% {
+
+
+        transform:
+
+            translate(-50%, -50%)
+
+            translateY(0);
+
+
+
+    }
+
+}
+
+
+
+
+
+/* ========================================
+   Sparks Animation
+======================================== */
+
+
+@keyframes sparks-blink {
+
+
+    0% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+
+    45% {
+
+
+        opacity:
+
+            0.2;
+
+
+
+    }
+
+
+    50% {
+
+
+        opacity:
+
+            1;
+
+
+
+        filter:
+
+            brightness(2);
+
+
+
+    }
+
+
+    55% {
+
+
+        opacity:
+
+            0.2;
+
+
+
+    }
+
+
+    100% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+}
+
+
+
+
+
+/* ========================================
+   Flashes Animation
+======================================== */
+
+
+@keyframes flashes-pulse {
+
+
+    0% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+
+    45% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+
+    50% {
+
+
+        opacity:
+
+            0.7;
+
+
+
+        filter:
+
+            brightness(2);
+
+
+
+    }
+
+
+    55% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+
+    100% {
+
+
+        opacity:
+
+            0;
+
+
+
+    }
+
+}
+
+
+
+
+
+/* ========================================
+   Apply
+======================================== */
+
+
+/*
+    Particle浮遊
+*/
+
+.particles {
+
+
+    animation:
+
+
+        particles-float
+
+        8s
+
+        ease-in-out
+
+        infinite;
+
+
+
+}
+
+
+
+/*
+    Spark点滅
+*/
+
+.sparks {
+
+
+    animation:
+
+
+        sparks-blink
+
+        2.5s
+
+        ease-in-out
+
+        infinite;
+
+
+
+}
+
+
+
+/*
+    Flash発光
+*/
+
+.flashes {
+
+
+    animation:
+
+
+        flashes-pulse
+
+        4s
+
+        ease-in-out
+
+        infinite;
+
+
+
+}

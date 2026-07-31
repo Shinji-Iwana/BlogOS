@@ -1,0 +1,65 @@
+/* ==========================================================
+   background.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer01（Background）の背景のみ管理
+   ・background-gradient
+   ・background-vignette
+
+   ※Layer02以降は管理しない
+   ※発光・影・アニメーションは実装しない
+   ========================================================== */
+
+
+/* ========================================
+   Layer01 : Background
+======================================== */
+
+.layer-background {
+    overflow: hidden;
+}
+
+
+/* ========================================
+   Background Gradient
+======================================== */
+
+.background-gradient {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: radial-gradient(
+        circle at center,
+        #0a1635 0%,
+        #050b1c 35%,
+        #02050d 65%,
+        #000000 100%
+    );
+}
+
+
+/* ========================================
+   Background Vignette
+======================================== */
+
+.background-vignette {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: radial-gradient(
+        circle at center,
+        transparent 45%,
+        rgba(0, 0, 0, 0.18) 70%,
+        rgba(0, 0, 0, 0.45) 100%
+    );
+}

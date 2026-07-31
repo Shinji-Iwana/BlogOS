@@ -1,0 +1,194 @@
+/* ==========================================================
+   energy.css
+   ----------------------------------------------------------
+   役割：
+   ・Energy Lineの配置
+   ・Energy Lineの見た目
+
+   構造：
+
+   energy-lines
+        |
+        └── energy-rotate
+                |
+                └── energy-line
+
+
+   ※Animationはanimation/energy.css管理
+   ※Reactor本体は禁止
+   ※HUD禁止
+   ※Effects禁止
+   ========================================================== */
+
+
+/* ========================================
+   Energy Container
+======================================== */
+
+.energy-lines {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: visible;
+
+    pointer-events: none;
+
+}
+
+
+
+/* ========================================
+   Energy Rotate Layer
+======================================== */
+
+.energy-rotate {
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 100%;
+    height: 100%;
+
+    transform:
+
+        translate(-50%, -50%);
+
+}
+
+
+
+/* ========================================
+   Energy Line
+======================================== */
+
+.energy-line {
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+
+    width: 2px;
+
+
+    height:
+
+        var(--energy-length, 25%);
+
+
+
+    transform-origin:
+
+        center bottom;
+
+
+
+    transform:
+
+        translate(-50%, -100%)
+
+        rotate(var(--energy-angle,0deg));
+
+
+
+    border-radius: 999px;
+
+
+
+    background:
+
+        linear-gradient(
+
+            to top,
+
+            rgba(255,255,255,0),
+
+            rgba(120,220,255,.35),
+
+            rgba(180,240,255,.95),
+
+            rgba(255,255,255,0)
+
+        );
+
+
+
+    opacity:
+
+        var(--energy-opacity,.8);
+
+
+
+    box-shadow:
+
+        0 0 10px
+
+        rgba(
+
+            120,
+
+            220,
+
+            255,
+
+            var(--energy-brightness,.8)
+
+        );
+
+}
+
+/* ========================================
+   Energy Flow Effect
+======================================== */
+
+.energy-line {
+
+    overflow: hidden;
+
+}
+
+
+/* 光の芯 */
+
+.energy-line::before {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+
+    background:
+
+        linear-gradient(
+
+            to top,
+
+            transparent,
+
+            rgba(255,255,255,1),
+
+            transparent
+
+        );
+
+
+    opacity:
+
+        .8;
+
+
+    transform:
+
+        translateY(100%);
+
+}

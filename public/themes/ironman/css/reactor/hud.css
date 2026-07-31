@@ -1,0 +1,294 @@
+/* ==========================================================
+   hud.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer09（HUD）の見た目管理
+   ・HUD Grid
+   ・HUD Status
+   ・HUD Text
+
+   対象
+   ・hud-grid
+   ・hud-status
+   ・hud-text
+
+
+   ※Animationは禁止
+   ※Particle禁止
+   ※Effects禁止
+   ========================================================== */
+
+
+/* ========================================
+   Layer09 : HUD
+======================================== */
+
+
+.layer-hud {
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    overflow:hidden;
+
+}
+
+
+
+/* ========================================
+   HUD Grid
+======================================== */
+
+
+.hud-grid {
+
+
+    position:absolute;
+
+
+    top:50%;
+
+    left:50%;
+
+
+    width:90%;
+    height:90%;
+
+
+    transform:
+
+        translate(-50%,-50%);
+
+
+
+    background:
+
+
+        linear-gradient(
+
+            rgba(0,180,255,0.08)
+
+            1px,
+
+            transparent 1px
+
+        ),
+
+
+        linear-gradient(
+
+            90deg,
+
+            rgba(0,180,255,0.08)
+
+            1px,
+
+            transparent 1px
+
+        );
+
+
+    background-size:
+
+        40px 40px;
+
+
+
+    opacity:
+
+        0.35;
+
+
+}
+
+
+
+/* ========================================
+   HUD Status Panel
+======================================== */
+
+
+.hud-status {
+
+
+    position:absolute;
+
+
+    top:15%;
+
+    right:15%;
+
+
+    width:160px;
+
+    height:60px;
+
+
+
+    border:
+
+        1px solid
+
+        rgba(
+
+            0,
+
+            200,
+
+            255,
+
+            0.5
+
+        );
+
+
+
+    background:
+
+        rgba(
+
+            0,
+
+            20,
+
+            40,
+
+            0.35
+
+        );
+
+
+
+    box-shadow:
+
+
+        0 0 15px
+
+        rgba(
+
+            0,
+
+            180,
+
+            255,
+
+            0.4
+
+        );
+
+
+}
+
+
+
+/* ========================================
+   HUD Text
+======================================== */
+
+
+.hud-text {
+
+
+    position:absolute;
+
+
+    bottom:15%;
+
+    left:15%;
+
+
+
+    color:
+
+        rgba(
+
+            150,
+
+            230,
+
+            255,
+
+            0.9
+
+        );
+
+
+
+    font-size:
+
+        14px;
+
+
+
+    letter-spacing:
+
+        3px;
+
+
+
+    text-shadow:
+
+
+        0 0 8px
+
+        rgba(
+
+            0,
+
+            200,
+
+            255,
+
+            0.8
+
+        );
+
+
+}
+
+
+
+/* ========================================
+   HUD Decorative Lines
+======================================== */
+
+
+.hud-text::before {
+
+
+    content:"";
+
+
+    display:block;
+
+
+
+    width:120px;
+
+    height:2px;
+
+
+
+    margin-bottom:8px;
+
+
+
+    background:
+
+        rgba(
+
+            0,
+
+            200,
+
+            255,
+
+            0.7
+
+        );
+
+
+}

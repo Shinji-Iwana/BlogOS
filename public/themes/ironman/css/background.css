@@ -1,91 +1,19 @@
-/* ==========================================
-   Background
-========================================== */
+/* ==========================================================
+   background.css
+   ----------------------------------------------------------
+   役割：
+   ・アプリケーション全体の背景管理
+   ・画面全体の背景色のみ管理
+
+   ※アークリアクター固有の背景は
+     reactor/background.css で管理する
+   ========================================================== */
+
+
+/* ========================================
+   Page Background
+======================================== */
 
 .reactor-bg {
-
-    position: relative;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    background:
-        radial-gradient(
-            circle at center,
-            #0b1f38 0%,
-            #07111f 28%,
-            #03070d 65%,
-            #000000 100%
-        );
-
-}
-
-
-/* ==========================================
-   Vignette
-========================================== */
-
-.reactor-bg::before {
-
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    pointer-events: none;
-
-    background:
-        radial-gradient(
-            circle at center,
-            transparent 45%,
-            rgba(0,0,0,.18) 68%,
-            rgba(0,0,0,.45) 100%
-        );
-
-    z-index: 1;
-
-}
-
-
-/* ==========================================
-   Blue Glow
-========================================== */
-
-.reactor-bg::after {
-
-    content: "";
-
-    position: absolute;
-
-    left: 50%;
-    top: 50%;
-
-    width: 70vmin;
-    height: 70vmin;
-
-    translate: -50% -50%;
-
-    border-radius: 50%;
-
-    pointer-events: none;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(0,190,255,.18) 0%,
-            rgba(0,160,255,.10) 30%,
-            rgba(0,120,255,.05) 55%,
-            transparent 100%
-        );
-
-    filter: blur(50px);
-
-    z-index: 2;
-
+    background-color: #000;
 }

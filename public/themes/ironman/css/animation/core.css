@@ -1,0 +1,325 @@
+/* ==========================================================
+   core.css
+   ----------------------------------------------------------
+   役割：
+   ・Layer07 Core Animation管理
+   ・Core Pulse
+   ・Core Glow
+   ・Core Energy Breathing
+
+   対象：
+   ・core-shadow
+   ・core-glow
+   ・core-light
+   ・core-center
+
+
+   ※見た目はreactor/core.css管理
+   ※HUD禁止
+   ※Effects禁止
+   ========================================================== */
+
+
+
+/* ========================================
+   Core Shadow Pulse
+======================================== */
+
+
+@keyframes coreShadowPulse {
+
+
+    0% {
+
+        opacity:0.45;
+
+    }
+
+
+    50% {
+
+        opacity:0.85;
+
+    }
+
+
+    100% {
+
+        opacity:0.45;
+
+    }
+
+}
+
+
+
+/* ========================================
+   Core Glow Pulse
+======================================== */
+
+
+@keyframes coreGlowPulse {
+
+
+    0% {
+
+
+        opacity:0.65;
+
+
+        filter:
+
+            brightness(1);
+
+
+    }
+
+
+
+    50% {
+
+
+        opacity:1;
+
+
+        filter:
+
+            brightness(1.8);
+
+
+    }
+
+
+
+    100% {
+
+
+        opacity:0.65;
+
+
+        filter:
+
+            brightness(1);
+
+
+    }
+
+}
+
+
+
+/* ========================================
+   Core Light Pulse
+======================================== */
+
+
+@keyframes coreLightPulse {
+
+
+    0% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(0.95);
+
+
+
+        opacity:0.75;
+
+
+    }
+
+
+
+    50% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(1.08);
+
+
+
+        opacity:1;
+
+
+    }
+
+
+
+    100% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(0.95);
+
+
+
+        opacity:0.75;
+
+
+    }
+
+}
+
+
+
+/* ========================================
+   Core Center Pulse
+======================================== */
+
+
+@keyframes coreCenterPulse {
+
+
+    0% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(0.9);
+
+
+
+        filter:
+
+            brightness(1.2);
+
+
+    }
+
+
+
+    50% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(1.15);
+
+
+
+        filter:
+
+            brightness(2.2);
+
+
+    }
+
+
+
+    100% {
+
+
+        transform:
+
+            translate(-50%,-50%)
+
+            scale(0.9);
+
+
+
+        filter:
+
+            brightness(1.2);
+
+
+    }
+
+}
+
+
+
+/* ========================================
+   Apply Animation
+======================================== */
+
+
+
+.core-shadow {
+
+
+    animation:
+
+        coreShadowPulse
+
+        3s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+
+.core-glow {
+
+
+    animation:
+
+
+        coreGlowPulse
+
+        2.4s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+
+.core-light {
+
+
+    animation:
+
+
+        coreLightPulse
+
+        1.8s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+
+.core-center {
+
+
+    animation:
+
+
+        coreCenterPulse
+
+        1.2s
+
+        ease-in-out
+
+        infinite;
+
+
+}

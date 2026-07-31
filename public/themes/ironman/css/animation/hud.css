@@ -1,0 +1,256 @@
+/* ==========================================================
+   hud.css
+   ----------------------------------------------------------
+   役割：
+   ・HUD専用Animation
+   ・Layer09のみ管理
+
+   対象
+   ・HUD Grid
+   ・HUD Status
+   ・HUD Text
+
+   ※見た目はreactor/hud.css管理
+   ※Particle禁止
+   ※Effects禁止
+   ========================================================== */
+
+
+/* ========================================
+   HUD Grid Animation
+======================================== */
+
+
+@keyframes hudGridPulse {
+
+
+    0% {
+
+        opacity:
+
+            0.25;
+
+    }
+
+
+    50% {
+
+        opacity:
+
+            0.5;
+
+    }
+
+
+    100% {
+
+        opacity:
+
+            0.25;
+
+    }
+
+}
+
+
+
+/* ========================================
+   HUD Status Animation
+======================================== */
+
+
+@keyframes hudStatusBlink {
+
+
+    0% {
+
+
+        opacity:
+
+            1;
+
+
+    }
+
+
+    50% {
+
+
+        opacity:
+
+            0.45;
+
+
+    }
+
+
+    100% {
+
+
+        opacity:
+
+            1;
+
+
+    }
+
+}
+
+
+
+/* ========================================
+   HUD Text Animation
+======================================== */
+
+
+@keyframes hudTextFlicker {
+
+
+    0% {
+
+
+        opacity:
+
+            1;
+
+
+        filter:
+
+            brightness(1);
+
+
+
+    }
+
+
+    45% {
+
+
+        opacity:
+
+            0.85;
+
+
+    }
+
+
+    50% {
+
+
+        opacity:
+
+            0.6;
+
+
+        filter:
+
+            brightness(1.5);
+
+
+
+    }
+
+
+    55% {
+
+
+        opacity:
+
+            0.9;
+
+
+
+    }
+
+
+    100% {
+
+
+        opacity:
+
+            1;
+
+
+        filter:
+
+            brightness(1);
+
+
+
+    }
+
+}
+
+
+
+/* ========================================
+   Apply
+======================================== */
+
+
+/*
+    HUD Grid
+*/
+
+.hud-grid {
+
+
+    animation:
+
+
+        hudGridPulse
+
+        6s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+/*
+    HUD Status
+*/
+
+.hud-status {
+
+
+    animation:
+
+
+        hudStatusBlink
+
+        2s
+
+        ease-in-out
+
+        infinite;
+
+
+}
+
+
+
+/*
+    HUD Text
+*/
+
+.hud-text {
+
+
+    animation:
+
+
+        hudTextFlicker
+
+        4s
+
+        ease-in-out
+
+        infinite;
+
+
+}
