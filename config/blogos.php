@@ -2,6 +2,7 @@
 
 return [
 
-    'theme'=>'ironman',
+    'theme'=>'blank',
+    //'theme'=>'ironman',
 
 ];
