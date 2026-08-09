@@ -2,82 +2,81 @@
    energy.css
    ----------------------------------------------------------
    役割：
-   ・Energy Line Animation
-   ・Energy Pulse
-   ・Energy Flash
+   ・Energy Line専用のAnimationを管理する
+   ・Arc Reactor周辺を流れるEnergy Lineの
+     Pulse / Flash / Flowを制御する
 
-   対象
-   ・energy-lines
+   管理対象：
    ・energy-line
+     → Energy Lineの発光強弱
 
-   ※Reactor本体は禁止
-   ※HUD禁止
-   ※Effects禁止
+   ・energy-line::before
+     → Energyの流動表現
+
+   ・energy-lines
+     → Energy Line Animationの管理対象コンテナ
+
+   責務：
+   ・Energy専用Keyframesの定義
+   ・Energy LineへのAnimation適用
+
+   他ファイルとの責務分離：
+
+   ・reactor/energy.css
+     → Energy Lineの配置・形状・色・発光など、
+       基本的な見た目を管理
+
+   ・animation/common.css
+     → 複数のUI・演出で再利用可能な
+       汎用Keyframes / Animation Utilityを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動する
+       Animationを管理
+
+   ・animation/effects.css
+     → Particles / Sparks / Flashesなど、
+       Layer10 Effects専用のAnimationを管理
+
+   禁止領域：
+   ・Reactor本体専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Card専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・Effects専用Animationは禁止
+   ・Energy Lineの基本的な見た目・配置の定義は禁止
+
+   設計方針：
+   ・Energy Lineだけを担当する
+   ・Energy固有のAnimationはこのファイルへ集約する
+   ・複数領域で再利用できるAnimationは
+     animation/common.cssで管理する
+   ・Energyの見た目とAnimationを分離する
+
    ========================================================== */
 
 
 /* ========================================
-   Energy Container
-======================================== */
+   Energy Pulse
+   ------------------------------------------------
+   目的：
+   ・Energy Lineの発光強度を周期的に変化させる
 
-.energy-lines {
+   発火条件 / 実行条件：
+   ・.energy-line にAnimationが適用された時
 
-    position: absolute;
+   処理：
+   ・opacityによってEnergy Lineの透明度を変化させる
+   ・filter: brightness()によって
+     発光強度を変化させる
 
-    inset: 0;
+   管理対象：
+   ・Energy Lineの明暗
+   ・Energy Lineの発光強度
 
-    overflow: visible;
-
-    pointer-events: none;
-
-}
-
-
-/* ========================================
-   Energy Line
-======================================== */
-
-.energy-line {
-
-    position: absolute;
-
-    top: 50%;
-    left: 50%;
-
-    width: 2px;
-    height: 28%;
-
-    transform-origin:
-        center bottom;
-
-    background:
-
-        linear-gradient(
-
-            to top,
-
-            rgba(255,255,255,0),
-
-            rgba(120,220,255,.35),
-
-            rgba(180,240,255,.95),
-
-            rgba(255,255,255,0)
-
-        );
-
-    border-radius: 999px;
-
-    box-shadow:
-
-        0 0 8px rgba(120,220,255,.8);
-
-}
-
-
-/* ========================================
-   Keyframes
-======================================== */
+   ======================================== */
 
 @keyframes energyPulse {
 
@@ -85,7 +84,8 @@
 
         opacity: .2;
 
-        filter: brightness(.8);
+        filter:
+            brightness(.8);
 
     }
 
@@ -93,7 +93,8 @@
 
         opacity: 1;
 
-        filter: brightness(1.8);
+        filter:
+            brightness(1.8);
 
     }
 
@@ -101,12 +102,32 @@
 
         opacity: .2;
 
-        filter: brightness(.8);
+        filter:
+            brightness(.8);
 
     }
 
 }
 
+
+/* ========================================
+   Energy Flash
+   ------------------------------------------------
+   目的：
+   ・Energy Lineを瞬間的に強く発光させ、
+     エネルギーが弾けるような表現を作る
+
+   発火条件 / 実行条件：
+   ・.energy-line にAnimationが適用された時
+
+   処理：
+   ・短時間だけopacityを大きく上昇させる
+
+   管理対象：
+   ・瞬間的なEnergy発光
+   ・Energy Flash
+
+   ======================================== */
 
 @keyframes energyFlash {
 
@@ -144,49 +165,48 @@
 
 
 /* ========================================
-   Animation
-======================================== */
-
-.energy-line {
-
-    animation:
-
-        energyPulse 2.5s ease-in-out infinite,
-
-        energyFlash 5s linear infinite;
-
-}
-
-/* ========================================
    Energy Flow
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Energy Line内部に流れるような動きを与える
 
+   発火条件 / 実行条件：
+   ・.energy-line::before にAnimationが適用された時
+
+   処理：
+   ・translateY()によってEnergyを
+     上下方向へ移動させる
+
+   管理対象：
+   ・Energyの流動
+   ・Energyの移動方向
+
+   補足：
+   ・Animation時間は
+     --energy-duration CSS変数から取得する
+   ・変数が存在しない場合は2.5秒を使用する
+
+   ======================================== */
 
 @keyframes energyFlow {
-
 
     0% {
 
         transform:
-
             translateY(100%);
 
     }
 
-
     50% {
 
         transform:
-
             translateY(0%);
 
     }
 
-
     100% {
 
         transform:
-
             translateY(-100%);
 
     }
@@ -194,24 +214,55 @@
 }
 
 
-
 /* ========================================
-   Apply
-======================================== */
+   Apply Animation
+   ------------------------------------------------
+   役割：
+   ・Energy Lineへ専用Animationを適用する
 
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここではEnergy Lineと
+     Animationの対応関係だけを管理する
+
+   ======================================== */
+
+
+/* ----------------------------------------
+   Energy Line
+---------------------------------------- */
+
+.energy-line {
+
+    animation:
+
+        energyPulse
+        2.5s
+        ease-in-out
+        infinite,
+
+        energyFlash
+        5s
+        linear
+        infinite;
+
+}
+
+
+/* ----------------------------------------
+   Energy Flow
+---------------------------------------- */
 
 .energy-line::before {
-
 
     animation:
 
         energyFlow
 
-        var(--energy-duration,2.5s)
+        var(--energy-duration, 2.5s)
 
         linear
 
         infinite;
-
 
 }

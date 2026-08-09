@@ -2,324 +2,344 @@
    core.css
    ----------------------------------------------------------
    役割：
-   ・Layer07 Core Animation管理
-   ・Core Pulse
-   ・Core Glow
-   ・Core Energy Breathing
+   ・Layer07（Core）専用のAnimationを管理する
+   ・Arc Reactor Coreの各発光要素に対する
+     Pulse / Glow / Energy変化を制御する
 
-   対象：
+   管理対象：
    ・core-shadow
+     → Core外周ShadowのPulse
+
    ・core-glow
+     → Core発光のPulse
+
    ・core-light
+     → Core Lightの拡縮・発光Pulse
+
    ・core-center
+     → Core中央部の拡縮・発光Pulse
 
+   責務：
+   ・Core専用Keyframesの定義
+   ・Core各パーツへのAnimation適用
 
-   ※見た目はreactor/core.css管理
-   ※HUD禁止
-   ※Effects禁止
+   他ファイルとの責務分離：
+
+   ・reactor/core.css
+     → Coreの形状・配置・色・発光などの基本的な見た目を管理
+
+   ・animation/common.css
+     → 複数のUI・演出で再利用可能な
+       汎用Keyframes / Animation Utilityを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動するAnimationを管理
+
+   ・animation/energy.css
+     → Energy表現そのものに関するAnimationを管理
+
+   禁止領域：
+   ・Core以外のReactorパーツの専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・汎用Animationの定義は禁止
+   ・Coreの基本的な見た目・配置の定義は禁止
+
+   設計方針：
+   ・このファイルはLayer07 Coreだけを担当する
+   ・Core各パーツのAnimationを独立して管理する
+   ・Core専用のAnimationは、このファイルへ集約する
+   ・複数領域で再利用可能なAnimationは
+     animation/common.cssで管理する
+   ・Coreの見た目とAnimationを分離する
+
    ========================================================== */
-
 
 
 /* ========================================
    Core Shadow Pulse
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Core外周Shadowの強弱を周期的に変化させる
 
+   発火条件 / 実行条件：
+   ・.core-shadow にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させ、
+     Core Shadowの存在感を周期的に変化させる
+
+   管理対象：
+   ・Core Shadowの明暗
+   ・Core周辺のPulse表現
+
+   ======================================== */
 
 @keyframes coreShadowPulse {
 
-
     0% {
 
-        opacity:0.45;
+        opacity: 0.45;
 
     }
-
 
     50% {
 
-        opacity:0.85;
+        opacity: 0.85;
 
     }
 
-
     100% {
 
-        opacity:0.45;
+        opacity: 0.45;
 
     }
 
 }
-
 
 
 /* ========================================
    Core Glow Pulse
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Core Glowの発光量を周期的に変化させる
 
+   発火条件 / 実行条件：
+   ・.core-glow にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させる
+   ・filter: brightness() を変化させる
+
+   管理対象：
+   ・Core Glowの発光強度
+   ・Core周辺の光量変化
+
+   ======================================== */
 
 @keyframes coreGlowPulse {
 
-
     0% {
 
-
-        opacity:0.65;
-
+        opacity: 0.65;
 
         filter:
-
             brightness(1);
 
-
     }
-
-
 
     50% {
 
-
-        opacity:1;
-
+        opacity: 1;
 
         filter:
-
             brightness(1.8);
-
 
     }
 
-
-
     100% {
 
-
-        opacity:0.65;
-
+        opacity: 0.65;
 
         filter:
-
             brightness(1);
-
 
     }
 
 }
-
 
 
 /* ========================================
    Core Light Pulse
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Core Lightのサイズと発光量を
+     周期的に変化させる
 
+   発火条件 / 実行条件：
+   ・.core-light にAnimationが適用された時
+
+   処理：
+   ・scale()によってCore Lightを拡縮する
+   ・opacityによって光量を変化させる
+   ・translate(-50%, -50%)によって
+     中心位置を維持する
+
+   管理対象：
+   ・Core Lightの拡縮
+   ・Core Lightの明暗
+   ・中心位置の維持
+
+   ======================================== */
 
 @keyframes coreLightPulse {
 
-
     0% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(0.95);
 
-
-
-        opacity:0.75;
-
+        opacity: 0.75;
 
     }
-
-
 
     50% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(1.08);
 
-
-
-        opacity:1;
-
+        opacity: 1;
 
     }
 
-
-
     100% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(0.95);
 
-
-
-        opacity:0.75;
-
+        opacity: 0.75;
 
     }
 
 }
-
 
 
 /* ========================================
    Core Center Pulse
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Core中央部のサイズと発光量を
+     周期的に変化させる
 
+   発火条件 / 実行条件：
+   ・.core-center にAnimationが適用された時
+
+   処理：
+   ・scale()によってCore中央部を拡縮する
+   ・filter: brightness() によって
+     発光強度を変化させる
+   ・translate(-50%, -50%)によって
+     中心位置を維持する
+
+   管理対象：
+   ・Core中央部の拡縮
+   ・Core中央部の発光強度
+   ・中心位置の維持
+
+   ======================================== */
 
 @keyframes coreCenterPulse {
 
-
     0% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(0.9);
 
-
-
         filter:
-
             brightness(1.2);
 
-
     }
-
-
 
     50% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(1.15);
 
-
-
         filter:
-
             brightness(2.2);
-
 
     }
 
-
-
     100% {
 
-
         transform:
-
-            translate(-50%,-50%)
-
+            translate(-50%, -50%)
             scale(0.9);
 
-
-
         filter:
-
             brightness(1.2);
-
 
     }
 
 }
-
 
 
 /* ========================================
    Apply Animation
-======================================== */
+   ------------------------------------------------
+   役割：
+   ・Core各パーツへ専用Animationを適用する
+
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここでは各Coreパーツと
+     Animationの対応関係だけを管理する
+
+   ======================================== */
 
 
+/* ----------------------------------------
+   Core Shadow
+---------------------------------------- */
 
 .core-shadow {
 
-
     animation:
-
         coreShadowPulse
-
         3s
-
         ease-in-out
-
         infinite;
-
 
 }
 
 
-
+/* ----------------------------------------
+   Core Glow
+---------------------------------------- */
 
 .core-glow {
 
-
     animation:
-
-
         coreGlowPulse
-
         2.4s
-
         ease-in-out
-
         infinite;
-
 
 }
 
 
-
+/* ----------------------------------------
+   Core Light
+---------------------------------------- */
 
 .core-light {
 
-
     animation:
-
-
         coreLightPulse
-
         1.8s
-
         ease-in-out
-
         infinite;
-
 
 }
 
 
-
+/* ----------------------------------------
+   Core Center
+---------------------------------------- */
 
 .core-center {
 
-
     animation:
-
-
         coreCenterPulse
-
         1.2s
-
         ease-in-out
-
         infinite;
-
 
 }

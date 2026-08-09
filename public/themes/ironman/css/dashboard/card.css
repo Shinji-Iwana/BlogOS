@@ -2,8 +2,8 @@
    card.css
    ----------------------------------------------------------
    役割：
-   ・BlogOS Ironman Theme における Card UI 専用Animation管理
-   ・カード単体のユーザー操作による状態変化を制御する
+   ・BlogOS Ironman Theme における Card UI の状態表現を管理
+   ・カード単体に対するユーザー操作時の視覚的な反応を制御する
 
    管理対象：
    ・Hover
@@ -16,30 +16,35 @@
      → クリック押下中の一時的な反応
 
    設計方針：
-   ・Card自身の動きのみを担当する
-   ・背景演出、Arc Reactor演出、HUD演出など
-     Theme全体に影響するAnimationは管理しない
+   ・Cardコンポーネント単体の状態変化のみを担当する
+   ・Cardの基本レイアウトや通常時の見た目は管理しない
+   ・Card固有のユーザー操作に対する視覚的フィードバックを管理する
+   ・実際のAnimation処理は、対応するAnimation定義と連携して使用する
 
    禁止領域：
-   ・Reactor系Animation
-     → reactor.css / reactor-animation系で管理
+   ・Reactor全体の見た目・Animation
+     → reactor/ 配下および animation/ 配下で管理
 
-   ・HUD系Animation
-     → hud.cssで管理
+   ・HUD全体の見た目・Animation
+     → reactor/hud.css および animation/hud.css で管理
 
-   ・汎用Effect系Animation
-     → effects.cssで管理
+   ・Theme全体に影響する汎用Effect
+     → reactor/effects/ 配下および対応するAnimationファイルで管理
+
+   ・Cardの基本レイアウト・形状・通常時のデザイン
+     → Dashboard UI側の基本スタイルとして管理
 
    注意：
-   このファイルは「Cardコンポーネントの操作感」を
-   担当するAnimationレイヤーであり、
-   レイアウトや見た目の基本デザインは管理しない。
+   ・本ファイルは dashboard/ 配下に配置し、
+     「Card UI」というコンポーネント単位で管理する。
+   ・Animationの発火条件や状態変化をCard側で定義し、
+     キーフレームそのものの定義はAnimation側の責務とする。
 
    ========================================================== */
 
 
 /* ========================================
-   Card Hover Animation
+   Card Hover
    ------------------------------------------------
    目的：
    ・ユーザーがカード上にマウスカーソルを
@@ -61,13 +66,14 @@
 
    ================================================== */
 
+
 .card:hover {
     animation: cardHover 220ms ease forwards;
 }
 
 
 /* ========================================
-   Card Focus Animation
+   Card Focus
    ------------------------------------------------
    目的：
    ・キーボード操作やアクセシビリティ操作時に
@@ -88,6 +94,7 @@
 
    ================================================== */
 
+
 .card:focus,
 .card:focus-visible {
     animation: cardFocus 180ms ease forwards;
@@ -95,7 +102,7 @@
 
 
 /* ========================================
-   Card Active Animation
+   Card Active
    ------------------------------------------------
    目的：
    ・カードをクリックしている瞬間の
@@ -116,6 +123,7 @@
    ・押下フィードバックを出す
 
    ================================================== */
+
 
 .card:active {
     animation: cardActive 120ms ease forwards;

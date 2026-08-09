@@ -2,96 +2,254 @@
    mouse.css
    ----------------------------------------------------------
    役割：
-   ・マウス関連アニメーションのみ管理
-   ・Glow
-   ・Follow
+   ・マウス操作に関連するAnimationのみを管理する
+   ・Mouse GlowのPulse Animationを管理する
+   ・Mouse FollowのFloat Animationを管理する
 
-   ※実際のマウス座標制御はJS管理
-   ※Reactorは管理しない
-   ※HUDは管理しない
-   ※Cardは管理しない
-   ※Pageは管理しない
-   ※Effectsは管理しない
+   管理対象：
+   ・mouse-glow
+     → マウス位置に表示されるGlowの明滅
+
+   ・mouse-follow
+     → マウス操作に連動する要素の微細な浮遊
+
+   責務：
+   ・マウス関連AnimationのKeyframes定義
+   ・マウス関連要素へのAnimation適用
+
+   JavaScriptとの責務分離：
+
+   ・JavaScript
+     → 実際のマウス座標取得
+     → マウス移動量の取得
+     → マウス位置に応じた座標更新
+     → CSS変数などへの値反映
+
+   ・animation/mouse.css
+     → マウス関連のAnimationによる
+       時間的な動き・発光変化を管理する
+
+   ・reactor / effects側CSS
+     → Mouse Glowなどの形状・配置・
+       色・基本的な見た目を管理する
+
+   他ファイルとの責務分離：
+
+   ・animation/common.css
+     → 複数UIで再利用可能な汎用Animationを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動する
+       Animationを管理
+
+   ・animation/hud.css
+     → HUD専用Animationを管理
+
+   ・animation/effects.css
+     → Particles / Sparks / Flashesなど、
+       Effects専用Animationを管理
+
+   ・animation/dashboard.css
+     → Dashboard UI専用Animationを管理
+
+   ・animation/page.css
+     → Page遷移・表示など、
+       Page専用Animationを管理
+
+   禁止領域：
+   ・マウス座標計算は禁止
+   ・マウスイベント処理は禁止
+   ・JavaScript処理は禁止
+   ・Reactor固有Animationは禁止
+   ・HUD固有Animationは禁止
+   ・Card固有Animationは禁止
+   ・Page固有Animationは禁止
+   ・Dashboard固有Animationは禁止
+   ・Effects固有Animationは禁止
+   ・汎用Animationの定義は禁止
+
+   設計方針：
+   ・マウス操作に直接関係するAnimationのみを管理する
+   ・マウス位置そのものはJavaScriptに任せる
+   ・Animationと座標制御を分離する
+   ・他のUIでも利用できる汎用Animationは
+     animation/common.cssで管理する
+
    ========================================================== */
+
 
 /* ========================================
    Mouse Glow Keyframe
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・マウス位置に追従するGlowに対して
+     周期的な明滅を与える
+
+   発火条件 / 実行条件：
+   ・.mouse-glow にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させる
+   ・filter: brightness() を変化させる
+
+   管理対象：
+   ・Glowの明暗
+   ・Glowの発光強度
+   ・マウス位置に表示される光のPulse
+
+   注意：
+   ・マウス座標そのものは管理しない
+   ・マウス位置の変更はJavaScript側で行う
+
+   ======================================== */
+
 @keyframes mouse-glow-pulse {
 
     0% {
+
         opacity:
             0.25;
+
         filter:
             brightness(1);
+
     }
 
     50% {
+
         opacity:
             0.8;
+
         filter:
             brightness(1.8);
+
     }
 
     100% {
+
         opacity:
             0.25;
+
         filter:
             brightness(1);
+
     }
 
 }
+
 
 /* ========================================
    Mouse Follow Keyframe
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・マウス操作に関連する要素へ
+     微細な浮遊感を与える
+
+   発火条件 / 実行条件：
+   ・.mouse-follow にAnimationが適用された時
+
+   処理：
+   ・translateY()によって
+     要素を上下に微細移動させる
+
+   管理対象：
+   ・Mouse Follow対象の浮遊
+   ・微細な上下運動
+
+   注意：
+   ・マウス座標そのものは管理しない
+   ・実際のマウス追従位置はJavaScript側で制御する
+
+   ======================================== */
+
 @keyframes mouse-follow-float {
 
     0% {
+
         transform:
+
             translate(-50%, -50%)
+
             translateY(0);
+
     }
 
     50% {
+
         transform:
+
             translate(-50%, -50%)
+
             translateY(-10px);
+
     }
 
     100% {
+
         transform:
+
             translate(-50%, -50%)
+
             translateY(0);
+
     }
 
 }
 
+
 /* ========================================
-   Apply
-======================================== */
-/*
-    Mouse Glow
-*/
+   Apply Animation
+   ------------------------------------------------
+   役割：
+   ・マウス関連要素へ専用Animationを適用する
+
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここでは各要素とAnimationの
+     対応関係だけを管理する
+
+   ======================================== */
+
+
+/* ----------------------------------------
+   Mouse Glow
+   ------------------------------------------------
+   ・マウス位置に表示されるGlowを
+     周期的に明滅させる
+---------------------------------------- */
+
 .mouse-glow {
 
     animation:
+
         mouse-glow-pulse
+
         3s
+
         ease-in-out
+
         infinite;
 
 }
 
-/*
-    Mouse Follow
-*/
+
+/* ----------------------------------------
+   Mouse Follow
+   ------------------------------------------------
+   ・マウス操作に関連する要素へ
+     微細な浮遊Animationを適用する
+---------------------------------------- */
+
 .mouse-follow {
 
     animation:
+
         mouse-follow-float
+
         5s
+
         ease-in-out
+
         infinite;
 
 }

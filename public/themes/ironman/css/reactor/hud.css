@@ -23,7 +23,6 @@
    Layer09 : HUD
 ======================================== */
 
-
 .layer-hud {
 
     position:absolute;
@@ -36,71 +35,47 @@
 
 }
 
-
-
 /* ========================================
    HUD Grid
 ======================================== */
 
-
 .hud-grid {
 
-
     position:absolute;
-
 
     top:50%;
 
     left:50%;
 
-
     width:90%;
     height:90%;
-
 
     transform:
 
         translate(-50%,-50%);
 
-
-
     background:
 
-
         linear-gradient(
-
             rgba(0,180,255,0.08)
-
             1px,
-
             transparent 1px
-
         ),
 
 
         linear-gradient(
-
             90deg,
-
             rgba(0,180,255,0.08)
-
             1px,
-
             transparent 1px
-
         );
 
 
     background-size:
-
         40px 40px;
 
-
-
     opacity:
-
         0.35;
-
 
 }
 
@@ -112,10 +87,7 @@
 
 
 .hud-status {
-
-
     position:absolute;
-
 
     top:15%;
 

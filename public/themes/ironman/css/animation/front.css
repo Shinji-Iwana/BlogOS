@@ -2,54 +2,106 @@
    front.css
    ----------------------------------------------------------
    役割：
-   ・Layer08 Front Animation管理
-   ・Glass Reflection
-   ・Frame Glow
-   ・Surface Shine
+   ・Layer08（Front）専用のAnimationを管理する
+   ・Arc Reactor前面部のGlass / Frameに対する
+     呼吸・発光などのAnimationを制御する
 
-   対象：
+   管理対象：
    ・glass
+     → ガラス表面の透明度変化
+
    ・frame
-   ・reflections::before
+     → 金属フレームの発光強度変化
 
+   責務：
+   ・Layer08専用Keyframesの定義
+   ・Front各パーツへのAnimation適用
 
-   ※見た目はreactor/front.css管理
-   ※HUD禁止
-   ※Effects禁止
+   他ファイルとの責務分離：
+
+   ・reactor/front.css
+     → Layer08 Frontの形状・配置・色・
+       ガラス表現など、基本的な見た目を管理
+
+   ・animation/common.css
+     → 複数のUI・演出で再利用可能な
+       汎用Keyframes / Animation Utilityを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動する
+       Animationを管理
+
+   ・animation/effects.css
+     → Particles / Sparks / Flashesなど、
+       Layer10 Effects専用のAnimationを管理
+
+   禁止領域：
+   ・Reactor本体専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Card専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・Effects専用Animationは禁止
+   ・Frontの基本的な見た目・配置の定義は禁止
+
+   設計方針：
+   ・Layer08 Frontだけを担当する
+   ・Front固有のAnimationはこのファイルへ集約する
+   ・複数領域で再利用できるAnimationは
+     animation/common.cssで管理する
+   ・Frontの見た目とAnimationを分離する
+
+   注意：
+   ・表面反射の移動Animation
+     reflectionMove は現在使用しない
+   ・以前の実装で反射表現が画面上を移動する
+     問題が発生したため、Animation適用を行わない
+   ・反射表現そのものの見た目は
+     reactor/front.css側で管理する
+
    ========================================================== */
-
 
 
 /* ========================================
    Glass Breathing
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Glassの透明度を周期的に変化させ、
+     ガラス表面がゆっくり呼吸するような
+     表現を作る
 
+   発火条件 / 実行条件：
+   ・.glass にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させる
+
+   管理対象：
+   ・Glassの透明度
+   ・Glass表面の呼吸表現
+
+   ======================================== */
 
 @keyframes glassBreath {
-
 
     0% {
 
         opacity:
-
             0.35;
 
     }
 
-
     50% {
 
         opacity:
-
             0.75;
 
     }
 
-
     100% {
 
         opacity:
-
             0.35;
 
     }
@@ -57,71 +109,74 @@
 }
 
 
-
 /* ========================================
    Frame Glow
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・金属フレームの発光強度を周期的に変化させ、
+     Reactorの稼働感を表現する
 
+   発火条件 / 実行条件：
+   ・.frame にAnimationが適用された時
+
+   処理：
+   ・filter: brightness() を変化させる
+
+   管理対象：
+   ・Frameの明るさ
+   ・Frame Glowの強弱
+
+   ======================================== */
 
 @keyframes frameGlow {
 
-
     0% {
 
-
         filter:
-
             brightness(1);
 
-
-
     }
-
 
     50% {
 
-
         filter:
-
             brightness(1.35);
-
-
 
     }
 
-
     100% {
 
-
         filter:
-
             brightness(1);
-
-
 
     }
 
 }
 
 
-
-
-
-
 /* ========================================
-   Apply
-======================================== */
+   Apply Animation
+   ------------------------------------------------
+   役割：
+   ・Front各パーツへ専用Animationを適用する
+
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここでは各Frontパーツと
+     Animationの対応関係だけを管理する
+
+   ======================================== */
 
 
-/*
-    ガラス全体の呼吸
-*/
+/* ----------------------------------------
+   Glass
+   ----------------------------------------
+   ガラス全体の呼吸
+---------------------------------------- */
 
 .glass {
 
-
     animation:
-
 
         glassBreath
 
@@ -131,20 +186,18 @@
 
         infinite;
 
-
 }
 
 
-
-/*
-    金属フレーム発光
-*/
+/* ----------------------------------------
+   Frame
+   ----------------------------------------
+   金属フレーム発光
+---------------------------------------- */
 
 .frame {
 
-
     animation:
-
 
         frameGlow
 
@@ -154,35 +207,16 @@
 
         infinite;
 
-
 }
 
 
+/* ----------------------------------------
+   Reflection
+   ----------------------------------------
+   表面反射の移動Animationは使用しない
 
-/*
-    表面反射移動
-
-    front.cssで作った
-
-    .reflections::before
-
-    を動かす
-
-*/
-
-.reflections::before {
-
-
-    animation:
-
-
-        reflectionMove
-
-        8s
-
-        linear
-
-        infinite;
-
-
-}
+   理由：
+   ・reflectionMoveによって反射が画面上を
+     移動する実装は現在の設計では採用しない
+   ・反射の見た目自体はreactor/front.cssで管理する
+---------------------------------------- */

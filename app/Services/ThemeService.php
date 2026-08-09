@@ -21,6 +21,14 @@ class ThemeService
     }
 
     /**
+     * jsファイルのパスを取得
+     */
+    public static function js()
+    {
+        return "/themes/" . self::current() . "/js/script.js";
+    }
+
+    /**
      * indexファイルのパスを取得
      */
     public static function index()

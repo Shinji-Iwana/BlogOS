@@ -1,20 +1,20 @@
 /* ==========================================================
-
    common.css
-
    ----------------------------------------------------------
-
    役割：
-   ・BlogOS Ironman Theme における Animation共通基盤を管理する
-   ・複数コンポーネントで利用可能な汎用Keyframesを定義する
+   ・BlogOS Ironman Theme における Animation 共通基盤を管理する
+   ・複数のUI・演出から再利用可能な汎用Keyframesを定義する
    ・Animation Utility Classを提供し、
-     Animationの速度、タイミング、繰り返し、状態制御を共通化する
+     Animationの制御値を共通化する
 
-   このファイルの担当範囲：
-   ・どのコンポーネントでも利用可能な汎用Animationのみ管理する
-   ・回転、点滅、発光、拡大縮小など、
-     UI全体で再利用できる基本Animationを管理する
-   ・CSS Animationの制御パラメータをUtility Class化する
+   このファイルの責務：
+   ・特定のUIやコンポーネントに依存しない
+     汎用Animationのみを管理する
+   ・回転、Pulse、Fade、Glow、Scaleなど、
+     複数領域で再利用可能な基本Animationを管理する
+   ・Animationの速度、タイミング、繰り返し、
+     再生方向、遅延、再生状態などの制御値を
+     Utility Classとして共通化する
 
    管理対象：
    ・Common Keyframes
@@ -33,86 +33,110 @@
      → Delay
      → Play State
 
+   他のAnimationファイルとの責務分離：
 
-   他ファイルとの責務分離：
+   ・core.css
+     → Arc Reactor Core固有のAnimationを管理
 
-   reactor.css：
-   ・Arc Reactor専用Animationを管理
-   ・光源、リング回転、エネルギー表現などを担当
+   ・energy.css
+     → エネルギー表現固有のAnimationを管理
 
-   hud.css：
-   ・HUD UI専用Animationを管理
-   ・パネル、情報表示、スキャン表現などを担当
+   ・front.css
+     → Arc Reactor Front Layer固有のAnimationを管理
 
-   card.css：
-   ・Card UI専用Animationを管理
-   ・Hover、Focus、Activeなどカード操作反応を担当
+   ・hud.css
+     → HUD固有のAnimationを管理
 
-   effects.css：
-   ・汎用的ではない特殊演出を管理
+   ・dashboard.css
+     → Dashboard UI全体に関係するAnimationを管理
 
+   ・effects.css
+     → Theme固有の特殊Effect Animationを管理
+
+   ・mouse.css
+     → マウス操作・マウス位置に連動するAnimationを管理
+
+   ・page.css
+     → ページ遷移・ページ表示などのAnimationを管理
+
+   ・reactor-state.css
+     → Arc Reactorの状態変化に連動するAnimationを管理
 
    禁止領域：
-   ※Reactor固有Animationは禁止
-   ※HUD固有Animationは禁止
-   ※Card固有Animationは禁止
-   ※Page固有Animationは禁止
-   ※Mouse Interaction固有Animationは禁止
-   ※Effects固有Animationは禁止
-
+   ・特定UI専用のAnimationは禁止
+   ・Arc Reactor専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Effects専用Animationは禁止
+   ・特定のHTML構造に依存するAnimationは禁止
 
    設計方針：
-   ・このファイルはAnimation Layerの共通基盤として扱う
-   ・特定UIに依存する処理は追加しない
-   ・複数箇所で再利用できるAnimationだけを配置する
-   ・新しいAnimationを追加する場合は、
-     「他コンポーネントでも利用可能か」を基準に判断する
+   ・Animation Layerの共通基盤として扱う
+   ・特定コンポーネントに依存しない
+   ・複数の領域から再利用できるAnimationのみを配置する
+   ・Animationの「動きそのもの」と
+     「Animationを使用する場所」を分離する
+   ・Utility ClassはAnimationの制御値のみを管理し、
+     UI固有の意味を持たせない
 
+   新しいAnimationを追加する場合の判断基準：
+   1. 複数のUI・演出で再利用できるか
+   2. 特定のコンポーネントに依存していないか
+   3. 特定のHTML構造を前提としていないか
+   4. 共通Animationとして定義することで
+      他ファイルから再利用する価値があるか
 
-   将来的な拡張時：
-   ・汎用Animation追加 → このファイルへ追加
-   ・特定コンポーネント専用Animation → 専用CSSへ追加
+   上記を満たさない場合は、
+   各専用Animationファイルで管理する。
 
    ========================================================== */
 
 
 /* ========================================
    Common Keyframes
-
+   ------------------------------------------------
    役割：
-   ・BlogOS全体で利用可能な基本Animationの動きを定義する
-   ・各コンポーネント側では、このKeyframesを呼び出して利用する
+   ・BlogOS全体で利用可能な基本Animationの
+     「動きそのもの」を定義する
+   ・各専用AnimationファイルやUI側から
+     必要に応じて呼び出して利用する
 
    設計方針：
    ・動きそのものだけを定義する
-   ・どのUIで使用するかは各コンポーネント側で管理する
+   ・どのUIで使用するかは管理しない
+   ・特定のクラス名やコンポーネントに依存しない
 
-======================================== */
+   ======================================== */
 
 
 /* ========================================
    Rotation Animation
-
+   ------------------------------------------------
    目的：
-   ・要素を一定方向へ回転させる共通Animationを提供する
+   ・要素を一定方向へ回転させる
+     共通Animationを提供する
 
    発火条件 / 実行条件：
-   ・各要素からanimationプロパティで呼び出された時
+   ・対象要素からanimationプロパティで
+     Keyframesが呼び出された時
 
    処理内容：
-   ・transform: rotate() を使用して回転状態を変化させる
+   ・transform: rotate() を使用して
+     回転状態を変化させる
 
    管理対象：
    ・時計回り回転
    ・反時計回り回転
 
-   想定される動作：
+   想定される利用例：
    ・リング
    ・インジケーター
    ・装飾パーツ
-   などの連続回転演出に利用する
+   などの連続回転演出
 
-======================================== */
+   ======================================== */
 
 
 /* Rotation */
@@ -129,7 +153,6 @@
 
 }
 
-
 @keyframes rotate-counter-clockwise {
 
     from {
@@ -143,16 +166,18 @@
 }
 
 
-
 /* ========================================
    Pulse Animation
-
+   ------------------------------------------------
    目的：
-   ・要素の存在感を周期的に変化させるAnimationを提供する
+   ・要素の存在感を周期的に変化させる
+     共通Animationを提供する
 
    発火条件 / 実行条件：
+   ・対象要素にAnimationが指定された時
    ・animation-iteration-countを複数回、
-     またはinfinite指定した場合
+     またはinfiniteに設定した場合に
+     周期的な表現として利用できる
 
    処理内容：
    ・opacity変更による明暗変化
@@ -162,12 +187,12 @@
    ・点滅
    ・呼吸するような拡縮表現
 
-   想定される動作：
+   想定される利用例：
    ・待機状態表示
    ・アクティブ状態表示
    ・発光部品の演出
 
-======================================== */
+   ======================================== */
 
 
 /* Pulse */
@@ -192,29 +217,29 @@
 }
 
 
-
 /* ========================================
    Fade Animation
-
+   ------------------------------------------------
    目的：
    ・透明度変化による表示強調を行う
+     共通Animationを提供する
 
    発火条件 / 実行条件：
-   ・Animation呼び出し時
+   ・対象要素にAnimationが指定された時
 
    処理内容：
    ・opacityを変化させ、
-     表示状態を徐々に変える
+     表示状態を徐々に変化させる
 
    管理対象：
-   ・フェードイン/アウト表現
+   ・フェードイン / アウト表現
 
-   想定される動作：
+   想定される利用例：
    ・警告表示
    ・状態変化通知
    ・装飾エフェクト
 
-======================================== */
+   ======================================== */
 
 
 /* Fade */
@@ -237,32 +262,35 @@
 }
 
 
-
 /* ========================================
    Glow Animation
-
+   ------------------------------------------------
    目的：
-   ・発光量変化による光演出を共通化する
+   ・発光量の変化による光演出を
+     共通Animationとして提供する
 
    発火条件 / 実行条件：
-   ・対象要素にAnimation指定された時
+   ・対象要素にAnimationが指定された時
 
    処理内容：
-   ・filter brightness()を変更し、
+   ・filter: brightness() を変更し、
      明るさを周期的に変化させる
 
    管理対象：
    ・光量変化
    ・発光強弱表現
 
-   想定される動作：
+   想定される利用例：
    ・LED
    ・リアクター光
    ・HUD発光部品
+   ・その他の発光UI
 
-   ※特定コンポーネントへの適用判断は利用側で行う
+   注意：
+   ・どのコンポーネントに適用するかは
+     利用側のAnimationファイルで判断する
 
-======================================== */
+   ======================================== */
 
 
 /* Glow */
@@ -285,29 +313,31 @@
 }
 
 
-
 /* ========================================
    Scale Animation
-
+   ------------------------------------------------
    目的：
    ・サイズ変化による強調Animationを提供する
 
    発火条件 / 実行条件：
-   ・Animation指定時
+   ・対象要素にAnimationが指定された時
 
    処理内容：
-   ・transform: scale()による拡大縮小
+   ・transform: scale() による
+     拡大縮小を行う
 
    管理対象：
    ・強調表示
    ・呼吸表現
+   ・軽微なサイズ変化
 
-   想定される動作：
+   想定される利用例：
    ・ボタン
    ・通知表示
    ・装飾パーツ
+   ・インジケーター
 
-======================================== */
+   ======================================== */
 
 
 /* Scale */
@@ -330,53 +360,50 @@
 }
 
 
-
 /* ========================================
    Common Animation Utility
-
+   ------------------------------------------------
    役割：
-   ・Animation設定値を共通Classとして提供する
-   ・各コンポーネント側で個別設定する必要を減らす
+   ・Animationの制御値を共通Classとして提供する
+   ・各Animationファイルで個別に
+     制御値を定義する必要を減らす
 
-   利用例：
-   animation-name
-   animation-duration
-   animation-delay
-   animation-iteration-count
-
-   などを組み合わせて使用する
-
+   管理対象：
+   ・Timing Function
+   ・Duration
+   ・Iteration
+   ・Fill Mode
+   ・Direction
+   ・Delay
+   ・Play State
 
    設計方針：
    ・Animationの内容ではなく制御値のみ管理する
-   ・UI固有の意味は持たせない
+   ・UI固有の意味を持たせない
+   ・複数のAnimationから再利用できる形にする
 
-======================================== */
+   ======================================== */
 
 
 /*
    Timing Function
-
+   ------------------------------------------------
    目的：
-   ・Animation速度変化パターンを共通化する
+   ・Animationの速度変化パターンを共通化する
 
    発火条件 / 実行条件：
-   ・Animation対象要素へClass付与時
+   ・Animation対象要素へClassが付与された時
 
    処理内容：
    ・animation-timing-functionを指定する
 
    管理対象：
-   ・速度変化方式
-
-   想定される動作：
    ・一定速度
    ・加速
    ・減速
-   ・自然な動き
+   ・加速 / 減速
 
-*/
-
+   ======================================== */
 
 .anim-linear {
 
@@ -384,13 +411,11 @@
 
 }
 
-
 .anim-ease {
 
     animation-timing-function: ease;
 
 }
-
 
 .anim-ease-in {
 
@@ -398,13 +423,11 @@
 
 }
 
-
 .anim-ease-out {
 
     animation-timing-function: ease-out;
 
 }
-
 
 .anim-ease-in-out {
 
@@ -413,15 +436,14 @@
 }
 
 
-
 /*
    Duration
-
+   ------------------------------------------------
    目的：
-   ・Animation実行時間を共通管理する
+   ・Animationの実行時間を共通管理する
 
    発火条件 / 実行条件：
-   ・Animation対象へClass付与時
+   ・Animation対象へClassが付与された時
 
    処理内容：
    ・animation-durationを指定する
@@ -430,15 +452,17 @@
    ・短時間演出
    ・通常演出
    ・長時間演出
+   ・非常に長い演出
 
-   想定される動作：
-   ・演出速度を統一できる
+   想定される利用例：
+   ・演出速度の統一
+   ・複数Animation間の速度調整
 
    JS制御との組み合わせ：
-   ・状態変化時に速度変更する場合に利用する
+   ・状態変化時にAnimation速度を
+     変更する場合に利用する
 
-*/
-
+   ======================================== */
 
 .anim-fast {
 
@@ -446,20 +470,17 @@
 
 }
 
-
 .anim-normal {
 
     animation-duration: 1s;
 
 }
 
-
 .anim-slow {
 
     animation-duration: 2s;
 
 }
-
 
 .anim-very-slow {
 
@@ -468,15 +489,14 @@
 }
 
 
-
 /*
    Iteration
-
+   ------------------------------------------------
    目的：
-   ・Animation実行回数を制御する
+   ・Animationの実行回数を共通管理する
 
    発火条件 / 実行条件：
-   ・Class付与時
+   ・Animation対象へClassが付与された時
 
    処理内容：
    ・animation-iteration-countを指定する
@@ -485,15 +505,13 @@
    ・一度だけ実行
    ・継続実行
 
-*/
-
+   ======================================== */
 
 .anim-once {
 
     animation-iteration-count: 1;
 
 }
-
 
 .anim-infinite {
 
@@ -502,10 +520,9 @@
 }
 
 
-
 /*
    Fill Mode
-
+   ------------------------------------------------
    目的：
    ・Animation開始前後の表示状態を制御する
 
@@ -518,9 +535,9 @@
    管理対象：
    ・開始前状態
    ・終了後状態
+   ・開始前 / 終了後の両方
 
-*/
-
+   ======================================== */
 
 .anim-forwards {
 
@@ -528,13 +545,11 @@
 
 }
 
-
 .anim-backwards {
 
     animation-fill-mode: backwards;
 
 }
-
 
 .anim-both {
 
@@ -543,12 +558,11 @@
 }
 
 
-
 /*
    Direction
-
+   ------------------------------------------------
    目的：
-   ・Animation再生方向を制御する
+   ・Animationの再生方向を共通管理する
 
    発火条件 / 実行条件：
    ・Animation実行時
@@ -560,9 +574,9 @@
    ・通常再生
    ・逆再生
    ・交互再生
+   ・逆方向からの交互再生
 
-*/
-
+   ======================================== */
 
 .anim-normal-direction {
 
@@ -570,20 +584,17 @@
 
 }
 
-
 .anim-reverse {
 
     animation-direction: reverse;
 
 }
 
-
 .anim-alternate {
 
     animation-direction: alternate;
 
 }
-
 
 .anim-alternate-reverse {
 
@@ -592,29 +603,28 @@
 }
 
 
-
 /*
    Delay
-
+   ------------------------------------------------
    目的：
-   ・Animation開始タイミングを調整する
+   ・Animation開始タイミングを共通管理する
 
    発火条件 / 実行条件：
-   ・Class付与時
+   ・対象要素へClassが付与された時
 
    処理内容：
    ・animation-delayを指定する
 
    管理対象：
+   ・Animation開始までの待機時間
    ・複数Animationの開始タイミング調整
 
-   想定される動作：
+   想定される利用例：
    ・波状演出
    ・順番表示
-   ・時間差エフェクト
+   ・時間差Effect
 
-*/
-
+   ======================================== */
 
 .anim-delay-1 {
 
@@ -622,20 +632,17 @@
 
 }
 
-
 .anim-delay-2 {
 
     animation-delay: 0.2s;
 
 }
 
-
 .anim-delay-3 {
 
     animation-delay: 0.3s;
 
 }
-
 
 .anim-delay-5 {
 
@@ -644,12 +651,11 @@
 }
 
 
-
 /*
    Play State
-
+   ------------------------------------------------
    目的：
-   ・Animationの再生状態を外部制御する
+   ・Animationの再生状態を共通Classとして制御する
 
    発火条件 / 実行条件：
    ・Class付与時
@@ -660,24 +666,25 @@
 
    管理対象：
    ・一時停止
+   ・再生
    ・再生再開
 
-   想定される動作：
-   ・AI処理中のみAnimation実行
-   ・ユーザー操作による停止制御
+   想定される利用例：
+   ・AI処理中のみAnimationを実行
+   ・ユーザー操作によるAnimation停止
+   ・状態変化に応じたAnimation制御
 
-   JS制御用：
-   ・動的な状態管理を想定
+   JS制御：
+   ・JavaScriptからClassを付け替えることで
+     Animation状態を制御することを想定する
 
-*/
-
+   ======================================== */
 
 .anim-paused {
 
     animation-play-state: paused;
 
 }
-
 
 .anim-running {
 

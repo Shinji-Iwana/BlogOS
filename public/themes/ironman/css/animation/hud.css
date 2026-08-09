@@ -2,50 +2,104 @@
    hud.css
    ----------------------------------------------------------
    役割：
-   ・HUD専用Animation
-   ・Layer09のみ管理
+   ・Layer09（HUD）専用のAnimationを管理する
+   ・HUD Grid / Status / TextのAnimationを制御する
 
-   対象
-   ・HUD Grid
-   ・HUD Status
-   ・HUD Text
+   管理対象：
+   ・hud-grid
+     → HUD Gridの明滅
 
-   ※見た目はreactor/hud.css管理
-   ※Particle禁止
-   ※Effects禁止
+   ・hud-status
+     → HUD Statusの点滅
+
+   ・hud-text
+     → HUD TextのFlicker
+
+   責務：
+   ・HUD専用Keyframesの定義
+   ・HUD各パーツへのAnimation適用
+
+   他ファイルとの責務分離：
+
+   ・reactor/hud.css
+     → Layer09 HUDの形状・配置・色・
+       基本的な見た目を管理
+
+   ・animation/common.css
+     → 複数のUI・演出で再利用可能な
+       汎用Keyframes / Animation Utilityを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動する
+       Animationを管理
+
+   ・animation/effects.css
+     → Particles / Sparks / Flashesなど、
+       Layer10 Effects専用のAnimationを管理
+
+   ・animation/mouse.css
+     → マウス操作・マウス位置に連動する
+       Animationを管理
+
+   禁止領域：
+   ・Reactor本体専用Animationは禁止
+   ・Layer10 Effects専用Animationは禁止
+   ・Particle専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Card専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・汎用Animationの定義は禁止
+   ・HUDの基本的な見た目・配置の定義は禁止
+
+   設計方針：
+   ・Layer09 HUDだけを担当する
+   ・HUD固有のAnimationはこのファイルへ集約する
+   ・複数領域で再利用できるAnimationは
+     animation/common.cssで管理する
+   ・HUDの見た目とAnimationを分離する
+
    ========================================================== */
 
 
 /* ========================================
    HUD Grid Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・HUD Gridの透明度を周期的に変化させ、
+     HUDが稼働しているような状態を表現する
 
+   発火条件 / 実行条件：
+   ・.hud-grid にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させる
+
+   管理対象：
+   ・HUD Gridの明暗
+   ・HUD GridのPulse表現
+
+   ======================================== */
 
 @keyframes hudGridPulse {
-
 
     0% {
 
         opacity:
-
             0.25;
 
     }
 
-
     50% {
 
         opacity:
-
             0.5;
 
     }
 
-
     100% {
 
         opacity:
-
             0.25;
 
     }
@@ -53,150 +107,143 @@
 }
 
 
-
 /* ========================================
    HUD Status Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・HUD Statusを周期的に点滅させ、
+     システム状態が稼働していることを表現する
 
+   発火条件 / 実行条件：
+   ・.hud-status にAnimationが適用された時
+
+   処理：
+   ・opacityを変化させる
+
+   管理対象：
+   ・HUD Statusの点滅
+   ・Status Indicatorの明滅
+
+   ======================================== */
 
 @keyframes hudStatusBlink {
 
-
     0% {
 
-
         opacity:
-
             1;
 
-
     }
-
 
     50% {
 
-
         opacity:
-
             0.45;
-
 
     }
 
-
     100% {
 
-
         opacity:
-
             1;
-
 
     }
 
 }
-
 
 
 /* ========================================
    HUD Text Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・HUD Textに微細なFlickerを発生させ、
+     デジタル表示らしい不安定な発光表現を作る
 
+   発火条件 / 実行条件：
+   ・.hud-text にAnimationが適用された時
+
+   処理：
+   ・opacityによって文字の表示強度を変化させる
+   ・filter: brightness() によって
+     一時的に発光強度を変化させる
+
+   管理対象：
+   ・HUD Textの明滅
+   ・HUD Textの発光強度
+   ・デジタルFlicker表現
+
+   ======================================== */
 
 @keyframes hudTextFlicker {
 
-
     0% {
 
-
         opacity:
-
             1;
 
-
         filter:
-
             brightness(1);
 
-
-
     }
-
 
     45% {
 
-
         opacity:
-
             0.85;
 
-
     }
-
 
     50% {
 
-
         opacity:
-
             0.6;
 
-
         filter:
-
             brightness(1.5);
 
-
-
     }
-
 
     55% {
 
-
         opacity:
-
             0.9;
-
-
 
     }
 
-
     100% {
 
-
         opacity:
-
             1;
 
-
         filter:
-
             brightness(1);
-
-
 
     }
 
 }
 
 
-
 /* ========================================
-   Apply
-======================================== */
+   Apply Animation
+   ------------------------------------------------
+   役割：
+   ・HUD各パーツへ専用Animationを適用する
+
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここでは各HUDパーツと
+     Animationの対応関係だけを管理する
+
+   ======================================== */
 
 
-/*
-    HUD Grid
-*/
+/* ----------------------------------------
+   HUD Grid
+---------------------------------------- */
 
 .hud-grid {
 
-
     animation:
-
 
         hudGridPulse
 
@@ -206,20 +253,16 @@
 
         infinite;
 
-
 }
 
 
-
-/*
-    HUD Status
-*/
+/* ----------------------------------------
+   HUD Status
+---------------------------------------- */
 
 .hud-status {
 
-
     animation:
-
 
         hudStatusBlink
 
@@ -229,20 +272,16 @@
 
         infinite;
 
-
 }
 
 
-
-/*
-    HUD Text
-*/
+/* ----------------------------------------
+   HUD Text
+---------------------------------------- */
 
 .hud-text {
 
-
     animation:
-
 
         hudTextFlicker
 
@@ -251,6 +290,5 @@
         ease-in-out
 
         infinite;
-
 
 }

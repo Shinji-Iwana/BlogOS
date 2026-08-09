@@ -2,305 +2,296 @@
    effects.css
    ----------------------------------------------------------
    役割：
-   ・Layer10（Effects）のアニメーション管理
+   ・Layer10（Effects）専用のAnimationを管理する
+   ・Particles、Sparks、Flashesなどの
+     Reactor周辺特殊演出の動きを制御する
+
+   管理対象：
    ・Particles
+     → 粒子の浮遊Animation
+
    ・Sparks
+     → 火花の点滅Animation
+
    ・Flashes
+     → 一時的な発光Animation
 
-   ※見た目はreactor/effects.css管理
-   ※Reactor本体は禁止
-   ※HUD禁止
-   ※Mouse禁止
-   ※Card禁止
-   ※Page禁止
+   責務：
+   ・Layer10専用Keyframesの定義
+   ・Effects各パーツへのAnimation適用
+
+   他ファイルとの責務分離：
+
+   ・reactor/effects.css
+     → Layer10 Effectsの形状・配置・色・
+       基本的な見た目を管理
+
+   ・animation/common.css
+     → 複数のUI・演出で再利用可能な
+       汎用Keyframes / Animation Utilityを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor全体の状態変化に連動する
+       Animationを管理
+
+   ・animation/energy.css
+     → Energy表現に関するAnimationを管理
+
+   ・animation/mouse.css
+     → マウス操作・マウス位置に連動する
+       Animationを管理
+
+   禁止領域：
+   ・Reactor本体専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・Card専用Animationは禁止
+   ・Page専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・汎用Animationの定義は禁止
+
+   設計方針：
+   ・Layer10 Effectsだけを担当する
+   ・Effects固有のAnimationはこのファイルへ集約する
+   ・複数領域で再利用できるAnimationは
+     animation/common.cssで管理する
+   ・Effectsの見た目とAnimationを分離する
+
    ========================================================== */
-
 
 
 /* ========================================
    Particles Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Particleを上下方向へ浮遊させ、
+     Reactor周辺に漂うような動きを表現する
 
+   発火条件 / 実行条件：
+   ・.particles にAnimationが適用された時
+
+   処理：
+   ・translateY()によって上下方向へ移動する
+   ・translate(-50%, -50%)によって
+     Particle全体の基準位置を維持する
+
+   管理対象：
+   ・Particleの浮遊
+   ・Particleの上下移動
+
+   ======================================== */
 
 @keyframes particles-float {
 
-
     0% {
 
-
         transform:
-
             translate(-50%, -50%)
-
             translateY(0);
 
-
-
     }
-
 
     50% {
 
-
         transform:
-
             translate(-50%, -50%)
-
             translateY(-15px);
-
-
 
     }
 
-
     100% {
 
-
         transform:
-
             translate(-50%, -50%)
-
             translateY(0);
-
-
 
     }
 
 }
-
-
-
 
 
 /* ========================================
    Sparks Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Sparkを瞬間的に発光させ、
+     火花が弾けるような演出を表現する
 
+   発火条件 / 実行条件：
+   ・.sparks にAnimationが適用された時
+
+   処理：
+   ・opacityによって表示状態を変化させる
+   ・filter: brightness() によって
+     発光時の明るさを強調する
+
+   管理対象：
+   ・Sparkの点滅
+   ・瞬間的な高輝度発光
+
+   ======================================== */
 
 @keyframes sparks-blink {
 
-
     0% {
 
-
         opacity:
-
             0;
 
-
-
     }
-
 
     45% {
 
-
         opacity:
-
             0.2;
 
-
-
     }
-
 
     50% {
 
-
         opacity:
-
             1;
 
-
-
         filter:
-
             brightness(2);
 
-
-
     }
-
 
     55% {
 
-
         opacity:
-
             0.2;
-
-
 
     }
 
-
     100% {
 
-
         opacity:
-
             0;
-
-
 
     }
 
 }
-
-
-
 
 
 /* ========================================
    Flashes Animation
-======================================== */
+   ------------------------------------------------
+   目的：
+   ・Layer10に一時的な光のフラッシュを発生させ、
+     Reactor周辺の瞬間的な発光演出を表現する
 
+   発火条件 / 実行条件：
+   ・.flashes にAnimationが適用された時
+
+   処理：
+   ・opacityによって一時的に表示する
+   ・filter: brightness() によって
+     フラッシュ時の明るさを強調する
+
+   管理対象：
+   ・Flashの瞬間発光
+   ・短時間の光量変化
+
+   ======================================== */
 
 @keyframes flashes-pulse {
 
-
     0% {
 
-
         opacity:
-
             0;
 
-
-
     }
-
 
     45% {
 
-
         opacity:
-
             0;
 
-
-
     }
-
 
     50% {
 
-
         opacity:
-
             0.7;
 
-
-
         filter:
-
             brightness(2);
 
-
-
     }
-
 
     55% {
 
-
         opacity:
-
             0;
 
-
-
     }
-
 
     100% {
 
-
         opacity:
-
             0;
-
-
 
     }
 
 }
 
 
-
-
-
 /* ========================================
-   Apply
-======================================== */
+   Apply Animation
+   ------------------------------------------------
+   役割：
+   ・Effects各パーツへ専用Animationを適用する
+
+   設計方針：
+   ・Keyframesそのものは上記で定義する
+   ・ここでは各Effectsパーツと
+     Animationの対応関係だけを管理する
+
+   ======================================== */
 
 
-/*
-    Particle浮遊
-*/
+/* ----------------------------------------
+   Particle浮遊
+---------------------------------------- */
 
 .particles {
 
-
     animation:
-
-
         particles-float
-
         8s
-
         ease-in-out
-
         infinite;
-
-
 
 }
 
 
-
-/*
-    Spark点滅
-*/
+/* ----------------------------------------
+   Spark点滅
+---------------------------------------- */
 
 .sparks {
 
-
     animation:
-
-
         sparks-blink
-
         2.5s
-
         ease-in-out
-
         infinite;
-
-
 
 }
 
 
-
-/*
-    Flash発光
-*/
+/* ----------------------------------------
+   Flash発光
+---------------------------------------- */
 
 .flashes {
 
-
     animation:
-
-
         flashes-pulse
-
         4s
-
         ease-in-out
-
         infinite;
-
-
 
 }

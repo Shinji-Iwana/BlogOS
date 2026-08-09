@@ -29,20 +29,14 @@ document.addEventListener(
     "DOMContentLoaded",
     () => {
 
-
         const container =
             document.querySelector(
                 ".energy-rotate"
             );
 
-
         if (!container) {
-
             return;
-
         }
-
-
 
         /*
         ========================================
@@ -50,10 +44,7 @@ document.addEventListener(
         ========================================
         */
 
-
         const ENERGY_COUNT = 24;
-
-
 
         /*
         ========================================
@@ -74,11 +65,7 @@ document.addEventListener(
                     "div"
                 );
 
-
-            line.className =
-                "energy-line";
-
-
+            line.className = "energy-line";
 
             /*
             --------------------------------
@@ -89,10 +76,7 @@ document.addEventListener(
 
             */
 
-            const angle =
-                Math.random() * 360;
-
-
+            const angle = Math.random() * 360;
 
             /*
             --------------------------------
@@ -103,11 +87,7 @@ document.addEventListener(
 
             */
 
-            const length =
-                18 +
-                Math.random() * 25;
-
-
+            const length = 18 + Math.random() * 25;
 
             /*
             --------------------------------
@@ -118,11 +98,7 @@ document.addEventListener(
 
             */
 
-            const brightness =
-                0.5 +
-                Math.random() * 0.8;
-
-
+            const brightness = 0.5 + Math.random() * 0.8;
 
             /*
             --------------------------------
@@ -131,11 +107,7 @@ document.addEventListener(
 
             */
 
-            const opacity =
-                0.4 +
-                Math.random() * 0.6;
-
-
+            const opacity = 0.4 + Math.random() * 0.6;
 
             /*
             --------------------------------
@@ -144,11 +116,7 @@ document.addEventListener(
 
             */
 
-            const duration =
-                1.5 +
-                Math.random() * 3;
-
-
+            const duration = 1.5 + Math.random() * 3;
 
             /*
             =================================
@@ -156,37 +124,30 @@ document.addEventListener(
             =================================
             */
 
-
             line.style.setProperty(
                 "--energy-angle",
                 `${angle}deg`
             );
-
 
             line.style.setProperty(
                 "--energy-length",
                 `${length}%`
             );
 
-
             line.style.setProperty(
                 "--energy-brightness",
                 brightness
             );
-
 
             line.style.setProperty(
                 "--energy-opacity",
                 opacity
             );
 
-
             line.style.setProperty(
                 "--energy-duration",
                 `${duration}s`
             );
-
-
 
             /*
             =================================
@@ -194,14 +155,11 @@ document.addEventListener(
             =================================
             */
 
-
             container.appendChild(
                 line
             );
 
-
         }
-
 
     }
 );

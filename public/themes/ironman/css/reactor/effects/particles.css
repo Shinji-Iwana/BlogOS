@@ -1,0 +1,96 @@
+/* ==========================================================
+   particles.css
+   ----------------------------------------------------------
+   役割：
+   ・Particle（粒子）の見た目管理
+
+   ※配置・形状のみ管理
+   ※Animationは禁止
+   ========================================================== */
+
+
+/* ========================================
+   Particles
+======================================== */
+
+.particles {
+
+    position: absolute;
+
+    top: 50%;
+
+    left: 50%;
+
+    width: 100%;
+
+    height: 100%;
+
+    transform:
+        translate(-50%, -50%);
+
+}
+
+
+/*
+    Particle 共通
+*/
+
+.particles::before,
+.particles::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 6px;
+
+    height: 6px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(
+            200,
+            245,
+            255,
+            0.9
+        );
+
+    box-shadow:
+
+        0 0 8px
+
+        rgba(
+            120,
+            220,
+            255,
+            0.9
+        );
+
+}
+
+
+/*
+    Particle 01
+*/
+
+.particles::before {
+
+    top: 18%;
+
+    left: 28%;
+
+}
+
+
+/*
+    Particle 02
+*/
+
+.particles::after {
+
+    right: 24%;
+
+    bottom: 20%;
+
+}

@@ -1,0 +1,103 @@
+/* ==========================================================
+   mechanical.css
+   ----------------------------------------------------------
+   ■ ファイル概要
+   ----------------------------------------------------------
+   Reactor Layer05「Mechanical Layer」全体を管理する
+   親CSSファイル。
+
+   ■ 主な役割
+   ----------------------------------------------------------
+   ・Layer05（Mechanical Layer）の共通設定
+   ・Mechanical Layer全体の配置・表示領域の管理
+   ・Mechanical Layerを構成する各パーツCSSの読み込み管理
+
+   ■ 管理対象
+   ----------------------------------------------------------
+   Layer05 : Mechanical Layer
+
+   配下の個別メカニカルパーツ：
+   ・arms.css
+   ・bolts.css
+   ・clamp.css
+   ・decorations.css
+   ・frame.css
+
+   ■ 責任範囲
+   ----------------------------------------------------------
+   Mechanical Layer全体に共通する設定は本ファイルで管理する。
+
+   各メカニカルパーツ固有の形状・サイズ・位置・装飾などは、
+   以下の個別CSSで管理する。
+
+   ・arms.css
+     → Mechanical Arms
+
+   ・bolts.css
+     → Mechanical Bolts
+
+   ・clamp.css
+     → Mechanical Clamp
+
+   ・decorations.css
+     → Mechanical Decorations
+
+   ・frame.css
+     → Mechanical Frame
+
+   ■ Animation
+   ----------------------------------------------------------
+   本ファイルではAnimationを定義・適用しない。
+
+   Animationは以下のAnimation CSSで一元管理する。
+
+   animation/reactor-state.css
+
+   ■ 設計方針
+   ----------------------------------------------------------
+   本ファイルをMechanicalディレクトリの入口（親）CSSとする。
+
+   style.cssからは本ファイルのみを読み込み、
+   本ファイルから各メカニカルパーツCSSを読み込むことで、
+   Mechanical Layer関連CSSの管理単位を明確にする。
+
+   ========================================================== */
+
+
+/* ==========================================================
+   Mechanical Components
+   ----------------------------------------------------------
+   Mechanical Layerを構成する各パーツCSSを読み込む。
+
+   ■ 読み込み構造
+   ----------------------------------------------------------
+   mechanical.css
+      ↓
+      ├─ arms.css
+      ├─ bolts.css
+      ├─ clamp.css
+      ├─ decorations.css
+      └─ frame.css
+
+   各ファイルの具体的なスタイルは、
+   それぞれの個別CSSで管理する。
+   ========================================================== */
+
+@import url("arms.css");
+@import url("bolts.css");
+@import url("clamp.css");
+@import url("decorations.css");
+@import url("frame.css");
+
+
+/* ==========================================================
+   Layer05 : Mechanical Layer
+   ----------------------------------------------------------
+   Mechanical Layer全体に共通する設定。
+   ========================================================== */
+
+.layer-mechanical {
+
+    overflow: visible;
+
+}

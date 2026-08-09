@@ -2,42 +2,164 @@
    page.css
    ----------------------------------------------------------
    役割：
-   ・Page専用Animation
-   ・ページ全体の演出のみ管理
+   ・Page全体に関係するAnimationのみを管理する
+   ・ページロード時の表示Animationを管理する
+   ・ページ遷移時のFade Animationを管理する
+   ・ページ背景の周期的な呼吸Animationを管理する
 
-   対象
-   ・Fade
-   ・Page Load
-   ・Background
+   管理対象：
+   ・body
+     → ページロード時の表示
 
-   ※Reactor禁止
-   ※HUD禁止
-   ※Effects禁止
+   ・.page-fade
+     → ページFade表示
+
+   ・.reactor-bg
+     → ページ背景のBreathing
+
+   責務：
+   ・Page専用Animationの適用
+   ・ページ全体の状態変化に関するAnimationの管理
+
+   他ファイルとの責務分離：
+
+   ・animation/common.css
+     → 複数UIで再利用可能な汎用Animationを管理
+
+   ・animation/reactor-state.css
+     → Arc Reactor本体の状態変化に連動する
+       Animationを管理
+
+   ・animation/hud.css
+     → HUD専用Animationを管理
+
+   ・animation/effects.css
+     → Particles / Sparks / Flashesなど、
+       Effects専用Animationを管理
+
+   ・animation/mouse.css
+     → Mouse Interaction専用Animationを管理
+
+   ・animation/dashboard.css
+     → Dashboard UI専用Animationを管理
+
+   禁止領域：
+   ・Arc Reactor本体専用Animationは禁止
+   ・HUD専用Animationは禁止
+   ・Effects専用Animationは禁止
+   ・Mouse Interaction専用Animationは禁止
+   ・Card専用Animationは禁止
+   ・Dashboard専用Animationは禁止
+   ・ページ固有ではない汎用Animationは禁止
+
+   設計方針：
+   ・ページ全体に関係するAnimationのみを管理する
+   ・特定コンポーネントのAnimationは
+     それぞれの専用Animationファイルで管理する
+   ・ページロードやページ遷移など、
+     UIコンポーネント単体ではなく
+     ページ全体に関係する演出を担当する
+
    ========================================================== */
 
 
 /* ========================================
-   Page Load
-======================================== */
+   Page Load Animation
+   ------------------------------------------------
+   目的：
+   ・ページが読み込まれた際に、
+     ページ全体を自然に表示する
+
+   発火条件 / 実行条件：
+   ・ページ読み込み時
+   ・bodyへAnimationが適用された時
+
+   処理：
+   ・pageLoad Keyframeを実行する
+   ・0.8秒かけてページロード演出を行う
+
+   管理対象：
+   ・ページ初期表示
+   ・Page Load演出
+
+   注意：
+   ・Arc Reactor本体のAnimationではない
+   ・ページ全体の初期表示だけを担当する
+
+   ======================================== */
 
 body {
-    animation: pageLoad 0.8s ease-out forwards;
+
+    animation:
+        pageLoad
+        0.8s
+        ease-out
+        forwards;
+
 }
 
 
 /* ========================================
-   Page Fade
-======================================== */
+   Page Fade Animation
+   ------------------------------------------------
+   目的：
+   ・ページ遷移や表示切り替え時に、
+     ページ全体をFadeさせる
+
+   発火条件 / 実行条件：
+   ・.page-fade が適用された時
+
+   処理：
+   ・pageFade Keyframeを実行する
+   ・0.5秒かけてFade演出を行う
+
+   管理対象：
+   ・Page Fade
+   ・ページ表示切り替え
+
+   ======================================== */
 
 .page-fade {
-    animation: pageFade 0.5s ease forwards;
+
+    animation:
+        pageFade
+        0.5s
+        ease
+        forwards;
+
 }
 
 
 /* ========================================
-   Background Breathing
-======================================== */
+   Background Breathing Animation
+   ------------------------------------------------
+   目的：
+   ・ページ背景に緩やかな明暗変化を与え、
+     静的な背景に微細な生命感を持たせる
+
+   発火条件 / 実行条件：
+   ・.reactor-bg にAnimationが適用された時
+
+   処理：
+   ・backgroundBreath Keyframeを実行する
+   ・12秒周期で緩やかな明暗変化を繰り返す
+
+   管理対象：
+   ・ページ背景
+   ・Background Breathing
+
+   注意：
+   ・Arc Reactor本体の状態Animationではない
+   ・ページ背景全体の演出として管理する
+
+   ======================================== */
 
 .reactor-bg {
-    animation: backgroundBreath 12s ease-in-out infinite;
+
+    animation:
+        backgroundBreath
+        12s
+        ease-in-out
+        infinite;
+
 }
