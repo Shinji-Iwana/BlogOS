@@ -117,6 +117,22 @@ class BlogRepository
     ];
 
     /**
+     * blogsテーブルへ登録されている、全ブログ情報を取得する。
+     *
+     * WordPress REST APIへは一切アクセスせず、
+     * blogsテーブルに保存済みの情報のみを返す。
+     *
+     * ブログ一覧画面など、DBの内容をそのまま表示したい場合に使用する。
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Blog>
+     *     blogsテーブルの全レコード（id昇順）。
+     */
+    public function getAll(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Blog::orderBy('id')->get();
+    }
+
+    /**
      * homeを使って既存のブログを検索する。
      *
      * BlogOSでは、WordPressサイトのhomeを
@@ -142,6 +158,26 @@ class BlogRepository
     public function findByHome(string $home): ?Blog
     {
         return Blog::where('home', $home)->first();
+    }
+
+    /**
+     * IDを指定して、blogsテーブルから1件のブログ情報を取得する。
+     *
+     * WordPress REST APIへは一切アクセスせず、
+     * blogsテーブルに保存済みの情報のみを返す。
+     *
+     * ブログ詳細画面など、DBの内容をそのまま表示したい場合に使用する。
+     *
+     * @param int $id
+     *     取得対象となるブログのID（blogs.id）。
+     *
+     * @return Blog|null
+     *     該当するブログが存在する場合はBlog Model、
+     *     存在しない場合はnull。
+     */
+    public function findById(int $id): ?Blog
+    {
+        return Blog::find($id);
     }
 
     /**
