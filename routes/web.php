@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BlogRegisterController;
 use App\Http\Controllers\BlogListController;
 use App\Http\Controllers\BlogDetailController;
+use App\Http\Controllers\BlogHistoryListController;
 
 /**
  * ==========================================================
@@ -425,4 +426,34 @@ Route::middleware('auth')->group(function () {
         '/blog-detail/{id}',
         [BlogDetailController::class, 'show']
     )->name('blog-detail');
+
+    /**
+     * ======================================================
+     * ブログ変更履歴一覧
+     * ======================================================
+     *
+     * GET /blog-history-list
+     *
+     * BlogOSに保存されているブログ変更履歴を一覧表示する。
+     *
+     * BlogHistoryListControllerのindex()が処理を担当する。
+     *
+     * ControllerではBlogHistoryRepositoryを利用して
+     * blog_historiesテーブルから変更履歴を取得し、
+     * ブログ変更履歴一覧Viewへ渡す。
+     *
+     * ルート名：
+     *
+     *     blog-history-list
+     *
+     * ブログ変更履歴を確認する場合などに、
+     *
+     *     route('blog-history-list')
+     *
+     * としてURLを生成できる。
+     */
+    Route::get(
+        '/blog-history-list',
+        [BlogHistoryListController::class, 'index']
+    )->name('blog-history-list');
 });
