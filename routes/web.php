@@ -3,10 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Services\ThemeService;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BlogRegisterController;
 use App\Http\Controllers\BlogListController;
 use App\Http\Controllers\BlogDetailController;
 use App\Http\Controllers\BlogHistoryListController;
+use App\Http\Controllers\CategoryListController;
+use App\Http\Controllers\CategoryHistoryListController;
 
 /**
  * ==========================================================
@@ -205,31 +208,30 @@ Route::middleware('auth')->group(function () {
      *
      * GET /
      *
-     * BlogOSへログインしたユーザーが
-     * 最初にアクセスするトップページ。
+     * ログイン後に表示するBlogOSのトップページ。
      *
-     * トップページのViewはThemeServiceから取得する。
+     * HomeControllerのindex()が処理を担当する。
      *
-     * ThemeService::index()
-     *     ↓
-     * 現在使用するテーマのトップページView名を取得
-     *     ↓
-     * view()
-     *     ↓
-     * トップページを表示
+     * ControllerではBlogRepositoryを利用して
+     * blogsテーブルから登録済みブログをすべて取得し、
+     * 現在操作対象とするブログを選択するための
+     * データとしてトップページViewへ渡す。
      *
-     * このように、ルート側で特定のテーマ名を直接指定せず、
-     * ThemeServiceへテーマ管理を委譲している。
+     * トップページでは、
      *
-     * そのため、将来的にBlogOSのテーマを変更する場合でも、
-     * このルート自体を変更せずに対応できる構成を想定している。
+     * ・対象ブログの選択
+     * ・選択したブログに対する各種管理機能への遷移
+     *
+     * などを行う。
+     *
+     * blogsテーブルにブログが1件も存在しない場合は、
+     * ブログ選択リストを表示せず、
+     * ブログ登録画面への案内のみを表示する。
      */
-    Route::get('/', function () {
-
-        // 現在使用するテーマのトップページViewを取得し、
-        // BlogOSのトップページとして表示する。
-        return view(ThemeService::index());
-    });
+    Route::get(
+        '/',
+        [DashboardController::class, 'index']
+    )->name('home');
 
 
     /**
@@ -456,4 +458,112 @@ Route::middleware('auth')->group(function () {
         '/blog-history-list',
         [BlogHistoryListController::class, 'index']
     )->name('blog-history-list');
+
+    /**
+     * ======================================================
+     * カテゴリ一覧
+     * ======================================================
+     *
+     * GET /category-list/{blogId}
+     *
+     * 指定されたブログのカテゴリを一覧表示する。
+     *
+     * BlogOSでは複数のWordPressブログを管理するため、
+     * カテゴリはブログごとに分けて管理する。
+     *
+     * そのため、カテゴリ一覧を表示する際には
+     * URLに対象ブログのIDを指定する。
+     *
+     * 例：
+     *
+     *     /category-list/1
+     *
+     * の場合、
+     *
+     *     blogs.id = 1
+     *
+     * のブログに登録されているカテゴリを表示する。
+     *
+     * CategoryListControllerのindex()が処理を担当する。
+     *
+     * Controllerでは、
+     *
+     * 1. URLからblogIdを受け取る
+     * 2. BlogRepositoryから対象ブログを取得する
+     * 3. CategoryRepositoryから対象ブログのカテゴリを取得する
+     * 4. カテゴリ一覧Viewへ渡す
+     *
+     * という処理を行う。
+     *
+     * WordPress REST APIへはアクセスせず、
+     * BlogOSのDBに保存されているカテゴリ情報を使用する。
+     *
+     * ルート名：
+     *
+     *     category-list
+     *
+     * URL生成時には、
+     *
+     *     route('category-list', $blogId)
+     *
+     * のように対象ブログIDを指定する。
+     */
+    Route::get(
+        '/category-list/{blogId}',
+        [CategoryListController::class, 'index']
+    )->name('category-list');
+
+    /**
+     * ======================================================
+     * カテゴリ変更履歴一覧
+     * ======================================================
+     *
+     * GET /category-history-list
+     *
+     * 指定されたブログのカテゴリ変更履歴を一覧表示する。
+     *
+     * BlogOSでは複数のWordPressブログを管理するため、
+     * カテゴリ変更履歴はブログごとに分けて管理する。
+     *
+     * そのため、カテゴリ変更履歴一覧を表示する際には
+     * URLに対象ブログのIDを指定する。
+     *
+     * 例：
+     *
+     *     /category-history-list/1
+     *
+     * の場合、
+     *
+     *     blogs.id = 1
+     *
+     * のブログに登録されているカテゴリ変更履歴を表示する。
+     *
+     * CategoryHistoryListControllerのindex()が処理を担当する。
+     *
+     * Controllerでは、
+     *
+     * 1. URLからblogIdを受け取る
+     * 2. BlogRepositoryから対象ブログを取得する
+     * 3. CategoryHistoryRepositoryから対象ブログのカテゴリ変更履歴を取得する
+     * 4. カテゴリ変更履歴一覧Viewへ渡す
+     *
+     * という処理を行う。
+     *
+     * WordPress REST APIへはアクセスせず、
+     * BlogOSのDBに保存されているカテゴリ情報を使用する。
+     *
+     * ルート名：
+     *
+     *     category-history-list
+     *
+     * URL生成時には、
+     *
+     *     route('category-history-list', $blogId)
+     *
+     * のように対象ブログIDを指定する。
+     */
+    Route::get(
+        '/category-history-list/{blogId}',
+        [CategoryHistoryListController::class, 'index']
+    )->name('category-history-list');
 });
