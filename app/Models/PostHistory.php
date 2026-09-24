@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PostHistory extends Model
+{
+    public $timestamps = false;
+
+    protected $fillable = [
+        'blog_id',
+        'post_id',
+        'field',
+        'old_value',
+        'new_value',
+        'source',
+    ];
+
+    public function blog(): BelongsTo
+    {
+        return $this->belongsTo(Blog::class);
+    }
+
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
+}

@@ -4,12 +4,110 @@ use Illuminate\Support\Facades\Route;
 use App\Services\ThemeService;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\BlogRegisterController;
-use App\Http\Controllers\BlogListController;
-use App\Http\Controllers\BlogDetailController;
-use App\Http\Controllers\BlogHistoryListController;
-use App\Http\Controllers\CategoryListController;
-use App\Http\Controllers\CategoryHistoryListController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\BlogSwitchController;
+use App\Http\Middleware\ShareCurrentBlog;
+
+use App\Http\Controllers\Database\BlogRegisterController as DatabaseBlogRegisterController;
+use App\Http\Controllers\Database\BlogListController as DatabaseBlogListController;
+use App\Http\Controllers\Database\BlogDetailController as DatabaseBlogDetailController;
+
+use App\Http\Controllers\Database\BlogHistoryListController as DatabaseBlogHistoryListController;
+use App\Http\Controllers\Database\BlogHistoryDetailController as DatabaseBlogHistoryDetailController;
+
+use App\Http\Controllers\Database\CategoryRegisterController as DatabaseCategoryRegisterController;
+use App\Http\Controllers\Database\CategoryListController as DatabaseCategoryListController;
+use App\Http\Controllers\Database\CategoryDetailController as DatabaseCategoryDetailController;
+
+use App\Http\Controllers\Database\CategoryHistoryListController as DatabaseCategoryHistoryListController;
+use App\Http\Controllers\Database\CategoryHistoryDetailController as DatabaseCategoryHistoryDetailController;
+
+use App\Http\Controllers\Database\TagRegisterController as DatabaseTagRegisterController;
+use App\Http\Controllers\Database\TagListController as DatabaseTagListController;
+use App\Http\Controllers\Database\TagDetailController as DatabaseTagDetailController;
+
+use App\Http\Controllers\Database\TagHistoryListController as DatabaseTagHistoryListController;
+use App\Http\Controllers\Database\TagHistoryDetailController as DatabaseTagHistoryDetailController;
+
+use App\Http\Controllers\Database\MediaRegisterController as DatabaseMediaRegisterController;
+use App\Http\Controllers\Database\MediaListController as DatabaseMediaListController;
+use App\Http\Controllers\Database\MediaDetailController as DatabaseMediaDetailController;
+
+use App\Http\Controllers\Database\MediaHistoryListController as DatabaseMediaHistoryListController;
+use App\Http\Controllers\Database\MediaHistoryDetailController as DatabaseMediaHistoryDetailController;
+
+use App\Http\Controllers\Database\StatusListController as DatabaseStatusListController;
+use App\Http\Controllers\Database\StatusDetailController as DatabaseStatusDetailController;
+
+use App\Http\Controllers\Database\StatusHistoryListController as DatabaseStatusHistoryListController;
+use App\Http\Controllers\Database\StatusHistoryDetailController as DatabaseStatusHistoryDetailController;
+
+use App\Http\Controllers\Database\TypeListController as DatabaseTypeListController;
+use App\Http\Controllers\Database\TypeDetailController as DatabaseTypeDetailController;
+
+use App\Http\Controllers\Database\TypeHistoryListController as DatabaseTypeHistoryListController;
+use App\Http\Controllers\Database\TypeHistoryDetailController as DatabaseTypeHistoryDetailController;
+
+use App\Http\Controllers\Database\TaxonomyListController as DatabaseTaxonomyListController;
+use App\Http\Controllers\Database\TaxonomyDetailController as DatabaseTaxonomyDetailController;
+
+use App\Http\Controllers\Database\TaxonomyHistoryListController as DatabaseTaxonomyHistoryListController;
+use App\Http\Controllers\Database\TaxonomyHistoryDetailController as DatabaseTaxonomyHistoryDetailController;
+
+use App\Http\Controllers\Database\AuthorListController as DatabaseAuthorListController;
+use App\Http\Controllers\Database\AuthorDetailController as DatabaseAuthorDetailController;
+
+use App\Http\Controllers\Database\AuthorHistoryListController as DatabaseAuthorHistoryListController;
+use App\Http\Controllers\Database\AuthorHistoryDetailController as DatabaseAuthorHistoryDetailController;
+
+use App\Http\Controllers\Database\PostRegisterController as DatabasePostRegisterController;
+use App\Http\Controllers\Database\PostListController as DatabasePostListController;
+use App\Http\Controllers\Database\PostDetailController as DatabasePostDetailController;
+
+use App\Http\Controllers\Database\PostHistoryListController as DatabasePostHistoryListController;
+use App\Http\Controllers\Database\PostHistoryDetailController as DatabasePostHistoryDetailController;
+
+use App\Http\Controllers\Database\PageRegisterController as DatabasePageRegisterController;
+use App\Http\Controllers\Database\PageListController as DatabasePageListController;
+use App\Http\Controllers\Database\PageDetailController as DatabasePageDetailController;
+
+use App\Http\Controllers\Database\PageHistoryListController as DatabasePageHistoryListController;
+use App\Http\Controllers\Database\PageHistoryDetailController as DatabasePageHistoryDetailController;
+
+use App\Http\Controllers\Api\BlogDetailController as ApiBlogDetailController;
+
+use App\Http\Controllers\Api\CategoryListController as ApiCategoryListController;
+use App\Http\Controllers\Api\CategoryDetailController as ApiCategoryDetailController;
+
+use App\Http\Controllers\Api\TagListController as ApiTagListController;
+use App\Http\Controllers\Api\TagDetailController as ApiTagDetailController;
+
+use App\Http\Controllers\Api\MediaListController as ApiMediaListController;
+use App\Http\Controllers\Api\MediaDetailController as ApiMediaDetailController;
+
+use App\Http\Controllers\Api\StatusListController as ApiStatusListController;
+use App\Http\Controllers\Api\StatusDetailController as ApiStatusDetailController;
+
+use App\Http\Controllers\Api\TypeListController as ApiTypeListController;
+use App\Http\Controllers\Api\TypeDetailController as ApiTypeDetailController;
+
+use App\Http\Controllers\Api\TaxonomyListController as ApiTaxonomyListController;
+use App\Http\Controllers\Api\TaxonomyDetailController as ApiTaxonomyDetailController;
+
+use App\Http\Controllers\Api\AuthorListController as ApiAuthorListController;
+use App\Http\Controllers\Api\AuthorDetailController as ApiAuthorDetailController;
+
+use App\Http\Controllers\Api\PostListController as ApiPostListController;
+use App\Http\Controllers\Api\PostDetailController as ApiPostDetailController;
+
+use App\Http\Controllers\Api\PageListController as ApiPageListController;
+use App\Http\Controllers\Api\PageDetailController as ApiPageDetailController;
+
+use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
+use App\Http\Controllers\Api\AnalyticsInfoController as ApiAnalyticsInfoController;
+use App\Http\Controllers\Api\SearchConsoleInfoController as ApiSearchConsoleInfoController;
+use App\Http\Controllers\Api\AdsenseOAuthController;
+use App\Http\Controllers\Api\AdsenseInfoController as ApiAdsenseInfoController;
 
 /**
  * ==========================================================
@@ -44,40 +142,20 @@ use App\Http\Controllers\CategoryHistoryListController;
  *    ・ブログ登録
  *    ・ブログ一覧
  *    ・ブログ詳細
+ *    ・設定
+ *    ・各種API確認
  *
  * 認証必須の画面については、
  * authミドルウェアによってログイン済みユーザーだけが
  * アクセスできるようにする。
  *
- * ==========================================================
- */
-
-
-/**
- * ==========================================================
- * 使用するクラス
- * ==========================================================
+ * また、認証必須ルートにはShareCurrentBlogを適用し、
+ * 全ページ共通ヘッダーで使用する
  *
- * Route
- *     Laravelのルート定義を行うために使用する。
+ * ・blogs
+ * ・selectedBlog
  *
- * ThemeService
- *     BlogOSで使用するテーマを管理するService。
- *     トップページで使用するViewを取得するために使用する。
- *
- * LoginController
- *     ログイン画面の表示、
- *     ログイン処理、
- *     ログアウト処理を担当するController。
- *
- * BlogRegisterController
- *     WordPressブログの登録処理を担当するController。
- *
- * BlogListController
- *     BlogOSに登録されているブログ一覧の表示を担当するController。
- *
- * BlogDetailController
- *     指定されたブログの詳細画面の表示を担当するController。
+ * をViewへ共有する。
  *
  * ==========================================================
  */
@@ -89,83 +167,18 @@ use App\Http\Controllers\CategoryHistoryListController;
  * ----------------------------------------------------------
  * 認証不要
  * ==========================================================
- *
- * まだBlogOSへログインしていないユーザーでも
- * アクセスできるルート。
- *
- * ログイン処理そのものはLoginControllerへ委譲する。
  */
 
-
-/**
- * ----------------------------------------------------------
- * ログイン画面表示
- * ----------------------------------------------------------
- *
- * GET /login
- *
- * ブラウザからログイン画面へアクセスした場合に、
- * LoginControllerのshowLoginForm()を呼び出す。
- *
- * ルート名：
- *
- *     login
- *
- * Blade側などから、
- *
- *     route('login')
- *
- * のようにURLを生成する際に使用できる。
- */
 Route::get(
     '/login',
     [LoginController::class, 'showLoginForm']
 )->name('login');
 
-
-/**
- * ----------------------------------------------------------
- * ログイン処理
- * ----------------------------------------------------------
- *
- * POST /login
- *
- * ログイン画面から送信された認証情報を受け取り、
- * LoginControllerのlogin()を実行する。
- *
- * GETではなくPOSTを使用することで、
- * ログイン情報を登録・送信する処理であることを明確にする。
- *
- * このルートにはルート名を設定していない。
- */
 Route::post(
     '/login',
     [LoginController::class, 'login']
 );
 
-
-/**
- * ----------------------------------------------------------
- * ログアウト処理
- * ----------------------------------------------------------
- *
- * POST /logout
- *
- * 現在ログインしているユーザーをログアウトさせる。
- *
- * ルート名：
- *
- *     logout
- *
- * ログアウトボタンなどから、
- *
- *     route('logout')
- *
- * のようにURLを生成する際に使用できる。
- *
- * ログアウトは状態を変更する処理であるため、
- * POSTリクエストとして定義している。
- */
 Route::post(
     '/logout',
     [LoginController::class, 'logout']
@@ -176,58 +189,30 @@ Route::post(
  * ==========================================================
  * 認証必須ルート
  * ----------------------------------------------------------
- * authミドルウェア
+ * auth + ShareCurrentBlog
  * ==========================================================
  *
- * ここから下に定義するルートは、
- * ログイン済みユーザーのみがアクセスできる。
+ * auth：
+ *     ログイン済みユーザーのみアクセス可能にする。
  *
- * middleware('auth')によって、
- * 未ログイン状態でアクセスした場合は
- * Laravelの認証処理へ制御が渡される。
- *
- * BlogOSでは、
- *
- *     トップページ
- *     ブログ登録
- *     ブログ一覧
- *     ブログ詳細
- *
- * など、BlogOS内部の管理機能を
- * ログインユーザーだけが利用できるようにする。
+ * ShareCurrentBlog：
+ *     全ページ共通ヘッダーで使用する
+ *     ブログ一覧と現在選択中ブログをViewへ共有する。
  *
  * ==========================================================
  */
-Route::middleware('auth')->group(function () {
 
+Route::middleware([
+    'auth',
+    ShareCurrentBlog::class,
+])->group(function () {
 
     /**
      * ======================================================
-     * BlogOSトップページ
+     * トップページ
      * ======================================================
-     *
-     * GET /
-     *
-     * ログイン後に表示するBlogOSのトップページ。
-     *
-     * HomeControllerのindex()が処理を担当する。
-     *
-     * ControllerではBlogRepositoryを利用して
-     * blogsテーブルから登録済みブログをすべて取得し、
-     * 現在操作対象とするブログを選択するための
-     * データとしてトップページViewへ渡す。
-     *
-     * トップページでは、
-     *
-     * ・対象ブログの選択
-     * ・選択したブログに対する各種管理機能への遷移
-     *
-     * などを行う。
-     *
-     * blogsテーブルにブログが1件も存在しない場合は、
-     * ブログ選択リストを表示せず、
-     * ブログ登録画面への案内のみを表示する。
      */
+
     Route::get(
         '/',
         [DashboardController::class, 'index']
@@ -236,334 +221,243 @@ Route::middleware('auth')->group(function () {
 
     /**
      * ======================================================
-     * ブログ登録機能
+     * ブログ切替
+     * ------------------------------------------------------
+     * 共通ヘッダーのブログ切替ポップアップから
+     * 選択されたblog_idを受け取る。
+     *
+     * 切替後はトップページへリダイレクトする。
      * ======================================================
-     *
-     * WordPressブログをBlogOSの管理対象として
-     * 登録するためのルート群。
-     *
-     * ブログ登録では、
-     *
-     * 1. 登録画面を表示する
-     * 2. WordPress REST APIへの接続確認を行う
-     * 3. 取得したブログ情報をDBへ登録する
-     *
-     * という複数の処理を行う。
-     *
-     * それぞれの処理を個別のルートとして定義する。
      */
 
-
-    /**
-     * ------------------------------------------------------
-     * ブログ登録画面
-     * ------------------------------------------------------
-     *
-     * GET /blog-register
-     *
-     * ブログ登録画面を表示する。
-     *
-     * BlogRegisterControllerのindex()が
-     * 画面表示を担当する。
-     *
-     * ルート名：
-     *
-     *     blog-register
-     *
-     * Blade側から、
-     *
-     *     route('blog-register')
-     *
-     * のようにURLを生成できる。
-     */
-    Route::get(
-        '/blog-register',
-        [BlogRegisterController::class, 'index']
-    )->name('blog-register');
-
-
-    /**
-     * ------------------------------------------------------
-     * WordPress REST API接続確認
-     * ------------------------------------------------------
-     *
-     * POST /blog-register/check
-     *
-     * ブログ登録画面で入力されたWordPressブログのURLを受け取り、
-     * WordPress REST APIへの接続確認を行う。
-     *
-     * BlogRegisterControllerのcheck()が処理を担当する。
-     *
-     * ここではブログをDBへ登録するのではなく、
-     * WordPress APIからブログ基本情報を取得できるかを
-     * 確認するために使用する。
-     *
-     * ルート名：
-     *
-     *     blog-register.check
-     *
-     * blog-register.blade.phpのJavaScriptから
-     *
-     *     route('blog-register.check')
-     *
-     * としてURLを取得し、POSTリクエストを送信する。
-     */
     Route::post(
-        '/blog-register/check',
-        [BlogRegisterController::class, 'check']
-    )->name('blog-register.check');
+        '/blog-switch',
+        [BlogSwitchController::class, 'switch']
+    )->name('blog-switch');
 
 
     /**
-     * ------------------------------------------------------
-     * ブログ登録処理
-     * ------------------------------------------------------
-     *
-     * POST /blog-register/store
-     *
-     * 接続確認によって取得したブログ情報を受け取り、
-     * BlogOSのblogsテーブルへ登録する。
-     *
-     * BlogRegisterControllerのstore()が
-     * 登録処理を担当する。
-     *
-     * ただし、既に同じブログが登録されている場合は、
-     * DBの状態とWordPress APIから取得した情報を比較し、
-     * 差分がある場合には確認処理を行う。
-     *
-     * そのため、単純に常に新規INSERTを行うルートではなく、
-     * Controller側で登録・既存・差分更新などを判定する。
-     *
-     * ルート名：
-     *
-     *     blog-register.store
-     *
-     * blog-register.blade.phpのJavaScriptから
-     *
-     *     route('blog-register.store')
-     *
-     * としてURLを取得し、POSTリクエストを送信する。
+     * ======================================================
+     * ブログ管理
+     * ======================================================
      */
+
+    Route::get(
+        '/database/blog-register',
+        [DatabaseBlogRegisterController::class, 'index']
+    )->name('database-blog-register');
+
     Route::post(
-        '/blog-register/store',
-        [BlogRegisterController::class, 'store']
-    )->name('blog-register.store');
+        '/database/blog-register/check',
+        [DatabaseBlogRegisterController::class, 'check']
+    )->name('database-blog-register.check');
+
+    Route::post(
+        '/database/blog-register/store',
+        [DatabaseBlogRegisterController::class, 'store']
+    )->name('database-blog-register.store');
+
+    Route::get(
+        '/database/blog-list',
+        [DatabaseBlogListController::class, 'index']
+    )->name('database-blog-list');
+
+    Route::get(
+        '/database/blog-detail/{id}',
+        [DatabaseBlogDetailController::class, 'index']
+    )->name('database-blog-detail');
+
+    Route::get(
+        '/database/blog-history-list',
+        [DatabaseBlogHistoryListController::class, 'index']
+    )->name('database-blog-history-list');
 
 
     /**
      * ======================================================
-     * ブログ一覧
+     * カテゴリ
      * ======================================================
-     *
-     * GET /blog-list
-     *
-     * BlogOSへ登録されているブログを一覧表示する。
-     *
-     * BlogListControllerのindex()が処理を担当する。
-     *
-     * ControllerではBlogRepositoryを利用して
-     * blogsテーブルから登録済みブログを取得し、
-     * ブログ一覧Viewへ渡す。
-     *
-     * ルート名：
-     *
-     *     blog-list
-     *
-     * ブログ詳細画面から一覧画面へ戻る場合などに、
-     *
-     *     route('blog-list')
-     *
-     * としてURLを生成できる。
      */
+
     Route::get(
-        '/blog-list',
-        [BlogListController::class, 'index']
-    )->name('blog-list');
+        '/database/category-list/{blogId}',
+        [DatabaseCategoryListController::class, 'index']
+    )->name('database-category-list');
+
+    Route::get(
+        '/database/category-history-list/{blogId}',
+        [DatabaseCategoryHistoryListController::class, 'index']
+    )->name('database-category-history-list');
 
 
     /**
      * ======================================================
-     * ブログ詳細
+     * 記事一覧・詳細
      * ======================================================
-     *
-     * GET /blog-detail/{id}
-     *
-     * 一覧画面から選択されたブログの詳細情報を表示する。
-     *
-     * {id}にはblogsテーブルのIDが入る。
-     *
-     * 例えば、
-     *
-     *     /blog-detail/1
-     *
-     * にアクセスした場合、
-     * ブログID「1」の詳細画面を表示する。
-     *
-     * BlogDetailControllerのshow()が処理を担当する。
-     *
-     * Controllerでは受け取ったIDをBlogRepositoryへ渡し、
-     * blogsテーブルから該当するブログ情報を取得する。
-     *
-     * 該当するブログが存在しない場合は、
-     * Repositoryからnullが返される。
-     *
-     * その場合の画面表示については、
-     * 詳細画面のView側で制御する。
-     *
-     * ルート名：
-     *
-     *     blog-detail
-     *
-     * ただし、このルートへ遷移する際は、
-     * ブログ一覧画面のIDリンクなどから
-     * ブログIDを指定してURLを生成する。
-     *
-     * 例えばBlade側では、
-     *
-     *     route('blog-detail', $blog->id)
-     *
-     * のように使用できる。
      */
+
     Route::get(
-        '/blog-detail/{id}',
-        [BlogDetailController::class, 'show']
-    )->name('blog-detail');
+        '/api/post-list',
+        [ApiPostListController::class, 'index']
+    )->name('post-list');
+
+    Route::get(
+        '/api/post-detail/{id}',
+        [ApiPostDetailController::class, 'index']
+    )->name('api-post-detail');
+
 
     /**
      * ======================================================
-     * ブログ変更履歴一覧
+     * 固定ページ一覧・詳細
      * ======================================================
-     *
-     * GET /blog-history-list
-     *
-     * BlogOSに保存されているブログ変更履歴を一覧表示する。
-     *
-     * BlogHistoryListControllerのindex()が処理を担当する。
-     *
-     * ControllerではBlogHistoryRepositoryを利用して
-     * blog_historiesテーブルから変更履歴を取得し、
-     * ブログ変更履歴一覧Viewへ渡す。
-     *
-     * ルート名：
-     *
-     *     blog-history-list
-     *
-     * ブログ変更履歴を確認する場合などに、
-     *
-     *     route('blog-history-list')
-     *
-     * としてURLを生成できる。
      */
+
     Route::get(
-        '/blog-history-list',
-        [BlogHistoryListController::class, 'index']
-    )->name('blog-history-list');
+        '/api/page-list',
+        [ApiPageListController::class, 'index']
+    )->name('api-page-list');
+
+    Route::get(
+        '/api/page-detail/{id}',
+        [ApiPageDetailController::class, 'index']
+    )->name('api-page-detail');
+
 
     /**
      * ======================================================
-     * カテゴリ一覧
+     * カテゴリ・タグ・メディア
      * ======================================================
-     *
-     * GET /category-list/{blogId}
-     *
-     * 指定されたブログのカテゴリを一覧表示する。
-     *
-     * BlogOSでは複数のWordPressブログを管理するため、
-     * カテゴリはブログごとに分けて管理する。
-     *
-     * そのため、カテゴリ一覧を表示する際には
-     * URLに対象ブログのIDを指定する。
-     *
-     * 例：
-     *
-     *     /category-list/1
-     *
-     * の場合、
-     *
-     *     blogs.id = 1
-     *
-     * のブログに登録されているカテゴリを表示する。
-     *
-     * CategoryListControllerのindex()が処理を担当する。
-     *
-     * Controllerでは、
-     *
-     * 1. URLからblogIdを受け取る
-     * 2. BlogRepositoryから対象ブログを取得する
-     * 3. CategoryRepositoryから対象ブログのカテゴリを取得する
-     * 4. カテゴリ一覧Viewへ渡す
-     *
-     * という処理を行う。
-     *
-     * WordPress REST APIへはアクセスせず、
-     * BlogOSのDBに保存されているカテゴリ情報を使用する。
-     *
-     * ルート名：
-     *
-     *     category-list
-     *
-     * URL生成時には、
-     *
-     *     route('category-list', $blogId)
-     *
-     * のように対象ブログIDを指定する。
      */
+
     Route::get(
-        '/category-list/{blogId}',
-        [CategoryListController::class, 'index']
-    )->name('category-list');
+        '/api/category-list/{blogId}',
+        [ApiCategoryListController::class, 'index']
+    )->name('api-category-list');
+
+    Route::get(
+        '/api/category-detail/{blogId}/{categoryId}',
+        [ApiCategoryDetailController::class, 'index']
+    )->name('api-category-detail');
+
+    Route::get(
+        '/api/tag-list',
+        [ApiTagListController::class, 'index']
+    )->name('api-tag-list');
+
+    Route::get(
+        '/api/media-list',
+        [ApiMediaListController::class, 'index']
+    )->name('api-media-list');
+
 
     /**
      * ======================================================
-     * カテゴリ変更履歴一覧
+     * 設定
+     * ------------------------------------------------------
+     * 現在選択中のブログはSettingsController側で取得する。
+     *
+     * そのため、URLにはblogIdを含めない。
      * ======================================================
-     *
-     * GET /category-history-list
-     *
-     * 指定されたブログのカテゴリ変更履歴を一覧表示する。
-     *
-     * BlogOSでは複数のWordPressブログを管理するため、
-     * カテゴリ変更履歴はブログごとに分けて管理する。
-     *
-     * そのため、カテゴリ変更履歴一覧を表示する際には
-     * URLに対象ブログのIDを指定する。
-     *
-     * 例：
-     *
-     *     /category-history-list/1
-     *
-     * の場合、
-     *
-     *     blogs.id = 1
-     *
-     * のブログに登録されているカテゴリ変更履歴を表示する。
-     *
-     * CategoryHistoryListControllerのindex()が処理を担当する。
-     *
-     * Controllerでは、
-     *
-     * 1. URLからblogIdを受け取る
-     * 2. BlogRepositoryから対象ブログを取得する
-     * 3. CategoryHistoryRepositoryから対象ブログのカテゴリ変更履歴を取得する
-     * 4. カテゴリ変更履歴一覧Viewへ渡す
-     *
-     * という処理を行う。
-     *
-     * WordPress REST APIへはアクセスせず、
-     * BlogOSのDBに保存されているカテゴリ情報を使用する。
-     *
-     * ルート名：
-     *
-     *     category-history-list
-     *
-     * URL生成時には、
-     *
-     *     route('category-history-list', $blogId)
-     *
-     * のように対象ブログIDを指定する。
      */
+
     Route::get(
-        '/category-history-list/{blogId}',
-        [CategoryHistoryListController::class, 'index']
-    )->name('category-history-list');
+        '/settings',
+        [SettingsController::class, 'index']
+    )->name('settings');
+
+
+    /**
+     * ======================================================
+     * サイト情報・ステータス・タイプ・タクソノミー・ユーザー
+     * ======================================================
+     */
+
+    Route::get(
+        '/api/blog-detail/{id}',
+        [ApiBlogDetailController::class, 'index']
+    )->name('api-blog-detail');
+
+    Route::get(
+        '/api/status-list',
+        [ApiStatusListController::class, 'index']
+    )->name('api-status-list');
+
+    Route::get(
+        '/api/type-list',
+        [ApiTypeListController::class, 'index']
+    )->name('api-type-list');
+
+    Route::get(
+        '/api/taxonomy-list',
+        [ApiTaxonomyListController::class, 'index']
+    )->name('api-taxonomy-list');
+
+    Route::get(
+        '/api/author-list/{blogId}',
+        [ApiAuthorListController::class, 'index']
+    )->name('api-author-list');
+
+
+    /**
+     * ======================================================
+     * サイト内検索
+     * ======================================================
+     */
+
+    Route::get(
+        '/api/site-search',
+        [ApiSiteSearchController::class, 'index']
+    )->name('api-site-search');
+
+
+    /**
+     * ======================================================
+     * Analytics
+     * ======================================================
+     */
+
+    Route::get(
+        '/api/analytics-info',
+        [ApiAnalyticsInfoController::class, 'index']
+    )->name('api-analytics-info');
+
+    Route::get(
+        '/api/analytics-catalog',
+        [ApiAnalyticsInfoController::class, 'catalog']
+    )->name('api-analytics-catalog');
+
+
+    /**
+     * ======================================================
+     * Search Console
+     * ======================================================
+     */
+
+    Route::get(
+        '/api/search-console-info',
+        [ApiSearchConsoleInfoController::class, 'index']
+    )->name('api-search-console-info');
+
+
+    /**
+     * ======================================================
+     * AdSense
+     * ======================================================
+     */
+
+    Route::get(
+        '/adsense/oauth/redirect',
+        [AdsenseOAuthController::class, 'redirect']
+    )->name('adsense.oauth.redirect');
+
+    Route::get(
+        '/adsense/oauth/callback',
+        [AdsenseOAuthController::class, 'callback']
+    )->name('adsense.oauth.callback');
+
+    Route::get(
+        '/api/adsense-info',
+        [ApiAdsenseInfoController::class, 'index']
+    )->name('api-adsense-info');
 });

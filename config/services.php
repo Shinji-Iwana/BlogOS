@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+    'wp' => [
+        'username'     => env('WP_APP_USER'),
+        'app_password' => env('WP_APP_PASSWORD'),
+    ],
+
+    'ga4' => [
+        'property_id' => env('GA4_PROPERTY_ID'),
+    ],
+
+    'gsc' => [
+        'site_url' => env('GSC_SITE_URL'),
+    ],
+
+    'adsense' => [
+        'client_id'     => env('GOOGLE_ADSENSE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_ADSENSE_CLIENT_SECRET'),
+        'redirect_uri'  => env('GOOGLE_ADSENSE_REDIRECT_URI'),
+    ],
+
 ];
