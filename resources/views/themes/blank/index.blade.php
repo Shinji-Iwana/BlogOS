@@ -48,9 +48,9 @@
         <p><a href="{{ route('api-site-search') }}">サイト内検索ページへ</a></p>
     @endif
 
-    <p><a href="{{ route('api-analytics-info') }}">Google Analytics情報一覧ページへ</a></p>
-    <p><a href="{{ route('api-search-console-info') }}">Search Console情報一覧ページへ</a></p>
-    <p><a href="{{ route('api-adsense-info') }}">AdSense情報一覧ページへ</a></p>
+    @if ($selectedBlog)
+        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
+    @endif
 
 @else
 

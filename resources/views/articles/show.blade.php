@@ -61,6 +61,60 @@
         </p>
     @endif
 
+    {{-- Googleの指標（保存済みのデータ。D-21-02〜D-21-04） --}}
+    <h2>Googleの指標（{{ $googlePeriod[0]->toDateString() }}〜{{ $googlePeriod[1]->toDateString() }}、括弧内はその前の28日）</h2>
+    @php
+        $ga = $google['ga4']; $gaPrev = $googlePrevious['ga4'];
+        $sc = $google['search_console']; $scPrev = $googlePrevious['search_console'];
+        $ad = $google['adsense']; $adPrev = $googlePrevious['adsense'];
+    @endphp
+    <table border="1" cellpadding="4" cellspacing="0">
+        <tr><th style="text-align:left;">表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}（{{ number_format((int) $gaPrev->views) }}）</td></tr>
+        <tr><th style="text-align:left;">セッション</th><td>{{ number_format((int) $ga->sessions) }}（{{ number_format((int) $gaPrev->sessions) }}）</td></tr>
+        <tr><th style="text-align:left;">検索のクリック・表示回数</th><td>{{ number_format((int) $sc->clicks) }}・{{ number_format((int) $sc->impressions) }}（{{ number_format((int) $scPrev->clicks) }}・{{ number_format((int) $scPrev->impressions) }}）</td></tr>
+        <tr><th style="text-align:left;">平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}（{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}）</td></tr>
+        <tr><th style="text-align:left;">収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}（{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) : '-' }}）</td></tr>
+    </table>
+
+    @if ($google['channels']->isNotEmpty())
+        <p>流入元：
+            @foreach ($google['channels'] as $channel)
+                {{ $channel->channel_group }} {{ number_format($channel->views) }}@if (! $loop->last)・@endif
+            @endforeach
+        </p>
+    @endif
+
+    <h3>検索クエリ（クリックの多い順、最大50件）</h3>
+    @php
+        $queryTexts = $google['queries']->pluck('query')->map(fn ($q) => mb_strtolower($q))->all();
+    @endphp
+    @if ($keywords->isNotEmpty())
+        <p>
+            登録しているキーワードの出現：
+            @foreach ($keywords as $keyword)
+                @php $found = collect($queryTexts)->contains(fn ($q) => str_contains($q, mb_strtolower($keyword->keyword))); @endphp
+                {{ $keyword->keyword }}（{{ $found ? '検索クエリにあり' : 'なし' }}）@if (! $loop->last)・@endif
+            @endforeach
+        </p>
+    @endif
+    <div style="overflow-x:auto;">
+        <table border="1" cellpadding="4" cellspacing="0">
+            <thead><tr><th>検索クエリ</th><th>クリック</th><th>表示回数</th><th>平均掲載順位</th></tr></thead>
+            <tbody>
+                @forelse ($google['queries'] as $query)
+                    <tr>
+                        <td>{{ $query->query }}</td>
+                        <td>{{ number_format($query->clicks) }}</td>
+                        <td>{{ number_format($query->impressions) }}</td>
+                        <td>{{ $query->position !== null ? round($query->position, 1) : '-' }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="4">データがありません。</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
     {{-- 管理情報（D-08-02） --}}
     <h2>管理情報</h2>
     <form method="POST" action="{{ route('articles.management.update', ['type' => $type, 'id' => $article->id]) }}">

@@ -35,18 +35,17 @@ return [
         ],
     ],
 
-    'ga4' => [
-        'property_id' => env('GA4_PROPERTY_ID'),
-    ],
-
-    'gsc' => [
-        'site_url' => env('GSC_SITE_URL'),
-    ],
-
-    'adsense' => [
-        'client_id'     => env('GOOGLE_ADSENSE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_ADSENSE_CLIENT_SECRET'),
-        'redirect_uri'  => env('GOOGLE_ADSENSE_REDIRECT_URI'),
+    /*
+     * Google連携の OAuth クライアント（D-21-01）
+     *
+     * GA4・Search Console・AdSense の読み取りを、1つの OAuth クライアントで行う。
+     * 対応先（GA4のプロパティ等）は .env ではなく、ブログごとにDBに保存する（blog_google_properties）。
+     * 試作で使っていた GOOGLE_ADSENSE_* の値も、そのまま読めるようにしている。
+     */
+    'google' => [
+        'client_id'     => env('GOOGLE_OAUTH_CLIENT_ID', env('GOOGLE_ADSENSE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_OAUTH_CLIENT_SECRET', env('GOOGLE_ADSENSE_CLIENT_SECRET')),
+        'redirect_uri'  => env('GOOGLE_OAUTH_REDIRECT_URI', env('GOOGLE_ADSENSE_REDIRECT_URI')),
     ],
 
 ];

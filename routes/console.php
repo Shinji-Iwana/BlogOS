@@ -14,5 +14,8 @@ use Illuminate\Support\Facades\Schedule;
 // 毎日のWordPressとの同期（D-01-03）。アーカイブしていない全ブログを、Queueに登録する
 Schedule::command('blogs:sync')->dailyAt('03:00')->timezone(config('blogos.display_timezone'));
 
+// 毎日のGoogleのデータの取得（D-21-07）。WordPressとの同期の後に行う
+Schedule::command('google:fetch')->dailyAt('05:00')->timezone(config('blogos.display_timezone'));
+
 // 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
 Schedule::command('model:prune')->dailyAt('04:00')->timezone(config('blogos.display_timezone'));

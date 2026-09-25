@@ -792,14 +792,38 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `google_accounts` | Googleアカウントごとの OAuth トークン（暗号化）、有効期限、スコープ（D-03-05） |
 | `blog_google_properties` | ブログごとの対応先（GA4のプロパティ、Search Consoleのサイト、AdSenseのアカウント）と、使用する `google_account_id` |
 
+* 認証は、GA4・Search Console・AdSense とも OAuth（利用者のGoogleアカウントでのログイン）に統一する。サービスアカウントは使わない（D-21-01）。
+* `google_accounts`：`email`（Googleアカウントのメールアドレス）、`access_token` / `refresh_token`（`encrypted` キャスト。TEXT型）、`token_expires_at`、`scopes`（JSON）、`connected_by`（`users.id`）、`last_refreshed_at`、`last_error`。トークンは画面に表示しない。
+* `blog_google_properties`：`blog_id`、`service`（`ga4` / `search_console` / `adsense`）、`google_account_id`、`resource_name`（GA4は `properties/<ID>`、Search Consoleはサイト（`sc-domain:example.com` 等）、AdSenseは `accounts/pub-...`）、`display_name`、`adsense_domain`（AdSenseで集計するドメイン）。一意キーは `blog_id + service`。
+
 ## 12-2. 指標のテーブル
 
-具体的なテーブル・粒度・保存期間は、Google連携の設計時に決定する。その際、次の原則に従う（D-08-05）。
+次の原則に従う（D-08-05）。
 
 * Googleから受け取ったURL（ページのパス等）はそのまま保存する。
 * 対応する記事を、`posts` / `pages` の `normalized_path` と照合し、解決できれば `post_id` / `page_id` を設定する（多くとも一方）。
 * slugの変更でURLが変わった記事も照合できるよう、履歴に残っている過去の `link` でも照合する。
 * 取得期間（集計の対象期間）を必ず記録する。
+
+粒度と保存期間（D-21-02〜D-21-05）：
+
+| テーブル | 粒度 | 主な列 |
+| --- | --- | --- |
+| `google_analytics_site_daily` | ブログ×日 | `active_users`、`new_users`、`sessions`、`engaged_sessions`、`screen_page_views`、`user_engagement_duration`（秒） |
+| `google_analytics_page_daily` | ページ×日 | `page_path`、`screen_page_views`、`active_users`、`sessions`、`engaged_sessions`、`user_engagement_duration` |
+| `google_analytics_page_channel_daily` | ページ×流入元×日 | 上に加えて `channel_group`（GA4の既定のチャネルグループ） |
+| `google_search_console_site_daily` | ブログ×日 | `clicks`、`impressions`、`ctr`、`position` |
+| `google_search_console_page_daily` | ページ×日 | `page_url`、`clicks`、`impressions`、`ctr`、`position` |
+| `google_search_console_query_daily` | ページ×検索クエリ×日 | 上に加えて `query` |
+| `google_adsense_site_daily` | ブログ×日 | `currency_code`、`estimated_earnings`、`page_views`、`impressions`、`clicks` |
+| `google_adsense_page_daily` | ページ×日 | `page_url`、上と同じ指標（AdSense APIがページ単位の集計を返す場合だけ使う） |
+
+* ページ単位の表は、`normalized_path`、`post_id` / `page_id`（多くとも一方）を持つ。URL・パス・クエリは長さの制限がないため、一意キーには、値のハッシュ（`*_hash`、SHA-1）を使う。
+* 全ての表は `blog_id`、`date`（集計の対象日。GA4・Search Consoleはプロパティのタイムゾーン、AdSenseはアカウントのタイムゾーン）、`fetched_at` を持ち、一意キーは `blog_id + date + （ページ・流入元・クエリ）` とする。
+* 平均や率（`ctr`、`position` 等）はGoogleが返した値を保存し、期間の集計では表示回数などで重み付けする。ユーザー数は日をまたいで足し合わせられないため、期間のユーザー数は表示しない（日ごとの値だけを示す）。
+* Googleの数値は数日のあいだ更新されるため、取得のたびに直近の数日を取得し直し、その日の行を置き換える。
+* 保存期間は無期限とする（Search Consoleは16か月より前をGoogleから取り直せないため）。量はDB確認画面で確認し、必要になったら見直す。
+* 取得の実行記録は `google_fetch_runs`（`blog_id`、`service`、`trigger`、`status`、`date_from` / `date_to`、`row_count`、`message`、`error_status` / `error_body`、`started_at` / `finished_at`）に残す。取得の失敗は `sync_issues`（`fetch_error`、`resource_type` は `google_ga4` 等）に記録して通知する。
 
 ---
 

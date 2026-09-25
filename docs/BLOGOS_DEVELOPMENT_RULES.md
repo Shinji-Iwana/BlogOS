@@ -382,7 +382,9 @@ AI機能の段階・実行方式・記録は `BLOGOS_ARCHITECTURE.md` 18章に�
 * 取得したデータとDBに保存するデータを分ける。
 * 取得した期間・日時・タイムゾーンを明確に記録する。
 * 記事との対応付けは `BLOGOS_DATABASE.md` 12-2 に従う。
-* 詳細はGoogle連携の設計時に定める。
+* Google APIは、LaravelのHTTPクライアントで REST API を呼ぶ（`app/Clients/Google`）。Googleの公式ライブラリは使わない。テストでは `Http::fake` で偽の応答に置き換える（D-21-06）。
+* 認証は OAuth に統一し、トークンは `google_accounts` に暗号化して保存する。トークンをログ・画面・例外のメッセージに出さない（D-21-01）。
+* Google APIを呼ぶのは、毎日の取得・手動の取得・Google連携の設定画面（対応先の候補の読み込み）だけとする。分析の画面は保存済みのデータ（DB）から表示する。
 
 ---
 

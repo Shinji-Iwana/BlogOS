@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\DB;
  */
 class ArticleContentRepository
 {
+    public function __construct(
+        protected ArticlePathRepository $paths,
+    ) {
+    }
+
     /**
      * 記事の内部リンクと本文中のメディアを作り直す（本文が変わるたびに行う）。
      *
@@ -50,7 +55,7 @@ class ArticleContentRepository
     }
 
     /**
-     * リンク先が未解決の内部リンクを、記事のパス（normalized_path）で照合する（D-15-09）。
+     * リンク先が未解決の内部リンクを照合する（D-15-09。照合の規則は ArticlePathRepository）。
      *
      * @return int 解決できた件数
      */
@@ -65,18 +70,12 @@ class ArticleContentRepository
             return 0;
         }
 
-        $posts = Post::where('blog_id', $blogId)->existing()->whereNotNull('normalized_path')->pluck('id', 'normalized_path');
-        $pages = Page::where('blog_id', $blogId)->existing()->whereNotNull('normalized_path')->pluck('id', 'normalized_path');
-
         $resolved = 0;
         foreach ($unresolved as $link) {
-            $path = ArticlePath::fromUrl($link->target_url);
+            $match = $this->paths->find($blogId, $link->target_url);
 
-            if (isset($posts[$path])) {
-                $link->update(['target_post_id' => $posts[$path]]);
-                $resolved++;
-            } elseif (isset($pages[$path])) {
-                $link->update(['target_page_id' => $pages[$path]]);
+            if ($match !== null) {
+                $link->update(['target_' . $match[0] => $match[1]]);
                 $resolved++;
             }
         }

@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Articles;
 
 use App\Enums\RelationType;
 use App\Enums\WorkStatus;
+use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
+use App\Repositories\GoogleMetricRepository;
 use App\Support\QualityProfiles;
 use Illuminate\Http\Request;
 
@@ -26,6 +28,7 @@ class ArticleController extends Controller
         protected ArticleRepository $articles,
         protected ArticleManagementRepository $managements,
         protected ArticleDraftRepository $drafts,
+        protected GoogleMetricRepository $metrics,
     ) {
     }
 
@@ -62,6 +65,11 @@ class ArticleController extends Controller
 
         $management = $this->managements->findFor($article);
 
+        // Googleの指標（直近28日と、その前の28日）。保存済みのデータから読む
+        $column = $article instanceof Post ? 'post_id' : 'page_id';
+        [$from, $to] = AnalyticsController::period(28);
+        [$previousFrom, $previousTo] = AnalyticsController::period(28, 28);
+
         return view('articles.show', [
             'blog'          => $blog,
             'type'          => $type,
@@ -79,6 +87,9 @@ class ArticleController extends Controller
             'articleTypes'  => QualityProfiles::articleTypes($blog->quality_profile),
             'workStatuses'  => WorkStatus::cases(),
             'relationTypes' => RelationType::cases(),
+            'google'         => $this->metrics->articleSummary($column, $article->id, $from, $to),
+            'googlePrevious' => $this->metrics->articleSummary($column, $article->id, $previousFrom, $previousTo),
+            'googlePeriod'   => [$from, $to],
             'relatedQuery'  => $relatedKeyword,
             'relatedType'   => $relatedType,
             'candidates'    => $candidates,

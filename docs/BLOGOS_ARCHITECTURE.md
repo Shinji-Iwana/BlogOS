@@ -1021,6 +1021,8 @@ DB
 
 GoogleのOAuthトークンは、Googleアカウント単位でDBに暗号化して保存し、ブログごとの対応先（GA4のプロパティ、Search Consoleのサイト、AdSenseのアカウント）を別に持つ（D-03-05）。
 
+実装では、Google API Client（`app/Clients/Google`：OAuth と REST API の呼び出し）→ 取得（`App\Services\Google\Fetchers`：サービスごと）→ Repository（`GoogleMetricRepository`：期間の行の置き換えと記事の対応付け）とする。取得は毎日の同期の後にJobとして行い、実行記録（`google_fetch_runs`）を残す（D-21-01〜D-21-07）。
+
 ---
 
 ## 19-2. 記事との対応付け
@@ -1035,7 +1037,7 @@ Googleから取得したデータは、受け取ったURLをそのまま保存�
 * Google Search Console：検索パフォーマンス
 * Google AdSense：収益関連情報
 
-具体的な取得項目・粒度・保存期間は、Google連携の設計時に定義する。
+具体的な取得項目・粒度・保存期間は `BLOGOS_DATABASE.md` 12章で定義する（D-21-02〜D-21-05）。
 
 ---
 

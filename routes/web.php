@@ -1,9 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AdsenseInfoController as ApiAdsenseInfoController;
-use App\Http\Controllers\Api\AdsenseOAuthController;
-use App\Http\Controllers\Api\AnalyticsInfoController as ApiAnalyticsInfoController;
-use App\Http\Controllers\Api\SearchConsoleInfoController as ApiSearchConsoleInfoController;
+use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
 use App\Http\Controllers\Articles\ArticleController;
@@ -23,6 +20,8 @@ use App\Http\Controllers\Database\BlogListController as DatabaseBlogListControll
 use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistoryController;
 use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController;
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
+use App\Http\Controllers\Google\GoogleOAuthController;
+use App\Http\Controllers\Google\GoogleSettingsController;
 use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\Terms\TermController;
@@ -132,11 +131,17 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // サイト内検索（Search API。将来の候補 D-10-05。見直しまでは現状のまま）
     Route::get('/api/site-search', [ApiSiteSearchController::class, 'index'])->name('api-site-search');
 
-    // Google連携（試作。分析機能の段階で作り直す D-16-02）
-    Route::get('/api/analytics-info', [ApiAnalyticsInfoController::class, 'index'])->name('api-analytics-info');
-    Route::get('/api/analytics-catalog', [ApiAnalyticsInfoController::class, 'catalog'])->name('api-analytics-catalog');
-    Route::get('/api/search-console-info', [ApiSearchConsoleInfoController::class, 'index'])->name('api-search-console-info');
-    Route::get('/adsense/oauth/redirect', [AdsenseOAuthController::class, 'redirect'])->name('adsense.oauth.redirect');
-    Route::get('/adsense/oauth/callback', [AdsenseOAuthController::class, 'callback'])->name('adsense.oauth.callback');
-    Route::get('/api/adsense-info', [ApiAdsenseInfoController::class, 'index'])->name('api-adsense-info');
+    // Google連携（D-21-01、D-21-07）と分析
+    Route::get('/google', [GoogleSettingsController::class, 'index'])->name('google.settings');
+    Route::get('/google/oauth/redirect', [GoogleOAuthController::class, 'redirect'])->name('google.oauth.redirect');
+    Route::get('/google/oauth/callback', [GoogleOAuthController::class, 'callback'])->name('google.oauth.callback');
+    // 試作のときに Google Cloud に登録したリダイレクトURIのまま使えるようにする
+    Route::get('/adsense/oauth/callback', [GoogleOAuthController::class, 'callback']);
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
+        Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
+        Route::post('/google/fetch', [GoogleSettingsController::class, 'fetch'])->name('google.fetch');
+    });
 });

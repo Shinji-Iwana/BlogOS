@@ -35,6 +35,17 @@ return [
     'display_timezone' => env('BLOGOS_DISPLAY_TIMEZONE', 'Asia/Tokyo'),
 
     /*
+     * Googleのデータの取得（BLOGOS_DATABASE.md 12-2、D-21-07）
+     */
+    'google' => [
+        // Googleの数値は数日のあいだ更新されるため、毎回この日数を取得し直す
+        'refetch_days'   => 4,
+
+        // 初めて取得するときに、何か月前から取得するか（Search Consoleは約16か月前までしか取得できない）
+        'initial_months' => 16,
+    ],
+
+    /*
      * 同期（BLOGOS_WORDPRESS_API.md 第III部）
      */
     'sync' => [

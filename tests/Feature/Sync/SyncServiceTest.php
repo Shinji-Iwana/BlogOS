@@ -262,6 +262,21 @@ class SyncServiceTest extends TestCase
         $this->assertSame(Post::where('wordpress_id', 999)->value('id'), $links[2]->fresh()->target_post_id);
     }
 
+    public function test_old_url_with_changed_directory_is_resolved_by_last_segment(): void
+    {
+        // リンク先：カテゴリのスラッグが変わる前のURL（最後の部分 post-101 は同じ）と、カテゴリのページ
+        $this->wp->lists['posts'][0] = FakeWordPress::post(100, [
+            'categories' => [10],
+            'content'    => ['raw' => '<a href="/old-category/post-101/">旧URL</a><a href="/category/post-101/">カテゴリのページ</a>', 'rendered' => ''],
+        ]);
+
+        $this->sync(SyncTrigger::Initial);
+
+        $links = InternalLink::where('post_id', Post::where('wordpress_id', 100)->value('id'))->orderBy('id')->get();
+        $this->assertSame(Post::where('wordpress_id', 101)->value('id'), $links[0]->target_post_id);
+        $this->assertNull($links[1]->target_post_id);
+    }
+
     public function test_wordpress_change_is_held_when_article_has_active_draft(): void
     {
         $this->sync(SyncTrigger::Initial);

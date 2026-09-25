@@ -80,6 +80,21 @@ class ArticleRepository
     }
 
     /**
+     * 記事のタイトル等をまとめて読み込む（分析の一覧など）
+     *
+     * @param array<int, int> $postIds
+     * @param array<int, int> $pageIds
+     * @return array{posts: Collection<int, Post>, pages: Collection<int, Page>} IDをキーにした記事
+     */
+    public function findMany(array $postIds, array $pageIds): array
+    {
+        return [
+            'posts' => Post::whereIn('id', $postIds)->get(['id', 'title_raw', 'status', 'wordpress_deleted_at'])->keyBy('id'),
+            'pages' => Page::whereIn('id', $pageIds)->get(['id', 'title_raw', 'status', 'wordpress_deleted_at'])->keyBy('id'),
+        ];
+    }
+
+    /**
      * 編集案で選ぶカテゴリ・タグ（WordPress側で削除されたものを除く）
      *
      * @param string $table categories / tags
