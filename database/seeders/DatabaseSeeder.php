@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,15 +11,13 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * 本番（XServer）でも実行されるため、テスト用・初期状態のユーザーを作成しない。
+     * Laravelの初期状態にあった Test User の作成は、誰でも推測できる認証情報で
+     * ログインできてしまうため削除した（BLOGOS_DECISIONS.md D-17-02）。
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
         $this->call([
             AdminUserSeeder::class,
         ]);
