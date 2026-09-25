@@ -15,12 +15,14 @@ class CategoryListController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId)
+    public function index()
     {
-        $categoryService = new CategoryService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $categoryService = new CategoryService($blog);
 
         $categories = $categoryService->getCategories();
 

@@ -28,7 +28,7 @@ class AdsenseOAuthController extends Controller
 
         file_put_contents(storage_path('app/google/adsense-token.json'), json_encode($token));
 
-        return '認証が完了しました。<a href="' . route('adsense-info') . '">AdSense情報一覧ページへ</a>';
+        return '認証が完了しました。<a href="' . route('api-adsense-info') . '">AdSense情報一覧ページへ</a>';
     }
 
     private function makeClient(): Client

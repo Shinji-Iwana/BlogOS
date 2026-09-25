@@ -15,12 +15,14 @@ class AuthorDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId, int $authorId)
+    public function index(int $authorId)
     {
-        $authorService = new AuthorService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $authorService = new AuthorService($blog);
 
         $author = $authorService->getAuthor(
             $authorId

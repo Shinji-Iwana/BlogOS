@@ -52,7 +52,7 @@
             @forelse ($posts as $post)
                 <tr>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">
-                        <a href="{{ route('blog-info.show', $post['id']) }}">{{ $post['id'] ?? '' }}</a>
+                        <a href="{{ route('api-post-detail', $post['id']) }}">{{ $post['id'] ?? '' }}</a>
                     </td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $post['title']['rendered'] ?? $post['title']['raw'] ?? '(タイトルなし)' }}</td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $post['status'] ?? '' }}</td>

@@ -34,6 +34,8 @@
 
 **XServerで必要な作業（利用者）**
 
+必要なMigrationがそろった時点で、利用者がタイミングを見て行う（ローカルの修正を優先する。2026-09-26 利用者の判断）。
+
 1. XServerの `.env` に `ADMIN_EMAIL`・`ADMIN_PASSWORD` を追加する（`AdminUserSeeder` を実行する場合に必要）。
 2. 変更をXServerに配置し、`php artisan migrate --force` を実行する（Test User の削除と `login_histories` の作成）。
 
@@ -99,7 +101,7 @@
 | 段階 | 状態 | 完了日 |
 | --- | --- | --- |
 | 0 | 完了（XServerでの作業は利用者） | 2026-09-26 |
-| 1 | 未着手 | |
+| 1 | 完了（`app/Clients` の作成は、API Clientを移す段階2で行う） | 2026-09-26 |
 | 2 | 未着手 | |
 | 3 | 未着手 | |
 | 4 | 未着手 | |

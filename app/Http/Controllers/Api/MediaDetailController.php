@@ -15,12 +15,14 @@ class MediaDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId, int $mediaId)
+    public function index(int $mediaId)
     {
-        $mediaService = new MediaService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $mediaService = new MediaService($blog);
 
         $media = $mediaService->getMedia(
             $mediaId

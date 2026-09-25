@@ -15,13 +15,12 @@ class BlogDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId)
+    public function index()
     {
-        $blog = $this->blogRepository->findById($blogId);
-
-        if ($blog === null) {
-            abort(404, '指定されたブログが見つかりません。');
-        }
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
 
         $blogService = new BlogService($blog);
 

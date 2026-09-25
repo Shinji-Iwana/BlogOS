@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>固定ページ詳細（si-note.com）</h1>
-    <p><a href="{{ route('page-info') }}">固定ページ一覧に戻る</a></p>
+    <p><a href="{{ route('api-page-list') }}">固定ページ一覧に戻る</a></p>
 
     @if (empty($page))
         <p>該当の固定ページが見つかりませんでした。</p>

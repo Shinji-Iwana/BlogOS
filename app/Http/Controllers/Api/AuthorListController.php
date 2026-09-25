@@ -15,12 +15,14 @@ class AuthorListController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId)
+    public function index()
     {
-        $authorService = new AuthorService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $authorService = new AuthorService($blog);
 
         $authors = $authorService->getAuthors();
 
@@ -30,7 +32,8 @@ class AuthorListController extends Controller
 
         return view('api.author-list', [
             'blogId'  => $blogId,
-            'authors' => $authors,
+            // 画面（api/author-list）は $users で一覧を受け取る
+            'users'   => $authors,
             'total'   => $total,
         ]);
     }

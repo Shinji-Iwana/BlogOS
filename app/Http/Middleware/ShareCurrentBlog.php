@@ -21,7 +21,7 @@ class ShareCurrentBlog
     ): Response {
         $blogs = $this->blogRepository->getAll();
 
-        $selectedBlog = $this->blogRepository->getSelectedOrFirst();
+        $selectedBlog = $this->blogRepository->findSelected();
 
         View::share([
             'blogs'        => $blogs,

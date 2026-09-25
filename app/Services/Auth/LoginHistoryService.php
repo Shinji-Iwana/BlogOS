@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Enums\LoginEvent;
 use App\Repositories\LoginHistoryRepository;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 /**
@@ -32,6 +33,14 @@ class LoginHistoryService
     public function recordLogout(Request $request, ?int $userId): void
     {
         $this->record(LoginEvent::Logout, $request, $userId);
+    }
+
+    /**
+     * 確認画面用に、新しい順で取得する。
+     */
+    public function getLatest(int $limit = 100): Collection
+    {
+        return $this->loginHistoryRepository->getLatest($limit);
     }
 
     protected function record(LoginEvent $event, Request $request, ?int $userId): void

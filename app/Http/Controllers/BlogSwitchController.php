@@ -15,9 +15,12 @@ class BlogSwitchController extends Controller
 
     public function switch(Request $request): RedirectResponse
     {
-        $blogId = (int) $request->input('blog_id');
+        // 存在しないブログIDで例外（500）にならないよう、入力を検証する
+        $validated = $request->validate([
+            'blog_id' => ['required', 'integer', 'exists:blogs,id'],
+        ]);
 
-        $this->blogRepository->updateSelected($blogId);
+        $this->blogRepository->updateSelected((int) $validated['blog_id']);
 
         return redirect()->route('home');
     }

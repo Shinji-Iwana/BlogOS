@@ -11,12 +11,17 @@ use RuntimeException;
 
 class BlogRepository
 {
+    /**
+     * APIの項目名（BlogApiDto の data のキー）→ blogs テーブルの列名
+     *
+     * キーは WordPress API Root が返す項目名（スネークケース）に合わせる。
+     */
     protected const FIELD_MAP = [
         'name'            => 'name',
         'description'     => 'description',
         'url'             => 'url',
-        'gmtOffset'       => 'gmt_offset',
-        'timezoneString'  => 'timezone',
+        'gmt_offset'      => 'gmt_offset',
+        'timezone_string' => 'timezone',
     ];
 
     /**
@@ -56,23 +61,18 @@ class BlogRepository
         return Blog::where('home', $home)->first();
     }
 
-    public function findBySelected(): ?Blog
+    /**
+     * 選択中のブログを取得する。
+     *
+     * 選択中のブログがない場合は null を返す。
+     * 画面の表示だけでDBを書き換えないよう、最初のブログを自動で選択することはしない
+     * （BLOGOS_CURRENT_STATUS.md 3-2）。
+     */
+    public function findSelected(): ?Blog
     {
-        $selectedBlog = Blog::where('is_selected', true)
+        return Blog::where('is_selected', true)
             ->orderBy('id')
             ->first();
-
-        if ($selectedBlog !== null) {
-            return $selectedBlog;
-        }
-
-        $firstBlog = Blog::orderBy('id')->first();
-
-        if ($firstBlog === null) {
-            return null;
-        }
-
-        return $this->updateSelected($firstBlog->id);
     }
 
     public function createFromApiData(BlogApiDto $data, string $source): Blog

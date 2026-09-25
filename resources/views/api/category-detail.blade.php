@@ -5,7 +5,7 @@
     <h1>カテゴリ詳細</h1>
 
     <p>
-        <a href="{{ route('api-category-list', ['blogId' => $blogId,]) }}">カテゴリ一覧に戻る</a>
+        <a href="{{ route('api-category-list') }}">カテゴリ一覧に戻る</a>
     </p>
     <p>
         <a href="{{ url('/') }}">トップページに戻る</a>

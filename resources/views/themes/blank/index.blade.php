@@ -20,8 +20,8 @@
 
     @if ($selectedBlog)
 
-        <p><a href="{{ route('database-category-list', $selectedBlog->id) }}">カテゴリ一覧ページへ</a></p>
-        <p><a href="{{ route('database-category-history-list', $selectedBlog->id) }}">カテゴリ変更履歴一覧ページへ</a></p>
+        <p><a href="{{ route('database-category-list') }}">カテゴリ一覧ページへ</a></p>
+        <p><a href="{{ route('database-category-history-list') }}">カテゴリ変更履歴一覧ページへ</a></p>
 
     @endif
 

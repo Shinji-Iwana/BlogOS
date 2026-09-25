@@ -15,16 +15,17 @@ class TypeListController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId)
+    public function index()
     {
-        $typeService = new TypeService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
 
-        $types = $typeService->getTypes();
+        $typeService = new TypeService($blog);
 
-        $types = $types ?? [];
+        // getTypes() は投稿タイプ全体を1つのDTO（slugをキーにした配列）で返す
+        $types = $typeService->getTypes()?->data ?? [];
 
         $total = count($types);
 

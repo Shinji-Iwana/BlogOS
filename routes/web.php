@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\BlogSwitchController;
 use App\Http\Middleware\ShareCurrentBlog;
+use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistoryController;
 
 use App\Http\Controllers\Database\BlogRegisterController as DatabaseBlogRegisterController;
 use App\Http\Controllers\Database\BlogListController as DatabaseBlogListController;
@@ -15,64 +16,34 @@ use App\Http\Controllers\Database\BlogDetailController as DatabaseBlogDetailCont
 use App\Http\Controllers\Database\BlogHistoryListController as DatabaseBlogHistoryListController;
 use App\Http\Controllers\Database\BlogHistoryDetailController as DatabaseBlogHistoryDetailController;
 
-use App\Http\Controllers\Database\CategoryRegisterController as DatabaseCategoryRegisterController;
 use App\Http\Controllers\Database\CategoryListController as DatabaseCategoryListController;
-use App\Http\Controllers\Database\CategoryDetailController as DatabaseCategoryDetailController;
 
 use App\Http\Controllers\Database\CategoryHistoryListController as DatabaseCategoryHistoryListController;
-use App\Http\Controllers\Database\CategoryHistoryDetailController as DatabaseCategoryHistoryDetailController;
 
-use App\Http\Controllers\Database\TagRegisterController as DatabaseTagRegisterController;
-use App\Http\Controllers\Database\TagListController as DatabaseTagListController;
-use App\Http\Controllers\Database\TagDetailController as DatabaseTagDetailController;
 
 use App\Http\Controllers\Database\TagHistoryListController as DatabaseTagHistoryListController;
-use App\Http\Controllers\Database\TagHistoryDetailController as DatabaseTagHistoryDetailController;
 
-use App\Http\Controllers\Database\MediaRegisterController as DatabaseMediaRegisterController;
-use App\Http\Controllers\Database\MediaListController as DatabaseMediaListController;
-use App\Http\Controllers\Database\MediaDetailController as DatabaseMediaDetailController;
 
 use App\Http\Controllers\Database\MediaHistoryListController as DatabaseMediaHistoryListController;
-use App\Http\Controllers\Database\MediaHistoryDetailController as DatabaseMediaHistoryDetailController;
 
-use App\Http\Controllers\Database\StatusListController as DatabaseStatusListController;
-use App\Http\Controllers\Database\StatusDetailController as DatabaseStatusDetailController;
 
 use App\Http\Controllers\Database\StatusHistoryListController as DatabaseStatusHistoryListController;
-use App\Http\Controllers\Database\StatusHistoryDetailController as DatabaseStatusHistoryDetailController;
 
-use App\Http\Controllers\Database\TypeListController as DatabaseTypeListController;
-use App\Http\Controllers\Database\TypeDetailController as DatabaseTypeDetailController;
 
 use App\Http\Controllers\Database\TypeHistoryListController as DatabaseTypeHistoryListController;
-use App\Http\Controllers\Database\TypeHistoryDetailController as DatabaseTypeHistoryDetailController;
 
-use App\Http\Controllers\Database\TaxonomyListController as DatabaseTaxonomyListController;
-use App\Http\Controllers\Database\TaxonomyDetailController as DatabaseTaxonomyDetailController;
 
 use App\Http\Controllers\Database\TaxonomyHistoryListController as DatabaseTaxonomyHistoryListController;
-use App\Http\Controllers\Database\TaxonomyHistoryDetailController as DatabaseTaxonomyHistoryDetailController;
 
 use App\Http\Controllers\Database\AuthorListController as DatabaseAuthorListController;
-use App\Http\Controllers\Database\AuthorDetailController as DatabaseAuthorDetailController;
 
 use App\Http\Controllers\Database\AuthorHistoryListController as DatabaseAuthorHistoryListController;
-use App\Http\Controllers\Database\AuthorHistoryDetailController as DatabaseAuthorHistoryDetailController;
 
-use App\Http\Controllers\Database\PostRegisterController as DatabasePostRegisterController;
-use App\Http\Controllers\Database\PostListController as DatabasePostListController;
-use App\Http\Controllers\Database\PostDetailController as DatabasePostDetailController;
 
 use App\Http\Controllers\Database\PostHistoryListController as DatabasePostHistoryListController;
-use App\Http\Controllers\Database\PostHistoryDetailController as DatabasePostHistoryDetailController;
 
-use App\Http\Controllers\Database\PageRegisterController as DatabasePageRegisterController;
-use App\Http\Controllers\Database\PageListController as DatabasePageListController;
-use App\Http\Controllers\Database\PageDetailController as DatabasePageDetailController;
 
 use App\Http\Controllers\Database\PageHistoryListController as DatabasePageHistoryListController;
-use App\Http\Controllers\Database\PageHistoryDetailController as DatabasePageHistoryDetailController;
 
 use App\Http\Controllers\Api\BlogDetailController as ApiBlogDetailController;
 
@@ -264,7 +235,7 @@ Route::middleware([
 
     Route::get(
         '/database/blog-detail/{id}',
-        [DatabaseBlogDetailController::class, 'index']
+        [DatabaseBlogDetailController::class, 'show']
     )->name('database-blog-detail');
 
     Route::get(
@@ -280,12 +251,12 @@ Route::middleware([
      */
 
     Route::get(
-        '/database/category-list/{blogId}',
+        '/database/category-list',
         [DatabaseCategoryListController::class, 'index']
     )->name('database-category-list');
 
     Route::get(
-        '/database/category-history-list/{blogId}',
+        '/database/category-history-list',
         [DatabaseCategoryHistoryListController::class, 'index']
     )->name('database-category-history-list');
 
@@ -331,12 +302,12 @@ Route::middleware([
      */
 
     Route::get(
-        '/api/category-list/{blogId}',
+        '/api/category-list',
         [ApiCategoryListController::class, 'index']
     )->name('api-category-list');
 
     Route::get(
-        '/api/category-detail/{blogId}/{categoryId}',
+        '/api/category-detail/{categoryId}',
         [ApiCategoryDetailController::class, 'index']
     )->name('api-category-detail');
 
@@ -366,6 +337,18 @@ Route::middleware([
         [SettingsController::class, 'index']
     )->name('settings');
 
+    /**
+     * ======================================================
+     * ログイン履歴（DB確認画面）
+     * ------------------------------------------------------
+     * ルート名は新しい規則（機能.操作。D-11-04）に従う。
+     * ======================================================
+     */
+    Route::get(
+        '/database/login-histories',
+        [DatabaseLoginHistoryController::class, 'index']
+    )->name('database.login-histories.index');
+
 
     /**
      * ======================================================
@@ -374,7 +357,7 @@ Route::middleware([
      */
 
     Route::get(
-        '/api/blog-detail/{id}',
+        '/api/blog-detail',
         [ApiBlogDetailController::class, 'index']
     )->name('api-blog-detail');
 
@@ -394,7 +377,7 @@ Route::middleware([
     )->name('api-taxonomy-list');
 
     Route::get(
-        '/api/author-list/{blogId}',
+        '/api/author-list',
         [ApiAuthorListController::class, 'index']
     )->name('api-author-list');
 

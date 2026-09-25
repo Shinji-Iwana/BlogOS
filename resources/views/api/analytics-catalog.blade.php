@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>GA4 利用可能項目カタログ（si-note.com）</h1>
-    <p><a href="{{ route('analytics-info') }}">Google Analytics情報一覧に戻る</a></p>
+    <p><a href="{{ route('api-analytics-info') }}">Google Analytics情報一覧に戻る</a></p>
 
     @if ($error)
         <p>{{ $error }}</p>

@@ -4,12 +4,10 @@
     BlogOS全体の設定・管理機能への入口となるページ。
 
     現時点では設定機能が未実装のため、
-    WordPress API確認用の各種ページへの導線を配置する。
+    WordPress API確認用の各種ページと、ログイン履歴への導線を配置する。
 
-    設定対象となるブログは、
-    URLからblogIdを受け取るのではなく、
-    SettingsControllerがblogs.is_selectedから取得する
-    現在選択中のブログを使用する。
+    対象のブログは、URLで受け取らず、選択中のブログ（blogs.is_selected）とする
+    （BLOGOS_DECISIONS.md D-02-05）。$selectedBlog は ShareCurrentBlog が共有している。
 --}}
 
 @extends('layouts.app')
@@ -24,36 +22,39 @@
 
 
     {{-- ==========================================================
-         現在選択中ブログ
+         WordPress API確認（選択中のブログが対象）
          ========================================================== --}}
 
-    @if ($blogId)
+    @if ($selectedBlog)
 
         <p>
-            現在選択中ブログID：{{ $blogId }}
+            現在選択中のブログ：{{ $selectedBlog->name }}（ID：{{ $selectedBlog->id }}）
         </p>
 
+        <section>
+            <h2>WordPress API確認</h2>
 
-        {{-- ======================================================
-             WordPress API確認
-             ====================================================== --}}
-    <section>
-        <h2>WordPress API確認</h2>
+            <p>
+                WordPress REST APIから取得した情報を確認します。
+            </p>
+
+            <p><a href="{{ route('api-blog-detail') }}">ブログ情報ページへ</a></p>
+            <p><a href="{{ route('post-list') }}">投稿一覧ページへ</a></p>
+            <p><a href="{{ route('api-page-list') }}">固定ページ一覧ページへ</a></p>
+            <p><a href="{{ route('api-category-list') }}">カテゴリ一覧ページへ</a></p>
+            <p><a href="{{ route('api-tag-list') }}">タグ一覧ページへ</a></p>
+            <p><a href="{{ route('api-media-list') }}">メディア一覧ページへ</a></p>
+            <p><a href="{{ route('api-status-list') }}">投稿ステータス一覧ページへ</a></p>
+            <p><a href="{{ route('api-type-list') }}">投稿タイプ一覧ページへ</a></p>
+            <p><a href="{{ route('api-taxonomy-list') }}">タクソノミー一覧ページへ</a></p>
+            <p><a href="{{ route('api-author-list') }}">投稿者情報一覧ページへ</a></p>
+        </section>
+
+    @elseif ($blogs->isNotEmpty())
 
         <p>
-            WordPress REST APIから取得した情報を確認します。
+            ブログが選択されていません。画面上部のブログ切り替えから選択してください。
         </p>
-
-        <p><a href="{{ route('api-blog-detail', $blogId) }}">ブログ情報一覧ページへ</a></p>
-        <p><a href="{{ route('api-page-list', $blogId) }}">固定ページ一覧ページへ</a></p>
-        <p><a href="{{ route('api-category-list', $blogId) }}">カテゴリ一覧ページへ</a></p>
-        <p><a href="{{ route('api-tag-list', $blogId) }}">タグ一覧ページへ</a></p>
-        <p><a href="{{ route('api-media-list', $blogId) }}">メディア一覧ページへ</a></p>
-        <p><a href="{{ route('api-status-list', $blogId) }}">投稿ステータス一覧ページへ</a></p>
-        <p><a href="{{ route('api-type-list', $blogId) }}">投稿タイプ一覧ページへ</a></p>
-        <p><a href="{{ route('api-taxonomy-list', $blogId) }}">タクソノミー一覧ページへ</a></p>
-        <p><a href="{{ route('api-author-list', $blogId) }}">投稿者情報一覧ページへ</a></p>
-    </section>
 
     @else
 
@@ -62,5 +63,16 @@
         </p>
 
     @endif
+
+
+    {{-- ==========================================================
+         セキュリティ
+         ========================================================== --}}
+
+    <section>
+        <h2>セキュリティ</h2>
+
+        <p><a href="{{ route('database.login-histories.index') }}">ログイン履歴ページへ</a></p>
+    </section>
 
 @endsection

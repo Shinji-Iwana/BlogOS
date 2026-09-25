@@ -34,9 +34,9 @@
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['slug'] }}</td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['name'] }}</td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['description'] }}</td>
-                    <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['hierarchical'] }}</td>
+                    <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ ($type['hierarchical'] ?? false) ? 'true' : 'false' }}</td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['rest_base'] }}</td>
-                    <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $type['taxonomies'] }}</td>
+                    <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ implode(', ', (array) ($type['taxonomies'] ?? [])) }}</td>
                 </tr>
             @empty
                 <tr>

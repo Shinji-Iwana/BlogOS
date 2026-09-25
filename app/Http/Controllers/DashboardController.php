@@ -23,13 +23,9 @@ class DashboardController extends Controller
             ]);
         }
 
-        $selectedBlog = $this->blogRepository->getSelectedOrFirst();
-
-        if (!$selectedBlog) {
-            $selectedBlog = $this->blogRepository->selectBlog(
-                $blogs->first()->id
-            );
-        }
+        // 選択中のブログがない場合は null のまま表示し、画面上部の切り替えから選ばせる。
+        // 表示のためにDBを書き換えない。
+        $selectedBlog = $this->blogRepository->findSelected();
 
         return view(\App\Services\ThemeService::index(), [
             'blogs'        => $blogs,

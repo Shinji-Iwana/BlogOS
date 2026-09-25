@@ -7,7 +7,7 @@
 <body>
     <h1>Google Analytics情報一覧（si-note.com）</h1>
     <p><a href="{{ url('/') }}">トップページに戻る</a></p>
-    <p><a href="{{ route('analytics-catalog') }}">利用可能な全ディメンション・メトリクスのカタログを見る</a></p>
+    <p><a href="{{ route('api-analytics-catalog') }}">利用可能な全ディメンション・メトリクスのカタログを見る</a></p>
 
     @if ($error)
         <p>{{ $error }}</p>

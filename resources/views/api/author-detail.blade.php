@@ -92,7 +92,7 @@
 @endif
 
 <p>
-    <a href="{{ url('/api/authors/' . $blogId) }}">
+    <a href="{{ route('api-author-list') }}">
         ユーザー一覧へ戻る
     </a>
 </p>

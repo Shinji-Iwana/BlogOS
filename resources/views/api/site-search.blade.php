@@ -8,7 +8,7 @@
     <h1>サイト内検索（si-note.com）</h1>
     <p><a href="{{ url('/') }}">トップページに戻る</a></p>
 
-    <form method="GET" action="{{ route('site-search') }}">
+    <form method="GET" action="{{ route('api-site-search') }}">
         <input type="text" name="q" value="{{ $keyword }}" placeholder="検索したいキーワードを入力">
         <button type="submit">検索</button>
     </form>

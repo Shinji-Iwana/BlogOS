@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>記事詳細（si-note.com）</h1>
-    <p><a href="{{ route('blog-info') }}">記事一覧に戻る</a></p>
+    <p><a href="{{ route('post-list') }}">記事一覧に戻る</a></p>
 
     @if (empty($post))
         <p>該当の記事が見つかりませんでした。</p>

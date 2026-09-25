@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Database;
+
+use App\Http\Controllers\Controller;
 
 use App\Repositories\BlogRepository;
 use App\Repositories\CategoryHistoryRepository;
@@ -13,13 +15,14 @@ class CategoryHistoryListController extends Controller
     ) {
     }
 
-    public function index(int $blogId)
+    public function index()
     {
-        $blog = $this->blogRepository->findById($blogId);
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
 
-        abort_if($blog === null, 404);
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
 
-        $histories = $this->categoryHistoryRepository->getAll($blogId);
+        $histories = $this->categoryHistoryRepository->getAll($blog->id);
 
         return view('database.category-history-list', [
             'blog'      => $blog,

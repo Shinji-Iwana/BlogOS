@@ -2,21 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\BlogRepository;
-
 class SettingsController extends Controller
 {
-    public function __construct(
-        protected BlogRepository $blogRepository
-    ) {
-    }
-
+    /**
+     * 設定画面（各確認画面への入口）。
+     *
+     * 対象のブログは選択中のブログとし、URLには含めない（BLOGOS_DECISIONS.md D-02-05）。
+     * 選択中のブログは ShareCurrentBlog が全画面に共有している。
+     */
     public function index()
     {
-        $selectedBlog = $this->blogRepository->getSelectedOrFirst();
-
-        return view('settings', [
-            'blogId' => $selectedBlog?->id,
-        ]);
+        return view('settings');
     }
 }

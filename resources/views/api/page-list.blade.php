@@ -48,7 +48,7 @@
             @forelse ($pages as $page)
                 <tr>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">
-                        <a href="{{ route('page-info.show', $page['id']) }}">{{ $page['id'] ?? '' }}</a>
+                        <a href="{{ route('api-page-detail', $page['id']) }}">{{ $page['id'] ?? '' }}</a>
                     </td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $page['title']['rendered'] ?? $page['title']['raw'] ?? '(タイトルなし)' }}</td>
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">{{ $page['status'] ?? '' }}</td>

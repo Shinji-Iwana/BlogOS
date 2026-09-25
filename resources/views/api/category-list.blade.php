@@ -9,7 +9,7 @@
     <h1>カテゴリ一覧</h1>
 
 <p>
-    <a href="{{ route('settings', ['blogId' => $blogId,]) }}">設定ページに戻る</a>
+    <a href="{{ route('settings') }}">設定ページに戻る</a>
 </p>
 
 <p>
@@ -109,7 +109,7 @@
                                      ================================================== --}}
 
                                 @if ($field === 'id')
-                                    <a href="{{ route('api-category-detail', ['blogId' => $blogId, 'categoryId' => $value,]) }}">{{ $value }}</a>
+                                    <a href="{{ route('api-category-detail', ['categoryId' => $value]) }}">{{ $value }}</a>
 
 
                                 {{-- ==================================================

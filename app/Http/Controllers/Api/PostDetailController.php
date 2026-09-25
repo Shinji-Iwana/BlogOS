@@ -15,12 +15,14 @@ class PostDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId, int $postId)
+    public function index(int $postId)
     {
-        $postService = new PostService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $postService = new PostService($blog);
 
         $post = $postService->getPost(
             $postId

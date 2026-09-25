@@ -15,12 +15,14 @@ class TypeDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId, int $typeId)
+    public function index(int $typeId)
     {
-        $typeService = new TypeService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $typeService = new TypeService($blog);
 
         $type = $typeService->getType(
             $typeId

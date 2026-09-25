@@ -15,12 +15,14 @@ class StatusDetailController extends Controller
         $this->blogRepository = $blogRepository;
     }
 
-    public function index(int $blogId, int $statusId)
+    public function index(int $statusId)
     {
-        $statusService = new StatusService(
-            $blogId,
-            $this->blogRepository
-        );
+        // 対象のブログはURLで受け取らず、選択中のブログとする（BLOGOS_DECISIONS.md D-02-05）
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+        $blogId = $blog->id;
+
+        $statusService = new StatusService($blog);
 
         $status = $statusService->getStatus(
             $statusId

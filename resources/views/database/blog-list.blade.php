@@ -250,7 +250,7 @@
                          ================================================== --}}
 
                     <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:0;">
-                        <a href="{{ route('blog-detail', $blog->id) }}">{{ $blog->id }}</a>
+                        <a href="{{ route('database-blog-detail', $blog->id) }}">{{ $blog->id }}</a>
                     </td>
 
                     {{-- ==================================================

@@ -2,7 +2,7 @@
 
 namespace App\Services\WordPress;
 
-use App\Repositories\BlogRepository;
+use App\Models\Blog;
 use App\DTO\WordPress\TypeApiDto;
 use Illuminate\Http\Client\ConnectionException;
 
@@ -10,12 +10,9 @@ class TypeService
 {
     protected WordPressApiClient $client;
 
-    public function __construct(int $blogId, BlogRepository $blogRepository)
+    public function __construct(Blog $blog)
     {
-        $this->client = new WordPressApiClient(
-            $blogId,
-            $blogRepository
-        );
+        $this->client = new WordPressApiClient($blog);
     }
 
     public function getTypes(): ?TypeApiDto
