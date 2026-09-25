@@ -128,6 +128,7 @@ JSON列は、検索・集計・関連付けに使わない補助的な情報（�
 **ログイン**
 
 * `users`（Laravel標準。BlogOSの利用者）
+* `login_histories`（ログイン・ログアウトの記録）
 
 **ブログ**
 
@@ -190,7 +191,26 @@ JSON列は、検索・集計・関連付けに使わない補助的な情報（�
 
 BlogOSにログインする利用者（Laravel標準）。現時点では1人で、新規登録画面は設けずSeederで登録する（D-03-01）。
 
-WordPressのユーザーとは別物であり、WordPressのユーザーは `authors`（6-7）に保存する。
+WordPressのユーザーとは別物であり、WordPressのユーザーは `authors`（6-5）に保存する。
+
+* 管理者の登録は `AdminUserSeeder` で行い、メールアドレス・パスワードは環境変数（`ADMIN_EMAIL`・`ADMIN_PASSWORD`）から読む。ソースコードに書かない（D-17-01）。
+* テスト用・初期状態のユーザー（Laravelの初期状態の Test User 等）は、どの環境でも作成しない（D-17-02）。
+
+### login_histories
+
+BlogOSへのログイン・ログアウトの記録（D-17-03）。不正なログインの有無を確認するために使う。
+
+| 列 | 内容 |
+| --- | --- |
+| `user_id` | ログインした利用者（`users.id`）。失敗した場合など、該当する利用者がいない場合はNULL |
+| `email` | 入力されたメールアドレス（失敗した場合も記録する） |
+| `event` | `login_succeeded` / `login_failed` / `logout` |
+| `ip_address` | 接続元のIPアドレス |
+| `user_agent` | ブラウザの情報 |
+| `occurred_at` | 発生日時 |
+
+* パスワードは、成功・失敗にかかわらず記録しない。
+* 利用者を削除した場合、`user_id` は SET NULL とし、記録は残す。
 
 ---
 
@@ -816,6 +836,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `sync_issues` | 解決から1年。未解決のものは削除しない |
 | `wordpress_push_operations` | 完了から1年。未完了（`completed` 以外）のものは削除しない |
 | `ai_generations` | 採用されたもの（反映された編集案にひも付くもの）は無期限。それ以外は1年（D-07-04） |
+| `login_histories` | 1年（D-17-03） |
 | 履歴テーブル | 未決定（16章） |
 | 評価結果 | 未決定（16章） |
 

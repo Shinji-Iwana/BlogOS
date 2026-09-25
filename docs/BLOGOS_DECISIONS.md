@@ -1,7 +1,7 @@
 # BlogOS 設計決定記録
 
 **バージョン:** 1.0.0
-**最終更新日:** 2026-09-25（項目13〜15を追加）
+**最終更新日:** 2026-09-26（項目13〜17を追加）
 
 ---
 
@@ -679,6 +679,32 @@ DB設計書をv2.0.0に改訂する際、既存の決定を具体化するため
 | `trust.no_guess`（`req.no_speculation` と重複） | `trust.balanced`：デメリット・リスクも示している | 1 |
 
 新しい4項目はいずれも判定者を「AI・人」とし、採点項目のうち判定者が「人」だけの項目（要人間確認）は9から6に減る（`intent.competitors`、`accuracy.official`、`accuracy.up_to_date`、`original.experience`、`ux.mobile`、`trust.official_checked`）。品質基準はまだ使用していないため、共通基準のバージョンは1.0.0のまま確定する。（quality `common/scoring.md` 3章）
+
+---
+
+### 項目16：現在の実装の調査で決めた事項（2026-09-26）
+
+`BLOGOS_CURRENT_STATUS.md` の要確認事項への回答として、次の事項を決めた。
+
+**D-16-01 テーマの切り替え** 画面の見た目をテーマとして切り替える機能（`config/blogos.php` の `theme`、`resources/views/themes/{テーマ名}/`）を残す。当面は `blank`（装飾なし）で機能を作り、システムの構築後に `ironman` を作り込み、その後も他のテーマを追加できるようにする。テーマは見た目だけを担当し、データ・業務処理・ルートはテーマによって変えない。（ARCHITECTURE 6-1・22章、REQUIREMENTS 13-1）
+
+**D-16-02 Google連携の試作** 現在のGoogle連携（GA4・Search Console・AdSenseのAPI確認画面）は試作とし、分析機能の段階で設計に沿って作り直す。現在のコードはGitの履歴に残っている。（CURRENT_STATUS 3-11）
+
+**D-16-03 公開リポジトリでの秘密情報** リポジトリは公開（Public）である。Gitの履歴に含まれた管理者のパスワードは漏えいしたものとして扱い、パスワードの変更を主な対策とする。初期状態のSeederで作られた Test User は削除する。（CURRENT_STATUS 2章 P0・P1）
+
+---
+
+### 項目17：ログインの認証情報と記録（2026-09-26）
+
+**D-17-01 管理者の認証情報をソースコードに書かない** `AdminUserSeeder` は、管理者のメールアドレス・パスワードを環境変数（`ADMIN_EMAIL`・`ADMIN_PASSWORD`）から読む。パスワードの値は当面変更しない（利用者の判断）。（DATABASE 5-1、DEVELOPMENT_RULES 13-1）
+
+**D-17-02 テスト用ユーザーを作らない** `DatabaseSeeder` から Test User の作成を削除する。既に作成された Test User（ローカル・XServerとも）は、Migrationで削除し、XServerでも再発しないようにする。（DATABASE 5-1）
+
+**D-17-03 ログイン履歴** ログインの成功・失敗とログアウトを `login_histories` に記録する（パスワードは記録しない）。管理者のパスワードを当面変更しないため、不正なログインの有無を確認できるようにする。保存期間は1年。（DATABASE 5-1・14章、REQUIREMENTS 13-3、DEVELOPMENT_RULES 13-1）
+
+**D-17-04 開発の順序** 開発フェーズは要件定義書 11章の順（基盤 → コンテンツ管理 → 分析（Google）→ 品質評価・AI）とする。開発支援AIを使える約1か月で主要機能が間に合わない場合は、契約を継続して作り込む。（`BLOGOS_IMPLEMENTATION_PLAN.md`）
+
+**D-17-05 XServerの現状** XServerには配置済みで、MySQLも用意されている。Seederはローカルと同じもので、`blogs`・`blog_histories` のMigrationは動作確認済み。ローカルと異なる部分がある。（`BLOGOS_IMPLEMENTATION_PLAN.md`）
 
 ---
 

@@ -1,0 +1,229 @@
+# BlogOS 現在の実装状況
+
+**調査日:** 2026-09-26
+**調査対象:** コミット `e1c5142`（作業ツリーに未コミットの変更なし）
+**基準とした設計:** 設計書 v2.0.0（docs/ 7ファイル、CLAUDE.md）、品質基準 1.0.0（resources/quality/）、決定記録 D-01〜D-15
+
+## 1. 本書について
+
+本書は、現在の実装の状態を記録する。理想の設計を定義するものではなく、設計書を書き換える根拠として使ってはならない（`CLAUDE.md` 6-3）。
+
+### 1-1. 調査の方法
+
+* ソースコード（app/、database/、routes/、resources/views/、config/、tests/、bootstrap/）を読んで確認した。
+* DBは、読み取りだけのコマンド（`php artisan migrate:status`、`php artisan db:show --counts`）で確認した。
+* **画面の表示やコマンドの実行による動作確認は行っていない。** 「バグ」は、コードの静的な確認で実行時にエラーになると判断したものである。
+
+### 1-2. 分類
+
+`CLAUDE.md` 6-2 の分類を使う：一致／不足（未実装）／相違／バグ／過剰（不要・重複）／設計上の懸念／要確認
+
+---
+
+## 2. 最初に対応が必要な問題
+
+セキュリティ → データ整合性 → 重大なバグ、の順に並べる。
+
+| # | 分類 | 内容 | 場所 |
+| --- | --- | --- | --- |
+| P0 | **セキュリティ** | `users` に、Laravelの初期状態のSeederで作られた「Test User」（`test@example.com`、パスワードはFactoryの既定値）が存在する。**誰でも推測できる認証情報でログインできる**。本番環境で同じSeederを実行すると、同じアカウントが作られる | [DatabaseSeeder.php](../database/seeders/DatabaseSeeder.php)、[UserFactory.php:31](../database/factories/UserFactory.php#L31) |
+| P1 | **セキュリティ** | 管理者のログインパスワードが、平文のままSeederに書かれ、**Gitの履歴に含まれている**（コミット `5f812bf` 以降）。**リポジトリは公開（Public）であるため、このパスワードは漏えいしたものとして扱う** | [AdminUserSeeder.php:17](../database/seeders/AdminUserSeeder.php#L17) |
+| P2 | **バグ（重大）** | `BlogRepository` に存在しないメソッド `getSelectedOrFirst()`・`selectBlog()` を呼んでいる。この処理は、ログイン後のすべての画面に適用されるMiddlewareの中にあるため、**ログイン後のすべての画面がエラーになる**と判断される | [ShareCurrentBlog.php:24](../app/Http/Middleware/ShareCurrentBlog.php#L24)、[DashboardController.php:26-29](../app/Http/Controllers/DashboardController.php#L26-L29)、[SettingsController.php:16](../app/Http/Controllers/SettingsController.php#L16) |
+| P3 | **バグ（重大）** | ブログ以外のWordPress APIのServiceが、`new WordPressApiClient($blogId, $blogRepository)` で呼び出している。しかし、`WordPressApiClient` は `Blog` を1つ受け取る形で定義されている。そのため、**ブログ詳細以外のAPI確認画面はすべてエラーになる** | [CategoryService.php:15-18](../app/Services/WordPress/CategoryService.php#L15-L18) ほか8つのService |
+| P4 | **バグ** | `BlogRepository::diff()` が、DTOに存在しないキー（`gmtOffset`、`timezoneString`）を参照している。**毎日のブログ情報の更新処理**と、**既に登録済みのブログの再登録**がエラーになる | [BlogRepository.php:18-19](../app/Repositories/BlogRepository.php#L18-L19) |
+| P5 | **バグ** | 画面の中で、定義されていないルート名が11か所で使われている。該当する画面を表示するとエラーになる（ブログ一覧・ブログ詳細も含む） | 3-5 参照 |
+| P6 | **バグ** | URLが `/api/` で始まるAPI確認画面（HTMLの画面）で、エラーがJSONで返される設定になっている | [bootstrap/app.php:18-19](../bootstrap/app.php#L18-L19) |
+
+**P0・P1 について**：`CLAUDE.md` 13章に従い、実装に進む前に報告した（2026-09-26）。
+
+必要な対応：
+1. 管理者のログインパスワードを変更する（同じパスワードを他のサービスで使っている場合は、そちらも変更する）。
+2. Seederから平文のパスワードを除く（例：環境変数から読む）。
+3. Test User を削除し、`DatabaseSeeder` から Test User の作成を除く。
+4. Gitの履歴からの削除は任意とする。公開済みのため、履歴を書き換えても、既に複製・キャッシュされた内容は消せない。パスワードの変更を主な対策とする。
+
+Gitの履歴を確認した結果、`.env`・Googleの鍵ファイル・トークンのファイルは、コミットされたことがない。
+
+---
+
+## 3. 領域ごとの状況
+
+### 3-1. ログイン・認証
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| ログイン必須 | 一致 | ログイン画面以外のルートに `auth` を適用している（`/up` のヘルスチェックを除く） |
+| 利用者の登録 | 一致 | Seederで1人を登録し、新規登録画面はない（D-03-01） |
+| パスワードの扱い | セキュリティ | P1 |
+| ログインの試行回数の制限 | 設計上の懸念 | 独自のLoginControllerで、試行回数の制限（スロットリング）がない |
+| `users` テーブルの件数 | セキュリティ | 2件。1件は管理者、もう1件は `DatabaseSeeder` が作成した Test User（P0） |
+
+### 3-2. ブログ管理・選択中ブログ
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| `blogs.home` の一意制約 | 一致 | UNIQUE（D-13-01） |
+| `blogs.is_selected` | 一致 | あり（D-02-05） |
+| `blogs` の列 | 相違 | `name`・`description`・`url`・`gmt_offset`・`timezone`（WordPressの設定）を `blogs` に持っている。設計では `blog_settings` に分ける（D-10-01） |
+| `blogs.last_synced_at` | 相違 | 設計では持たない（D-04-04） |
+| `display_name`・`quality_profile`・`archived_at` | 不足 | ない |
+| 選択中ブログの取得 | バグ | P2 |
+| 選択の自動設定 | 設計上の懸念 | `findBySelected()` は、選択中のブログがないと最初のブログを自動で選択し、DBを書き換える。画面を表示するだけでDBが更新される |
+| ブログ切り替え | 不足 | `blog_id` の検証がない（存在しないIDは例外になる）。更新画面でのブログIDの照合がない（D-02-05） |
+| ブログ登録の確認 | 不足 | 入力URLの `/wp-json` を1回取得するだけ。HTMLからのAPI Discovery、認証の確認、`home` の正規化、WordPress側の拡張の判定がない（WORDPRESS_API 29章） |
+| ブログ登録の保存 | 設計上の懸念 | 保存時に、ブラウザから送られた値（サイト名・`home` 等）をそのまま保存している。APIから取得し直していない |
+| 認証情報の登録 | 不足 | ブログごとの認証情報の入力・保存がない（D-03-02） |
+| アーカイブ・完全削除 | 不足 | ない（D-09-06） |
+
+### 3-3. WordPress API Client・認証情報
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 接続先 | 一致 | `blogs.home` を基準にしている（D-13-01） |
+| timeout | 一致 | 10秒を設定している |
+| 認証情報 | 相違 | `config/services.php` の `wp`（.env の `WP_APP_USER`・`WP_APP_PASSWORD`）を、**すべてのブログに共通で**使っている。設計はブログごとに暗号化してDBへ保存（D-03-02） |
+| Clientの呼び出し | バグ | P3 |
+| エラーの扱い | 相違 | 通信エラー・HTTPエラーを `null` にして返し、エラーの内容（ステータス・応答本文）が失われる。ログも出していない（DEVELOPMENT_RULES 12章、D-10-03） |
+| まとめての作成・更新・削除 | 設計上の懸念 | 途中で失敗すると `[]` を返し、既に成功した分が分からなくなる（`createCategories` 等） |
+| WordPressへの書き込み | 相違 | 各Serviceに作成・更新・削除のメソッドがあり、反映記録・競合確認を通さずに直接送信する作りになっている（現在、画面からは呼ばれていない）（D-01-09） |
+| リトライ | 不足 | ない（WORDPRESS_API 27章） |
+| 置き場所 | 相違 | `app/Services/WordPress/`。設計は `app/Clients/WordPress/`（D-11-03） |
+| サイト内検索 | 相違・過剰 | `SiteSearchController` が `https://si-note.com` を直接書き込み、Controllerから直接APIを呼んでいる。Search APIは将来の候補（D-10-05） |
+
+### 3-4. DTO
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 応答の保持 | 一致 | APIの応答を配列のまま保持している（WORDPRESS_API 3-2） |
+| 名前・置き場所 | 一致 | `app/DTO/WordPress/*ApiDto` |
+| 必須フィールドの確認 | 一致 | `REQUIRED_FIELDS` で確認している |
+
+### 3-5. 画面・ルート
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 定義されていないルート名 | バグ | P5。`blog-detail`・`blog-list`（ブログ一覧・詳細）、`blog-info`・`blog-info.show`（投稿のAPI確認画面）、`page-info`・`page-info.show`（固定ページのAPI確認画面）、`analytics-info`・`analytics-catalog`、`site-search`、`adsense-info`（AdSenseの認証後）、`register`（welcome画面） |
+| API確認画面のエラー | バグ | P6 |
+| ルート名の規則 | 相違 | `database-blog-list` のようなハイフン区切り。設計は `database.blogs.index` のようなドット区切り（D-11-04） |
+| Controllerの作り | 相違 | 画面ごと（`XxxListController`、`XxxDetailController`）。設計はリソースごと（D-11-04） |
+| API確認画面の名前空間 | 相違 | `Controllers\Api`。設計は `Controllers\WordPressApi`（`Api` はBlogOS自身のJSON用）（D-11-02） |
+| DB確認画面の名前空間 | 一致 | `Controllers\Database` |
+| Viewのディレクトリ | 相違 | `api/`。設計は `wordpress-api/`（D-11-02） |
+| URLのブログID | 相違 | カテゴリ・投稿者の画面で `{blogId}` をURLに含めている。設計は選択中ブログを使う（D-02-05） |
+| HTMLの直接出力 | 設計上の懸念 | 固定ページのAPI確認画面で、WordPressの本文を `{!! !!}` で出力している（[page-list.blade.php:63,78](../resources/views/api/page-list.blade.php#L63)）（DEVELOPMENT_RULES 13-3） |
+| CSRF | 一致 | POSTのフォームには `@csrf` があり、fetchでもトークンを送っている |
+| 空のファイル | 過剰 | 0バイトのControllerが28個ある（`Controllers/Database` の Post・Page・Media・Status・Type・Taxonomy・Tag・Author の List／Detail／Register／HistoryDetail など） |
+| ルートに接続されていないController | 過剰 | 中身のあるControllerのうち、`Api` の Author・Media・Status・Tag・Taxonomy・Type の Detail など16個が、どのルートからも使われていない |
+| 存在しないクラスの `use` | 過剰 | `routes/web.php` で、存在しないController（例：`Database\CategoryDetailController`、`Database\TagRegisterController`）を読み込んでいる（ルートでは使っていないため、エラーにはならない） |
+| テーマ切り替え | 一致 | `config/blogos.php` の `theme`（blank／ironman）で画面の見た目を切り替える機能。残す方針が決まり、設計書に追加した（D-16-01） |
+| レスポンシブ対応 | 要確認 | 未確認 |
+
+### 3-6. DB・Migration・Model
+
+**DBの状態**（ローカル、MySQL 8.0.46）：BlogOSのテーブルは `blogs`・`blog_histories`・`categories`・`category_histories` だけで、どれも0件。
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| テーブル | 不足 | 設計のテーブルの大部分がない（`blog_credentials`、`blog_settings`、`posts`、`pages`、`tags`、`authors`、`media`、statuses・types・taxonomies、カスタム投稿タイプ、中間テーブル、`internal_links`、`article_*`、`ai_generations`、`sync_*`、`wordpress_push_operations`、`google_*` と、それらの履歴） |
+| テーブルのないModel | 過剰・相違 | `Post`・`Page`・`Tag`・`Author`・`Media`・`Status`・`Type`・`Taxonomy`、中間テーブルとそれらの履歴のModelがあるが、Migrationもテーブルもない |
+| Modelの列 | 相違 | 例：`Post` は `post_id`・`status_id`・`type_id`・`title`・`content`（1列）。設計は `wordpress_id`、`status`（文字列）、`title_raw`／`title_rendered` 等（D-02-02、D-05-06、D-05-07） |
+| WordPress IDの列名 | 相違 | `categories.category_id` にWordPressのカテゴリIDを入れている。一方、`category_histories.category_id` は内部IDを指しており、**同じ列名で意味が違う**。設計は `wordpress_id`（D-02-02） |
+| 親カテゴリ | 相違 | `categories.parent` にWordPress IDだけを持つ。設計は `parent_id`（内部ID）と `wordpress_parent_id`（D-02-03） |
+| Categoryの `fillable` | バグ | Modelの `fillable` は `parent_id` で、Repositoryは `parent` で保存している。**親カテゴリが保存されない**。テーブルにない列（`taxonomy`、`last_synced_at`）も含まれている（[Category.php:16](../app/Models/Category.php#L16)、[CategoryRepository.php:67](../app/Repositories/CategoryRepository.php#L67)） |
+| 共通の列 | 不足 | `synced_at`・`wordpress_modified_gmt`・`wordpress_deleted_at` がない（DATABASE 3-6） |
+| 外部キーの削除時の動作 | 相違 | `blog_histories`・`category_histories` はブログへの外部キーに CASCADE がない。設計はブログに属するテーブルを CASCADE（D-09-07） |
+| 履歴の値の型 | 相違 | `old_value`／`new_value` がTEXT。設計はLONGTEXT（全文を保存するため） |
+
+### 3-7. Repository
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| DBアクセスの経由 | 一致（1か所を除く） | Controllerからは、Repositoryを経由している。ただし、`UpdateBlogsFromApi` は `Blog::all()` を直接使っている（D-11-01） |
+| `BlogRepository` | バグ | P2、P4 |
+| `CategoryRepository::diff()` | バグ | DTOのプロパティ（`$data->name` 等）を参照しているが、DTOは配列 `$data->data` しか持たない。呼び出し元がまだないため、現在は表に出ていない |
+| カテゴリの削除 | バグ | 物理削除する。履歴がある場合は、外部キーのためにエラーになる。設計は論理削除（D-09-02） |
+| 遅延読み込みの検出 | 不足 | `Model::preventLazyLoading()` の設定がない（D-11-01） |
+
+### 3-8. 同期
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 毎日の実行 | 一部一致 | `blogs:update-from-api` を毎日03:00に実行するよう登録済み。ただし、対象はブログの基本情報だけで、P4のためエラーになる |
+| 他のリソースの同期 | 不足 | 投稿・固定ページ・カテゴリ等の更新コマンド9個は、**0バイトの空ファイル** |
+| 同期の実行記録・問題の記録 | 不足 | `sync_runs`・`sync_run_resources`・`sync_issues` がない（D-04-01） |
+| 2段階の差分判定・削除の検知 | 不足 | ない（D-04-05、D-09-02） |
+| ロック・Queue・「今すぐ同期」 | 不足 | ない（D-04-07） |
+| 回復処理・反映記録 | 不足 | ない（D-01-09） |
+
+### 3-9. 履歴
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 項目ごとに1行 | 一致 | `field`・`old_value`・`new_value` の構造 |
+| 変更元の値 | 相違 | `'定期自動更新'`・`'手動更新'` などの日本語の自由な文字列。設計はEnumの値（`wp_sync` 等）（D-02-07） |
+| 新規作成の履歴 | 相違 | 新規作成時に、全項目ぶんの履歴を作っている。設計は `__created` の1行（D-13-04） |
+| `change_set_id`・`sync_run_id`・`user_id` 等 | 不足 | ない（DATABASE 8-2） |
+
+### 3-10. 反映・編集案・記事管理
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 編集案・反映記録・競合確認 | 不足 | ない（D-01-06〜D-01-09） |
+| WordPress側の拡張（`_blogos_draft_id`） | 不足 | テーマ側・BlogOS側とも未実装（D-01-12） |
+| 記事の管理情報・キーワード・関係・内部リンク | 不足 | ない（D-08-02〜D-08-04） |
+
+### 3-11. Google連携
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| 実装の状態 | 相違 | GA4・Search Console・AdSense のAPI確認画面がある。ただし、ControllerからGoogleのAPIを直接呼んでいる箇所がある（Search Console）（ARCHITECTURE 19章） |
+| 認証情報 | 相違 | サービスアカウントの鍵とAdSenseのトークンを、ファイル（`storage/app/google/`）で保存している。設計はDBに暗号化して保存（D-03-05）。これらのファイルはGitに含まれていない（一致） |
+| 対象の指定 | 相違 | GA4のプロパティIDなどを .env で1つだけ持つ。ブログごとの対応先がない（D-03-05） |
+| 記事との対応付け | 不足 | ない（D-08-05） |
+| 開発の段階 | 過剰 | 現在の実装は試作とし、分析機能の段階（REQUIREMENTS 11-3）で設計に沿って作り直す。現在のコードはGitの履歴に残っている（D-16-02） |
+
+### 3-12. BlogOSのAI機能・品質評価
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| AI機能・評価 | 不足 | 未実装（開発フェーズの4番目。REQUIREMENTS 11-4） |
+| `blogs.quality_profile` | 不足 | ない |
+
+### 3-13. 設定・テスト・その他
+
+| 項目 | 分類 | 状況 |
+| --- | --- | --- |
+| `.env.example` のDB | 相違 | `DB_CONNECTION=sqlite`。実際の設定と設計はMySQL（D-12-05） |
+| `phpunit.xml` のDB | 相違 | SQLiteのメモリDB。設計はMySQLのテスト専用DB（DEVELOPMENT_RULES 6-3、16-2） |
+| `.env.example` の `APP_DEBUG` | 要確認 | `true`。本番環境（XServer）の `.env` では `false` にする必要がある |
+| テスト | 不足 | Laravelの初期状態のサンプル（ExampleTest）だけ |
+| ログ | 不足 | `Log::` の使用がない。エラーの記録が残らない |
+| `Enums/`・`Jobs/`・`Clients/`・`Ai/` | 不足 | ディレクトリがない（D-11-03） |
+| コメント | 一致 | 日本語で書かれている（D-11-06） |
+
+---
+
+## 4. まとめ
+
+| 分類 | 主な内容 |
+| --- | --- |
+| 一致 | ログイン必須、`blogs.home` の一意制約、`is_selected`、DTOの作り、CSRF、コメントの言語、DB確認画面の名前空間 |
+| 不足 | 設計のテーブルの大部分、同期の仕組み全体、反映・編集案、記事の管理情報、認証情報の保存、AI・評価、テスト、ログ |
+| 相違 | WordPress認証情報を全ブログ共通で .env に持つ、WordPress IDの列名、`blogs` の列の構成、変更元の値、ルート名・Controllerの作り、Google認証情報のファイル保存 |
+| バグ | P2〜P6（ログイン後の全画面、API確認画面、ブログ情報の更新、ルート名、エラーの形式）、Categoryの保存・差分・削除 |
+| 過剰 | 0バイトのファイル37個（Controller 28・Command 9）、ルートに接続されていないController、テーブルのないModel、存在しないクラスの `use` |
+| 設計上の懸念 | ログインの試行回数の制限なし、ブログ登録でブラウザから送られた値を保存、画面の表示でDBを書き換える、本文のHTML出力、途中失敗時に `[]` を返す |
+| 要確認 | `APP_DEBUG` |
+| セキュリティ | P0（推測できる認証情報の Test User）、P1（公開リポジトリの履歴に管理者の平文パスワード） |
+
+現在の実装は、設計のうち「ログイン」「ブログ登録（一部）」「ブログとカテゴリのテーブル」「WordPress・GoogleのAPI確認画面（試作）」にあたる。コアとなる同期・反映・記事管理はまだない。既存のコードの多くは、設計の命名・構造と異なるため、改修よりも設計に沿った作り直しが適する部分が多い。改修の方針と優先順位は、手順5で決める。
+
+---
+
+## 5. 更新履歴
+
+| 日付 | 内容 |
+| --- | --- |
+| 2026-09-26 | 初版。コミット `e1c5142` を調査 |
+| 2026-09-26 | 要確認事項の回答を反映。P0（Test User）を追加。リポジトリが公開であることを反映。テーマ切り替えとGoogle連携の扱いを更新 |
+| 2026-09-26 | 段階0を実施：P0を解消（Seederから削除し、Migrationで既存の Test User を削除）。P1は、Seederからパスワードを除き .env から読む形にした（パスワード自体は利用者の判断で当面変更しない。Gitの履歴には残る）。`login_histories` を追加（`BLOGOS_IMPLEMENTATION_PLAN.md`） |
