@@ -42,6 +42,9 @@
                                 @case (\App\Enums\LoginEvent::LoginFailed)
                                     <strong>ログイン失敗</strong>
                                     @break
+                                @case (\App\Enums\LoginEvent::LoginLocked)
+                                    <strong>ログイン停止中の試行</strong>
+                                    @break
                                 @case (\App\Enums\LoginEvent::Logout)
                                     ログアウト
                                     @break

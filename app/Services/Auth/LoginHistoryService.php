@@ -30,6 +30,11 @@ class LoginHistoryService
         $this->record(LoginEvent::LoginFailed, $request, null);
     }
 
+    public function recordLocked(Request $request): void
+    {
+        $this->record(LoginEvent::LoginLocked, $request, null);
+    }
+
     public function recordLogout(Request $request, ?int $userId): void
     {
         $this->record(LoginEvent::Logout, $request, $userId);

@@ -51,6 +51,37 @@ class LoginHistoryTest extends TestCase
         );
     }
 
+    /**
+     * 5回失敗したら止め、正しいパスワードでも1分間はログインできない（D-17-06）。
+     */
+    public function test_login_is_locked_after_five_failures(): void
+    {
+        $user = User::factory()->create(['password' => 'correct-password']);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
+        }
+
+        $this->post('/login', [
+            'email'    => $user->email,
+            'password' => 'correct-password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+        $this->assertSame(5, LoginHistory::where('event', LoginEvent::LoginFailed)->count());
+        $this->assertSame(1, LoginHistory::where('event', LoginEvent::LoginLocked)->count());
+
+        // 1分経過すると、再びログインできる
+        $this->travel(61)->seconds();
+
+        $this->post('/login', [
+            'email'    => $user->email,
+            'password' => 'correct-password',
+        ])->assertRedirect('/');
+
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_logout_is_recorded(): void
     {
         $user = User::factory()->create();

@@ -204,7 +204,7 @@ BlogOSへのログイン・ログアウトの記録（D-17-03）。不正なロ�
 | --- | --- |
 | `user_id` | ログインした利用者（`users.id`）。失敗した場合など、該当する利用者がいない場合はNULL |
 | `email` | 入力されたメールアドレス（失敗した場合も記録する） |
-| `event` | `login_succeeded` / `login_failed` / `logout` |
+| `event` | `login_succeeded` / `login_failed` / `login_locked`（試行回数の制限によって止めた試行。D-17-06） / `logout` |
 | `ip_address` | 接続元のIPアドレス |
 | `user_agent` | ブラウザの情報 |
 | `occurred_at` | 発生日時 |

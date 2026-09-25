@@ -702,6 +702,8 @@ DB設計書をv2.0.0に改訂する際、既存の決定を具体化するため
 
 **D-17-03 ログイン履歴** ログインの成功・失敗とログアウトを `login_histories` に記録する（パスワードは記録しない）。管理者のパスワードを当面変更しないため、不正なログインの有無を確認できるようにする。保存期間は1年。（DATABASE 5-1・14章、REQUIREMENTS 13-3、DEVELOPMENT_RULES 13-1）
 
+**D-17-06 ログインの試行回数の制限** 同じメールアドレスとIPアドレスの組み合わせで5回失敗したら、1分間ログインを止める（Laravel標準のRateLimiter）。止めた試行は `login_histories` に `login_locked` として記録する。管理者のパスワードが公開リポジトリの履歴に残っているため。（2026-09-26。DATABASE 5-1、DEVELOPMENT_RULES 13-1）
+
 **D-17-04 開発の順序** 開発フェーズは要件定義書 11章の順（基盤 → コンテンツ管理 → 分析（Google）→ 品質評価・AI）とする。開発支援AIを使える約1か月で主要機能が間に合わない場合は、契約を継続して作り込む。（`BLOGOS_IMPLEMENTATION_PLAN.md`）
 
 **D-17-05 XServerの現状** XServerには配置済みで、MySQLも用意されている。Seederはローカルと同じもので、`blogs`・`blog_histories` のMigrationは動作確認済み。ローカルと異なる部分がある。（`BLOGOS_IMPLEMENTATION_PLAN.md`）
