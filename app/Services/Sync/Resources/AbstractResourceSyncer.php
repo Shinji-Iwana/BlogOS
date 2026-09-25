@@ -55,6 +55,14 @@ abstract class AbstractResourceSyncer
     }
 
     /**
+     * 取得した値でDBを更新せずに保留するか（記事の競合。ArticleSyncer）
+     */
+    protected function hold(?WordPressRecord $existing, array $item, SyncContext $context): bool
+    {
+        return false;
+    }
+
+    /**
      * 保存後に関連を更新する（投稿のカテゴリ・タグ）。変更した項目 [field => [old, new]] を返す。
      */
     protected function afterSave(WordPressRecord $record, array $item, SyncContext $context): array
@@ -99,17 +107,15 @@ abstract class AbstractResourceSyncer
 
         // 詳細を取得したものを保存する
         foreach ($result->items as $key => $item) {
+            // DBを更新せずに保留する（作業中の編集案がある記事の競合）。DBは変わらないため「変更なし」に数える
+            if ($this->hold($existing->get((string) $key), $item, $context)) {
+                $counts['unchanged']++;
+                continue;
+            }
+
             $record = $existing->get((string) $key) ?? new $modelClass(['blog_id' => $context->blog->id]);
 
-            $outcome = $this->records->save(
-                $record,
-                $this->map($item, $context),
-                $context->source,
-                $context->run->id,
-                fn (WordPressRecord $saved) => $this->afterSave($saved, $item, $context)
-            );
-
-            $counts[$outcome]++;
+            $counts[$this->saveItem($record, $item, $context)]++;
         }
 
         // 2段階の取得で詳細を取得しなかったもの（変更なし）は、照合日時だけを更新する
@@ -126,6 +132,49 @@ abstract class AbstractResourceSyncer
         $counts['deleted'] = $this->detectDeletions($context, $existing, $result->allKeys);
 
         return $counts;
+    }
+
+    /**
+     * APIの1項目を保存する（履歴を含む）。
+     *
+     * @return string created / updated / unchanged
+     */
+    protected function saveItem(WordPressRecord $record, array $item, SyncContext $context): string
+    {
+        return $this->records->save(
+            $record,
+            $this->map($item, $context),
+            $context->source,
+            $context->runId(),
+            fn (WordPressRecord $saved) => $this->afterSave($saved, $item, $context),
+            $context->historyAttributes
+        );
+    }
+
+    /**
+     * 反映・回復処理で、WordPressが返した1項目をDBに保存する（WORDPRESS_API 23章）。
+     * 保留（競合）の判定は行わない。反映の結果は、WordPressの返却値を正とするため。
+     */
+    public function storeFromApi(array $item, SyncContext $context): WordPressRecord
+    {
+        $modelClass = $this->modelClass();
+
+        $record = $modelClass::where('blog_id', $context->blog->id)
+            ->where($this->keyColumn(), $item[$this->keyColumn() === 'wordpress_id' ? 'id' : $this->keyColumn()])
+            ->first() ?? new $modelClass(['blog_id' => $context->blog->id]);
+
+        $this->saveItem($record, $item, $context);
+        $this->resolveReferences($context);
+
+        return $record;
+    }
+
+    /**
+     * 反映で、WordPress側で完全に削除したことを記録する
+     */
+    public function markDeletedFromApi(WordPressRecord $record, SyncContext $context): void
+    {
+        $this->records->markDeleted($record, $context->source, $context->runId(), $context->historyAttributes);
     }
 
     /**
@@ -150,7 +199,7 @@ abstract class AbstractResourceSyncer
 
         if (count($missing) >= $minimum && count($missing) / max($alive->count(), 1) > $ratio) {
             $this->issues->record($context->blog->id, SyncIssueType::MassDeletionSuspected, $this->key(), null, [
-                'sync_run_id' => $context->run->id,
+                'sync_run_id' => $context->runId(),
                 'message'     => sprintf(
                     '%d件中%d件が一覧から消えたため、削除として扱いませんでした。WordPress側を確認してください。',
                     $alive->count(),
@@ -162,10 +211,10 @@ abstract class AbstractResourceSyncer
         }
 
         foreach ($missing as $record) {
-            $this->records->markDeleted($record, $context->source, $context->run->id);
+            $this->records->markDeleted($record, $context->source, $context->runId(), $context->historyAttributes);
 
             $this->issues->record($context->blog->id, SyncIssueType::DeletedDetected, $this->key(), (string) $record->{$this->keyColumn()}, [
-                'sync_run_id' => $context->run->id,
+                'sync_run_id' => $context->runId(),
                 'post_id'     => $this->key() === 'posts' ? $record->id : null,
                 'page_id'     => $this->key() === 'pages' ? $record->id : null,
                 'message'     => 'WordPress側で完全に削除されたことを検知しました。',
@@ -189,7 +238,7 @@ abstract class AbstractResourceSyncer
                 $this->key(),
                 "{$row['wordpress_id']}:{$what}",
                 [
-                    'sync_run_id' => $context->run->id,
+                    'sync_run_id' => $context->runId(),
                     'message'     => "{$what}（WordPress ID：{$row['reference']}）が見つかりません。",
                 ]
             );

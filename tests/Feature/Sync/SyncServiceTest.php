@@ -3,10 +3,18 @@
 namespace Tests\Feature\Sync;
 
 use App\Enums\ChangeSource;
+use App\Enums\DraftState;
+use App\Enums\PushResourceType;
 use App\Enums\SyncIssueType;
 use App\Enums\SyncStatus;
 use App\Enums\SyncTrigger;
+use App\Models\ArticleMedia;
 use App\Models\Author;
+use App\Models\CustomContent;
+use App\Models\CustomTerm;
+use App\Models\Histories\CustomContentHistory;
+use App\Models\InternalLink;
+use App\Repositories\ArticleDraftRepository;
 use App\Models\Blog;
 use App\Models\BlogCredential;
 use App\Models\Category;
@@ -229,6 +237,89 @@ class SyncServiceTest extends TestCase
 
         $this->assertSame('https://blog.example.test', $this->blog->fresh()->home);
         $this->assertSame(1, SyncIssue::where('issue_type', SyncIssueType::HomeChanged)->count());
+    }
+
+    public function test_internal_links_and_media_are_extracted_and_resolved(): void
+    {
+        $this->wp->lists['posts'][0] = FakeWordPress::post(100, [
+            'categories' => [10], 'featured_media' => 30,
+            'content'    => ['raw' => '<a href="https://blog.example.test/post-101/">次へ</a><a href="/page-50/">固定</a><a href="/post-999/">未作成</a><img class="wp-image-30" src="/wp-content/uploads/30.png">', 'rendered' => ''],
+        ]);
+
+        $this->sync(SyncTrigger::Initial);
+
+        $post = Post::where('wordpress_id', 100)->sole();
+        $links = InternalLink::where('post_id', $post->id)->orderBy('id')->get();
+        $this->assertCount(3, $links);
+        $this->assertSame(Post::where('wordpress_id', 101)->value('id'), $links[0]->target_post_id);
+        $this->assertSame(Page::where('wordpress_id', 50)->value('id'), $links[1]->target_page_id);
+        $this->assertNull($links[2]->target_post_id);
+        $this->assertSame(Media::sole()->id, ArticleMedia::where('post_id', $post->id)->sole()->media_id);
+
+        // リンク先の記事が後から作成されたら、次の同期で解決する（D-15-09）
+        $this->wp->lists['posts'][] = FakeWordPress::post(999);
+        $this->sync();
+        $this->assertSame(Post::where('wordpress_id', 999)->value('id'), $links[2]->fresh()->target_post_id);
+    }
+
+    public function test_wordpress_change_is_held_when_article_has_active_draft(): void
+    {
+        $this->sync(SyncTrigger::Initial);
+        $post = Post::where('wordpress_id', 100)->sole();
+
+        $draft = app(ArticleDraftRepository::class)->create([
+            'blog_id'                     => $this->blog->id,
+            'post_id'                     => $post->id,
+            'target_type'                 => PushResourceType::Post,
+            'base_wordpress_modified_gmt' => $post->wordpress_modified_gmt,
+            'title_raw'                   => '編集中のタイトル',
+        ], ChangeSource::BlogosManual, null);
+
+        $this->wp->lists['posts'][0] = FakeWordPress::post(100, [
+            'categories' => [10, 11], 'tags' => [20], 'featured_media' => 30,
+            'modified_gmt' => '2026-09-20T03:00:00',
+            'title' => ['raw' => 'WordPressで変更', 'rendered' => 'WordPressで変更'],
+        ]);
+
+        $this->sync();
+
+        // DBは更新しない
+        $this->assertSame('Title 100', $post->fresh()->title_raw);
+        $issue = SyncIssue::where('issue_type', SyncIssueType::Conflict)->sole();
+        $this->assertSame($post->id, $issue->post_id);
+        $this->assertSame($draft->id, $issue->article_draft_id);
+
+        // 編集案を破棄すれば、次の同期で取り込む
+        app(ArticleDraftRepository::class)->changeState($draft, DraftState::Discarded, ChangeSource::BlogosManual, null);
+        $this->sync();
+        $this->assertSame('WordPressで変更', $post->fresh()->title_raw);
+    }
+
+    public function test_custom_post_types_and_taxonomies_are_synced(): void
+    {
+        $this->wp->definitions['types']['book'] = ['name' => '本', 'description' => '', 'hierarchical' => false, 'rest_base' => 'books', 'rest_namespace' => 'wp/v2', 'taxonomies' => ['genre']];
+        $this->wp->definitions['types']['wp_block'] = ['name' => 'ブロック', 'description' => '', 'hierarchical' => false, 'rest_base' => 'blocks', 'rest_namespace' => 'wp/v2', 'taxonomies' => []];
+        $this->wp->definitions['taxonomies']['genre'] = ['name' => 'ジャンル', 'description' => '', 'hierarchical' => true, 'rest_base' => 'genres', 'rest_namespace' => 'wp/v2', 'types' => ['book']];
+        $this->wp->lists['genres'] = [FakeWordPress::term(70, ['taxonomy' => 'genre']), FakeWordPress::term(71, ['taxonomy' => 'genre', 'parent' => 70])];
+        $this->wp->lists['books'] = [FakeWordPress::post(200, ['type' => 'book', 'genres' => [70, 71]])];
+
+        $run = $this->sync(SyncTrigger::Initial);
+
+        $this->assertSame(SyncStatus::Succeeded, $run->status);
+        $book = CustomContent::sole();
+        $this->assertSame('book', $book->type);
+        $this->assertEqualsCanonicalizing([70, 71], $book->terms()->pluck('wordpress_id')->all());
+        $this->assertSame(CustomTerm::where('wordpress_id', 70)->value('id'), CustomTerm::where('wordpress_id', 71)->value('parent_id'));
+        $this->assertSame('genre', CustomTerm::where('wordpress_id', 70)->value('taxonomy'));
+
+        // WordPressの内部用の投稿タイプ（wp_ で始まるもの）は取得しない
+        $this->assertSame([], $this->wp->requestsTo('blocks'));
+
+        // 関連の付け替えは、履歴に terms として記録する
+        $this->wp->lists['books'][0]['genres'] = [70];
+        $this->wp->lists['books'][0]['modified_gmt'] = '2026-09-10T03:00:00';
+        $this->sync();
+        $this->assertSame('[70]', CustomContentHistory::where('custom_content_id', $book->id)->where('field', 'terms')->value('new_value'));
     }
 
     public function test_sync_is_rejected_while_another_sync_is_running(): void

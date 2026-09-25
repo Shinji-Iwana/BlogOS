@@ -15,8 +15,16 @@ abstract class ListSyncer extends AbstractResourceSyncer
 
     protected function fetch(SyncContext $context, $existing): FetchResult
     {
+        return $this->fetchEndpoint($context, $this->endpoint());
+    }
+
+    /**
+     * 1つのエンドポイントから全件を取得する（カスタムタクソノミーでは、タクソノミーごとに呼ぶ）
+     */
+    protected function fetchEndpoint(SyncContext $context, string $endpoint): FetchResult
+    {
         $items = [];
-        foreach ($context->client->getAllPages($this->endpoint(), [
+        foreach ($context->client->getAllPages($endpoint, [
             'context' => 'edit',
             'orderby' => 'id',
             'order'   => 'asc',

@@ -25,4 +25,9 @@ class Tag extends WordPressRecord
     {
         return [];
     }
+
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_tags');
+    }
 }

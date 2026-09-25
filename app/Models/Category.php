@@ -30,4 +30,9 @@ class Category extends WordPressRecord
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
+
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_categories');
+    }
 }

@@ -27,10 +27,18 @@ class SyncRunRepository
         $run->update([
             'status'      => $status,
             'finished_at' => now(),
-            'message'     => $message,
+            'message'     => $message ?? $run->message,
         ]);
 
         return $run;
+    }
+
+    /**
+     * 実行中の記録に補足を残す（回復処理の結果など）
+     */
+    public function note(SyncRun $run, string $message): void
+    {
+        $run->update(['message' => $message]);
     }
 
     public function startResource(SyncRun $run, string $resourceType): SyncRunResource

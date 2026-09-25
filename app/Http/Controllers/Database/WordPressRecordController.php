@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Database;
 use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Category;
+use App\Models\CustomContent;
+use App\Models\CustomTerm;
 use App\Models\Media;
 use App\Models\Page;
 use App\Models\Post;
@@ -34,6 +36,8 @@ class WordPressRecordController extends Controller
         'categories' => ['label' => 'カテゴリ', 'model' => Category::class, 'search' => ['name', 'slug'], 'columns' => ['wordpress_id', 'name', 'slug', 'wordpress_parent_id', 'synced_at']],
         'tags'       => ['label' => 'タグ', 'model' => Tag::class, 'search' => ['name', 'slug'], 'columns' => ['wordpress_id', 'name', 'slug', 'synced_at']],
         'authors'    => ['label' => '投稿者', 'model' => Author::class, 'search' => ['name', 'slug'], 'columns' => ['wordpress_id', 'name', 'slug', 'synced_at']],
+        'custom_contents' => ['label' => 'カスタム投稿タイプの内容', 'model' => CustomContent::class, 'search' => ['title_raw', 'slug', 'type'], 'columns' => ['wordpress_id', 'type', 'status', 'title_raw', 'slug', 'wordpress_modified', 'synced_at']],
+        'custom_terms'    => ['label' => 'カスタムタクソノミーの項目', 'model' => CustomTerm::class, 'search' => ['name', 'slug', 'taxonomy'], 'columns' => ['wordpress_id', 'taxonomy', 'name', 'slug', 'wordpress_parent_id', 'synced_at']],
         'statuses'   => ['label' => '投稿ステータスの定義', 'model' => Status::class, 'search' => ['slug', 'name'], 'columns' => ['slug', 'name', 'public', 'synced_at']],
         'types'      => ['label' => '投稿タイプの定義', 'model' => Type::class, 'search' => ['slug', 'name'], 'columns' => ['slug', 'name', 'rest_base', 'synced_at']],
         'taxonomies' => ['label' => 'タクソノミーの定義', 'model' => Taxonomy::class, 'search' => ['slug', 'name'], 'columns' => ['slug', 'name', 'rest_base', 'synced_at']],

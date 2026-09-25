@@ -31,7 +31,17 @@
 
         @if ($credential)
             <p>設定済み（ユーザー名：{{ $credential->username }}）</p>
-            <p>最終確認日時：{{ $credential->verified_at ?? '未確認' }}</p>
+            <p>最終確認日時：{{ $credential->verified_at ? \App\Support\DisplayTime::format($credential->verified_at) : '未確認' }}</p>
+            <p>
+                WordPress側の拡張（新規作成の照合に使う投稿メタ）：
+                @if ($credential->connector_extension === true)
+                    有効
+                @elseif ($credential->connector_extension === false)
+                    無効（新規作成の結果が不明になった場合は、人が照合します）
+                @else
+                    未判定（接続確認で判定します。投稿が1件もない場合は判定できません）
+                @endif
+            </p>
             @if ($credential->last_failed_at)
                 <p>最後の失敗：{{ $credential->last_failed_at }}（{{ $credential->last_error }}）</p>
             @endif

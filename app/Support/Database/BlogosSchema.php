@@ -3,6 +3,8 @@
 namespace App\Support\Database;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Migrationで共通に使う列の定義（BLOGOS_DATABASE.md 3-6・8-2）。
@@ -42,6 +44,36 @@ class BlogosSchema
     }
 
     /**
+     * 記事（投稿・固定ページ）の参照の列（BLOGOS_DATABASE.md 3-5）。
+     *
+     * CHECK制約を付ける列には、MySQLでは ON DELETE SET NULL を使えないため CASCADE とする。
+     * 投稿・固定ページは同期では物理削除しない（論理削除）ため、CASCADEが働くのはブログの完全削除のときだけである（D-20-01）。
+     *
+     * @param string $prefix 列名の接頭辞（例：related_ → related_post_id / related_page_id）
+     */
+    public static function articleReference(Blueprint $table, string $prefix = ''): void
+    {
+        $table->foreignId("{$prefix}post_id")->nullable()->constrained('posts')->cascadeOnDelete();
+        $table->foreignId("{$prefix}page_id")->nullable()->constrained('pages')->cascadeOnDelete();
+    }
+
+    /**
+     * 記事の参照に「どちらか一方だけ」または「多くとも一方」のCHECK制約を付ける（BLOGOS_DATABASE.md 3-5、11-5）。
+     * Schema::create の後に呼ぶ。
+     */
+    public static function addArticleCheck(string $table, bool $exactlyOne, string $prefix = ''): void
+    {
+        $post = "{$prefix}post_id";
+        $page = "{$prefix}page_id";
+
+        $condition = $exactlyOne
+            ? "(({$post} IS NULL) <> ({$page} IS NULL))"
+            : "({$post} IS NULL OR {$page} IS NULL)";
+
+        DB::statement("ALTER TABLE {$table} ADD CONSTRAINT chk_{$table}_{$prefix}article CHECK {$condition}");
+    }
+
+    /**
      * 履歴の共通の列（BLOGOS_DATABASE.md 8-2）
      *
      * @param string $targetColumn 対象レコードの列名（例：post_id）
@@ -67,13 +99,22 @@ class BlogosSchema
 
         $table->foreignId('sync_run_id')->nullable()->constrained('sync_runs')->nullOnDelete();
 
-        // 反映記録（段階4で表を作るときに外部キーを付ける）
-        $table->unsignedBigInteger('wordpress_push_operation_id')->nullable()->index();
+        // 反映記録。反映記録の表より前に作った履歴テーブルには、表を作るMigrationで外部キーを付ける
+        if (Schema::hasTable('wordpress_push_operations')) {
+            $table->foreignId('wordpress_push_operation_id')->nullable()->constrained('wordpress_push_operations')->nullOnDelete();
+        } else {
+            $table->unsignedBigInteger('wordpress_push_operation_id')->nullable()->index();
+        }
 
         $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
 
         $table->timestamp('changed_at')->useCurrent();
 
-        $table->index([$targetColumn, 'changed_at']);
+        // 既定の名前がMySQLの上限（64文字）を超える場合は短い名前にする
+        $indexName = strtolower("{$table->getTable()}_{$targetColumn}_changed_at_index");
+        if (strlen($indexName) > 64) {
+            $indexName = strtolower("{$table->getTable()}_target_changed_at_index");
+        }
+        $table->index([$targetColumn, 'changed_at'], $indexName);
     }
 }

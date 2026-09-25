@@ -2,7 +2,7 @@
 
 namespace App\Models\Histories;
 
-class StatusHistory extends WordPressHistory
+class StatusHistory extends History
 {
     protected $table = 'status_histories';
 }

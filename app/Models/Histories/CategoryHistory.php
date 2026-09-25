@@ -2,7 +2,7 @@
 
 namespace App\Models\Histories;
 
-class CategoryHistory extends WordPressHistory
+class CategoryHistory extends History
 {
     protected $table = 'category_histories';
 }

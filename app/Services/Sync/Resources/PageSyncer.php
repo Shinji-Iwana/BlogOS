@@ -8,7 +8,7 @@ use App\Services\Sync\SyncContext;
 /**
  * 固定ページ（/wp/v2/pages）。本文は raw と rendered の両方を保存する（D-05-07）。
  */
-class PageSyncer extends TwoStageSyncer
+class PageSyncer extends ArticleSyncer
 {
     public function key(): string
     {

@@ -15,24 +15,29 @@ class BlogCredentialRepository
     /**
      * 認証情報を保存する（上書き）。secret は Model の encrypted キャストで暗号化される（D-03-02）。
      */
-    public function save(Blog $blog, string $username, string $secret): BlogCredential
+    public function save(Blog $blog, string $username, string $secret, ?bool $connectorExtension): BlogCredential
     {
         return BlogCredential::updateOrCreate(
             ['blog_id' => $blog->id],
             [
-                'auth_type'      => BlogCredential::AUTH_TYPE_APPLICATION_PASSWORD,
-                'username'       => $username,
-                'secret'         => $secret,
-                'verified_at'    => now(),
-                'last_failed_at' => null,
-                'last_error'     => null,
+                'auth_type'           => BlogCredential::AUTH_TYPE_APPLICATION_PASSWORD,
+                'username'            => $username,
+                'secret'              => $secret,
+                'verified_at'         => now(),
+                'connector_extension' => $connectorExtension,
+                'last_failed_at'      => null,
+                'last_error'          => null,
             ]
         );
     }
 
-    public function markVerified(BlogCredential $credential): void
+    /**
+     * 接続確認の成功と、WordPress側の拡張の判定結果を記録する
+     */
+    public function markVerified(BlogCredential $credential, ?bool $connectorExtension): void
     {
         $credential->verified_at = now();
+        $credential->connector_extension = $connectorExtension;
         $credential->save();
     }
 

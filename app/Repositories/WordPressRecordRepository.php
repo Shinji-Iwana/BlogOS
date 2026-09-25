@@ -57,9 +57,10 @@ class WordPressRecordRepository
         array $attributes,
         ChangeSource $source,
         ?int $syncRunId,
-        ?callable $afterSave = null
+        ?callable $afterSave = null,
+        array $historyAttributes = []
     ): string {
-        return DB::transaction(function () use ($record, $attributes, $source, $syncRunId, $afterSave) {
+        return DB::transaction(function () use ($record, $attributes, $source, $syncRunId, $afterSave, $historyAttributes) {
             $changeSetId = (string) Str::uuid();
             $now = now();
             $isNew = ! $record->exists;
@@ -91,7 +92,7 @@ class WordPressRecordRepository
             $relationChanges = $afterSave !== null ? $afterSave($record, $isNew) : [];
 
             if ($isNew) {
-                $this->writeHistory($record, $changeSetId, '__created', null, null, $source, $syncRunId, $now);
+                $this->writeHistory($record, $changeSetId, '__created', null, null, $source, $syncRunId, $now, $historyAttributes);
 
                 return self::CREATED;
             }
@@ -100,7 +101,7 @@ class WordPressRecordRepository
             $changed = $wasDeleted;
 
             if ($wasDeleted) {
-                $this->writeHistory($record, $changeSetId, '__restored', null, null, $source, $syncRunId, $now);
+                $this->writeHistory($record, $changeSetId, '__restored', null, null, $source, $syncRunId, $now, $historyAttributes);
             }
 
             foreach (array_merge($changes, $relationChanges) as $field => [$old, $new]) {
@@ -109,7 +110,7 @@ class WordPressRecordRepository
                     continue;
                 }
 
-                $this->writeHistory($record, $changeSetId, $field, $old, $new, $source, $syncRunId, $now);
+                $this->writeHistory($record, $changeSetId, $field, $old, $new, $source, $syncRunId, $now, $historyAttributes);
                 $changed = true;
             }
 
@@ -133,14 +134,14 @@ class WordPressRecordRepository
     /**
      * WordPress側での完全削除を記録する（論理削除。D-09-02）。
      */
-    public function markDeleted(WordPressRecord $record, ChangeSource $source, ?int $syncRunId): void
+    public function markDeleted(WordPressRecord $record, ChangeSource $source, ?int $syncRunId, array $historyAttributes = []): void
     {
-        DB::transaction(function () use ($record, $source, $syncRunId) {
+        DB::transaction(function () use ($record, $source, $syncRunId, $historyAttributes) {
             $now = now();
             $record->wordpress_deleted_at = $now;
             $record->save();
 
-            $this->writeHistory($record, (string) Str::uuid(), '__deleted', null, null, $source, $syncRunId, $now);
+            $this->writeHistory($record, (string) Str::uuid(), '__deleted', null, null, $source, $syncRunId, $now, $historyAttributes);
         });
     }
 
@@ -229,6 +230,32 @@ class WordPressRecordRepository
     }
 
     /**
+     * 同期するカスタム投稿タイプ・カスタムタクソノミーの定義（D-10-04、WORDPRESS_API 18章）。
+     *
+     * 標準のもの（投稿・固定ページ・メディア、カテゴリ・タグ）と、WordPressの内部用のもの
+     * （wp_ で始まるもの、ナビゲーションメニュー、投稿フォーマット）を除く。
+     *
+     * @param string $table types / taxonomies
+     * @return Collection<int, object{slug: string, rest_base: string, rest_namespace: string|null}>
+     */
+    public function customDefinitions(int $blogId, string $table): Collection
+    {
+        $builtIn = $table === 'types'
+            ? ['post', 'page', 'attachment', 'nav_menu_item']
+            : ['category', 'post_tag', 'nav_menu', 'post_format'];
+
+        return DB::table($table)
+            ->where('blog_id', $blogId)
+            ->whereNull('wordpress_deleted_at')
+            ->whereNotNull('rest_base')
+            ->where('rest_base', '!=', '')
+            ->whereNotIn('slug', $builtIn)
+            ->where('slug', 'not like', 'wp\_%')
+            ->orderBy('slug')
+            ->get(['slug', 'rest_base', 'rest_namespace']);
+    }
+
+    /**
      * 指定したカテゴリ・タグ・メディアに関連していた投稿のWordPress IDを返す（D-09-04）。
      *
      * @param array<int, int> $relatedIds 内部ID
@@ -259,11 +286,12 @@ class WordPressRecordRepository
         ?string $newValue,
         ChangeSource $source,
         ?int $syncRunId,
-        $changedAt
+        $changedAt,
+        array $historyAttributes = []
     ): void {
         $historyClass = $record::historyClass();
 
-        $historyClass::create([
+        $historyClass::create($historyAttributes + [
             'blog_id'                => $record->blog_id,
             $record::historyForeignKey() => $record->id,
             'change_set_id'          => $changeSetId,

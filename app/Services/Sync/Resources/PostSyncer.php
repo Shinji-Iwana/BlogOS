@@ -10,7 +10,7 @@ use App\Services\Sync\SyncContext;
  * 投稿（/wp/v2/posts）。本文は raw と rendered の両方を保存する（D-05-07）。
  * カテゴリ・タグの付け替えは、post_histories に categories / tags として記録する（D-13-05）。
  */
-class PostSyncer extends TwoStageSyncer
+class PostSyncer extends ArticleSyncer
 {
     public function key(): string
     {
@@ -61,7 +61,7 @@ class PostSyncer extends TwoStageSyncer
 
     protected function afterSave(WordPressRecord $record, array $item, SyncContext $context): array
     {
-        $changes = [];
+        $changes = parent::afterSave($record, $item, $context);
 
         $categories = $this->records->syncPivot($record, 'post_id', 'post_categories', 'categories', 'category_id', $item['categories'] ?? []);
         if ($categories !== null) {

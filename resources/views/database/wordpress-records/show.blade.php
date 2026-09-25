@@ -8,7 +8,14 @@
 
     <h1>{{ $definition['label'] }}（{{ $table }}）#{{ $record->id }}</h1>
 
-    <p><a href="{{ route('database.wordpress-records.index', ['table' => $table]) }}">一覧に戻る</a></p>
+    <p>
+        <a href="{{ route('database.wordpress-records.index', ['table' => $table]) }}">一覧に戻る</a>
+        @if (in_array($table, ['posts', 'pages'], true))
+            ・<a href="{{ route('articles.show', ['type' => $table, 'id' => $record->id]) }}">記事の画面へ（編集案・管理情報）</a>
+        @elseif (in_array($table, ['categories', 'tags', 'media'], true))
+            ・<a href="{{ route('terms.edit', ['type' => $table, 'id' => $record->id]) }}">情報の更新・削除（WordPressへ反映）</a>
+        @endif
+    </p>
 
     @if ($record->wordpress_deleted_at)
         <p style="color:#b00;"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>

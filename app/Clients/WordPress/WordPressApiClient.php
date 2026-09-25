@@ -22,6 +22,11 @@ class WordPressApiClient
 {
     protected const TIMEOUT_SECONDS = 10;
 
+    /**
+     * 書き込み（反映）の待ち時間。長い本文の保存に時間がかかっても「結果が不明」にならないよう、取得より長くする
+     */
+    protected const WRITE_TIMEOUT_SECONDS = 60;
+
     protected string $home;
 
     /**
@@ -57,9 +62,9 @@ class WordPressApiClient
         return filled($this->username) && filled($this->password);
     }
 
-    protected function request(): PendingRequest
+    protected function request(int $timeout = self::TIMEOUT_SECONDS): PendingRequest
     {
-        $request = Http::timeout(self::TIMEOUT_SECONDS)->acceptJson();
+        $request = Http::timeout($timeout)->acceptJson();
 
         if ($this->hasAuth()) {
             $request = $request->withBasicAuth($this->username, $this->password);
@@ -82,7 +87,7 @@ class WordPressApiClient
     {
         $url = "{$this->home}{$endpoint}";
 
-        return $this->send('POST', $url, fn () => $this->request()->post($url, $data));
+        return $this->send('POST', $url, fn () => $this->request(self::WRITE_TIMEOUT_SECONDS)->post($url, $data));
     }
 
     public function postMultipart(string $endpoint, string $filePath, string $fieldName = 'file', array $data = []): Response
@@ -96,7 +101,7 @@ class WordPressApiClient
         $url = "{$this->home}{$endpoint}";
         $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
 
-        return $this->send('POST', $url, fn () => $this->request()
+        return $this->send('POST', $url, fn () => $this->request(self::WRITE_TIMEOUT_SECONDS)
             ->attach($fieldName, file_get_contents($filePath), basename($filePath), ['Content-Type' => $mimeType])
             ->post($url, $data));
     }
@@ -105,7 +110,7 @@ class WordPressApiClient
     {
         $url = "{$this->home}{$endpoint}";
 
-        return $this->send('DELETE', $url, fn () => $this->request()->delete($url, $query));
+        return $this->send('DELETE', $url, fn () => $this->request(self::WRITE_TIMEOUT_SECONDS)->delete($url, $query));
     }
 
     /**

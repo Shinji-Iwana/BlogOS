@@ -253,6 +253,7 @@ BlogOSが管理するブログ。BlogOS側で管理する情報だけを持つ�
 | `username` | WordPressのユーザー名 |
 | `secret` | Application Password（Laravelの `encrypted` キャストで暗号化。TEXT型） |
 | `verified_at` | 最後に接続確認に成功した日時 |
+| `connector_extension` | WordPress側の拡張（投稿メタ `_blogos_draft_id`）が有効か。登録時と接続確認時に判定する。NULLは判定できなかった場合（D-20-03、WORDPRESS_API 26章） |
 | `last_failed_at` / `last_error` | 最後に失敗した日時と内容（認証情報そのものは含めない） |
 
 * `blogs` と同じテーブルに置かない（一覧取得などで誤って出力することを防ぐ）。
@@ -393,13 +394,14 @@ REST APIで公開されているカスタム投稿タイプ・カスタムタク
 
 | テーブル | 内容 |
 | --- | --- |
-| `custom_contents` | カスタム投稿タイプの本体。`type` で種類を区別する。列は `posts` と同じ構成に、`parent_id` / `wordpress_parent_id`、`menu_order` を加える |
+| `custom_contents` | カスタム投稿タイプの本体。`type` で種類を区別する。列は `posts` と同じ構成（`format`・`sticky`・`comment_status`・`ping_status` を除く）に、`parent_id` / `wordpress_parent_id`、`menu_order` を加える |
 | `custom_terms` | カスタムタクソノミーの項目。`taxonomy` で種類を区別する。列は `categories` と同じ構成 |
 | `custom_content_terms` | 中間テーブル（`custom_content_id + custom_term_id` をUNIQUE） |
 
 * 一意キーは `blog_id + wordpress_id`（WordPressの投稿IDはすべての投稿タイプで共通の番号、項目IDはすべてのタクソノミーで共通の番号のため）。
 * 対象外：`wp_` で始まる投稿タイプとタクソノミー、`nav_menu_item`、`nav_menu`。`attachment` は `media` で扱う。
-* 履歴テーブル：`custom_content_histories`、`custom_term_histories`。
+* 履歴テーブル：`custom_content_histories`、`custom_term_histories`。関連の付け替えは、項目名 `terms` として記録する。
+* 本文からの抽出（7章）と、競合の判定は行わない（編集案・反映の対象外のため）。カスタムタクソノミーの項目の削除では、関連していた内容を取得し直さない（更新日時が変わったときに取り込む）。
 
 ---
 
@@ -421,6 +423,8 @@ REST APIで公開されているカスタム投稿タイプ・カスタムタク
 
 リンク元の本文が変わるたびに、その記事の行を作り直す。
 
+対象は、ブログのホームURLと同じサイト（ホスト名とパス）の絶対URLと、`/` で始まるパスとする。ページ内リンク（`#...`）、`mailto:` などのURL以外のもの、`wp-admin`・`wp-content`・`wp-includes`・`wp-json`・`feed` のパス、`../` などの相対パスは対象外とする。リンク先は `normalized_path` で照合する（D-20-07）。
+
 同期で記事が新しく作成された場合、または記事の `link` が変わった場合は、リンク先が未解決（`target_post_id` / `target_page_id` がともにNULL）の行を再照合する（D-15-09）。`article_media` の未解決の行も、メディアが新しく作成された場合に同様に再照合する。
 
 ## 7-2. article_media
@@ -433,6 +437,8 @@ REST APIで公開されているカスタム投稿タイプ・カスタムタク
 | `post_id` / `page_id` | 記事（どちらか一方） |
 | `source_url` | 本文中の画像等のURL |
 | `wordpress_media_id` / `media_id` | 対応するメディア（本文から判別できた場合） |
+
+同じサイトの画像（`<img>`）だけを対象とする（アフィリエイトの計測用の画像など、外部の画像は除く）。メディアは、画像のクラス `wp-image-<ID>` があればそのIDで、なければURL（縮小版のURLは元のファイルのURLに戻して）で照合する。メディアライブラリを使わずにアップロードした画像（例：si-note の `/wp-content/img/`）は、メディアに対応しない（D-20-07）。
 
 ---
 
@@ -500,7 +506,7 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `post_id` / `page_id` | 対象の記事（既存記事の改修の場合。多くとも一方） |
 | `target_type` | 作成する記事の種類（`post` / `page`。新規記事の場合） |
 | `base_wordpress_modified_gmt` | 編集の起点にしたWordPressの版（競合チェックに使う） |
-| 内容 | `title_raw`、`content_raw`、`excerpt_raw`、`slug`、`status`（反映時に設定するステータス）、カテゴリ・タグ等（反映時に設定するWordPress IDの一覧） |
+| 内容 | `title_raw`、`content_raw`、`excerpt_raw`、`slug`、`status`（反映時に設定するステータス）、`wordpress_category_ids` / `wordpress_tag_ids`（反映時に設定するWordPress IDの一覧。JSON。投稿のみ）、`wordpress_featured_media_id` |
 | `state` | 状態（`editing` 作業中 / `review` 確認待ち / `pushed` 反映済み / `discarded` 破棄） |
 | `origin` | 作成元（`human` / `ai`） |
 | `ai_generation_id` | 元になったAI実行記録（AIが作成した場合） |
@@ -716,6 +722,7 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 | `base_values` | カテゴリ・タグ・メディアの反映で、利用者が画面を開いた時点の値（JSON）。反映直前の競合確認に使う（D-15-05） |
 | `wordpress_id` / `response_modified_gmt` | WordPressの応答（受信直後に最優先で保存） |
 | `error_status` / `error_body` | エラー時のHTTPステータスと応答本文（全文） |
+| `message` | 結果の説明（中止した理由など） |
 | `approved_by` | 反映を承認した利用者（`users.id`） |
 | 日時 | `sent_at`、`wp_succeeded_at`、`completed_at`、`failed_at` |
 
@@ -738,6 +745,7 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 | `blogs` に属するテーブル | CASCADE（削除が起きるのはブログの完全削除のときだけ） |
 | WordPress由来のデータ同士（投稿とカテゴリなど） | RESTRICT（同期では物理削除しないため、通常は起きない） |
 | NULLを許す参照（`author_id`、`featured_media_id`、`parent_id` など） | SET NULL（WordPress IDの列は受け取ったとおりの値を残す） |
+| CHECK制約を付ける記事の参照（`post_id` / `page_id` など）と、反映記録の対象 | CASCADE。MySQLでは、CHECK制約の列に SET NULL を使えないため。投稿・固定ページは同期で物理削除しないため、働くのはブログの完全削除のときだけである（D-20-01） |
 
 ## 11-3. UNIQUE
 

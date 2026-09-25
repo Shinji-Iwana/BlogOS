@@ -5,7 +5,7 @@ namespace App\Services\Sync\Resources;
 use App\Models\WordPressRecord;
 use App\Services\Sync\FetchResult;
 use App\Services\Sync\SyncContext;
-use App\Support\HomeUrl;
+use App\Support\ArticlePath;
 use Illuminate\Support\Carbon;
 
 /**
@@ -35,7 +35,15 @@ abstract class TwoStageSyncer extends AbstractResourceSyncer
 
     protected function fetch(SyncContext $context, $existing): FetchResult
     {
-        $list = $context->client->getAllPages($this->endpoint(), [
+        return $this->fetchEndpoint($context, $existing, $this->endpoint());
+    }
+
+    /**
+     * 1つのエンドポイントから2段階で取得する（カスタム投稿タイプでは、投稿タイプごとに呼ぶ）
+     */
+    protected function fetchEndpoint(SyncContext $context, $existing, string $endpoint): FetchResult
+    {
+        $list = $context->client->getAllPages($endpoint, [
             'context' => 'edit',
             'status'  => $this->statuses(),
             '_fields' => 'id,modified_gmt',
@@ -70,7 +78,7 @@ abstract class TwoStageSyncer extends AbstractResourceSyncer
 
         $items = [];
         foreach (array_chunk($targets, 100) as $chunk) {
-            foreach ($context->client->getAllPages($this->endpoint(), [
+            foreach ($context->client->getAllPages($endpoint, [
                 'context' => 'edit',
                 'status'  => $this->statuses(),
                 'include' => implode(',', $chunk),
@@ -118,13 +126,6 @@ abstract class TwoStageSyncer extends AbstractResourceSyncer
      */
     protected function normalizedPath(?string $link): ?string
     {
-        if (blank($link)) {
-            return null;
-        }
-
-        $path = parse_url($link, PHP_URL_PATH) ?? '/';
-        $path = '/' . trim(rawurldecode($path), '/');
-
-        return mb_substr($path, 0, 500);
+        return ArticlePath::fromUrl($link);
     }
 }

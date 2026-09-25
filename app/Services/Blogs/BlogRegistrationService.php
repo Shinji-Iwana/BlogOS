@@ -60,7 +60,7 @@ class BlogRegistrationService
 
         $settings = $this->inspector->fetchSettings($client, $root);
 
-        $blog = DB::transaction(function () use ($home, $settings, $root, $qualityProfile, $userId, $username, $applicationPassword) {
+        $blog = DB::transaction(function () use ($home, $settings, $root, $qualityProfile, $userId, $username, $applicationPassword, $connectorExtension) {
             $blog = $this->blogRepository->create(
                 $home,
                 (string) ($settings['title'] ?? $root['name'] ?? $home),
@@ -68,7 +68,7 @@ class BlogRegistrationService
                 $userId
             );
 
-            $this->blogCredentialRepository->save($blog, $username, $applicationPassword);
+            $this->blogCredentialRepository->save($blog, $username, $applicationPassword, $connectorExtension);
 
             // 初回取得として、サイト設定を保存する
             $this->blogSettingRepository->sync($blog, $settings, ChangeSource::WpInitialSync, $userId);

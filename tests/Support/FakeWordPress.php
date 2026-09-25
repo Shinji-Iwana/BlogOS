@@ -2,6 +2,7 @@
 
 namespace Tests\Support;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -39,6 +40,7 @@ class FakeWordPress
             'taxonomies' => ['category' => ['name' => 'カテゴリー', 'description' => '', 'hierarchical' => true, 'rest_base' => 'categories', 'rest_namespace' => 'wp/v2', 'types' => ['post']]],
         ];
 
+        // カスタム投稿タイプ等を使うテストでは、同じ形でキー（rest_base）を追加する
         foreach (['users', 'categories', 'tags', 'media', 'pages', 'posts'] as $name) {
             $this->lists[$name] = [];
         }
@@ -81,6 +83,11 @@ class FakeWordPress
 
         $name = str_replace('/wp-json/wp/v2/', '', $path);
 
+        // 1件の取得・作成・更新・削除（/posts/123 など）
+        if (preg_match('#^(posts|pages|categories|tags|media)(?:/(\d+))?$#', $name, $matches) && ($request->method() !== 'GET' || isset($matches[2]))) {
+            return $this->respondItem($request, $matches[1], isset($matches[2]) ? (int) $matches[2] : null, $query);
+        }
+
         if (isset($this->failures[$name])) {
             return Http::response(['code' => 'error', 'message' => "{$name} failed"], $this->failures[$name]);
         }
@@ -118,6 +125,91 @@ class FakeWordPress
             200,
             ['X-WP-Total' => (string) count($items), 'X-WP-TotalPages' => (string) $totalPages]
         );
+    }
+
+    /**
+     * 書き込み（POST・DELETE）の失敗のさせ方。'timeout' で通信エラー、数値でそのHTTPステータスを返す
+     */
+    public string|int|null $writeFailure = null;
+
+    /** 書き込みのたびに進める、更新日時の元 */
+    protected int $tick = 0;
+
+    protected function respondItem(Request $request, string $name, ?int $id, array $query)
+    {
+        $method = $request->method();
+
+        if ($method !== 'GET' && $this->writeFailure !== null) {
+            if ($this->writeFailure === 'timeout') {
+                throw new ConnectionException('cURL error 28: Operation timed out');
+            }
+
+            return Http::response(['code' => 'error', 'message' => 'write failed'], (int) $this->writeFailure);
+        }
+
+        $index = $id === null ? null : array_search($id, array_column($this->lists[$name], 'id'), true);
+
+        if ($id !== null && $index === false) {
+            return Http::response(['code' => 'rest_post_invalid_id'], 404);
+        }
+
+        if ($method === 'GET') {
+            $item = $this->lists[$name][$index];
+            if (isset($query['_fields'])) {
+                $item = array_intersect_key($item, array_flip(explode(',', $query['_fields'])));
+            }
+
+            return Http::response($item);
+        }
+
+        $modified = sprintf('2026-10-%02dT00:%02d:00', intdiv($this->tick, 60) + 1, ++$this->tick % 60);
+
+        if ($method === 'DELETE') {
+            $item = $this->lists[$name][$index];
+            if (filter_var($request->data()['force'] ?? $query['force'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                array_splice($this->lists[$name], $index, 1);
+
+                return Http::response(['deleted' => true, 'previous' => $item]);
+            }
+
+            $item['status'] = 'trash';
+            $item['modified_gmt'] = $modified;
+            $this->lists[$name][$index] = $item;
+
+            return Http::response($item);
+        }
+
+        // POST（作成・更新）
+        $data = $request->data();
+        if ($id === null) {
+            $newId = max(array_merge([1000], array_column($this->lists['posts'], 'id'), array_column($this->lists['pages'], 'id'))) + 1;
+            $item = $name === 'posts' ? self::post($newId) : self::page($newId);
+            $item['status'] = 'draft';
+        } else {
+            $item = $this->lists[$name][$index];
+        }
+
+        // raw と rendered を持つ項目（カテゴリ・タグの description は文字列）
+        $rawFields = match ($name) {
+            'media'              => ['title', 'caption', 'description'],
+            'categories', 'tags' => [],
+            default              => ['title', 'content', 'excerpt'],
+        };
+        foreach ($data as $field => $value) {
+            $item[$field] = in_array($field, $rawFields, true) ? ['raw' => $value, 'rendered' => $value] : $value;
+        }
+        if (! in_array($name, ['categories', 'tags'], true)) {
+            $item['modified_gmt'] = $modified;
+            $item['modified'] = $modified;
+        }
+
+        if ($id === null) {
+            $this->lists[$name][] = $item;
+        } else {
+            $this->lists[$name][$index] = $item;
+        }
+
+        return Http::response($item, $id === null ? 201 : 200);
     }
 
     /*

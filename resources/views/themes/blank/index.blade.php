@@ -37,6 +37,12 @@
 
     {{-- 選択中のブログを対象とするページ --}}
     @if ($selectedBlog)
+        <p>
+            記事：<a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿</a>
+            ・<a href="{{ route('articles.index', ['type' => 'pages']) }}">固定ページ</a>
+            ・<a href="{{ route('drafts.index') }}">編集案</a>
+            ・<a href="{{ route('push-operations.index') }}">反映記録</a>
+        </p>
         <p><a href="{{ route('database.wordpress-records.tables') }}">取り込んだWordPressのデータ（DB確認）へ</a></p>
         <p><a href="{{ route('wp-api.home') }}">WordPress API確認ページへ</a></p>
         <p><a href="{{ route('api-site-search') }}">サイト内検索ページへ</a></p>

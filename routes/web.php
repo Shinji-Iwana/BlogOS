@@ -6,6 +6,12 @@ use App\Http\Controllers\Api\AnalyticsInfoController as ApiAnalyticsInfoControll
 use App\Http\Controllers\Api\SearchConsoleInfoController as ApiSearchConsoleInfoController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
+use App\Http\Controllers\Articles\ArticleController;
+use App\Http\Controllers\Articles\ArticleManagementController;
+use App\Http\Controllers\Articles\ArticleTrashController;
+use App\Http\Controllers\Articles\DraftConflictController;
+use App\Http\Controllers\Articles\DraftController;
+use App\Http\Controllers\Articles\DraftPushController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Blogs\BlogCredentialController;
 use App\Http\Controllers\Blogs\BlogRegistrationController;
@@ -17,7 +23,9 @@ use App\Http\Controllers\Database\BlogListController as DatabaseBlogListControll
 use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistoryController;
 use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController;
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
+use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\Terms\TermController;
 use App\Http\Controllers\Sync\SyncIssueController;
 use App\Http\Controllers\Sync\SyncRunController;
 use App\Http\Controllers\WordPressApi\ResourceController as WordPressApiResourceController;
@@ -63,6 +71,39 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::put('/blogs/credentials', [BlogCredentialController::class, 'update'])->name('blogs.credentials.update');
         Route::post('/blogs/credentials/verify', [BlogCredentialController::class, 'verify'])->name('blogs.credentials.verify');
     });
+
+    // 記事（業務画面。ARCHITECTURE 17章）。{type} は posts / pages
+    Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
+    Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
+    Route::get('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.confirm');
+
+    // 編集案と反映（ARCHITECTURE 13-5・17-5）
+    Route::get('/drafts', [DraftController::class, 'index'])->name('drafts.index');
+    Route::get('/drafts/{id}/edit', [DraftController::class, 'edit'])->whereNumber('id')->name('drafts.edit');
+    Route::get('/drafts/{id}/push', [DraftPushController::class, 'confirm'])->whereNumber('id')->name('drafts.push.confirm');
+    Route::get('/drafts/{id}/conflict', [DraftConflictController::class, 'show'])->whereNumber('id')->name('drafts.conflict.show');
+    Route::get('/push-operations', [PushOperationController::class, 'index'])->name('push-operations.index');
+    Route::get('/push-operations/{id}', [PushOperationController::class, 'show'])->whereNumber('id')->name('push-operations.show');
+
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::put('/articles/{type}/{id}/management', [ArticleManagementController::class, 'update'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.management.update');
+        Route::post('/articles/{type}/{id}/relations', [ArticleManagementController::class, 'storeRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.relations.store');
+        Route::delete('/articles/{type}/{id}/relations/{relationId}', [ArticleManagementController::class, 'destroyRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'relationId'])->name('articles.relations.destroy');
+        Route::post('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'destroy'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.destroy');
+
+        Route::post('/drafts', [DraftController::class, 'store'])->name('drafts.store');
+        Route::put('/drafts/{id}', [DraftController::class, 'update'])->whereNumber('id')->name('drafts.update');
+        Route::post('/drafts/{id}/state', [DraftController::class, 'changeState'])->whereNumber('id')->name('drafts.state');
+        Route::post('/drafts/{id}/push', [DraftPushController::class, 'store'])->whereNumber('id')->name('drafts.push.store');
+        Route::post('/drafts/{id}/conflict', [DraftConflictController::class, 'resolve'])->whereNumber('id')->name('drafts.conflict.resolve');
+        Route::post('/push-operations/{id}/resolve', [PushOperationController::class, 'resolve'])->whereNumber('id')->name('push-operations.resolve');
+
+        Route::put('/terms/{type}/{id}', [TermController::class, 'update'])->whereIn('type', ['categories', 'tags', 'media'])->whereNumber('id')->name('terms.update');
+        Route::delete('/terms/{type}/{id}', [TermController::class, 'destroy'])->whereIn('type', ['categories', 'tags', 'media'])->whereNumber('id')->name('terms.destroy');
+    });
+
+    // カテゴリ・タグ・メディアの情報の更新と削除（WORDPRESS_API 21-3）
+    Route::get('/terms/{type}/{id}/edit', [TermController::class, 'edit'])->whereIn('type', ['categories', 'tags', 'media'])->whereNumber('id')->name('terms.edit');
 
     // 同期（D-01-03）。「今すぐ同期」はJobとして登録し、状態は api.sync.status で読む
     Route::get('/sync/issues', [SyncIssueController::class, 'index'])->name('sync.issues.index');

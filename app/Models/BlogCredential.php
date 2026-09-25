@@ -33,8 +33,9 @@ class BlogCredential extends Model
     {
         return [
             'secret'         => 'encrypted',
-            'verified_at'    => 'datetime',
-            'last_failed_at' => 'datetime',
+            'verified_at'         => 'datetime',
+            'connector_extension' => 'boolean',
+            'last_failed_at'      => 'datetime',
         ];
     }
 

@@ -26,7 +26,7 @@ class BlogCredentialService
 
         $wordpressUser = $this->inspector->verifyCredentials($client);
 
-        $this->blogCredentialRepository->save($blog, $username, $applicationPassword);
+        $this->blogCredentialRepository->save($blog, $username, $applicationPassword, $this->inspector->hasConnectorExtension($client));
 
         return $wordpressUser;
     }
@@ -42,15 +42,17 @@ class BlogCredentialService
             throw new BlogInspectionException('認証情報が登録されていません。');
         }
 
+        $client = WordPressApiClient::forBlog($blog);
+
         try {
-            $wordpressUser = $this->inspector->verifyCredentials(WordPressApiClient::forBlog($blog));
+            $wordpressUser = $this->inspector->verifyCredentials($client);
         } catch (BlogInspectionException $e) {
             $this->blogCredentialRepository->markFailed($credential, $e->getMessage());
 
             throw $e;
         }
 
-        $this->blogCredentialRepository->markVerified($credential);
+        $this->blogCredentialRepository->markVerified($credential, $this->inspector->hasConnectorExtension($client));
 
         return $wordpressUser;
     }

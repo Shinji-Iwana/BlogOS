@@ -17,6 +17,11 @@ class BlogSettingRepository
         return BlogSetting::where('blog_id', $blogId)->orderBy('key')->get();
     }
 
+    public function valueFor(int $blogId, string $key): ?string
+    {
+        return BlogSetting::where('blog_id', $blogId)->where('key', $key)->value('value');
+    }
+
     /**
      * WordPressから取得したサイト設定をDBに反映し、変更を履歴に残す（BLOGOS_DATABASE.md 5-4、8-2）。
      *

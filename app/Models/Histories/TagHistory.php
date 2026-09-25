@@ -2,7 +2,7 @@
 
 namespace App\Models\Histories;
 
-class TagHistory extends WordPressHistory
+class TagHistory extends History
 {
     protected $table = 'tag_histories';
 }
