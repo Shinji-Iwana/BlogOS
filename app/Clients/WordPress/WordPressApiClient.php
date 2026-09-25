@@ -42,7 +42,8 @@ class WordPressApiClient
      */
     public static function forBlog(Blog $blog): self
     {
-        $credential = $blog->credential;
+        // 複数のブログをまとめて取得した場合でも遅延読み込みにならないよう、明示的に読み込む
+        $credential = $blog->loadMissing('credential')->credential;
 
         return new self(
             $blog->home,
@@ -105,6 +106,86 @@ class WordPressApiClient
         $url = "{$this->home}{$endpoint}";
 
         return $this->send('DELETE', $url, fn () => $this->request()->delete($url, $query));
+    }
+
+    /**
+     * 一覧をすべてのページについて取得する（BLOGOS_WORDPRESS_API.md 9章）。
+     *
+     * 途中のページで失敗した場合は例外を投げ、途中までの結果は返さない。
+     * 削除の判定は「一覧を最後まで取得できた場合」だけ行うため（D-09-03）。
+     *
+     * @return array<int, array> 全ページの項目
+     *
+     * @throws WordPressApiException
+     */
+    public function getAllPages(string $endpoint, array $query = []): array
+    {
+        $items = [];
+        $page = 1;
+
+        do {
+            $response = $this->getOrFail($endpoint, array_merge($query, [
+                'per_page' => 100,
+                'page'     => $page,
+            ]));
+
+            $data = $response->json();
+
+            if (! is_array($data) || ! array_is_list($data)) {
+                throw new WordPressApiException(
+                    'WordPress APIの応答が一覧の形式ではありません。',
+                    'GET',
+                    "{$this->home}{$endpoint}",
+                    $response->status(),
+                    $response->body()
+                );
+            }
+
+            array_push($items, ...$data);
+
+            $totalPages = (int) $response->header('X-WP-TotalPages');
+            $page++;
+        } while ($page <= $totalPages);
+
+        return $items;
+    }
+
+    /**
+     * 取得し、成功しなかった場合（通信エラー・HTTPエラー・JSONでない応答）は例外を投げる。
+     *
+     * @throws WordPressApiException
+     */
+    public function getOrFail(string $endpoint, array $query = []): Response
+    {
+        $url = "{$this->home}{$endpoint}";
+
+        try {
+            $response = $this->get($endpoint, $query);
+        } catch (ConnectionException $e) {
+            throw new WordPressApiException("WordPressに接続できませんでした：{$e->getMessage()}", 'GET', $url);
+        }
+
+        if ($response->failed()) {
+            throw new WordPressApiException(
+                "WordPress APIがエラーを返しました（HTTP {$response->status()}）。",
+                'GET',
+                $url,
+                $response->status(),
+                $response->body()
+            );
+        }
+
+        if (! is_array($response->json())) {
+            throw new WordPressApiException(
+                'WordPress APIの応答がJSONではありません。',
+                'GET',
+                $url,
+                $response->status(),
+                $response->body()
+            );
+        }
+
+        return $response;
     }
 
     /**

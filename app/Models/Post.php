@@ -2,45 +2,42 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\PostHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Post extends Model
+/**
+ * posts（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Post extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'post_id',
-        'date',
-        'date_gmt',
-        'modified',
-        'modified_gmt',
-        'guid',
-        'link',
-        'slug',
-        'status_id',
-        'type_id',
-        'author_id',
-        'password',
-        'title',
-        'content',
-        'excerpt',
-        'featured_media_id',
-        'comment_status',
-        'ping_status',
-        'format',
-        'sticky',
-        'template',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return PostHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(PostHistory::class);
+        return 'post_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['sticky' => 'boolean', 'wordpress_date' => 'datetime', 'wordpress_date_gmt' => 'datetime', 'wordpress_modified' => 'datetime', 'wordpress_modified_gmt' => 'datetime'];
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'post_categories');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'post_tags');
     }
 }

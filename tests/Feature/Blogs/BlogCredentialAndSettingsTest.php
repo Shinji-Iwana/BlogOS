@@ -8,6 +8,7 @@ use App\Models\BlogCredential;
 use App\Models\BlogSetting;
 use App\Models\BlogSettingHistory;
 use App\Models\User;
+use App\Services\Blogs\BlogSettingsSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -110,7 +111,7 @@ class BlogCredentialAndSettingsTest extends TestCase
             ]),
         ]);
 
-        $this->artisan('blogs:update-from-api')->assertSuccessful();
+        app(BlogSettingsSyncService::class)->sync($this->blog->fresh());
 
         $this->assertSame('New Title', BlogSetting::where('key', 'title')->value('value'));
 
@@ -121,7 +122,7 @@ class BlogCredentialAndSettingsTest extends TestCase
         $this->assertSame(ChangeSource::WpSync, $changes[0]->source);
 
         // 2回目は差分がないため、履歴は増えない
-        $this->artisan('blogs:update-from-api')->assertSuccessful();
+        app(BlogSettingsSyncService::class)->sync($this->blog->fresh());
         $this->assertSame(1, BlogSettingHistory::where('field', '!=', '__created')->count());
     }
 
@@ -130,7 +131,7 @@ class BlogCredentialAndSettingsTest extends TestCase
         $this->blog->update(['archived_at' => now()]);
         Http::fake();
 
-        $this->artisan('blogs:update-from-api')->assertSuccessful();
+        $this->artisan('blogs:sync', ['--now' => true])->assertSuccessful();
 
         Http::assertNothingSent();
     }

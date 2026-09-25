@@ -2,34 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\TypeHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Type extends Model
+/**
+ * types（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Type extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'type_id',
-        'slug',
-        'name',
-        'description',
-        'hierarchical',
-        'viewable',
-        'has_archive',
-        'rest_base',
-        'rest_namespace',
-        'icon',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return TypeHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(TypeHistory::class);
+        return 'type_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['hierarchical' => 'boolean', 'taxonomies' => 'array'];
     }
 }

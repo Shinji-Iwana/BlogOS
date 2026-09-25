@@ -1,14 +1,18 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+ * 定期実行（XServerのcronから `php artisan schedule:run` を毎分実行する。ARCHITECTURE 28章、D-04-07）
+ *
+ * Queueの処理は、cronから `php artisan queue:work --stop-when-empty --max-time=<秒数>` を
+ * 定期的に起動して行う（共用サーバーでは処理プロセスを常駐できないため）。
+ *
+ * アプリのタイムゾーンはUTCのため、時刻は表示用のタイムゾーン（日本時間）で指定する（D-19-03）。
+ */
 
-// 登録済みブログの基本情報をWordPress REST APIから毎日03:00に取得し、
-// DBとの差分がある場合はblogsテーブルを更新するとともに、変更履歴を保存する。
-// blogs:update-from-api コマンド自体の処理内容は UpdateBlogsFromApi が担当する。
-Schedule::command('blogs:update-from-api')->dailyAt('03:00');
+// 毎日のWordPressとの同期（D-01-03）。アーカイブしていない全ブログを、Queueに登録する
+Schedule::command('blogs:sync')->dailyAt('03:00')->timezone(config('blogos.display_timezone'));
+
+// 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
+Schedule::command('model:prune')->dailyAt('04:00')->timezone(config('blogos.display_timezone'));

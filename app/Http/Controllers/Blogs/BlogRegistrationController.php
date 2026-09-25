@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Blogs;
 
+use App\Enums\SyncTrigger;
 use App\Http\Controllers\Controller;
 use App\Services\Blogs\BlogInspectionException;
 use App\Services\Blogs\BlogRegistrationService;
+use App\Services\Sync\SyncDispatcher;
 use App\Support\QualityProfiles;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -16,7 +18,8 @@ use Illuminate\Validation\Rule;
 class BlogRegistrationController extends Controller
 {
     public function __construct(
-        protected BlogRegistrationService $registrationService
+        protected BlogRegistrationService $registrationService,
+        protected SyncDispatcher $syncDispatcher,
     ) {
     }
 
@@ -52,9 +55,12 @@ class BlogRegistrationController extends Controller
                 ->withInput($request->except('application_password'));
         }
 
+        // 初回取得（投稿・カテゴリ等）は時間がかかるため、Jobとして登録する（D-04-07、WORDPRESS_API 29章）
+        $this->syncDispatcher->dispatch($result['blog']->id, SyncTrigger::Initial, $request->user()?->id);
+
         return redirect()
             ->route('database-blog-detail', ['id' => $result['blog']->id])
-            ->with('status', 'ブログを登録しました。')
+            ->with('status', 'ブログを登録しました。投稿などの初回取得を開始しました（完了まで数分かかることがあります）。')
             ->with('registration', [
                 'wordpress_user'      => $result['wordpress_user']['name'] ?? '',
                 'wordpress_roles'     => $result['wordpress_user']['roles'] ?? [],

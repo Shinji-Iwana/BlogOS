@@ -2,34 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\TaxonomyHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Taxonomy extends Model
+/**
+ * taxonomies（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Taxonomy extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'taxonomy_id',
-        'slug',
-        'name',
-        'description',
-        'hierarchical',
-        'rest_base',
-        'rest_namespace',
-        'types',
-        'visibility',
-        'labels',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return TaxonomyHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(TaxonomyHistory::class);
+        return 'taxonomy_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['hierarchical' => 'boolean', 'types' => 'array'];
     }
 }

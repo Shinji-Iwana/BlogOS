@@ -378,10 +378,12 @@ WordPressの定義情報。一意キーは `blog_id + slug`。表示名（サイ
 | テーブル | 主な列 |
 | --- | --- |
 | `statuses` | `slug`、`name`、`public` 等の定義 |
-| `types` | `slug`、`name`、`description`、`hierarchical`、`rest_base`、`rest_namespace`、`taxonomies`（JSON）、`show_in_rest`（REST APIで公開されているか） |
-| `taxonomies` | `slug`、`name`、`description`、`hierarchical`、`rest_base`、`rest_namespace`、`types`（JSON）、`show_in_rest` |
+| `types` | `slug`、`name`、`description`、`hierarchical`、`rest_base`、`rest_namespace`、`taxonomies`（JSON） |
+| `taxonomies` | `slug`、`name`、`description`、`hierarchical`、`rest_base`、`rest_namespace`、`types`（JSON） |
 
 それぞれ履歴テーブル（`status_histories`、`type_histories`、`taxonomy_histories`）を持つ。
+
+`show_in_rest` の列は持たない。REST APIはREST APIで公開されている投稿タイプ・タクソノミーだけを返すため、取得したものは常に公開されている（D-19-02）。
 
 ---
 
@@ -663,6 +665,7 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 | `status` | `running` / `succeeded` / `partial`（一部のリソースが失敗） / `failed` |
 | `started_at` / `finished_at` | ― |
 | `triggered_by` | 手動で実行した利用者（`users.id`） |
+| `message` | 補足（異常終了で「実行中」のまま残った記録を片付けた場合など） |
 
 ## 10-2. sync_run_resources
 
@@ -671,10 +674,11 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 | 列 | 内容 |
 | --- | --- |
 | `sync_run_id` | ― |
-| `resource_type` | 投稿、固定ページ、カテゴリなど |
+| `resource_type` | `settings`・`statuses`・`types`・`taxonomies`・`authors`・`categories`・`tags`・`media`・`pages`・`posts` |
 | `fetched_count`、`created_count`、`updated_count`、`unchanged_count`、`deleted_count`、`error_count` | 件数 |
 | `status` | ― |
 | `started_at` / `finished_at` | ― |
+| `message` | 失敗した場合の内容 |
 
 ## 10-3. sync_issues
 
@@ -685,14 +689,15 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 | `blog_id` | ― |
 | `sync_run_id` | 同期で検出した場合 |
 | `wordpress_push_operation_id` | 反映に関する問題の場合 |
-| `issue_type` | 取得エラー、参照先が未解決、競合、削除を検知、大量の消失、反映結果が不明 など |
-| `resource_type` / `wordpress_id` | 対象 |
+| `issue_type` | `fetch_error`（取得エラー）、`unresolved_reference`（参照先が未解決）、`conflict`（競合）、`deleted_detected`（削除を検知）、`mass_deletion_suspected`（大量の消失）、`home_changed`（サイトアドレスの変更。D-19-04）、`push_unknown`（反映結果が不明） |
+| `resource_type` / `resource_key` | 対象。`resource_key` はWordPress IDまたはslug。参照先の未解決では「WordPress ID:参照の種類」（例：`101:投稿者`）とする（D-19-05） |
 | `post_id` / `page_id` / `article_draft_id` | 関連する記事・編集案（該当する場合） |
 | `message` | 内容 |
 | `error_status` / `error_body` | エラー時のHTTPステータスと応答本文（全文。D-10-03） |
+| `first_detected_at` / `last_detected_at` | 最初に検出した日時と、最後に検出した日時（D-19-05） |
 | `resolved_at` / `resolved_by` / `resolution` | 解決の日時・利用者・内容 |
 
-同じ対象（`resource_type` + `wordpress_id`、または関連する記事・編集案・反映記録）・同じ `issue_type` の未解決の問題が既にある場合は、新しい行を作らず、既存の行の検出日時と内容を更新する（毎日の同期で同じ問題が増え続けることを防ぐ。D-15-08）。
+同じ対象（`resource_type` + `resource_key`、または関連する記事・編集案・反映記録）・同じ `issue_type` の未解決の問題が既にある場合は、新しい行を作らず、既存の行の `last_detected_at` と内容を更新する（毎日の同期で同じ問題が増え続けることを防ぐ。D-15-08）。
 
 ## 10-4. wordpress_push_operations
 
@@ -805,7 +810,8 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 ## 13-2. 削除判定の安全策
 
 * IDの一覧をエラーなく最後まで取得できた場合だけ、削除を判定する（D-09-03）。
-* 一度に一定の割合（初期値10%。設定値）を超えるデータが消えた場合は、削除として扱わず `sync_issues` に登録して人の確認を待つ。
+* 一度に一定の割合（初期値10%。設定値）を超えるデータが消えた場合は、削除として扱わず `sync_issues` に登録して人の確認を待つ。ただし、消えた件数が一定の件数（初期値2件。設定値）に満たない場合は、割合に関係なく削除として扱う（件数の少ないリソースで、1件の削除が止められないようにするため。D-19-01）。
+* 一覧から消えたものが再び一覧に現れた場合は、`wordpress_deleted_at` を解除し、履歴に `__restored` を記録する。
 * カテゴリ・タグ・メディアの削除を検知したら、DB上でそれに関連していた投稿を再取得する（関連の付け替えでは投稿の `modified_gmt` が変わらないため。D-09-04）。
 
 ## 13-3. BlogOSから削除する場合

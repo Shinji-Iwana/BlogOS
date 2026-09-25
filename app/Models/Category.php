@@ -2,31 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\CategoryHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Category extends Model
+/**
+ * categories（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Category extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'category_id',
-        'name',
-        'slug',
-        'parent_id',
-        'link',
-        'description',
-        'taxonomy',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return CategoryHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(CategoryHistory::class);
+        return 'category_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return [];
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
     }
 }

@@ -2,41 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\MediaHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Media extends Model
+/**
+ * media（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Media extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'media_id',
-        'date',
-        'date_gmt',
-        'modified',
-        'modified_gmt',
-        'slug',
-        'status',
-        'type',
-        'author_id',
-        'parent_id',
-        'title',
-        'caption',
-        'description',
-        'alt_text',
-        'media_type',
-        'mime_type',
-        'source_url',
-        'last_synced_at',
-    ];
+    protected $table = 'media';
 
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return MediaHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(MediaHistory::class);
+        return 'media_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['sizes' => 'array', 'wordpress_date' => 'datetime', 'wordpress_date_gmt' => 'datetime', 'wordpress_modified' => 'datetime', 'wordpress_modified_gmt' => 'datetime'];
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
     }
 }

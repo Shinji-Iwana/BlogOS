@@ -23,14 +23,22 @@
         {{ $selectedBlog?->display_name ?? '（未選択。画面上部のボタンから選択してください）' }}
     </p>
 
+    @if (session('status'))
+        <p style="color:#070;">{{ session('status') }}</p>
+    @endif
+
+    @if ($selectedBlog)
+        @include('partials.sync-status')
+    @endif
+
     <p><a href="{{ route('blogs.create') }}">ブログを登録する</a></p>
     <p><a href="{{ route('database-blog-list') }}">ブログ一覧ページへ</a></p>
     <p><a href="{{ route('database-blog-history-list') }}">ブログ変更履歴一覧ページへ</a></p>
 
     {{-- 選択中のブログを対象とするページ --}}
     @if ($selectedBlog)
-        <p><a href="{{ route('database-category-list') }}">カテゴリ一覧ページへ</a></p>
-        <p><a href="{{ route('database-category-history-list') }}">カテゴリ変更履歴一覧ページへ</a></p>
+        <p><a href="{{ route('database.wordpress-records.tables') }}">取り込んだWordPressのデータ（DB確認）へ</a></p>
+        <p><a href="{{ route('wp-api.home') }}">WordPress API確認ページへ</a></p>
         <p><a href="{{ route('api-site-search') }}">サイト内検索ページへ</a></p>
     @endif
 

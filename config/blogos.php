@@ -26,4 +26,23 @@ return [
      */
     'http_ca_bundle' => env('HTTP_CA_BUNDLE'),
 
+    /*
+     * 画面の表示と定期実行の時刻に使うタイムゾーン
+     *
+     * DBにはUTCで保存する（config/app.php の timezone は UTC のまま）。
+     * 画面ではこのタイムゾーンに変換して表示し、毎日の同期などの時刻もこのタイムゾーンで指定する（D-19-03）。
+     */
+    'display_timezone' => env('BLOGOS_DISPLAY_TIMEZONE', 'Asia/Tokyo'),
+
+    /*
+     * 同期（BLOGOS_WORDPRESS_API.md 第III部）
+     */
+    'sync' => [
+        // 一度にこの割合を超えるデータが一覧から消えた場合は、削除として扱わず人の確認を待つ（D-09-03）
+        'mass_deletion_ratio'   => 0.1,
+
+        // ただし、消えた件数がこの件数に満たない場合は、割合に関係なく削除として扱う（D-19-01）
+        'mass_deletion_minimum' => 2,
+    ],
+
 ];

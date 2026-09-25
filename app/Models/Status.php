@@ -2,33 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\StatusHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Status extends Model
+/**
+ * statuses（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Status extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'status_id',
-        'slug',
-        'name',
-        'private',
-        'protected',
-        'public',
-        'queryable',
-        'show_in_list',
-        'date_floating',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return StatusHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(StatusHistory::class);
+        return 'status_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['public' => 'boolean', 'queryable' => 'boolean', 'show_in_list' => 'boolean'];
     }
 }

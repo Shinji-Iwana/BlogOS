@@ -2,45 +2,37 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\PageHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Page extends Model
+/**
+ * pages（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Page extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'page_id',
-        'date',
-        'date_gmt',
-        'modified',
-        'modified_gmt',
-        'guid',
-        'link',
-        'slug',
-        'status_id',
-        'type_id',
-        'author_id',
-        'password',
-        'title',
-        'content',
-        'excerpt',
-        'featured_media_id',
-        'comment_status',
-        'ping_status',
-        'template',
-        'parent_id',
-        'menu_order',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return PageHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(PageHistory::class);
+        return 'page_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return ['wordpress_date' => 'datetime', 'wordpress_date_gmt' => 'datetime', 'wordpress_modified' => 'datetime', 'wordpress_modified_gmt' => 'datetime'];
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'parent_id');
     }
 }

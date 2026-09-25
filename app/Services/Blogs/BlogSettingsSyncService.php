@@ -7,12 +7,9 @@ use App\Enums\ChangeSource;
 use App\Models\Blog;
 use App\Repositories\BlogSettingRepository;
 use App\Support\HomeUrl;
-use Illuminate\Support\Facades\Log;
 
 /**
- * WordPressのサイト設定の同期（blog_settings）。
- *
- * 同期の仕組み全体（sync_runs 等）は段階3で作る。それまでは、ブログ単位でサイト設定だけを同期する。
+ * WordPressのサイト設定の同期（blog_settings）。同期（App\Services\Sync\SyncService）の最初に行う。
  */
 class BlogSettingsSyncService
 {
@@ -23,25 +20,26 @@ class BlogSettingsSyncService
     }
 
     /**
-     * @return array<int, string> 作成・変更したキー
+     * @return array{changed: array<int, string>, home_from_wordpress: string|null, home_changed: bool}
      */
-    public function sync(Blog $blog, ChangeSource $source = ChangeSource::WpSync): array
+    public function sync(Blog $blog, ChangeSource $source = ChangeSource::WpSync, ?int $syncRunId = null): array
     {
         $client = WordPressApiClient::forBlog($blog);
 
         $root = $this->inspector->discover($blog->home)['root'];
         $settings = $this->inspector->fetchSettings($client, $root);
 
-        // サイトアドレスが変わった場合は、接続先が意図せず変わらないよう blogs.home は自動で更新しない。
-        // 同期の問題（sync_issues）への記録は段階3で行う。それまではログに残す（D-13-01）。
-        if (HomeUrl::comparisonKey((string) $settings['home']) !== HomeUrl::comparisonKey($blog->home)) {
-            Log::warning('WordPressのサイトアドレス（home）が、登録されているホームURLと異なります。', [
-                'blog_id'       => $blog->id,
-                'registered'    => $blog->home,
-                'from_wordpress' => $settings['home'],
-            ]);
-        }
+        $changed = $this->blogSettingRepository->sync($blog, $settings, $source, null, $syncRunId);
 
-        return $this->blogSettingRepository->sync($blog, $settings, $source);
+        // サイトアドレスが変わっていても、接続先が意図せず変わらないよう blogs.home は自動で更新しない。
+        // 呼び出し元が sync_issues に記録し、人が確認する（D-13-01）
+        $homeFromWordPress = $settings['home'] ?? null;
+
+        return [
+            'changed'             => $changed,
+            'home_from_wordpress' => $homeFromWordPress,
+            'home_changed'        => $homeFromWordPress !== null
+                && HomeUrl::comparisonKey((string) $homeFromWordPress) !== HomeUrl::comparisonKey($blog->home),
+        ];
     }
 }

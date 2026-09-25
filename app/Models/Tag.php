@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Histories\TagHistory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Tag extends Model
+/**
+ * tags（WordPress由来。BLOGOS_DATABASE.md 6章）
+ */
+class Tag extends WordPressRecord
 {
-    protected $fillable = [
-        'blog_id',
-        'tag_id',
-        'name',
-        'slug',
-        'description',
-        'link',
-        'taxonomy',
-        'last_synced_at',
-    ];
-
-    public function blog(): BelongsTo
+    public static function historyClass(): string
     {
-        return $this->belongsTo(Blog::class);
+        return TagHistory::class;
     }
 
-    public function histories(): HasMany
+    public static function historyForeignKey(): string
     {
-        return $this->hasMany(TagHistory::class);
+        return 'tag_id';
+    }
+
+    protected function recordCasts(): array
+    {
+        return [];
     }
 }

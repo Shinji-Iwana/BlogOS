@@ -724,6 +724,26 @@ DB設計書をv2.0.0に改訂する際、既存の決定を具体化するため
 
 **D-18-05 旧画面の削除** 旧ブログ登録画面（`Database\BlogRegisterController`、iframeのポップアップ）と、ルートのなかった旧ブログ変更履歴詳細を削除した。ブログが1件もないときは、トップページからブログ登録へのリンクで誘導する。
 
+### 項目19：段階3（同期の仕組み）の実装で決めた事項（2026-09-26）
+
+**D-19-01 削除判定の最小件数** 一覧から消えた件数が2件（`config/blogos.php` の `sync.mass_deletion_minimum`）に満たない場合は、割合（D-09-03）に関係なく削除として扱う。投稿者・定義情報など件数の少ないリソースでは、1件の削除でも割合の上限を超えてしまうため。
+
+**D-19-02 定義情報の `show_in_rest` は保存しない** `/wp/v2/types`・`/wp/v2/taxonomies` はREST APIで公開されているものだけを返すため、`types`・`taxonomies` に `show_in_rest` の列を持たない。（DATABASE 7章）
+
+**D-19-03 日時のタイムゾーン** DBにはUTCで保存する（`config/app.php` の `timezone` は `UTC` のまま）。画面では表示用のタイムゾーン（`config/blogos.php` の `display_timezone`。初期値 `Asia/Tokyo`）に変換して表示し（`App\Support\DisplayTime`）、定期実行の時刻もこのタイムゾーンで指定する（毎日の同期は日本時間3:00）。段階3より前に作った画面（ログイン履歴など）は、作り直す際に合わせる。
+
+**D-19-04 サイトアドレスの変更の記録** 同期で、WordPressのサイトアドレス（`home`）が `blogs.home` と異なることを検知した場合は、`sync_issues` に `home_changed` として記録する（D-13-01 の具体化）。
+
+**D-19-05 `sync_issues` の対象と検出日時** 対象は `resource_type` と `resource_key`（WordPress IDまたはslug。参照先の未解決では「WordPress ID:参照の種類」）で表す。同じ問題を1行にまとめる（D-15-08）ため、`first_detected_at`・`last_detected_at` を持つ。
+
+**D-19-06 旧 `categories` の作り直し** 旧設計の `categories`・`category_histories` は、新しい構造のテーブルに作り直した（旧データは同期で取り込み直す）。
+
+**D-19-07 同期の実行方式** 同期はブログ単位のロック（キャッシュのロック、1時間）で重複を防ぐ。Jobは時間の上限30分・再試行なし（失敗は次の同期で取り込む）。「今すぐ同期」はJobとして登録し、Queueの処理が始まるまでの「開始待ち」はキャッシュに記録して画面に表示する。開始待ち・実行中は、重ねて登録しない。画面は開始待ち・実行中の間だけ `api.sync.status` を5秒ごとに読む。
+
+**D-19-08 投稿のカテゴリ・タグの履歴** 投稿のカテゴリ・タグの変更は、DBに存在して実際に関連付けたものどうしで比べる。DBにないカテゴリ等を含む投稿で、取得のたびに履歴が増えることを防ぐため。
+
+**D-19-09 同期の画面** 「今すぐ同期」と同期の問題の画面は `Controllers\Sync`（ルート名 `sync.*`）、同期の記録とWordPress由来のテーブルの閲覧は DB確認画面（`Controllers\Database`、ルート名 `database.sync-runs.*`・`database.wordpress-records.*`）とする。同期の問題は、画面で対応した内容を記録して解決済みにする。
+
 ---
 
 ## 3. 未決定のまま残す事項

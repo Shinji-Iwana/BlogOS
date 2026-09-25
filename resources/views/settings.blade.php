@@ -40,16 +40,7 @@
                 WordPress REST APIから取得した情報を確認します。
             </p>
 
-            <p><a href="{{ route('api-blog-detail') }}">ブログ情報ページへ</a></p>
-            <p><a href="{{ route('post-list') }}">投稿一覧ページへ</a></p>
-            <p><a href="{{ route('api-page-list') }}">固定ページ一覧ページへ</a></p>
-            <p><a href="{{ route('api-category-list') }}">カテゴリ一覧ページへ</a></p>
-            <p><a href="{{ route('api-tag-list') }}">タグ一覧ページへ</a></p>
-            <p><a href="{{ route('api-media-list') }}">メディア一覧ページへ</a></p>
-            <p><a href="{{ route('api-status-list') }}">投稿ステータス一覧ページへ</a></p>
-            <p><a href="{{ route('api-type-list') }}">投稿タイプ一覧ページへ</a></p>
-            <p><a href="{{ route('api-taxonomy-list') }}">タクソノミー一覧ページへ</a></p>
-            <p><a href="{{ route('api-author-list') }}">投稿者情報一覧ページへ</a></p>
+            <p><a href="{{ route('wp-api.home') }}">エンドポイント一覧ページへ</a></p>
         </section>
 
     @elseif ($blogs->isNotEmpty())
