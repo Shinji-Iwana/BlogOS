@@ -710,6 +710,22 @@ DB設計書をv2.0.0に改訂する際、既存の決定を具体化するため
 
 ---
 
+### 項目18：段階2の実装で決めた事項（2026-09-27）
+
+**D-18-01 ブログ登録の手順** 登録は1回の送信で行う。サーバー側で WORDPRESS_API 29章の確認（API Discovery、ホームURLの確定と重複の確認、認証の確認、必要なエンドポイント、WordPress側の拡張の判定、サイト設定の取得）を行い、すべて通った場合だけ保存する。確認結果は登録後の詳細画面に表示する。パスワードをセッション等に保持しないため、確認画面を挟む2段階の形にはしない。
+
+**D-18-02 登録時の認証情報は必須** 同期は `context=edit` で行う（D-04-06）ため、ブログ登録時に認証情報を必須とする。
+
+**D-18-03 .env の共通認証情報の廃止** `WP_APP_USER`・`WP_APP_PASSWORD`（`config/services.php` の `wp`）は使わない。ブログごとの認証情報（`blog_credentials`）だけを使う（D-03-02）。
+
+**D-18-04 API Rootの探し方** `<入力URL>/wp-json/` で見つからない場合は、入力URLのHTMLの `<link rel="https://api.w.org/">` から探す。以後の通信は、確定したホームURL＋`/wp-json` を使う。
+
+**D-18-06 ローカル専用の信頼する証明書** ローカルPCではNortonのウェブシールドがHTTPS通信を検査するため、PHP（Herd）の標準の証明書リストでは外部サイトの証明書を検証できない。証明書の検証は止めずに、Herdの証明書リストにNortonのルート証明書を加えたファイル（リポジトリの外。例：`C:\Users\shinr\.config\blogos\ca-bundle-local.pem`）を作り、ローカルの `.env` の `HTTP_CA_BUNDLE` で指定したときだけ、HTTP通信の検証に使う。XServerでは設定しない。（config/blogos.php、AppServiceProvider、DEVELOPMENT_RULES 14章）
+
+**D-18-05 旧画面の削除** 旧ブログ登録画面（`Database\BlogRegisterController`、iframeのポップアップ）と、ルートのなかった旧ブログ変更履歴詳細を削除した。ブログが1件もないときは、トップページからブログ登録へのリンクで誘導する。
+
+---
+
 ## 3. 未決定のまま残す事項
 
 | 事項 | 決める時期 |

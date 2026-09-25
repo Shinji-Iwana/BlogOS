@@ -81,7 +81,8 @@
          現在選択中のブログ名をボタンとして表示する。
          ========================================================== --}}
 
-    @if ($selectedBlog)
+    {{-- 選択中のブログがない場合も、切り替えられるようボタンを表示する --}}
+    @if ($blogs->isNotEmpty())
 
         <button
             type="button"
@@ -94,7 +95,7 @@
                 cursor: pointer;
             "
         >
-            {{ $selectedBlog->name }}
+            {{ $selectedBlog?->display_name ?? '（ブログを選択）' }}
         </button>
 
     @endif
@@ -190,7 +191,7 @@
                         >
 
                         <strong>
-                            {{ $blog->name }}
+                            {{ $blog->display_name }}
                         </strong>
 
                         <br>

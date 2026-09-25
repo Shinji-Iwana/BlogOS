@@ -2,6 +2,7 @@
 
 namespace App\Services\WordPress;
 
+use App\Clients\WordPress\WordPressApiClient;
 use App\Models\Blog;
 use Illuminate\Http\Client\ConnectionException;
 
@@ -11,7 +12,7 @@ class BlogService
 
     public function __construct(Blog $blog)
     {
-        $this->client = new WordPressApiClient($blog);
+        $this->client = WordPressApiClient::forBlog($blog);
     }
 
     public function getSite(): ?array

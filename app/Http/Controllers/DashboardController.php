@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\BlogRepository;
+use App\Services\ThemeService;
 
 class DashboardController extends Controller
 {
@@ -11,26 +12,17 @@ class DashboardController extends Controller
     ) {
     }
 
+    /**
+     * トップページ。見た目は選択中のテーマで表示する（D-16-01）。
+     *
+     * ブログが1件もない場合は、テーマ側でブログ登録へ誘導する。
+     * 選択中のブログがない場合は null のまま表示し、画面上部の切り替えから選ばせる（表示のためにDBを書き換えない）。
+     */
     public function index()
     {
-        $blogs = $this->blogRepository->getAll();
-
-        if ($blogs->isEmpty()) {
-            return view(\App\Services\ThemeService::index(), [
-                'blogs' => $blogs,
-                'selectedBlog' => null,
-                'showBlogRegisterModal' => true,
-            ]);
-        }
-
-        // 選択中のブログがない場合は null のまま表示し、画面上部の切り替えから選ばせる。
-        // 表示のためにDBを書き換えない。
-        $selectedBlog = $this->blogRepository->findSelected();
-
-        return view(\App\Services\ThemeService::index(), [
-            'blogs'        => $blogs,
-            'selectedBlog' => $selectedBlog,
-            'showBlogRegisterModal' => false,
+        return view(ThemeService::index(), [
+            'blogs'        => $this->blogRepository->getAll(),
+            'selectedBlog' => $this->blogRepository->findSelected(),
         ]);
     }
 }

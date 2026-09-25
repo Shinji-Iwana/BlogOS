@@ -49,13 +49,9 @@ class PagesSmokeTest extends TestCase
     protected function createBlog(bool $selected = true): Blog
     {
         return Blog::create([
-            'name'        => 'Example Blog',
-            'description' => 'desc',
-            'url'         => 'https://blog.example.test',
-            'home'        => 'https://blog.example.test',
-            'gmt_offset'  => '9.00',
-            'timezone'    => 'Asia/Tokyo',
-            'is_selected' => $selected,
+            'home'         => 'https://blog.example.test',
+            'display_name' => 'Example Blog',
+            'is_selected'  => $selected,
         ]);
     }
 
@@ -91,7 +87,9 @@ class PagesSmokeTest extends TestCase
             'settings'                => ['settings'],
             'db blog list'            => ['database-blog-list'],
             'db blog history list'    => ['database-blog-history-list'],
-            'db blog register'        => ['database-blog-register'],
+            'blog registration'       => ['blogs.create'],
+            'blog credentials'        => ['blogs.credentials.edit'],
+            'site search'             => ['api-site-search'],
             'db category list'        => ['database-category-list'],
             'db category history'     => ['database-category-history-list'],
             'login histories'         => ['database.login-histories.index'],

@@ -2,54 +2,44 @@
 
 namespace App\Console\Commands;
 
-use App\DTO\WordPress\BlogApiDto;
-use App\Models\Blog;
 use App\Repositories\BlogRepository;
-use App\Services\WordPress\BlogService;
+use App\Services\Blogs\BlogInspectionException;
+use App\Services\Blogs\BlogSettingsSyncService;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * 登録済みのブログのサイト設定をWordPressから取得し、差分があれば blog_settings を更新して履歴を残す。
+ *
+ * 対象はアーカイブしていないブログだけ（D-09-06）。
+ * 同期の仕組み全体（sync_runs・ロック・Queue）への置き換えは段階3で行う。
+ */
 class UpdateBlogsFromApi extends Command
 {
     protected $signature = 'blogs:update-from-api';
-    protected $description = '登録済み全ブログのサイト情報をAPIから取得し、差分があればDBを更新して履歴を残す';
 
-    public function handle(BlogRepository $blogRepository): int
+    protected $description = '登録済みの全ブログのサイト設定をAPIから取得し、差分があればDBを更新して履歴を残す';
+
+    public function handle(BlogRepository $blogRepository, BlogSettingsSyncService $syncService): int
     {
-        $blogs = Blog::all();
-
-        foreach ($blogs as $blog) {
+        foreach ($blogRepository->getActive() as $blog) {
             try {
-                $client = new BlogService($blog);
+                $changed = $syncService->sync($blog);
+            } catch (BlogInspectionException|ConnectionException $e) {
+                $this->warn("[スキップ] {$blog->home}：{$e->getMessage()}");
+                Log::warning('ブログのサイト設定の同期に失敗しました。', [
+                    'blog_id' => $blog->id,
+                    'message' => $e->getMessage(),
+                ]);
 
-                $rawData = $client->getSite();
+                continue;
+            }
 
-                if ($rawData === null) {
-                    $this->warn("[スキップ] {$blog->home}：サイト情報を取得できませんでした。");
-                    continue;
-                }
-
-                $apiData = BlogApiDto::fromApiResponse($rawData);
-
-                if ($apiData === null) {
-                    $missingFields = BlogApiDto::findMissingFields($rawData);
-                    $this->warn("[スキップ] {$blog->home}：必須項目が不足しています（" . implode(', ', $missingFields) . '）。');
-                    continue;
-                }
-
-                $diff = $blogRepository->diff($blog, $apiData);
-
-                if (empty($diff)) {
-                    $blogRepository->touchSynced($blog);
-                    $this->info("[変更なし] {$blog->home}");
-                    continue;
-                }
-
-                $blogRepository->updateWithHistory($blog, $diff, '定期自動更新');
-                $blogRepository->touchSynced($blog->fresh());
-
-                $this->info("[更新] {$blog->home}：" . implode(', ', array_keys($diff)));
-            } catch (\Throwable $e) {
-                $this->error("[エラー] {$blog->home}：{$e->getMessage()}");
+            if ($changed === []) {
+                $this->info("[変更なし] {$blog->home}");
+            } else {
+                $this->info("[更新] {$blog->home}：" . implode(', ', $changed));
             }
         }
 

@@ -1,318 +1,96 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    {{-- ==========================================================
-         基本的なHTML設定
-         ----------------------------------------------------------
-         UTF-8で日本語を正しく表示する。
-         ========================================================== --}}
-    <meta charset="UTF-8">
+{{--
+    ブログ詳細（DB確認画面）
 
-    {{-- ==========================================================
-         ページタイトル
-         ========================================================== --}}
-    <title>ブログ詳細（BlogOS）</title>
-</head>
+    blogs・blog_settings・blog_credentials の保存内容を表示する。
+    Application Password は表示しない（D-03-03）。
+--}}
 
-<body>
+@extends('layouts.app')
 
-    {{-- ==========================================================
-         ブログ詳細画面
-         ----------------------------------------------------------
-         BlogOSに登録されている1件のブログについて、
-         DBに保存されている基本情報を表示する画面。
+@section('content')
 
-         BlogDetailControllerのshow()から渡された
-         $blogを使用して情報を表示する。
-
-         この画面ではブログ情報の編集は行わず、
-         現在DBに保存されている情報を
-         読み取り専用で確認する。
-
-         ========================================================== --}}
     <h1>ブログ詳細</h1>
 
-    {{-- ==========================================================
-         ブログ一覧画面へ戻るリンク
-         ----------------------------------------------------------
-         ブログ詳細画面から、登録済みブログの一覧画面へ戻る。
+    <p><a href="{{ route('database-blog-list') }}">ブログ一覧に戻る</a></p>
 
-         一覧画面ではブログIDをクリックすることで
-         この詳細画面へ遷移できるため、
-         詳細画面から一覧画面へ戻るための導線として使用する。
-         ========================================================== --}}
-    <p>
-        <a href="{{ route('database-blog-list') }}">ブログ一覧に戻る</a>
-    </p>
+    @if (session('status'))
+        <p style="color:#070;">{{ session('status') }}</p>
+    @endif
 
-    {{-- ==========================================================
-         ブログ情報の存在確認
-         ----------------------------------------------------------
-         BlogRepository::findById()で指定されたIDのブログを
-         取得できなかった場合、$blogはnullになる。
+    {{-- 登録直後の確認結果（WORDPRESS_API 29章） --}}
+    @if (session('registration'))
+        @php($registration = session('registration'))
+        <section>
+            <h2>登録時の確認結果</h2>
+            <p>認証したWordPressユーザー：{{ $registration['wordpress_user'] }}（{{ implode(', ', $registration['wordpress_roles']) }}）</p>
+            <p>
+                BlogOS連携用のWordPress側の拡張：
+                @if ($registration['connector_extension'] === true)
+                    有効
+                @elseif ($registration['connector_extension'] === false)
+                    無効（新規作成がタイムアウトした場合は、人が照合します）
+                @else
+                    判定できませんでした（投稿がありません）
+                @endif
+            </p>
+        </section>
+    @endif
 
-         その場合はブログ情報を表示せず、
-         該当するブログが存在しないことを画面へ表示する。
+    @if ($blog === null)
 
-         ブログが取得できた場合は、
-         @else以降でブログ詳細情報を表示する。
-         ========================================================== --}}
-    @if (empty($blog))
-
-        {{-- ======================================================
-             ブログが存在しない場合のメッセージ
-             ------------------------------------------------------
-             指定されたブログIDに該当するブログが
-             blogsテーブルに存在しない場合に表示する。
-             ====================================================== --}}
-        <p>該当のブログが見つかりませんでした。</p>
+        <p>指定されたブログは見つかりませんでした。</p>
 
     @else
 
-        {{-- ======================================================
-             ブログ基本情報表示テーブル
-             ------------------------------------------------------
-             DBから取得したBlog Modelの情報を、
-             項目名と値の2列形式で表示する。
+        <section>
+            <h2>BlogOS側の情報（blogs）</h2>
+            <table border="1" cellpadding="4" cellspacing="0">
+                <tr><th>ID</th><td>{{ $blog->id }}</td></tr>
+                <tr><th>表示名</th><td>{{ $blog->display_name }}</td></tr>
+                <tr><th>ホームURL</th><td>{{ $blog->home }}</td></tr>
+                <tr><th>品質基準</th><td>{{ $blog->quality_profile ?? '（未設定）' }}</td></tr>
+                <tr><th>選択中</th><td>{{ $blog->is_selected ? '○' : '' }}</td></tr>
+                <tr><th>アーカイブ日時</th><td>{{ $blog->archived_at }}</td></tr>
+                <tr><th>登録日時</th><td>{{ $blog->created_at }}</td></tr>
+                <tr><th>更新日時</th><td>{{ $blog->updated_at }}</td></tr>
+            </table>
+        </section>
 
-             表示する項目は以下の9項目。
+        <section>
+            <h2>認証情報（blog_credentials）</h2>
+            @if ($credential)
+                <table border="1" cellpadding="4" cellspacing="0">
+                    <tr><th>方式</th><td>{{ $credential->auth_type }}</td></tr>
+                    <tr><th>ユーザー名</th><td>{{ $credential->username }}</td></tr>
+                    <tr><th>Application Password</th><td>設定済み（表示しません）</td></tr>
+                    <tr><th>最終確認日時</th><td>{{ $credential->verified_at }}</td></tr>
+                    <tr><th>最後の失敗</th><td>{{ $credential->last_failed_at }} {{ $credential->last_error }}</td></tr>
+                </table>
+            @else
+                <p>未設定です。</p>
+            @endif
+        </section>
 
-             ・ID
-             ・サイト名
-             ・説明
-             ・URL
-             ・ホームURL
-             ・GMTオフセット
-             ・タイムゾーン
-             ・登録日時
-             ・更新日時
-
-             各値はreadonlyとして表示し、
-             この画面から直接編集できないようにする。
-
-             ====================================================== --}}
-        <table
-            style="width:100%; border-collapse:collapse;"
-            border="1"
-            cellpadding="8"
-            cellspacing="0"
-        >
-
-            {{-- ==================================================
-                 各列の幅を定義
-                 --------------------------------------------------
-                 項目名を20%、値を80%として表示する。
-                 ================================================== --}}
-            <colgroup>
-                <col style="width:20%">
-                <col style="width:80%">
-            </colgroup>
-
-            <tbody>
-
-                {{-- ==================================================
-                     BlogOS上で管理するブログID
-                     --------------------------------------------------
-                     blogs.idを表示する。
-
-                     このIDはBlogOS内部でブログを識別するために
-                     使用する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        ID
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->id }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     サイト名
-                     --------------------------------------------------
-                     blogs.nameに保存されている
-                     WordPressブログのサイト名を表示する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        サイト名
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->name }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     ブログの説明
-                     --------------------------------------------------
-                     blogs.descriptionに保存されている
-                     WordPressブログの説明を表示する。
-
-                     説明文は長くなる可能性があるため、
-                     inputではなくtextareaを使用して表示する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        説明
-                    </th>
-                    <td>
-                        <textarea
-                            readonly
-                            rows="3"
-                            style="width:100%; box-sizing:border-box;"
-                        >{{ $blog->description }}</textarea>
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     URL
-                     --------------------------------------------------
-                     blogs.urlに保存されている
-                     WordPressサイトのURLを表示する。
-
-                     この値はWordPress REST APIから取得した
-                     サイトURLをBlogOSで管理しているもの。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        URL
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->url }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     ホームURL
-                     --------------------------------------------------
-                     blogs.homeに保存されている
-                     WordPressサイトのホームURLを表示する。
-
-                     BlogOSでは、このhomeを既存ブログを
-                     識別するための値として使用する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        ホームURL
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->home }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     GMTオフセット
-                     --------------------------------------------------
-                     blogs.gmt_offsetに保存されている
-                     WordPressサイトのGMTオフセットを表示する。
-
-                     BlogOSではDB保存・比較時に
-                     小数点以下2桁へ正規化した値を使用する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        GMTオフセット
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->gmt_offset }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     タイムゾーン
-                     --------------------------------------------------
-                     blogs.timezoneに保存されている
-                     WordPressサイトのタイムゾーンを表示する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        タイムゾーン
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->timezone }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     登録日時
-                     --------------------------------------------------
-                     blogs.created_atに保存されている
-                     BlogOSへブログが登録された日時を表示する。
-
-                     Eloquentによって自動管理される
-                     created_atの値をそのまま表示する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        登録日時
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->created_at }}"
-                        >
-                    </td>
-                </tr>
-
-                {{-- ==================================================
-                     更新日時
-                     --------------------------------------------------
-                     blogs.updated_atに保存されている
-                     ブログ情報が最後に更新された日時を表示する。
-
-                     Eloquentによって自動管理される
-                     updated_atの値をそのまま表示する。
-                     ================================================== --}}
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">
-                        更新日時
-                    </th>
-                    <td>
-                        <input
-                            type="text"
-                            readonly
-                            style="width:100%; box-sizing:border-box;"
-                            value="{{ $blog->updated_at }}"
-                        >
-                    </td>
-                </tr>
-
-            </tbody>
-        </table>
+        <section>
+            <h2>WordPressのサイト設定（blog_settings）</h2>
+            <table border="1" cellpadding="4" cellspacing="0">
+                <thead>
+                    <tr><th>キー</th><th>値</th><th>最終照合日時</th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($settings as $setting)
+                        <tr>
+                            <td>{{ $setting->key }}</td>
+                            <td>{{ $setting->value }}</td>
+                            <td>{{ $setting->synced_at }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="3">まだ取得していません。</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </section>
 
     @endif
 
-</body>
-</html>
+@endsection

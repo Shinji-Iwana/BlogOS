@@ -2,21 +2,35 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Clients\WordPress\WordPressApiClient;
 use App\Http\Controllers\Controller;
+use App\Repositories\BlogRepository;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
+/**
+ * WordPressのサイト内検索（Search API）の確認画面。
+ *
+ * Search APIは将来の候補（D-10-05）で、段階3のAPI確認画面の作り直しで扱いを見直す。
+ * それまでは、選択中のブログを対象とし、ブログごとの認証情報で通信する（D-02-05、D-03-02）。
+ */
 class SiteSearchController extends Controller
 {
-    protected string $apiBase = 'https://si-note.com/wp-json/wp/v2';
+    public function __construct(
+        protected BlogRepository $blogRepository
+    ) {
+    }
 
     public function index(Request $request)
     {
+        $blog = $this->blogRepository->findSelected();
+        abort_if($blog === null, 404, 'ブログが選択されていません。');
+
         $keyword = trim((string) $request->query('q', ''));
         $results = [];
 
         if ($keyword !== '') {
-            $results = $this->fetchSearchResults($keyword);
+            $results = $this->fetchSearchResults(WordPressApiClient::forBlog($blog), $keyword);
         }
 
         return view('api.site-search', [
@@ -26,19 +40,22 @@ class SiteSearchController extends Controller
         ]);
     }
 
-    private function fetchSearchResults(string $keyword): array
+    private function fetchSearchResults(WordPressApiClient $client, string $keyword): array
     {
         $allResults = [];
         $page = 1;
-        $perPage = 100;
         $totalPages = 1;
 
         do {
-            $response = $this->request()->get("{$this->apiBase}/search", [
-                'search'   => $keyword,
-                'per_page' => $perPage,
-                'page'     => $page,
-            ]);
+            try {
+                $response = $client->get('/wp-json/wp/v2/search', [
+                    'search'   => $keyword,
+                    'per_page' => 100,
+                    'page'     => $page,
+                ]);
+            } catch (ConnectionException $e) {
+                break;
+            }
 
             if ($response->failed()) {
                 break;
@@ -55,22 +72,5 @@ class SiteSearchController extends Controller
         } while ($page <= $totalPages);
 
         return $allResults;
-    }
-
-    private function request()
-    {
-        if ($this->hasAuth()) {
-            return Http::withBasicAuth(
-                config('services.wp.username'),
-                config('services.wp.app_password')
-            );
-        }
-
-        return Http::withOptions([]);
-    }
-
-    private function hasAuth(): bool
-    {
-        return filled(config('services.wp.username')) && filled(config('services.wp.app_password'));
     }
 }

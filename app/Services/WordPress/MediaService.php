@@ -2,6 +2,7 @@
 
 namespace App\Services\WordPress;
 
+use App\Clients\WordPress\WordPressApiClient;
 use App\Models\Blog;
 use App\DTO\WordPress\MediaApiDto;
 use Illuminate\Http\Client\ConnectionException;
@@ -12,7 +13,7 @@ class MediaService
 
     public function __construct(Blog $blog)
     {
-        $this->client = new WordPressApiClient($blog);
+        $this->client = WordPressApiClient::forBlog($blog);
     }
 
     public function getMedias(): ?array

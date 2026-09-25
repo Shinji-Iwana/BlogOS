@@ -17,4 +17,13 @@ return [
         'password' => env('ADMIN_PASSWORD'),
     ],
 
+    /*
+     * 外部との通信（HTTPS）で証明書を検証するときに使う、信頼する証明書のファイル
+     *
+     * ローカルPCのウイルス対策ソフト（Norton）がHTTPS通信を検査するため、
+     * PHPの標準の証明書リストでは検証できない場合に、その証明書を加えたファイルを指定する。
+     * 証明書の検証そのものは止めない。本番（XServer）では設定しない（BLOGOS_DECISIONS.md D-18-06）。
+     */
+    'http_ca_bundle' => env('HTTP_CA_BUNDLE'),
+
 ];

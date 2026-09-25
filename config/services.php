@@ -35,11 +35,6 @@ return [
         ],
     ],
 
-    'wp' => [
-        'username'     => env('WP_APP_USER'),
-        'app_password' => env('WP_APP_PASSWORD'),
-    ],
-
     'ga4' => [
         'property_id' => env('GA4_PROPERTY_ID'),
     ],

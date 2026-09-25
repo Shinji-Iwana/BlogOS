@@ -28,8 +28,10 @@
     @if ($selectedBlog)
 
         <p>
-            現在選択中のブログ：{{ $selectedBlog->name }}（ID：{{ $selectedBlog->id }}）
+            現在選択中のブログ：{{ $selectedBlog->display_name }}（ID：{{ $selectedBlog->id }}）
         </p>
+
+        <p><a href="{{ route('blogs.credentials.edit') }}">認証情報（WordPressのApplication Password）ページへ</a></p>
 
         <section>
             <h2>WordPress API確認</h2>

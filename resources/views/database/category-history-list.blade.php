@@ -53,13 +53,13 @@
     </p>
 
     <p>
-        サイト名：{{ $blog->name }}
+        サイト名：{{ $blog->display_name }}
     </p>
 
     <p>
         URL：
-        <a href="{{ $blog->url }}" target="_blank">
-            {{ $blog->url }}
+        <a href="{{ $blog->home }}" target="_blank">
+            {{ $blog->home }}
         </a>
     </p>
 

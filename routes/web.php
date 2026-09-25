@@ -9,12 +9,13 @@ use App\Http\Controllers\BlogSwitchController;
 use App\Http\Middleware\ShareCurrentBlog;
 use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistoryController;
 
-use App\Http\Controllers\Database\BlogRegisterController as DatabaseBlogRegisterController;
+use App\Http\Controllers\Blogs\BlogRegistrationController;
+use App\Http\Controllers\Blogs\BlogCredentialController;
+use App\Http\Middleware\EnsureSelectedBlog;
 use App\Http\Controllers\Database\BlogListController as DatabaseBlogListController;
 use App\Http\Controllers\Database\BlogDetailController as DatabaseBlogDetailController;
 
 use App\Http\Controllers\Database\BlogHistoryListController as DatabaseBlogHistoryListController;
-use App\Http\Controllers\Database\BlogHistoryDetailController as DatabaseBlogHistoryDetailController;
 
 use App\Http\Controllers\Database\CategoryListController as DatabaseCategoryListController;
 
@@ -213,20 +214,25 @@ Route::middleware([
      * ======================================================
      */
 
-    Route::get(
-        '/database/blog-register',
-        [DatabaseBlogRegisterController::class, 'index']
-    )->name('database-blog-register');
+    // ブログ登録（WORDPRESS_API 29章）。ルート名は新しい規則（機能.操作。D-11-04）
+    Route::get('/blogs/create', [BlogRegistrationController::class, 'create'])
+        ->name('blogs.create');
 
-    Route::post(
-        '/database/blog-register/check',
-        [DatabaseBlogRegisterController::class, 'check']
-    )->name('database-blog-register.check');
+    Route::post('/blogs', [BlogRegistrationController::class, 'store'])
+        ->name('blogs.store');
 
-    Route::post(
-        '/database/blog-register/store',
-        [DatabaseBlogRegisterController::class, 'store']
-    )->name('database-blog-register.store');
+    // 選択中のブログの認証情報（D-03-02、D-03-03）
+    Route::get('/blogs/credentials', [BlogCredentialController::class, 'edit'])
+        ->name('blogs.credentials.edit');
+
+    // 更新系は、画面を開いた時点のブログと選択中のブログの一致を確認する（D-02-05）
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::put('/blogs/credentials', [BlogCredentialController::class, 'update'])
+            ->name('blogs.credentials.update');
+
+        Route::post('/blogs/credentials/verify', [BlogCredentialController::class, 'verify'])
+            ->name('blogs.credentials.verify');
+    });
 
     Route::get(
         '/database/blog-list',
