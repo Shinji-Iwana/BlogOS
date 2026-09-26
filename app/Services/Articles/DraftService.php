@@ -18,6 +18,7 @@ use App\Services\Ai\AiException;
 use App\Services\Ai\AiOutputParser;
 use App\Services\Push\PushException;
 use App\Support\LineDiff;
+use App\Support\Slug;
 
 /**
  * 編集案の作成・編集・状態の変更（BLOGOS_DATABASE.md 9-1、ARCHITECTURE 17-5）。
@@ -64,7 +65,8 @@ class DraftService
             'excerpt_raw'                 => $article->excerpt_raw,
             // 記事に設定した説明を写す。未設定なら空（AIOSEOの自動の説明のまま）
             'meta_description'            => $article->meta_description_raw,
-            'slug'                        => $article->slug,
+            // 日本語のスラッグは、読める形で編集案に写す（WordPressに送ると、WordPressが符号化する。D-29）
+            'slug'                        => Slug::display($article->slug),
             'status'                      => $article->status,
             'wordpress_featured_media_id' => (int) $article->wordpress_featured_media_id,
             'revision_scope'              => $scope ?? RevisionScope::Minor,

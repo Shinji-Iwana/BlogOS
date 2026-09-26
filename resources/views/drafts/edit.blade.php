@@ -70,7 +70,7 @@
 
         <fieldset @disabled(! $editable) style="border:none; padding:0;">
             <p><label>タイトル<br><input type="text" name="title_raw" value="{{ old('title_raw', $draft->title_raw) }}" style="width:100%; max-width:800px;"></label></p>
-            <p><label>スラッグ<br><input type="text" name="slug" value="{{ old('slug', $draft->slug) }}" style="width:100%; max-width:400px;"></label></p>
+            <p><label>スラッグ<br><input type="text" name="slug" value="{{ old('slug', \App\Support\Slug::display($draft->slug)) }}" style="width:100%; max-width:400px;"></label></p>
             <p>
                 <label>ステータス（反映後の状態）
                     <select name="status">

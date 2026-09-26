@@ -33,7 +33,7 @@
                     <tr>
                         <td><a href="{{ route('database.wordpress-records.show', ['table' => $table, 'id' => $record->id]) }}">{{ $record->id }}</a></td>
                         @foreach ($definition['columns'] as $column)
-                            <td>{{ \Illuminate\Support\Str::limit((string) $record->getRawOriginal($column), 80) }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit((string) ($column === 'slug' ? \App\Support\Slug::display($record->getRawOriginal($column)) : $record->getRawOriginal($column)), 80) }}</td>
                         @endforeach
                         <td>
                             @if ($record->wordpress_deleted_at)

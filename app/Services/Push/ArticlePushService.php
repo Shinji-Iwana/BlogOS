@@ -18,6 +18,7 @@ use App\Repositories\BlogCredentialRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Repositories\WordPressPushOperationRepository;
 use App\Services\Sync\SyncContext;
+use App\Support\Slug;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -75,9 +76,10 @@ class ArticlePushService
 
         $current = $this->currentValues($article);
 
+        // スラッグは、符号化した形と読める形を同じとみなす（D-29）
         return array_filter(
             $values,
-            fn ($value, $key) => $value !== null && $value !== ($current[$key] ?? null),
+            fn ($value, $key) => $value !== null && ($key === 'slug' ? ! Slug::same($value, $current[$key] ?? null) : $value !== ($current[$key] ?? null)),
             ARRAY_FILTER_USE_BOTH
         );
     }

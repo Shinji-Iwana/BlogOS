@@ -28,6 +28,10 @@
                 @php
                     $left = $wordpress[$field] ?? null;
                     $right = $draftValues[$field] ?? null;
+                    if ($field === 'slug') {
+                        // スラッグは読める形で表示し、符号化の違いは同じとみなす（D-29）
+                        [$left, $right] = [\App\Support\Slug::display($left), \App\Support\Slug::display($right)];
+                    }
                 @endphp
                 <tr @if ($left !== $right) style="background:#fff8c5;" @endif>
                     <td>{{ $field }}</td>

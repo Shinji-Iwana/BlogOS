@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\ArticleRepository;
 use App\Services\Push\ArticlePushService;
 use App\Services\Push\PushException;
+use App\Support\Slug;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -50,7 +51,8 @@ class ArticleTrashController extends Controller
             'confirm_slug'    => [$request->boolean('force') ? 'required' : 'nullable', 'string'],
         ]);
 
-        if ($request->boolean('force') && $validated['confirm_slug'] !== $article->slug) {
+        // 日本語のスラッグは、読める形で入力してよい（D-29）
+        if ($request->boolean('force') && ! Slug::same(trim((string) $validated['confirm_slug']), $article->slug)) {
             return back()->withErrors(['confirm_slug' => '入力したスラッグが記事のスラッグと一致しません。']);
         }
 

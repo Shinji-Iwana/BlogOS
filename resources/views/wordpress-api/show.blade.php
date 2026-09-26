@@ -71,7 +71,7 @@
                             @foreach ($rows as $row)
                                 <tr>
                                     <td><a href="{{ route('wp-api.resources.show', [$resource, $row['id']]) }}">{{ $row['id'] }}</a></td>
-                                    <td>{{ $row['slug'] }}</td>
+                                    <td title="{{ $row['slug'] }}">{{ \App\Support\Slug::display($row['slug']) }}</td>
                                     <td>{{ $row['title'] }}</td>
                                     <td>{{ $row['status'] }}</td>
                                 </tr>

@@ -38,7 +38,7 @@
                     @continue($field === 'content')
                     <tr>
                         <td>{{ $field }}</td>
-                        <td>{{ is_array($current[$field] ?? null) ? implode(', ', $current[$field]) : \Illuminate\Support\Str::limit((string) ($current[$field] ?? ''), 200) }}</td>
+                        <td>{{ is_array($current[$field] ?? null) ? implode(', ', $current[$field]) : \Illuminate\Support\Str::limit((string) ($field === 'slug' ? \App\Support\Slug::display($current[$field] ?? '') : ($current[$field] ?? '')), 200) }}</td>
                         <td><strong>{{ is_array($value) ? implode(', ', $value) : \Illuminate\Support\Str::limit((string) $value, 200) }}</strong></td>
                     </tr>
                 @endforeach

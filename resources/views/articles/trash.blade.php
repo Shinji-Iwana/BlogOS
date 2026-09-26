@@ -12,7 +12,7 @@
 
     @include('partials.flash')
 
-    <p>対象：<strong>{{ $article->title_raw ?: '（タイトルなし）' }}</strong>（{{ $article->status }}、スラッグ：{{ $article->slug }}）</p>
+    <p>対象：<strong>{{ $article->title_raw ?: '（タイトルなし）' }}</strong>（{{ $article->status }}、スラッグ：{{ \App\Support\Slug::display($article->slug) }}）</p>
 
     @if ($force)
         <p style="color:#b00;"><strong>WordPressから完全に削除します。ゴミ箱には残らず、元に戻せません。</strong>BlogOSの管理情報・評価・履歴は残ります。</p>
@@ -28,7 +28,7 @@
         <input type="hidden" name="base_modified" value="{{ $article->wordpress_modified_gmt?->format('Y-m-d H:i:s') }}">
 
         @if ($force)
-            <p><label>確認のため、記事のスラッグ（{{ $article->slug }}）を入力してください：<br><input type="text" name="confirm_slug" autocomplete="off"></label></p>
+            <p><label>確認のため、記事のスラッグ（{{ \App\Support\Slug::display($article->slug) }}）を入力してください：<br><input type="text" name="confirm_slug" autocomplete="off"></label></p>
         @endif
 
         <p><label><input type="checkbox" name="confirmed" value="1"> 内容を確認しました</label></p>

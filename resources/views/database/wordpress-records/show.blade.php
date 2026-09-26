@@ -37,6 +37,9 @@
                                 </details>
                             @else
                                 {{ $value }}
+                                @if ($column === 'slug' && \App\Support\Slug::display($value) !== $value)
+                                    <br><span style="color:#666;">（読める形：{{ \App\Support\Slug::display($value) }}）</span>
+                                @endif
                             @endif
                         </td>
                     </tr>

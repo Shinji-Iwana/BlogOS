@@ -12,6 +12,7 @@ use App\Models\Tag;
 use App\Models\WordPressPushOperation;
 use App\Repositories\BlogSettingRepository;
 use App\Repositories\WordPressPushOperationRepository;
+use App\Support\Slug;
 
 /**
  * カテゴリ・タグ・メディアの情報の更新と削除（WORDPRESS_API 21-3・22章、D-15-05）。
@@ -133,7 +134,7 @@ class TermPushService
 
             // 反映直前の競合確認：変更する項目の最新の値が、画面を開いた時点の値と同じか（WORDPRESS_API 21-3）
             try {
-                $latest = $this->valuesFromApi($type, $client->getOrFail($endpoint, ['context' => 'edit'])->json());
+                $latest = $this->normalize($type, $this->valuesFromApi($type, $client->getOrFail($endpoint, ['context' => 'edit'])->json()));
             } catch (WordPressApiException $e) {
                 $this->operations->markFailed($operation, "反映前の確認で、WordPressから取得できませんでした：{$e->getMessage()}", $e->status, $e->body);
 
@@ -225,7 +226,12 @@ class TermPushService
     protected function normalize(PushResourceType $type, array $values): array
     {
         foreach ($values as $field => $value) {
-            $values[$field] = $field === 'parent' ? (int) $value : (string) ($value ?? '');
+            $values[$field] = match ($field) {
+                'parent' => (int) $value,
+                // スラッグは読める形にそろえて比べる（WordPressは符号化した形で返す。D-29）
+                'slug'   => mb_strtolower((string) Slug::display((string) ($value ?? ''))),
+                default  => (string) ($value ?? ''),
+            };
         }
 
         return $values;

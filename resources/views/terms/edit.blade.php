@@ -40,7 +40,7 @@
                         @elseif (in_array($field, ['description', 'caption'], true))
                             <textarea name="values[{{ $field }}]" rows="3" style="width:100%; max-width:700px;">{{ old("values.{$field}", $current[$field]) }}</textarea>
                         @else
-                            <input type="text" name="values[{{ $field }}]" value="{{ old("values.{$field}", $current[$field]) }}" style="width:100%; max-width:500px;">
+                            <input type="text" name="values[{{ $field }}]" value="{{ old("values.{$field}", $field === 'slug' ? \App\Support\Slug::display($current[$field]) : $current[$field]) }}" style="width:100%; max-width:500px;">
                         @endif
                     </label>
                 </p>

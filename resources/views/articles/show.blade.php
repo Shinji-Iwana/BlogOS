@@ -25,7 +25,7 @@
     <table border="1" cellpadding="4" cellspacing="0">
         <tr><th style="text-align:left;">種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
         <tr><th style="text-align:left;">ステータス</th><td>{{ $article->status }}</td></tr>
-        <tr><th style="text-align:left;">スラッグ</th><td>{{ $article->slug }}</td></tr>
+        <tr><th style="text-align:left;">スラッグ</th><td title="{{ $article->slug }}">{{ \App\Support\Slug::display($article->slug) }}</td></tr>
         <tr><th style="text-align:left;">公開日・更新日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_date_gmt) }} ・ {{ \App\Support\DisplayTime::format($article->wordpress_modified_gmt) }}</td></tr>
         @if ($isPost)
             <tr><th style="text-align:left;">カテゴリ・タグ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }} ／ {{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
