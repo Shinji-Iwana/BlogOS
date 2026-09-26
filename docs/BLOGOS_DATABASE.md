@@ -662,6 +662,42 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 * 認証情報と、保存しないと決めた個人情報（D-05-04）はAIに送らないため、入力にも含まれない。
 * 記事の生成方法は「記事 → `wordpress_push_operations` → `article_drafts` → `ai_generations`」の順にたどる。
 
+## 9-7. ai_batches / ai_batch_items
+
+BlogOSのAI機能のまとめて実行（人が画面から実行したもの・条件による自動の再評価）。1回のまとめて実行につき `ai_batches` に1行、対象の記事ごとに `ai_batch_items` に1行（D-25）。
+
+| 列（ai_batches） | 内容 |
+| --- | --- |
+| `blog_id` | ― |
+| `purpose` | 実行モード（`quality_diagnosis` / `revision`） |
+| `trigger` | きっかけ（`manual`：人が画面から / `auto`：自動の再評価） |
+| `model` / `reasoning_effort` | 全ての記事で使うモデルと推論の深さ |
+| `parent_batch_id` | 診断の後に続けて行った記事改修の場合、元の品質診断のまとめて実行（D-26） |
+| `target` / `target_parameters` | 対象の選び方（`all` / `unevaluated` / `needs_reevaluation` / `below_score` / `auto` / `after_diagnosis`）と条件（点数の基準、改修範囲。JSON） |
+| `follow_up` | 品質診断の後に続けて行う記事改修の設定（点数の基準・モデル・推論の深さ・改修範囲。JSON。D-26） |
+| `total_count` | 対象の記事の数 |
+| `status` / `stop_reason` | `running` / `completed` / `cancelled` / `stopped`（費用の上限など）と、止めた理由 |
+| `requested_by` / `completed_at` | 実行した利用者（自動の再評価ではNULL）と、終わった日時 |
+
+| 列（ai_batch_items） | 内容 |
+| --- | --- |
+| `ai_batch_id` | ― |
+| `post_id` / `page_id` | 対象の記事（ちょうど一方） |
+| `reason` | 自動の再評価の理由（`unevaluated` / `changed` / `version` / `links` / `traffic` / `periodic`） |
+| `status` | `pending` / `running` / `succeeded` / `failed` / `skipped`（取り消し・費用の上限・改修できない編集案など） |
+| `ai_generation_id` / `message` | 作ったAI実行記録と、失敗・実行しなかった理由 |
+| `revision_scope` / `score_before` / `score_after` / `diagnosis_generation_id` | 記事改修：使った改修範囲（自動判別した結果）、改修前（記事の最新の評価）と改修後（編集案の評価）の点数、編集案を品質診断したAI実行記録（D-27） |
+
+## 9-8. blog_ai_settings
+
+ブログごとのAIの設定（1ブログ1行。D-25）。`auto_reevaluation_enabled`（条件による自動の再評価。初期値は無効）、`auto_model` / `auto_reasoning_effort`（自動の再評価で使うモデル。初期値は gpt-6-luna・medium）、`auto_revision_enabled` / `auto_revision_model` / `auto_revision_reasoning_effort`（自動の再評価の後に、基準に満たない記事の編集案を作るか（初期値は有効）と、使うモデル。D-26）、`auto_revision_scope`（その改修範囲。`auto`：点数で自動判別（初期値） / `minor` / `restructure` / `full`。D-27-02）、`updated_by`。
+
+## 9-9. article_management_suggestions
+
+AIが作った記事の管理情報の案（D-27-03）。`blog_id`、`post_id` / `page_id`（ちょうど一方）、`ai_generation_id`、案の値（`article_type`・`article_subtype`・`main_keyword`・`sub_keywords`（JSON）・`main_search_intent`・`sub_search_intents`（JSON））、`reason`（AIが示した理由）、`status`（`pending` / `accepted` / `rejected` / `superseded`）、`reviewed_by` / `reviewed_at`。人が登録するまで、`article_managements`・`article_keywords` は変わらない。
+
+`article_evaluations.inbound_link_count` には、評価した時点の「この記事へのリンク」の数を記録する（数が変わったら再評価する。D-25-04）。
+
 ---
 
 # 10. 記録のテーブル（同期・反映）

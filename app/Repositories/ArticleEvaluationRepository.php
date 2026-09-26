@@ -40,6 +40,27 @@ class ArticleEvaluationRepository
     }
 
     /**
+     * 記事ごとの最新の評価（編集案の評価は除く）。AIの評価は、使ったテンプレートのバージョンを含める
+     *
+     * @return array{posts: array<int, ArticleEvaluation>, pages: array<int, ArticleEvaluation>} 記事のID => 評価
+     */
+    public function latestForArticles(int $blogId): array
+    {
+        $latest = function (string $column) use ($blogId) {
+            $ids = ArticleEvaluation::where('blog_id', $blogId)->whereNull('article_draft_id')->whereNotNull($column)
+                ->groupBy($column)->selectRaw('MAX(id)');
+
+            return ArticleEvaluation::with('generation:id,template_key,template_version')
+                ->whereIn('id', $ids)
+                ->get()
+                ->keyBy($column)
+                ->all();
+        };
+
+        return ['posts' => $latest('post_id'), 'pages' => $latest('page_id')];
+    }
+
+    /**
      * @return Collection<int, ArticleEvaluation>
      */
     public function forArticle(Post|Page $article, int $limit = 50): Collection

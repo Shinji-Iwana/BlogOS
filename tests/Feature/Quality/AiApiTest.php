@@ -141,7 +141,8 @@ class AiApiTest extends TestCase
             'mode' => 'revision', 'target' => "posts:{$this->post->id}", 'execution_method' => 'api',
         ]))->assertRedirect();
 
-        Http::assertSent(fn (Request $request) => $request['model'] === 'gpt-6-sol' && $request['reasoning'] === ['effort' => 'medium']);
+        // 標準は gpt-6-luna・medium（D-25-01）
+        Http::assertSent(fn (Request $request) => $request['model'] === 'gpt-6-luna' && $request['reasoning'] === ['effort' => 'medium']);
 
         $draft = ArticleDraft::sole();
         $this->assertSame('PHP入門【改訂】', $draft->title_raw);
@@ -245,6 +246,7 @@ class AiApiTest extends TestCase
         $stuck = AiGeneration::create($generation->only(['blog_id', 'post_id', 'purpose', 'execution_method', 'template_key', 'template_version', 'input']) + ['status' => 'running']);
         (new RunAiApiJob($stuck->id))->failed(new \RuntimeException('timeout'));
         $this->assertSame(AiGenerationStatus::Failed, $stuck->fresh()->status);
-        $this->assertSame(0.162, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()));
+        // 標準の gpt-6-luna の料金：(20000 × $0.10 + 10000 × $0.01 + 12000 × $0.50) / 1M = $0.0081
+        $this->assertSame(0.0081, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()));
     }
 }

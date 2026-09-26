@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
+use App\Enums\AiMode;
 use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Page;
@@ -51,6 +52,20 @@ class AiGenerationRepository
         return (float) AiGeneration::where('execution_method', AiExecutionMethod::Api)
             ->where('created_at', '>=', $from)
             ->sum('estimated_cost');
+    }
+
+    /**
+     * 成功したAPI実行の、1回あたりの費用の平均（まとめて実行の費用の目安。モデル名は応答の日付付きの名前を含む）
+     */
+    public function averageApiCost(AiMode $mode, string $model): ?float
+    {
+        $average = AiGeneration::where('execution_method', AiExecutionMethod::Api)
+            ->where('purpose', $mode)
+            ->where('status', AiGenerationStatus::Succeeded)
+            ->where(fn ($query) => $query->where('model', $model)->orWhere('model', 'like', "{$model}-%"))
+            ->avg('estimated_cost');
+
+        return $average !== null ? (float) $average : null;
     }
 
     public function findForBlog(int $blogId, int $id): ?AiGeneration

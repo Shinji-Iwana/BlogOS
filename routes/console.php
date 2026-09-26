@@ -18,4 +18,7 @@ Schedule::command('blogs:sync')->dailyAt('03:00')->timezone(config('blogos.displ
 Schedule::command('google:fetch')->dailyAt('05:00')->timezone(config('blogos.display_timezone'));
 
 // 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
+// 条件による自動の再評価（AIの設定で有効にしたブログだけ）。同期（3:00）とGoogleの取得（5:00）の後に判定する（D-25）
+Schedule::command('ai:auto-reevaluate')->dailyAt('06:00')->timezone(config('blogos.display_timezone'));
+
 Schedule::command('model:prune')->dailyAt('04:00')->timezone(config('blogos.display_timezone'));

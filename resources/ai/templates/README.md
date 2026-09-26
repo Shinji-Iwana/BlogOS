@@ -7,6 +7,7 @@ BlogOSのAI機能が、AIへの指示文を作るときに使うテンプレー�
 | ファイル | 実行モード |
 | --- | --- |
 | `seo_analysis.md` | SEO分析 |
+| `management_suggestion.md` | 管理情報の案（記事種類・キーワード・検索意図。人が確認して登録する。D-27） |
 | `structure.md` | 構成作成 |
 | `quality_diagnosis.md` | 品質診断 |
 | `revision.md` | 記事改修 |

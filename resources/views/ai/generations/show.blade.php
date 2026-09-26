@@ -56,6 +56,9 @@
                 ・受け入れの目安：{{ $acceptance }}点（受け入れるかは人が判断します）
             </p>
         @endforeach
+        @if ($generation->purpose === \App\Enums\AiMode::ManagementSuggestion)
+            <p>管理情報の案を作りました：<a href="{{ route('management-suggestions.index') }}"><strong>管理情報の案の確認</strong></a>の画面で確認して登録してください。</p>
+        @endif
         @foreach ($generation->createdDrafts as $createdDraft)
             <p>編集案に取り込みました：<a href="{{ route('drafts.edit', ['id' => $createdDraft->id]) }}"><strong>編集案 #{{ $createdDraft->id }}「{{ $createdDraft->title_raw }}」</strong></a>（内容を確認し、必要なら直してから、反映の確認へ進んでください）</p>
         @endforeach

@@ -11,6 +11,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementRepository;
+use App\Repositories\ArticleRepository;
 
 /**
  * 記事の品質評価の保存と、人による確定（D-06-02、D-06-09、D-07-03）。
@@ -24,6 +25,7 @@ class EvaluationService
         protected ScoreCalculator $calculator,
         protected ArticleEvaluationRepository $evaluations,
         protected ArticleManagementRepository $managements,
+        protected ArticleRepository $articles,
     ) {
     }
 
@@ -121,6 +123,7 @@ class EvaluationService
             'page_id'                          => $article instanceof Page ? $article->id : null,
             'article_draft_id'                 => $draft?->id,
             'evaluated_wordpress_modified_gmt' => $draft === null ? $article?->wordpress_modified_gmt : null,
+            'inbound_link_count'               => $draft === null && $article !== null ? $this->articles->inboundLinkCount($article) : null,
             'evaluator_type'                   => $evaluator,
             'ai_generation_id'                 => $aiGenerationId,
             'article_type'                     => $articleType,

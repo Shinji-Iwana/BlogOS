@@ -93,10 +93,14 @@ class DraftController extends Controller
         $draft = $this->drafts->findForBlog($blog->id, $id);
         abort_if($draft === null, 404);
 
+        $article = $draft->article();
+
         return view('drafts.edit', [
             'blog'           => $blog,
             'draft'          => $draft,
-            'article'        => $draft->article(),
+            'article'        => $article,
+            // 改修前後の点数を比べるため、記事の最新の評価も表示する（D-27-01）
+            'articleEvaluation' => $article !== null ? $this->evaluations->latestFor($article, null) : null,
             'locked'         => $draft->isLocked(),
             'histories'      => $this->drafts->histories($draft),
             'conflicts'      => $this->issues->countUnresolvedForDraft($draft->id, SyncIssueType::Conflict),

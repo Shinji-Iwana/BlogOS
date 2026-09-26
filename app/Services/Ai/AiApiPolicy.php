@@ -99,12 +99,12 @@ class AiApiPolicy
     }
 
     /**
-     * @throws AiException
+     * @throws AiApiUnavailableException
      */
     public function assertCanRun(string $model, string $input): void
     {
         if (! $this->isConfigured()) {
-            throw new AiException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。手動実行を選ぶか、APIキーを設定してください。');
+            throw new AiApiUnavailableException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。手動実行を選ぶか、APIキーを設定してください。');
         }
 
         $spent = $this->spentThisMonth();
@@ -112,7 +112,7 @@ class AiApiPolicy
         $budget = $this->monthlyBudget();
 
         if ($spent + $max > $budget) {
-            throw new AiException(sprintf(
+            throw new AiApiUnavailableException(sprintf(
                 '月の費用の上限を超えるおそれがあるため、実行しません（今月の費用の目安 $%.2f ＋ 今回の最大 $%.2f ＞ 上限 $%.2f）。上限は .env の BLOGOS_AI_MONTHLY_BUDGET_USD で変えられます。',
                 $spent,
                 $max,

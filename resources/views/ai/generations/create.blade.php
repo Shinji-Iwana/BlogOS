@@ -37,10 +37,11 @@
             @case (\App\Enums\AiMode::NewArticle) 新しい記事の案を作り、新規の編集案にします。 @break
             @case (\App\Enums\AiMode::SeoAnalysis) SEOの観点で分析し、改善を提案します（記事は変更しません）。 @break
             @case (\App\Enums\AiMode::Structure) 記事の構成案を作ります（本文は書きません）。 @break
+            @case (\App\Enums\AiMode::ManagementSuggestion) 記事種類・キーワード・検索意図の案を作ります。案は「管理情報の案の確認」の画面で、人が確認して登録します。 @break
         @endswitch
     </p>
 
-    @if (in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::Revision, \App\Enums\AiMode::SeoAnalysis], true) && $target === null)
+    @if (in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::Revision, \App\Enums\AiMode::SeoAnalysis, \App\Enums\AiMode::ManagementSuggestion], true) && $target === null)
         <p style="color:#b00;">このモードは、記事または編集案の画面から実行してください。</p>
     @else
         <form method="POST" action="{{ route('ai.generations.store') }}">
@@ -86,7 +87,7 @@
                 </p>
             @endif
 
-            @if ($mode !== \App\Enums\AiMode::QualityDiagnosis)
+            @if (! in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::ManagementSuggestion], true))
                 <p><label>メインキーワード<br><input type="text" name="main_keyword" value="{{ old('main_keyword') }}" style="width:100%; max-width:400px;"></label></p>
                 <p><label>サブキーワード（1行に1つ）<br><textarea name="sub_keywords" rows="2" style="width:100%; max-width:600px;">{{ old('sub_keywords') }}</textarea></label></p>
                 <p><label>検索意図<br><textarea name="search_intent" rows="2" style="width:100%; max-width:600px;">{{ old('search_intent') }}</textarea></label></p>

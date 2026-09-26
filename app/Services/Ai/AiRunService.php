@@ -17,6 +17,8 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\AiGenerationRepository;
 use App\Repositories\ArticleDraftRepository;
+use App\Repositories\ArticleManagementSuggestionRepository;
+use App\Support\QualityProfiles;
 use App\Services\Ai\Executors\AiExecutor;
 use App\Services\Ai\Executors\ApiExecutor;
 use App\Services\Ai\Executors\ManualExecutor;
@@ -41,6 +43,7 @@ class AiRunService
         protected DraftService $draftService,
         protected EvaluationService $evaluationService,
         protected AiApiPolicy $apiPolicy,
+        protected ArticleManagementSuggestionRepository $suggestions,
     ) {
     }
 
@@ -53,7 +56,7 @@ class AiRunService
      *
      * @throws AiException
      */
-    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null): AiGeneration
+    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null, bool $runApiNow = false): AiGeneration
     {
         if ($blog->isArchived()) {
             throw new AiException('アーカイブしたブログでは実行できません。');
@@ -66,6 +69,14 @@ class AiRunService
             $draft = null;
         } elseif (in_array($mode, [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::SeoAnalysis], true) && $article === null && $draft === null) {
             throw new AiException('対象の記事または編集案を指定してください。');
+        }
+
+        // 管理情報の案は、WordPressにある記事が対象（編集案の内容ではなく、記事の内容から作る。D-27）
+        if ($mode === AiMode::ManagementSuggestion) {
+            if ($article === null) {
+                throw new AiException('管理情報の案は、WordPressにある記事を対象にしてください。');
+            }
+            $draft = null;
         }
 
         // 既存記事の改修は、作業中の編集案があればその編集案を対象にする（WordPressの内容で上書きしないため）
@@ -110,7 +121,12 @@ class AiRunService
             'requested_by'            => $userId,
         ]);
 
-        $this->executor($method)->start($generation);
+        // まとめて実行では、記事ごとのJobの中で、その場でAPIを呼ぶ（Jobを重ねない。D-25）
+        if ($method === AiExecutionMethod::Api && $runApiNow) {
+            $this->runApi($generation);
+        } else {
+            $this->executor($method)->start($generation);
+        }
 
         return $generation->fresh();
     }
@@ -282,6 +298,7 @@ class AiRunService
             AiMode::QualityDiagnosis => $this->saveDiagnosis($generation, $blog, $userId),
             AiMode::Revision         => $this->saveRevision($generation, $userId),
             AiMode::NewArticle       => $this->saveNewArticle($generation, $blog, $userId),
+            AiMode::ManagementSuggestion => $this->saveManagementSuggestion($generation, $blog),
             // SEO分析・構成作成は、出力を記録するだけ（段階0：分析・提案）
             default                  => null,
         };
@@ -311,6 +328,25 @@ class AiRunService
             'meta_description' => $sections['メタディスクリプション'] ?? $draft->meta_description,
             'content_raw'      => $sections['本文'],
         ], $generation, $userId);
+    }
+
+    /**
+     * 管理情報の案を保存する。記事種類・細分類は、ブログ別の定義にある値だけを残す（人が確認して登録する。D-27）
+     */
+    protected function saveManagementSuggestion(AiGeneration $generation, Blog $blog): void
+    {
+        $parsed = $this->parser->managementSuggestion((string) $generation->output);
+        $article = $generation->post ?? $generation->page ?? throw new AiException('対象の記事が見つかりません。');
+
+        $definitions = QualityProfiles::articleTypes($blog->quality_profile);
+        foreach (['article_type' => 'types', 'article_subtype' => 'subtypes'] as $field => $key) {
+            if ($parsed[$field] !== null && $definitions[$key] !== [] && ! isset($definitions[$key][$parsed[$field]])) {
+                $parsed['reason'] = trim(($parsed['reason'] ?? '') . "（AIが示した{$field}「{$parsed[$field]}」は定義にないため、空にしました）");
+                $parsed[$field] = null;
+            }
+        }
+
+        $this->suggestions->create($article, $parsed + ['ai_generation_id' => $generation->id]);
     }
 
     protected function saveNewArticle(AiGeneration $generation, Blog $blog, ?int $userId): void

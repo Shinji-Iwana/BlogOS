@@ -91,6 +91,7 @@
         ・<a href="{{ route('evaluations.create', ['target' => $targetKey]) }}">人が評価する</a>
         ・<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => $targetKey]) }}">AIで改修案を作る</a>
         ・<a href="{{ route('ai.generations.create', ['mode' => 'seo_analysis', 'target' => $targetKey]) }}">AIでSEO分析する</a>
+        ・<a href="{{ route('ai.generations.create', ['mode' => 'management_suggestion', 'target' => $targetKey]) }}">AIで管理情報の案を作る</a>
     </p>
     @if ($evaluations->isNotEmpty())
         <table border="1" cellpadding="4" cellspacing="0">

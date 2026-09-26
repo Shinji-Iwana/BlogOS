@@ -141,6 +141,41 @@ class ArticleRepository
     }
 
     /**
+     * この記事へのリンクの数（評価した時点の数を記録し、変わったら再評価する。D-25-04）
+     */
+    public function inboundLinkCount(Post|Page $article): int
+    {
+        return InternalLink::where('target_' . ArticleContentRepository::articleColumn($article), $article->id)->count();
+    }
+
+    /**
+     * 記事ごとの「この記事へのリンク」の数
+     *
+     * @return array{posts: array<int, int>, pages: array<int, int>} 記事のID => 数
+     */
+    public function inboundLinkCounts(int $blogId): array
+    {
+        $counts = fn (string $column) => InternalLink::where('blog_id', $blogId)->whereNotNull($column)
+            ->groupBy($column)->selectRaw("{$column} AS article_id, COUNT(*) AS link_count")
+            ->pluck('link_count', 'article_id')->map(fn ($value) => (int) $value)->all();
+
+        return ['posts' => $counts('target_post_id'), 'pages' => $counts('target_page_id')];
+    }
+
+    /**
+     * 公開中の記事（まとめて実行・自動の再評価の対象）
+     *
+     * @return Collection<int, Post|Page>
+     */
+    public function publishedArticles(int $blogId): Collection
+    {
+        $columns = ['id', 'blog_id', 'title_raw', 'status', 'link', 'wordpress_modified_gmt'];
+
+        return Post::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderBy('id')->get($columns)
+            ->concat(Page::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderBy('id')->get($columns));
+    }
+
+    /**
      * @return Collection<int, ArticleMedia>
      */
     public function media(Post|Page $article): Collection

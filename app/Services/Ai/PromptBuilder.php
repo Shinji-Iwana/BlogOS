@@ -67,6 +67,7 @@ class PromptBuilder
             'shortfalls'       => $this->shortfalls($article, $draft, $standard),
             'parameters'       => $this->parameters($parameters),
             'article_list'     => $this->articleList($blog),
+            'article_type_options' => $this->articleTypeOptions($blog),
         ];
 
         $prompt = preg_replace_callback('/\{\{([a-z_]+)\}\}/', fn ($m) => $values[$m[1]] ?? $m[0], $template->body);
@@ -213,6 +214,28 @@ class PromptBuilder
         }
 
         return $lines === [] ? '（なし）' : implode("\n", $lines);
+    }
+
+    /**
+     * 管理情報の案で選べる記事種類・細分類（ブログ別の定義 article-types.md）
+     */
+    protected function articleTypeOptions(Blog $blog): string
+    {
+        $types = QualityProfiles::articleTypes($blog->quality_profile);
+        if ($types['types'] === []) {
+            return '（定義がありません。article_type・article_subtype は null にしてください）';
+        }
+
+        $lines = ['記事種類：'];
+        foreach ($types['types'] as $value => $label) {
+            $lines[] = "- {$value}：{$label}";
+        }
+        $lines[] = '細分類：';
+        foreach ($types['subtypes'] as $value => $label) {
+            $lines[] = "- {$value}：{$label}";
+        }
+
+        return implode("\n", $lines);
     }
 
     protected function articleList(Blog $blog): string

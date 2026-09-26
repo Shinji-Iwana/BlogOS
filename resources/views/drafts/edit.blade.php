@@ -43,11 +43,18 @@
             ・<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">AIで改修案を作る</a>
         @endif
     </p>
-    @if ($evaluations->isNotEmpty())
-        <p>評価：
-            @foreach ($evaluations as $evaluation)
-                <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">#{{ $evaluation->id }} {{ $evaluation->evaluator_type->label() }} {{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}{{ $evaluation->is_confirmed ? '（確定）' : '' }}</a>@if (! $loop->last)・@endif
-            @endforeach
+    @if ($evaluations->isNotEmpty() || $articleEvaluation)
+        <p>
+            @if ($articleEvaluation)
+                改修前（記事の最新の評価）：<a href="{{ route('evaluations.show', ['id' => $articleEvaluation->id]) }}">{{ $articleEvaluation->evaluator_type->label() }} {{ $articleEvaluation->score !== null ? number_format($articleEvaluation->score, 1) . '点' : '-' }}</a>
+                @if ($evaluations->isNotEmpty()) ／ @endif
+            @endif
+            @if ($evaluations->isNotEmpty())
+                この編集案の評価：
+                @foreach ($evaluations as $evaluation)
+                    <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">#{{ $evaluation->id }} {{ $evaluation->evaluator_type->label() }} {{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}{{ $evaluation->is_confirmed ? '（確定）' : '' }}</a>@if (! $loop->last)・@endif
+                @endforeach
+            @endif
         </p>
     @endif
 

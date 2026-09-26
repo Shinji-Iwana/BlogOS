@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Ai\AiBatchController;
 use App\Http\Controllers\Ai\AiGenerationController;
+use App\Http\Controllers\Ai\AiSettingsController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
 use App\Http\Controllers\Articles\ArticleController;
 use App\Http\Controllers\Articles\ArticleManagementController;
+use App\Http\Controllers\Articles\ManagementSuggestionController;
 use App\Http\Controllers\Articles\ArticleTrashController;
 use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
@@ -74,6 +77,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     });
 
     // 記事（業務画面。ARCHITECTURE 17章）。{type} は posts / pages
+    // AIが作った記事の管理情報の案の確認（D-27）
+    Route::get('/articles/management-suggestions', [ManagementSuggestionController::class, 'index'])->name('management-suggestions.index');
     Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
     Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
     Route::get('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.confirm');
@@ -87,6 +92,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/push-operations/{id}', [PushOperationController::class, 'show'])->whereNumber('id')->name('push-operations.show');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::post('/articles/management-suggestions/review', [ManagementSuggestionController::class, 'review'])->name('management-suggestions.review');
         Route::put('/articles/{type}/{id}/management', [ArticleManagementController::class, 'update'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.management.update');
         Route::post('/articles/{type}/{id}/relations', [ArticleManagementController::class, 'storeRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.relations.store');
         Route::delete('/articles/{type}/{id}/relations/{relationId}', [ArticleManagementController::class, 'destroyRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'relationId'])->name('articles.relations.destroy');
@@ -139,6 +145,11 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/ai', [AiGenerationController::class, 'index'])->name('ai.generations.index');
     Route::get('/ai/create', [AiGenerationController::class, 'create'])->name('ai.generations.create');
     Route::get('/ai/{id}', [AiGenerationController::class, 'show'])->whereNumber('id')->name('ai.generations.show');
+    // まとめて実行・AIの設定（自動の再評価）。D-25
+    Route::get('/ai/batches', [AiBatchController::class, 'index'])->name('ai.batches.index');
+    Route::get('/ai/batches/create', [AiBatchController::class, 'create'])->name('ai.batches.create');
+    Route::get('/ai/batches/{id}', [AiBatchController::class, 'show'])->whereNumber('id')->name('ai.batches.show');
+    Route::get('/ai/settings', [AiSettingsController::class, 'edit'])->name('ai.settings.edit');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::post('/evaluations', [EvaluationController::class, 'store'])->name('evaluations.store');
@@ -146,6 +157,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/{id}/output', [AiGenerationController::class, 'submit'])->whereNumber('id')->name('ai.generations.submit');
         Route::post('/ai/{id}/cancel', [AiGenerationController::class, 'cancel'])->whereNumber('id')->name('ai.generations.cancel');
         Route::post('/ai/{id}/retry', [AiGenerationController::class, 'retry'])->whereNumber('id')->name('ai.generations.retry');
+        Route::post('/ai/batches', [AiBatchController::class, 'store'])->name('ai.batches.store');
+        Route::post('/ai/batches/{id}/cancel', [AiBatchController::class, 'cancel'])->whereNumber('id')->name('ai.batches.cancel');
+        Route::put('/ai/settings', [AiSettingsController::class, 'update'])->name('ai.settings.update');
     });
 
     // Google連携（D-21-01、D-21-07）と分析

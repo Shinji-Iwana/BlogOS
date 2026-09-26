@@ -47,6 +47,7 @@ return [
             'quality_diagnosis' => env('BLOGOS_AI_METHOD_QUALITY_DIAGNOSIS', 'manual'),
             'revision'          => env('BLOGOS_AI_METHOD_REVISION', 'manual'),
             'new_article'       => env('BLOGOS_AI_METHOD_NEW_ARTICLE', 'manual'),
+            'management_suggestion' => env('BLOGOS_AI_METHOD_MANAGEMENT_SUGGESTION', 'manual'),
         ],
 
         // 手動実行で記録する、利用しているサービスとモデルの候補（画面で選ぶか、直接入力する。D-07-07）
@@ -61,13 +62,15 @@ return [
         'api' => [
             'provider' => 'openai',
 
-            // 実行モードごとの標準のモデルと推論の深さ（画面で実行ごとに変えられる）
+            // 実行モードごとの標準のモデルと推論の深さ（画面で実行ごとに変えられる）。
+            // 当面は gpt-6-luna を標準にし、必要なときに gpt-6-sol を選ぶ（D-25-01）。まとめて実行の標準も、この値を使う
             'defaults' => [
-                'seo_analysis'      => ['model' => env('BLOGOS_AI_MODEL_SEO_ANALYSIS', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_SEO_ANALYSIS', 'low')],
-                'structure'         => ['model' => env('BLOGOS_AI_MODEL_STRUCTURE', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_STRUCTURE', 'low')],
-                'quality_diagnosis' => ['model' => env('BLOGOS_AI_MODEL_QUALITY_DIAGNOSIS', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_QUALITY_DIAGNOSIS', 'medium')],
-                'revision'          => ['model' => env('BLOGOS_AI_MODEL_REVISION', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_REVISION', 'medium')],
-                'new_article'       => ['model' => env('BLOGOS_AI_MODEL_NEW_ARTICLE', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_NEW_ARTICLE', 'medium')],
+                'seo_analysis'      => ['model' => env('BLOGOS_AI_MODEL_SEO_ANALYSIS', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_SEO_ANALYSIS', 'medium')],
+                'structure'         => ['model' => env('BLOGOS_AI_MODEL_STRUCTURE', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_STRUCTURE', 'medium')],
+                'quality_diagnosis' => ['model' => env('BLOGOS_AI_MODEL_QUALITY_DIAGNOSIS', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_QUALITY_DIAGNOSIS', 'medium')],
+                'revision'          => ['model' => env('BLOGOS_AI_MODEL_REVISION', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_REVISION', 'medium')],
+                'new_article'       => ['model' => env('BLOGOS_AI_MODEL_NEW_ARTICLE', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_NEW_ARTICLE', 'medium')],
+                'management_suggestion' => ['model' => env('BLOGOS_AI_MODEL_MANAGEMENT_SUGGESTION', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MANAGEMENT_SUGGESTION', 'medium')],
             ],
 
             // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-26 に公式の料金表で確認）。
@@ -87,6 +90,40 @@ return [
 
             // 応答を待つ時間（秒）。推論が長いと数分かかる
             'timeout' => (int) env('BLOGOS_AI_TIMEOUT', 900),
+        ],
+
+        // 条件による自動の再評価（品質診断だけ。D-25）。有効・無効と、使うモデル・推論の深さは、ブログごとに画面で設定する
+        'auto_reevaluation' => [
+            // 設定を作るときの初期値
+            'model'  => env('BLOGOS_AI_AUTO_MODEL', 'gpt-6-luna'),
+            'effort' => env('BLOGOS_AI_AUTO_EFFORT', 'medium'),
+
+            // 1日に自動で再評価する記事の上限（ブログごと）。超えた分は翌日以降に回す
+            'daily_limit' => (int) env('BLOGOS_AI_AUTO_DAILY_LIMIT', 30),
+
+            // 5. 前回の評価からこの日数が過ぎたら、定期的に見直す
+            'periodic_days' => (int) env('BLOGOS_AI_AUTO_PERIODIC_DAYS', 90),
+
+            // 4. アクセスの減少：直近の期間と、その前の同じ長さの期間を比べる（Search Console のクリック数、GA4 の表示回数）。
+            // Googleの数値は数日のあいだ確定しないため、直近の数日は除く
+            'traffic' => [
+                'window_days'  => 28,
+                'lag_days'     => 3,
+                // この割合以上減ったら（0.3 = 30%）
+                'drop_ratio'   => 0.3,
+                // 前の期間の数値がこれ未満の記事は、ぶれが大きいため見ない
+                'min_clicks'   => 20,
+                'min_views'    => 50,
+                // 前回の評価からこの日数が過ぎていない記事は、アクセスが落ちても再評価しない（毎日くり返さないため）
+                'cooldown_days' => 28,
+            ],
+        ],
+
+        // 改修範囲を点数で自動判別する場合の基準（D-27-02）。改修前の点数がこの点数以上なら、その改修範囲にする。
+        // どちらにも満たなければ全面改修
+        'revision_scope_by_score' => [
+            'minor'       => 70,
+            'restructure' => 40,
         ],
 
         // AIの出力を受け入れる目安の点数（人が判断する。D-07-03）

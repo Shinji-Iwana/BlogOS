@@ -13,9 +13,13 @@ enum AiMode: string
     case Revision = 'revision';
     case NewArticle = 'new_article';
 
+    // 記事の管理情報（記事種類・キーワード・検索意図）の案。人が確認して登録する（D-27）
+    case ManagementSuggestion = 'management_suggestion';
+
     public function label(): string
     {
         return match ($this) {
+            self::ManagementSuggestion => '管理情報の案',
             self::SeoAnalysis      => 'SEO分析',
             self::Structure        => '構成作成',
             self::QualityDiagnosis => '品質診断',

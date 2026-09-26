@@ -55,6 +55,37 @@ class AiOutputParser
     }
 
     /**
+     * 管理情報の案の出力（```json のコードブロック。D-27）
+     *
+     * @return array{article_type: string|null, article_subtype: string|null, main_keyword: string|null, sub_keywords: list<string>, main_search_intent: string|null, sub_search_intents: list<string>, reason: string|null}
+     *
+     * @throws AiException
+     */
+    public function managementSuggestion(string $output): array
+    {
+        $output = $this->withoutCitationMarkers($output);
+        $json = preg_match('/```json\s*(\{.*\})\s*```/su', $output, $matches) ? $matches[1] : $this->outermostObject($output);
+        $data = $json !== null ? json_decode($json, true) : null;
+
+        if (! is_array($data) || ! array_key_exists('main_keyword', $data)) {
+            throw new AiException('出力からJSON（main_keyword など）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $text = fn ($value) => is_string($value) && trim($value) !== '' && strtolower(trim($value)) !== 'null' ? trim($value) : null;
+        $list = fn ($value, int $max) => array_slice(array_values(array_filter(array_map($text, (array) $value))), 0, $max);
+
+        return [
+            'article_type'       => $text($data['article_type'] ?? null),
+            'article_subtype'    => $text($data['article_subtype'] ?? null),
+            'main_keyword'       => $text($data['main_keyword'] ?? null),
+            'sub_keywords'       => $list($data['sub_keywords'] ?? [], 5),
+            'main_search_intent' => $text($data['main_search_intent'] ?? null),
+            'sub_search_intents' => $list($data['sub_search_intents'] ?? [], 3),
+            'reason'             => $text($data['reason'] ?? null),
+        ];
+    }
+
+    /**
      * 記事改修・新規記事作成の出力（=== 見出し === で区切った節）
      *
      * @return array<string, string> 見出し => 内容（タイトル・スラッグ・抜粋・本文・変更点・自己評価・確認が必要な点）
