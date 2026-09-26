@@ -17,6 +17,7 @@
         @else
             ・新規の{{ $draft->target_type->label() }}
         @endif
+        ・<a href="{{ route('drafts.preview', ['id' => $draft->id]) }}" target="_blank"><strong>プレビュー（変更前と比較）</strong></a>
     </p>
 
     @include('partials.flash')

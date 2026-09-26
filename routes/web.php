@@ -12,6 +12,7 @@ use App\Http\Controllers\Articles\ManagementSuggestionController;
 use App\Http\Controllers\Articles\ArticleTrashController;
 use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
+use App\Http\Controllers\Articles\DraftPreviewController;
 use App\Http\Controllers\Articles\DraftPushController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Blogs\BlogCredentialController;
@@ -86,6 +87,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // 編集案と反映（ARCHITECTURE 13-5・17-5）
     Route::get('/drafts', [DraftController::class, 'index'])->name('drafts.index');
     Route::get('/drafts/{id}/edit', [DraftController::class, 'edit'])->whereNumber('id')->name('drafts.edit');
+    // 編集案のプレビュー（変更前と編集案の比較。D-28）
+    Route::get('/drafts/{id}/preview', [DraftPreviewController::class, 'show'])->whereNumber('id')->name('drafts.preview');
+    Route::get('/drafts/{id}/preview/frame', [DraftPreviewController::class, 'frame'])->whereNumber('id')->name('drafts.preview.frame');
     Route::get('/drafts/{id}/push', [DraftPushController::class, 'confirm'])->whereNumber('id')->name('drafts.push.confirm');
     Route::get('/drafts/{id}/conflict', [DraftConflictController::class, 'show'])->whereNumber('id')->name('drafts.conflict.show');
     Route::get('/push-operations', [PushOperationController::class, 'index'])->name('push-operations.index');
