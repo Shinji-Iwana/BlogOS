@@ -31,6 +31,15 @@
             <tr><th style="text-align:left;">カテゴリ・タグ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }} ／ {{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
         @endif
         <tr><th style="text-align:left;">本文の文字数</th><td>{{ mb_strlen((string) $article->content_raw) }}</td></tr>
+        <tr><th style="text-align:left;">メタディスクリプション（AIOSEO）</th><td>
+            @if ($article->meta_description_raw !== null)
+                {{ $article->meta_description_raw }}（{{ mb_strlen($article->meta_description_raw) }}文字）
+            @elseif ($article->meta_description_rendered !== null)
+                <strong style="color:#b00;">未設定</strong>（AIOSEOが本文の冒頭から自動で作る説明：{{ \Illuminate\Support\Str::limit($article->meta_description_rendered, 160) }}）
+            @else
+                取得していません（AIOSEOが無効か、まだ同期していません）
+            @endif
+        </td></tr>
     </table>
 
     {{-- 編集案と、ゴミ箱・削除 --}}
@@ -58,6 +67,54 @@
                 <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id]) }}">ゴミ箱へ移動する</a> ・
             @endif
             <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id, 'force' => 1]) }}" style="color:#b00;">完全に削除する</a>
+        </p>
+    @endif
+
+    {{-- 品質評価とBlogOSのAI機能（D-06-02、D-07-01〜D-07-03） --}}
+    <h2>品質評価</h2>
+    @php
+        $targetKey = ($isPost ? 'posts:' : 'pages:') . $article->id;
+        $confirmed = $evaluations->firstWhere('is_confirmed', true);
+    @endphp
+    <p>
+        人が確定した最新の評価：
+        @if ($confirmed)
+            <a href="{{ route('evaluations.show', ['id' => $confirmed->id]) }}"><strong>{{ number_format($confirmed->score, 1) }}点</strong></a>
+            ・{{ \App\Services\Quality\ScoreCalculator::verdict($confirmed->score, $confirmed->required_conditions_passed) }}
+            （{{ \App\Support\DisplayTime::format($confirmed->confirmed_at, 'Y-m-d') }}）
+        @else
+            なし
+        @endif
+    </p>
+    <p>
+        <a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => $targetKey]) }}">AIで品質診断する</a>
+        ・<a href="{{ route('evaluations.create', ['target' => $targetKey]) }}">人が評価する</a>
+        ・<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => $targetKey]) }}">AIで改修案を作る</a>
+        ・<a href="{{ route('ai.generations.create', ['mode' => 'seo_analysis', 'target' => $targetKey]) }}">AIでSEO分析する</a>
+    </p>
+    @if ($evaluations->isNotEmpty())
+        <table border="1" cellpadding="4" cellspacing="0">
+            <thead><tr><th>#</th><th>日時</th><th>主体</th><th>対象</th><th>点数</th><th>必須条件</th><th>確定</th></tr></thead>
+            <tbody>
+                @foreach ($evaluations as $evaluation)
+                    <tr>
+                        <td><a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->id }}</a></td>
+                        <td>{{ \App\Support\DisplayTime::format($evaluation->created_at, 'Y-m-d H:i') }}</td>
+                        <td>{{ $evaluation->evaluator_type->label() }}</td>
+                        <td>{{ $evaluation->article_draft_id ? '編集案 #' . $evaluation->article_draft_id : '記事' }}</td>
+                        <td>{{ $evaluation->score !== null ? number_format($evaluation->score, 1) : '-' }}</td>
+                        <td>{{ match ($evaluation->required_conditions_passed) { true => '○', false => '×', default => '未確定' } }}</td>
+                        <td>{{ $evaluation->is_confirmed ? '確定' : '' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+    @if ($generations->isNotEmpty())
+        <p>AI実行記録：
+            @foreach ($generations as $generation)
+                <a href="{{ route('ai.generations.show', ['id' => $generation->id]) }}">#{{ $generation->id }} {{ $generation->purpose->label() }}（{{ $generation->status->label() }}）</a>@if (! $loop->last)・@endif
+            @endforeach
         </p>
     @endif
 

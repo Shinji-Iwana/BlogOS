@@ -48,4 +48,13 @@ return [
         'redirect_uri'  => env('GOOGLE_OAUTH_REDIRECT_URI', env('GOOGLE_ADSENSE_REDIRECT_URI')),
     ],
 
+    /*
+     * OpenAI API（BlogOSのAI機能のAPI実行。D-07-06、D-24）。
+     * APIキーは全ブログ共通で .env に置く（ブログごとのWordPressの認証情報とは違い、DBには保存しない）。
+     */
+    'openai' => [
+        'key'      => env('OPENAI_API_KEY'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    ],
+
 ];

@@ -34,6 +34,7 @@ class SyncBlogJob implements ShouldQueue
         public readonly int $blogId,
         public readonly SyncTrigger $trigger,
         public readonly ?int $userId = null,
+        public readonly bool $fullRefetch = false,
     ) {
     }
 
@@ -49,7 +50,7 @@ class SyncBlogJob implements ShouldQueue
         }
 
         try {
-            $syncService->run($blog, $this->trigger, $this->userId);
+            $syncService->run($blog, $this->trigger, $this->userId, $this->fullRefetch);
         } catch (SyncAlreadyRunningException $e) {
             Log::info('同期：同じブログの同期が実行中のため、今回は実行しませんでした。', ['blog_id' => $this->blogId]);
         }

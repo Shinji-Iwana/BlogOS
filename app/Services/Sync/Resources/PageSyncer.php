@@ -48,7 +48,7 @@ class PageSyncer extends ArticleSyncer
             'wordpress_featured_media_id' => (int) ($item['featured_media'] ?? 0),
             'wordpress_parent_id'         => (int) ($item['parent'] ?? 0),
             'menu_order'                  => (int) ($item['menu_order'] ?? 0),
-        ]);
+        ], $this->metaDescriptionColumns($item));
     }
 
     public function resolveReferences(SyncContext $context): void

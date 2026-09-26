@@ -203,6 +203,13 @@ class FakeWordPress
             $item['modified'] = $modified;
         }
 
+        // AIOSEO：設定した説明が出力される。空にすると自動の説明に戻る
+        if (isset($data['aioseo_meta_data'])) {
+            $description = $data['aioseo_meta_data']['description'] ?? '';
+            $item['aioseo_meta_data'] = ['description' => $description === '' ? null : $description];
+            $item['aioseo_head_json'] = ['description' => $description === '' ? '自動の説明' : $description];
+        }
+
         if ($id === null) {
             $this->lists[$name][] = $item;
         } else {
@@ -240,6 +247,9 @@ class FakeWordPress
             'format'         => 'standard',
             'categories'     => [],
             'tags'           => [],
+            // SEOプラグイン（AIOSEO）が加える項目。説明を設定していない場合は、本文から自動で作る
+            'aioseo_meta_data' => ['description' => null],
+            'aioseo_head_json' => ['description' => "Body {$id} の自動の説明"],
         ], $overrides);
     }
 

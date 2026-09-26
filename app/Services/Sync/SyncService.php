@@ -83,7 +83,7 @@ class SyncService
     /**
      * @throws SyncAlreadyRunningException
      */
-    public function run(Blog $blog, SyncTrigger $trigger, ?int $userId = null): SyncRun
+    public function run(Blog $blog, SyncTrigger $trigger, ?int $userId = null, bool $fullRefetch = false): SyncRun
     {
         $lock = Cache::lock(self::lockKey($blog->id), self::LOCK_SECONDS);
 
@@ -95,17 +95,18 @@ class SyncService
             // ロックが切れた後も「実行中」のまま残った記録を片付ける
             $this->runs->failStale($blog->id, self::LOCK_SECONDS);
 
-            return $this->execute($blog, $trigger, $userId);
+            return $this->execute($blog, $trigger, $userId, $fullRefetch);
         } finally {
             $lock->release();
         }
     }
 
-    protected function execute(Blog $blog, SyncTrigger $trigger, ?int $userId): SyncRun
+    protected function execute(Blog $blog, SyncTrigger $trigger, ?int $userId, bool $fullRefetch = false): SyncRun
     {
         $run = $this->runs->start($blog, $trigger, $userId);
         $source = $trigger === SyncTrigger::Initial ? ChangeSource::WpInitialSync : ChangeSource::WpSync;
         $context = new SyncContext($blog, $run, WordPressApiClient::forBlog($blog), $source);
+        $context->fullRefetch = $fullRefetch;
 
         $failed = 0;
         $total = 0;

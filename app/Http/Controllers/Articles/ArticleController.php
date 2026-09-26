@@ -8,7 +8,9 @@ use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Repositories\AiGenerationRepository;
 use App\Repositories\ArticleDraftRepository;
+use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
@@ -29,6 +31,8 @@ class ArticleController extends Controller
         protected ArticleManagementRepository $managements,
         protected ArticleDraftRepository $drafts,
         protected GoogleMetricRepository $metrics,
+        protected ArticleEvaluationRepository $evaluations,
+        protected AiGenerationRepository $generations,
     ) {
     }
 
@@ -87,6 +91,8 @@ class ArticleController extends Controller
             'articleTypes'  => QualityProfiles::articleTypes($blog->quality_profile),
             'workStatuses'  => WorkStatus::cases(),
             'relationTypes' => RelationType::cases(),
+            'evaluations'    => $this->evaluations->forArticle($article),
+            'generations'    => $this->generations->forArticle($article),
             'google'         => $this->metrics->articleSummary($column, $article->id, $from, $to),
             'googlePrevious' => $this->metrics->articleSummary($column, $article->id, $previousFrom, $previousTo),
             'googlePeriod'   => [$from, $to],

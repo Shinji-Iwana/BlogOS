@@ -89,6 +89,7 @@ class DraftConflictController extends Controller
             'title'          => $draft->title_raw,
             'content'        => $draft->content_raw,
             'excerpt'        => $draft->excerpt_raw,
+            'meta_description' => $draft->meta_description,
             'slug'           => $draft->slug,
             'status'         => $draft->status,
             'featured_media' => $draft->wordpress_featured_media_id,

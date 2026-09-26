@@ -629,6 +629,19 @@ HTTPステータスの確認 → JSON形式の確認 → 必須フィールド�
 * WordPressのバージョンや利用している機能によって、利用可能なエンドポイントやフィールドは異なる。API Discoveryと実際のレスポンスで確認する。
 * プラグインやテーマが追加したnamespaceは、標準APIと区別する。現時点では同期の対象外とする。
 
+## 31-1. SEOプラグイン（AIOSEO）のメタディスクリプション
+
+WordPressの標準APIにはメタディスクリプションがないため、SEOプラグイン AIOSEO（All in One SEO）が、標準の投稿・固定ページのAPIに加える項目を使う（D-23-01、D-23-02）。AIOSEO独自のnamespace（`aioseo/v1`）は使わない。
+
+| 項目 | 用途 |
+| --- | --- |
+| `aioseo_meta_data.description` | 記事に設定した説明。取得して `meta_description_raw` に保存する。反映では、`POST /wp/v2/<posts\|pages>(/{id})` に `{"aioseo_meta_data": {"description": "..."}}` を送る（空文字にすると未設定に戻る） |
+| `aioseo_head_json.description` | 実際にページに出力される説明（未設定の場合は、AIOSEOが本文から自動で作る）。取得して `meta_description_rendered` に保存する（書き込まない） |
+
+* これらの項目は、APIのスキーマ（OPTIONS）には現れない。si-note（AIOSEO 5.0.2）で、下書きのテスト投稿を使って、作成・更新・空に戻す操作ができること、説明だけの更新でも記事の `modified_gmt` が変わる（毎日の同期で取り込まれる）ことを確認した（2026-09-26）。
+* AIOSEOがない・無効なブログでは項目が返らないため、BlogOSは保存済みの値を変えない。反映で送った項目は、WordPressに無視される。
+* 保存する項目を増やしたときは、`php artisan blogs:sync --full` で、更新日時に関係なく全ての記事の詳細を取得し直す。
+
 ---
 
 # 第VII部 その他

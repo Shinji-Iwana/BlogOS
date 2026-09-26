@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Ai\AiGenerationController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPress
 use App\Http\Controllers\Google\GoogleOAuthController;
 use App\Http\Controllers\Google\GoogleSettingsController;
 use App\Http\Controllers\Push\PushOperationController;
+use App\Http\Controllers\Quality\EvaluationController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\Terms\TermController;
 use App\Http\Controllers\Sync\SyncIssueController;
@@ -130,6 +132,21 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     // サイト内検索（Search API。将来の候補 D-10-05。見直しまでは現状のまま）
     Route::get('/api/site-search', [ApiSiteSearchController::class, 'index'])->name('api-site-search');
+
+    // 品質評価（D-06-02、D-07-03）とBlogOSのAI機能（ARCHITECTURE 18章）
+    Route::get('/evaluations/create', [EvaluationController::class, 'create'])->name('evaluations.create');
+    Route::get('/evaluations/{id}', [EvaluationController::class, 'show'])->whereNumber('id')->name('evaluations.show');
+    Route::get('/ai', [AiGenerationController::class, 'index'])->name('ai.generations.index');
+    Route::get('/ai/create', [AiGenerationController::class, 'create'])->name('ai.generations.create');
+    Route::get('/ai/{id}', [AiGenerationController::class, 'show'])->whereNumber('id')->name('ai.generations.show');
+
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::post('/evaluations', [EvaluationController::class, 'store'])->name('evaluations.store');
+        Route::post('/ai', [AiGenerationController::class, 'store'])->name('ai.generations.store');
+        Route::post('/ai/{id}/output', [AiGenerationController::class, 'submit'])->whereNumber('id')->name('ai.generations.submit');
+        Route::post('/ai/{id}/cancel', [AiGenerationController::class, 'cancel'])->whereNumber('id')->name('ai.generations.cancel');
+        Route::post('/ai/{id}/retry', [AiGenerationController::class, 'retry'])->whereNumber('id')->name('ai.generations.retry');
+    });
 
     // Google連携（D-21-01、D-21-07）と分析
     Route::get('/google', [GoogleSettingsController::class, 'index'])->name('google.settings');

@@ -80,6 +80,17 @@ class ArticleRepository
     }
 
     /**
+     * 公開済みの記事のタイトルとURL（AIへの指示文の、内部リンクの候補）
+     *
+     * @return Collection<int, object{title_raw: string, link: string}>
+     */
+    public function publishedList(int $blogId, int $limit = 500): Collection
+    {
+        return Post::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderByDesc('wordpress_date_gmt')->limit($limit)->get(['title_raw', 'link'])
+            ->concat(Page::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderBy('menu_order')->limit($limit)->get(['title_raw', 'link']));
+    }
+
+    /**
      * 記事のタイトル等をまとめて読み込む（分析の一覧など）
      *
      * @param array<int, int> $postIds

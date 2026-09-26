@@ -9,6 +9,7 @@ use App\Enums\SyncIssueType;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Repositories\ArticleDraftRepository;
+use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Services\Articles\DraftService;
@@ -33,6 +34,7 @@ class DraftController extends Controller
         protected ArticleRepository $articles,
         protected DraftService $draftService,
         protected SyncIssueRepository $issues,
+        protected ArticleEvaluationRepository $evaluations,
     ) {
     }
 
@@ -98,6 +100,7 @@ class DraftController extends Controller
             'locked'         => $draft->isLocked(),
             'histories'      => $this->drafts->histories($draft),
             'conflicts'      => $this->issues->countUnresolvedForDraft($draft->id, SyncIssueType::Conflict),
+            'evaluations'    => $this->evaluations->forDraft($draft),
             'categories'     => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'categories') : collect(),
             'tags'           => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'tags') : collect(),
             'statuses'       => self::STATUSES,
@@ -115,6 +118,7 @@ class DraftController extends Controller
             'title_raw'                   => ['nullable', 'string', 'max:1000'],
             'content_raw'                 => ['nullable', 'string'],
             'excerpt_raw'                 => ['nullable', 'string', 'max:10000'],
+            'meta_description'            => ['nullable', 'string', 'max:1000'],
             'slug'                        => ['nullable', 'string', 'max:200', 'regex:/^[^\s\/]+$/u'],
             'status'                      => ['required', Rule::in(array_keys(self::STATUSES))],
             'wordpress_category_ids'      => ['nullable', 'array'],
@@ -130,6 +134,7 @@ class DraftController extends Controller
             'title_raw'                   => $validated['title_raw'] ?? '',
             'content_raw'                 => $validated['content_raw'] ?? '',
             'excerpt_raw'                 => $validated['excerpt_raw'] ?? '',
+            'meta_description'            => $validated['meta_description'] ?? '',
             'slug'                        => $validated['slug'] ?? null,
             'status'                      => $validated['status'],
             'wordpress_featured_media_id' => (int) ($validated['wordpress_featured_media_id'] ?? 0),

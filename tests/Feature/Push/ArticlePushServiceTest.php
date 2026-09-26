@@ -111,6 +111,35 @@ class ArticlePushServiceTest extends TestCase
         $this->assertSame(0, SyncIssue::count());
     }
 
+    public function test_meta_description_is_synced_and_pushed_via_aioseo(): void
+    {
+        $post = Post::sole();
+
+        // 同期：説明が未設定の記事は、設定値が空で、自動の説明を記録する
+        $this->assertNull($post->meta_description_raw);
+        $this->assertSame('Body 100 の自動の説明', $post->meta_description_rendered);
+
+        $draft = $this->draftFor($post, ['meta_description' => 'PHPの基本を初心者向けに解説します。']);
+        $this->assertSame(['meta_description' => 'PHPの基本を初心者向けに解説します。'], $this->service()->payload($draft));
+
+        $operation = $this->service()->push($draft, $this->user->id);
+
+        $this->assertSame(PushState::Completed, $operation->state);
+        // WordPressには AIOSEO の項目で送り、DBは返却値で更新する
+        $this->assertSame(['description' => 'PHPの基本を初心者向けに解説します。'], $this->wp->lists['posts'][0]['aioseo_meta_data']);
+        $post->refresh();
+        $this->assertSame('PHPの基本を初心者向けに解説します。', $post->meta_description_raw);
+        $this->assertSame('PHPの基本を初心者向けに解説します。', $post->meta_description_rendered);
+        $this->assertSame(ChangeSource::BlogosPush, PostHistory::where('post_id', $post->id)->where('field', 'meta_description_raw')->sole()->source);
+        // rendered（出力された説明）は保存するが、差分と履歴には使わない（D-05-07）
+        $this->assertFalse(PostHistory::where('post_id', $post->id)->where('field', 'like', '%_rendered')->exists());
+
+        // 新しい編集案には、記事に設定した説明が写る
+        $next = app(\App\Services\Articles\DraftService::class)->createFromArticle($post, null, $this->user->id);
+        $this->assertSame('PHPの基本を初心者向けに解説します。', $next->meta_description);
+        $this->assertSame([], $this->service()->payload($next));
+    }
+
     public function test_new_article_is_created_and_linked_to_draft(): void
     {
         $draft = app(ArticleDraftRepository::class)->create([

@@ -23,7 +23,7 @@
     <table border="1" cellpadding="4" cellspacing="0">
         <thead><tr><th>項目</th><th>WordPressの最新</th><th>編集案</th></tr></thead>
         <tbody>
-            @foreach (['title', 'slug', 'status', 'excerpt', 'featured_media', 'categories', 'tags'] as $field)
+            @foreach (['title', 'slug', 'status', 'excerpt', 'meta_description', 'featured_media', 'categories', 'tags'] as $field)
                 @continue(! array_key_exists($field, $wordpress) && ! array_key_exists($field, $draftValues))
                 @php
                     $left = $wordpress[$field] ?? null;

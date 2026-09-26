@@ -67,7 +67,8 @@ abstract class TwoStageSyncer extends AbstractResourceSyncer
             $record = $existing->get($key);
 
             if (
-                $record === null
+                $context->fullRefetch
+                || $record === null
                 || $record->wordpress_deleted_at !== null
                 || isset($forced[(int) $key])
                 || ! $this->sameModified($record->wordpress_modified_gmt, $row['modified_gmt'] ?? null)

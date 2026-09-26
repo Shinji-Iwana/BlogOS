@@ -35,7 +35,10 @@ class MediaSyncer extends TwoStageSyncer
     {
         $details = $item['media_details'] ?? [];
         $sizes = [];
-        foreach (($details['sizes'] ?? []) as $name => $size) {
+        // WordPressは取得のたびに順序が変わることがあるため、名前の順にそろえる（順序だけの違いを変更として扱わない）
+        $rawSizes = (array) ($details['sizes'] ?? []);
+        ksort($rawSizes);
+        foreach ($rawSizes as $name => $size) {
             $sizes[$name] = [
                 'width'      => $size['width'] ?? null,
                 'height'     => $size['height'] ?? null,

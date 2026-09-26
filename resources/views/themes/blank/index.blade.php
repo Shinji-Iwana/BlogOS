@@ -42,6 +42,8 @@
             ・<a href="{{ route('articles.index', ['type' => 'pages']) }}">固定ページ</a>
             ・<a href="{{ route('drafts.index') }}">編集案</a>
             ・<a href="{{ route('push-operations.index') }}">反映記録</a>
+            ・<a href="{{ route('ai.generations.index') }}">AI実行記録</a>
+            ・<a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
         </p>
         <p><a href="{{ route('database.wordpress-records.tables') }}">取り込んだWordPressのデータ（DB確認）へ</a></p>
         <p><a href="{{ route('wp-api.home') }}">WordPress API確認ページへ</a></p>

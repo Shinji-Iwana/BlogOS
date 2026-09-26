@@ -99,6 +99,14 @@ class ArticleDraftRepository
         });
     }
 
+    /**
+     * AIの出力を人が修正したかと、修正の量（D-07-07）。内容の変更ではないため、履歴は記録しない
+     */
+    public function setAiEditStats(ArticleDraft $draft, bool $humanEdited, ?float $editRatio): void
+    {
+        $draft->forceFill(['human_edited' => $humanEdited, 'edit_ratio' => $editRatio])->saveQuietly();
+    }
+
     public function changeState(ArticleDraft $draft, DraftState $state, ChangeSource $source, ?int $userId, ?int $pushOperationId = null): void
     {
         $attributes = ['state' => $state];

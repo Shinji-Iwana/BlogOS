@@ -35,7 +35,7 @@ class ArticleDraft extends Model
      * 内容の列（履歴と反映の対象）
      */
     public const CONTENT_COLUMNS = [
-        'title_raw', 'content_raw', 'excerpt_raw', 'slug', 'status',
+        'title_raw', 'content_raw', 'excerpt_raw', 'meta_description', 'slug', 'status',
         'wordpress_category_ids', 'wordpress_tag_ids', 'wordpress_featured_media_id',
     ];
 

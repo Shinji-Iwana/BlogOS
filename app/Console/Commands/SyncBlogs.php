@@ -15,7 +15,7 @@ use Illuminate\Console\Command;
  */
 class SyncBlogs extends Command
 {
-    protected $signature = 'blogs:sync {--blog=* : 対象のブログID（省略時は全ブログ）} {--now : Queueを使わずにその場で実行する}';
+    protected $signature = 'blogs:sync {--blog=* : 対象のブログID（省略時は全ブログ）} {--now : Queueを使わずにその場で実行する} {--full : 更新日時に関係なく、全ての記事・メディアの詳細を取得し直す（保存する項目を増やしたときなど）}';
 
     protected $description = 'WordPressと同期する（アーカイブしていないブログが対象）';
 
@@ -28,8 +28,8 @@ class SyncBlogs extends Command
                 continue;
             }
 
-            if ($this->option('now')) {
-                dispatch_sync(new SyncBlogJob($blog->id, SyncTrigger::Scheduled));
+            if ($this->option('now') || $this->option('full')) {
+                dispatch_sync(new SyncBlogJob($blog->id, SyncTrigger::Manual, null, (bool) $this->option('full')));
                 $this->info("[同期しました] {$blog->home}");
             } else {
                 $dispatcher->dispatch($blog->id, SyncTrigger::Scheduled);

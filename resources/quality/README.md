@@ -45,7 +45,7 @@ resources/quality/
 
 | 対象 | バージョン | 記録する場所 |
 | --- | --- | --- |
-| 共通基準 | 1.0.0 | `common/principles.md` の冒頭 |
+| 共通基準 | 1.0.1 | `common/principles.md` の冒頭 |
 | si-note | 1.0.0 | `blogs/si-note/profile.md` の冒頭 |
 
 * 共通基準とブログ別の定義は、それぞれ独立してバージョンを管理する。

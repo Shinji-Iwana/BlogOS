@@ -337,6 +337,18 @@ class SyncServiceTest extends TestCase
         $this->assertSame('[70]', CustomContentHistory::where('custom_content_id', $book->id)->where('field', 'terms')->value('new_value'));
     }
 
+    public function test_full_refetch_fetches_all_details(): void
+    {
+        $this->sync(SyncTrigger::Initial);
+        $this->wp->requests = [];
+
+        // 更新日時が変わらなくても、全ての詳細を取得し直す
+        app(SyncService::class)->run($this->blog->fresh(), SyncTrigger::Manual, null, true);
+
+        $includes = array_values(array_filter(array_column($this->wp->requestsTo('posts'), 'include')));
+        $this->assertSame(['100,101'], $includes);
+    }
+
     public function test_sync_is_rejected_while_another_sync_is_running(): void
     {
         $lock = Cache::lock("blogos:sync:blog:{$this->blog->id}", 60);

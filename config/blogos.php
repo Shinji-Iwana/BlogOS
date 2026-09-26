@@ -35,6 +35,68 @@ return [
     'display_timezone' => env('BLOGOS_DISPLAY_TIMEZONE', 'Asia/Tokyo'),
 
     /*
+     * BlogOSのAI機能（ARCHITECTURE 18章、D-07-03〜D-07-08）
+     *
+     * モデル名はコードに書かず、ここ（または .env）で指定する。
+     */
+    'ai' => [
+        // 実行モードごとの実行方式（manual：手動実行 / api：API実行）。当面は手動実行を標準とする（D-07-06）
+        'methods' => [
+            'seo_analysis'      => env('BLOGOS_AI_METHOD_SEO_ANALYSIS', 'manual'),
+            'structure'         => env('BLOGOS_AI_METHOD_STRUCTURE', 'manual'),
+            'quality_diagnosis' => env('BLOGOS_AI_METHOD_QUALITY_DIAGNOSIS', 'manual'),
+            'revision'          => env('BLOGOS_AI_METHOD_REVISION', 'manual'),
+            'new_article'       => env('BLOGOS_AI_METHOD_NEW_ARTICLE', 'manual'),
+        ],
+
+        // 手動実行で記録する、利用しているサービスとモデルの候補（画面で選ぶか、直接入力する。D-07-07）
+        'manual' => [
+            'provider'      => 'openai',
+            'service_plans' => ['ChatGPT（無料）', 'ChatGPT Plus', 'ChatGPT Pro'],
+            'models'        => ['gpt-6-sol', 'gpt-6-luna', 'gpt-6-astra'],
+            'efforts'       => ['なし', '低', '中', '高'],
+        ],
+
+        // API実行（D-07-06、D-07-08、D-24）。APIキーは config/services.php の openai.key（.env の OPENAI_API_KEY）
+        'api' => [
+            'provider' => 'openai',
+
+            // 実行モードごとの標準のモデルと推論の深さ（画面で実行ごとに変えられる）
+            'defaults' => [
+                'seo_analysis'      => ['model' => env('BLOGOS_AI_MODEL_SEO_ANALYSIS', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_SEO_ANALYSIS', 'low')],
+                'structure'         => ['model' => env('BLOGOS_AI_MODEL_STRUCTURE', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_STRUCTURE', 'low')],
+                'quality_diagnosis' => ['model' => env('BLOGOS_AI_MODEL_QUALITY_DIAGNOSIS', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_QUALITY_DIAGNOSIS', 'medium')],
+                'revision'          => ['model' => env('BLOGOS_AI_MODEL_REVISION', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_REVISION', 'medium')],
+                'new_article'       => ['model' => env('BLOGOS_AI_MODEL_NEW_ARTICLE', 'gpt-6-sol'), 'effort' => env('BLOGOS_AI_EFFORT_NEW_ARTICLE', 'medium')],
+            ],
+
+            // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-26 に公式の料金表で確認）。
+            // 料金は費用の目安と上限の判定に使う。料金が変わったらここを直す。
+            // 推論の深さは、費用がかさむ xhigh・max を選べないようにしている（astra は none に対応していない）
+            'models' => [
+                'gpt-6-luna'  => ['input' => 0.10, 'cached_input' => 0.01, 'output' => 0.50, 'efforts' => ['none', 'low', 'medium', 'high']],
+                'gpt-6-sol'   => ['input' => 2.00, 'cached_input' => 0.20, 'output' => 10.00, 'efforts' => ['none', 'low', 'medium', 'high']],
+                'gpt-6-astra' => ['input' => 10.00, 'cached_input' => 1.00, 'output' => 50.00, 'efforts' => ['low', 'medium', 'high']],
+            ],
+
+            // 1回あたりの出力トークン（推論のトークンを含む）の上限。超えた場合は途中で打ち切られ、失敗になる
+            'max_output_tokens' => (int) env('BLOGOS_AI_MAX_OUTPUT_TOKENS', 48000),
+
+            // 月の費用の上限（米ドル。日本時間の月初から数える）。実行前に「今月の費用＋今回の最大の費用」がこれを超えるなら実行しない
+            'monthly_budget_usd' => (float) env('BLOGOS_AI_MONTHLY_BUDGET_USD', 10),
+
+            // 応答を待つ時間（秒）。推論が長いと数分かかる
+            'timeout' => (int) env('BLOGOS_AI_TIMEOUT', 900),
+        ],
+
+        // AIの出力を受け入れる目安の点数（人が判断する。D-07-03）
+        'acceptance_score' => 90,
+
+        // 1回の指示で実行する回数（D-07-03）
+        'runs_per_instruction' => 1,
+    ],
+
+    /*
      * Googleのデータの取得（BLOGOS_DATABASE.md 12-2、D-21-07）
      */
     'google' => [

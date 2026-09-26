@@ -56,7 +56,7 @@ class PostSyncer extends ArticleSyncer
             'wordpress_featured_media_id' => (int) ($item['featured_media'] ?? 0),
             'format'                      => $item['format'] ?? null,
             'sticky'                      => (bool) ($item['sticky'] ?? false),
-        ]);
+        ], $this->metaDescriptionColumns($item));
     }
 
     protected function afterSave(WordPressRecord $record, array $item, SyncContext $context): array

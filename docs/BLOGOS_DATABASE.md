@@ -111,7 +111,9 @@ WordPressの日時は `wordpress_date` / `wordpress_date_gmt` / `wordpress_modif
 
 ## 3-8. 本文の列
 
-title・content・excerpt など、`context=edit` で `raw` と `rendered` の両方が返る項目は、`<項目>_raw` と `<項目>_rendered` の2列で保存する。差分判定と履歴は `raw` で行う（D-05-07）。
+title・content・excerpt など、`context=edit` で `raw` と `rendered` の両方が返る項目は、`<項目>_raw` と `<項目>_rendered` の2列で保存する。差分判定と履歴は `raw` で行う（D-05-07）。`*_rendered` の列は、値は保存するが、差分の判定と履歴には使わない（テーマやプラグインで、記事を編集しなくても変わるため。D-23-06）。
+
+JSON列の差分は、キーの順序をそろえて比べる（MySQLのJSON型は、キーの順序を並べ替えて保存するため。D-23-06）。
 
 ## 3-9. 列挙値
 
@@ -292,6 +294,7 @@ WordPressのサイト設定（WordPress由来）。キーと値の形で保存�
 | 分類 | 列 |
 | --- | --- |
 | 本文 | `title_raw` / `title_rendered`、`content_raw` / `content_rendered`、`excerpt_raw` / `excerpt_rendered` |
+| メタディスクリプション | `meta_description_raw`（SEOプラグイン AIOSEO で記事に設定した説明。未設定は NULL）/ `meta_description_rendered`（実際にページに出力される説明。未設定の場合は AIOSEO が本文から自動で作る）。固定ページ（6-2）も同じ（D-23-01） |
 | 基本 | `slug`、`status`（ゴミ箱の `trash` を含む）、`type`、`format`、`sticky`、`comment_status`、`ping_status`、`template` |
 | URL | `link`、`normalized_path`（`link` からドメイン・末尾のスラッシュ・クエリを除いたもの。Googleデータとの対応付けに使う。D-08-05） |
 | 参照 | `author_id` / `wordpress_author_id`、`featured_media_id` / `wordpress_featured_media_id` |
@@ -506,7 +509,7 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `post_id` / `page_id` | 対象の記事（既存記事の改修の場合。多くとも一方） |
 | `target_type` | 作成する記事の種類（`post` / `page`。新規記事の場合） |
 | `base_wordpress_modified_gmt` | 編集の起点にしたWordPressの版（競合チェックに使う） |
-| 内容 | `title_raw`、`content_raw`、`excerpt_raw`、`slug`、`status`（反映時に設定するステータス）、`wordpress_category_ids` / `wordpress_tag_ids`（反映時に設定するWordPress IDの一覧。JSON。投稿のみ）、`wordpress_featured_media_id` |
+| 内容 | `title_raw`、`content_raw`、`excerpt_raw`、`meta_description`（反映時に設定するメタディスクリプション。空にすると AIOSEO の自動の説明に戻る。D-23-03）、`slug`、`status`（反映時に設定するステータス）、`wordpress_category_ids` / `wordpress_tag_ids`（反映時に設定するWordPress IDの一覧。JSON。投稿のみ）、`wordpress_featured_media_id` |
 | `state` | 状態（`editing` 作業中 / `review` 確認待ち / `pushed` 反映済み / `discarded` 破棄） |
 | `origin` | 作成元（`human` / `ai`） |
 | `ai_generation_id` | 元になったAI実行記録（AIが作成した場合） |
@@ -622,6 +625,9 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `score` | 点数（対象項目で100点に換算した値。小数第1位まで。D-15-01） |
 | `is_confirmed` | 人が確定した評価か |
 | `confirmed_by` / `confirmed_at` | 確定した利用者と日時 |
+| `article_type` | 評価に使った記事種類（記事種類ごとの対象外の項目を決めるため） |
+| `summary` | 総評（AIの総評と改善点、人のメモ） |
+| `created_by` | 評価を保存した利用者 |
 
 * 記事または編集案のどちらか少なくとも一方を持つ。
 * 公開の可否は、人が確定した評価（`is_confirmed`）で判断する。
@@ -632,8 +638,8 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | --- | --- |
 | `article_evaluation_id` | ― |
 | `item_key` | 評価項目（品質基準で定義したキー。D-06-08） |
-| `judgment` | ○ / △ / × / 要人間確認 |
-| `points` | 得点（△は配点の50%。切り上げない。D-06-03） |
+| `judgment` | ○ / △ / × / 要人間確認（値は `good` / `partial` / `bad` / `needs_human`） |
+| `points` / `max_points` | 得点（△は配点の50%。切り上げない。D-06-03）と配点。必須条件は NULL |
 | `comment` | 理由・改善点 |
 
 ---
@@ -645,11 +651,11 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 | 分類 | 列 |
 | --- | --- |
 | 対象 | `blog_id`、`post_id` / `page_id`（多くとも一方）、`article_draft_id` |
-| 実行の内容 | `purpose`（実行モード：品質診断、構成案、改修、新規作成、SEO分析、HTML出力など）、`revision_scope` |
-| 生成方法 | `execution_method`（`manual` / `api`）、`provider`、`model`（API実行は応答に含まれる正確なモデル名。手動実行は利用プランと画面に表示されたモデル名）、`reasoning_effort` |
+| 実行の内容 | `purpose`（実行モード：`seo_analysis` / `structure` / `quality_diagnosis` / `revision` / `new_article`。HTML出力は `html-rules.md` の作成後）、`revision_scope`、`parameters`（人が画面で入力した情報。JSON） |
+| 生成方法 | `execution_method`（`manual` / `api`）、`provider`、`provider_response_id`（API実行の応答のID）、`service_plan`（手動実行の利用プラン）、`model`（API実行は応答に含まれる正確なモデル名。手動実行は画面に表示されたモデル名）、`reasoning_effort` |
 | バージョン | `template_key` / `template_version`、`quality_common_version`、`quality_profile` / `quality_profile_version` |
 | 入出力 | `input`、`output`（全文。LONGTEXT） |
-| 費用 | `input_tokens`、`output_tokens`、`estimated_cost` |
+| 費用 | `input_tokens`（うち `cached_input_tokens`）、`output_tokens`（うち `reasoning_tokens`）、`estimated_cost`（API実行の費用の目安。米ドル。失敗した実行も課金された分を記録する。D-24） |
 | 状態 | `status`、`error`、`requested_by`（`users.id`）、`started_at`、`completed_at` |
 
 * 新規記事の作成では、記事を持たない（`post_id` / `page_id` ともにNULL）。

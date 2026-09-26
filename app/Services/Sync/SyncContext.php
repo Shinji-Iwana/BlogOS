@@ -23,6 +23,11 @@ class SyncContext
     public array $forcedPostIds = [];
 
     /**
+     * 更新日時に関係なく、全ての項目の詳細を取得し直す（保存する項目を増やしたときなど。blogs:sync --full）
+     */
+    public bool $fullRefetch = false;
+
+    /**
      * @param array<string, mixed> $historyAttributes 履歴に加えて記録する値（wordpress_push_operation_id、user_id）
      */
     public function __construct(

@@ -54,6 +54,27 @@ abstract class ArticleSyncer extends TwoStageSyncer
         return true;
     }
 
+    /**
+     * メタディスクリプション（SEOプラグイン AIOSEO が加える項目。D-23-01）。
+     * プラグインがない・無効な場合は項目が返らないため、列を変えない（空の値で上書きしない）。
+     *
+     * @return array<string, string|null>
+     */
+    protected function metaDescriptionColumns(array $item): array
+    {
+        if (! array_key_exists('aioseo_meta_data', $item) && ! array_key_exists('aioseo_head_json', $item)) {
+            return [];
+        }
+
+        $raw = $item['aioseo_meta_data']['description'] ?? null;
+        $rendered = $item['aioseo_head_json']['description'] ?? null;
+
+        return [
+            'meta_description_raw'      => filled($raw) ? (string) $raw : null,
+            'meta_description_rendered' => filled($rendered) ? (string) $rendered : null,
+        ];
+    }
+
     protected function afterSave(WordPressRecord $record, array $item, SyncContext $context): array
     {
         /** @var Post|Page $record */

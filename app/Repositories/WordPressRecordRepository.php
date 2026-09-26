@@ -76,7 +76,8 @@ class WordPressRecordRepository
             $changes = [];
             if (! $isNew) {
                 foreach ($record->getDirty() as $column => $newValue) {
-                    if (in_array($column, self::IGNORED_COLUMNS, true)) {
+                    // rendered（WordPressが作ったHTML・説明）は、テーマやプラグインで変わるため、差分判定と履歴に使わない（D-05-07）
+                    if (in_array($column, self::IGNORED_COLUMNS, true) || str_ends_with($column, '_rendered')) {
                         continue;
                     }
 
@@ -305,6 +306,18 @@ class WordPressRecordRepository
     }
 
     /**
+     * 連想配列のキーを、入れ子まで含めて順にそろえる（リストの順序は変えない）
+     */
+    protected function sortKeys(array $value): array
+    {
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return array_map(fn ($item) => is_array($item) ? $this->sortKeys($item) : $item, $value);
+    }
+
+    /**
      * 履歴に保存する文字列にする
      */
     protected function stringify(mixed $value): ?string
@@ -312,7 +325,8 @@ class WordPressRecordRepository
         return match (true) {
             $value === null                     => null,
             is_bool($value)                     => $value ? 'true' : 'false',
-            is_array($value)                    => json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            // MySQLのJSON型はキーの順序を並べ替えて保存するため、キーの順にそろえてから比べる
+            is_array($value)                    => json_encode($this->sortKeys($value), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             $value instanceof DateTimeInterface => $value->format('Y-m-d H:i:s'),
             $value instanceof BackedEnum        => (string) $value->value,
             default                             => (string) $value,

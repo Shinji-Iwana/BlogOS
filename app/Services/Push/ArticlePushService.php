@@ -51,12 +51,13 @@ class ArticlePushService
     public function payload(ArticleDraft $draft): array
     {
         $values = [
-            'title'          => $draft->title_raw,
-            'content'        => $draft->content_raw,
-            'excerpt'        => $draft->excerpt_raw,
-            'slug'           => $draft->slug,
-            'status'         => $draft->status,
-            'featured_media' => $draft->wordpress_featured_media_id,
+            'title'            => $draft->title_raw,
+            'content'          => $draft->content_raw,
+            'excerpt'          => $draft->excerpt_raw,
+            'meta_description' => $draft->meta_description,
+            'slug'             => $draft->slug,
+            'status'           => $draft->status,
+            'featured_media'   => $draft->wordpress_featured_media_id,
         ];
 
         if ($draft->target_type === PushResourceType::Post) {
@@ -69,7 +70,7 @@ class ArticlePushService
         if ($article === null) {
             $values['status'] ??= 'draft';
 
-            return array_filter($values, fn ($value) => $value !== null);
+            return array_filter($values, fn ($value, $key) => $value !== null && ! ($key === 'meta_description' && $value === ''), ARRAY_FILTER_USE_BOTH);
         }
 
         $current = $this->currentValues($article);
@@ -89,12 +90,13 @@ class ArticlePushService
     public function currentValues(Post|Page $article): array
     {
         $values = [
-            'title'          => $article->title_raw,
-            'content'        => $article->content_raw,
-            'excerpt'        => $article->excerpt_raw,
-            'slug'           => $article->slug,
-            'status'         => $article->status,
-            'featured_media' => (int) $article->wordpress_featured_media_id,
+            'title'            => $article->title_raw,
+            'content'          => $article->content_raw,
+            'excerpt'          => $article->excerpt_raw,
+            'meta_description' => (string) $article->meta_description_raw,
+            'slug'             => $article->slug,
+            'status'           => $article->status,
+            'featured_media'   => (int) $article->wordpress_featured_media_id,
         ];
 
         if ($article instanceof Post) {
@@ -183,7 +185,7 @@ class ArticlePushService
 
         $response = $this->runner->send($operation, fn () => $client->post(
             $article === null ? $endpoint : "{$endpoint}/{$article->wordpress_id}",
-            $payload
+            $this->toRequest($payload)
         ));
 
         if ($response !== null) {
@@ -281,6 +283,7 @@ class ArticlePushService
             'title'          => $item['title']['raw'] ?? null,
             'content'        => $item['content']['raw'] ?? null,
             'excerpt'        => $item['excerpt']['raw'] ?? null,
+            'meta_description' => (string) ($item['aioseo_meta_data']['description'] ?? ''),
             'slug'           => $item['slug'] ?? null,
             'status'         => $item['status'] ?? null,
             'featured_media' => (int) ($item['featured_media'] ?? 0),
@@ -376,6 +379,19 @@ class ArticlePushService
         );
 
         return false;
+    }
+
+    /**
+     * WordPressに送る形にする。メタディスクリプションは、AIOSEO が投稿・固定ページのAPIに加える項目で送る（D-23-02）
+     */
+    protected function toRequest(array $payload): array
+    {
+        if (array_key_exists('meta_description', $payload)) {
+            $payload['aioseo_meta_data'] = ['description' => (string) $payload['meta_description']];
+            unset($payload['meta_description']);
+        }
+
+        return $payload;
     }
 
     /**
