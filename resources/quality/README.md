@@ -1,6 +1,6 @@
 # BlogOS 品質基準
 
-**最終更新日:** 2026-09-27
+**最終更新日:** 2026-09-29
 
 ## 1. この基準の位置付け
 
@@ -30,7 +30,7 @@ resources/quality/
       ├─ article-types.md    記事種類・細分類・テンプレート
       ├─ site-design.md      サイト構造・ロードマップ・内部リンク
       ├─ tech-content.md     図解・コード例・エラー解説など技術記事の基準・収益導線の詳細
-      └─ html-rules.md       HTMLのルール（未作成）
+      └─ html-rules.md       HTMLのルール（記事の並び・部品・広告の位置）
 ```
 
 どのブログにどの定義を適用するかは、BlogOSの `blogs.quality_profile`（フォルダ名。例：`si-note`）で指定する。
@@ -45,8 +45,8 @@ resources/quality/
 
 | 対象 | バージョン | 記録する場所 |
 | --- | --- | --- |
-| 共通基準 | 1.1.0 | `common/principles.md` の冒頭 |
-| si-note | 1.1.0 | `blogs/si-note/profile.md` の冒頭 |
+| 共通基準 | 1.2.0 | `common/principles.md` の冒頭 |
+| si-note | 1.2.0 | `blogs/si-note/profile.md` の冒頭 |
 
 * 共通基準とブログ別の定義は、それぞれ独立してバージョンを管理する。
 * 共通基準の全ファイル（`common/` 内）は、常に同じバージョンにそろえる。1つのファイルだけを変更した場合も、全ファイルの冒頭のバージョンを更新する。ブログ別の定義のフォルダ内のファイルも同様とする（D-15-11）。

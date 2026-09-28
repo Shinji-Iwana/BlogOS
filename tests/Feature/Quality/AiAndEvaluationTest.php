@@ -88,7 +88,7 @@ class AiAndEvaluationTest extends TestCase
         $this->assertTrue($evaluation->is_confirmed);
         $this->assertSame(97.5, $evaluation->score);
         $this->assertTrue($evaluation->required_conditions_passed);
-        $this->assertSame('1.1.0', $evaluation->quality_common_version);
+        $this->assertSame('1.2.0', $evaluation->quality_common_version);
         $this->assertSame('si-note', $evaluation->quality_profile);
         $this->assertSame(2.5, $evaluation->details()->where('item_key', 'intent.main')->value('points'));
 
