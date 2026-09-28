@@ -88,6 +88,17 @@
         <p style="color:#666;">改修の後に、できた編集案も品質診断し、改修前後の点数を記録します（まとめて実行の画面・編集案の画面で確認できます）。</p>
         <p style="color:#666;">作業中の編集案がある記事は、人の作業を上書きしないため改修しません。作った編集案は、人が確認してから反映します（WordPressへの反映は自動では行いません）。</p>
 
+        <h2>教材の定期チェック</h2>
+        <p>
+            <input type="hidden" name="material_check_enabled" value="0">
+            <label><input type="checkbox" name="material_check_enabled" value="1" @checked(old('material_check_enabled', $setting->material_check_enabled))> 教材の定期チェックを有効にする</label>
+        </p>
+        <p style="color:#666;">
+            毎日（日本時間6:30）、前回の調査から{{ $materialCheck['interval_months'] }}か月が過ぎた教材を、1日に{{ $materialCheck['daily_limit'] }}件まで、AIで調べ直します（API実行・Web検索を使う・料金がかかります。モデルは「教材の調査」の標準：{{ $materialDefaults['model'] }}・{{ $materialDefaults['effort'] }}）。
+            新しい版・後継の講座などは「新しい教材の候補」、情報の変化は「教材の情報の案」になり、<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>で人が確認して登録します。
+            今日調べる教材：{{ $materialDue }}件。
+        </p>
+
         <button type="submit">保存する</button>
         @if ($setting->exists)
             <span style="color:#666;">最終更新：{{ \App\Support\DisplayTime::format($setting->updated_at) }}</span>

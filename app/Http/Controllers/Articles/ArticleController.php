@@ -14,6 +14,7 @@ use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
+use App\Repositories\MaterialRepository;
 use App\Support\QualityProfiles;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,7 @@ class ArticleController extends Controller
         protected GoogleMetricRepository $metrics,
         protected ArticleEvaluationRepository $evaluations,
         protected AiGenerationRepository $generations,
+        protected MaterialRepository $materials,
     ) {
     }
 
@@ -96,6 +98,9 @@ class ArticleController extends Controller
             'google'         => $this->metrics->articleSummary($column, $article->id, $from, $to),
             'googlePrevious' => $this->metrics->articleSummary($column, $article->id, $previousFrom, $previousTo),
             'googlePeriod'   => [$from, $to],
+            // 記事で使っている教材と、最新の見直しの結果（D-30）
+            'articleMaterials' => $this->materials->forArticle($article),
+            'materialReview'   => $this->materials->latestReviewFor($article),
             'relatedQuery'  => $relatedKeyword,
             'relatedType'   => $relatedType,
             'candidates'    => $candidates,

@@ -16,8 +16,8 @@ class QualityStandardTest extends TestCase
     {
         $standard = app(QualityStandardLoader::class)->load('si-note');
 
-        $this->assertSame('1.0.1', $standard->commonVersion);
-        $this->assertSame('1.0.0', $standard->profileVersion);
+        $this->assertSame('1.1.0', $standard->commonVersion);
+        $this->assertSame('1.1.0', $standard->profileVersion);
         $this->assertCount(5, $standard->required);
         $this->assertFalse($standard->required['req.verified']['ai']);
         $this->assertTrue($standard->required['req.title_match']['ai']);

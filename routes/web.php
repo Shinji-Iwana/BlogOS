@@ -27,6 +27,10 @@ use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
 use App\Http\Controllers\Google\GoogleOAuthController;
 use App\Http\Controllers\Google\GoogleSettingsController;
+use App\Http\Controllers\Materials\MaterialAiController;
+use App\Http\Controllers\Materials\MaterialController;
+use App\Http\Controllers\Materials\MaterialReviewController;
+use App\Http\Controllers\Materials\MaterialSuggestionController;
 use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\Quality\EvaluationController;
 use App\Http\Controllers\SettingsController;
@@ -164,6 +168,34 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/batches', [AiBatchController::class, 'store'])->name('ai.batches.store');
         Route::post('/ai/batches/{id}/cancel', [AiBatchController::class, 'cancel'])->whereNumber('id')->name('ai.batches.cancel');
         Route::put('/ai/settings', [AiSettingsController::class, 'update'])->name('ai.settings.update');
+    });
+
+    // 収益用の教材（書籍・Udemy・スクール）。D-30
+    Route::get('/materials', [MaterialController::class, 'index'])->name('materials.index');
+    Route::get('/materials/create', [MaterialController::class, 'create'])->name('materials.create');
+    Route::get('/materials/detected', [MaterialController::class, 'detected'])->name('materials.detected');
+    Route::get('/materials/discover', [MaterialAiController::class, 'discoverForm'])->name('materials.discover.create');
+    Route::get('/materials/suggestions', [MaterialSuggestionController::class, 'index'])->name('materials.suggestions.index');
+    Route::get('/materials/suggestions/{id}', [MaterialSuggestionController::class, 'show'])->whereNumber('id')->name('materials.suggestions.show');
+    Route::get('/materials/reviews', [MaterialReviewController::class, 'index'])->name('materials.reviews.index');
+    Route::get('/materials/{id}/edit', [MaterialController::class, 'edit'])->whereNumber('id')->name('materials.edit');
+
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::post('/materials', [MaterialController::class, 'store'])->name('materials.store');
+        Route::put('/materials/{id}', [MaterialController::class, 'update'])->whereNumber('id')->name('materials.update');
+        Route::delete('/materials/{id}', [MaterialController::class, 'destroy'])->whereNumber('id')->name('materials.destroy');
+        Route::post('/materials/detected', [MaterialController::class, 'registerDetected'])->name('materials.detected.store');
+        Route::post('/materials/relink', [MaterialController::class, 'relink'])->name('materials.relink');
+        Route::post('/materials/{id}/research', [MaterialAiController::class, 'research'])->whereNumber('id')->name('materials.research');
+        Route::post('/materials/research', [MaterialAiController::class, 'researchMany'])->name('materials.research.many');
+        Route::post('/materials/discover', [MaterialAiController::class, 'discover'])->name('materials.discover.store');
+        Route::post('/materials/suggestions/{id}/apply', [MaterialSuggestionController::class, 'apply'])->whereNumber('id')->name('materials.suggestions.apply');
+        Route::post('/materials/suggestions/{id}/register', [MaterialSuggestionController::class, 'register'])->whereNumber('id')->name('materials.suggestions.register');
+        Route::post('/materials/suggestions/{id}/reject', [MaterialSuggestionController::class, 'reject'])->whereNumber('id')->name('materials.suggestions.reject');
+        Route::post('/materials/reviews/run', [MaterialAiController::class, 'review'])->name('materials.reviews.run');
+        Route::post('/materials/reviews/mark', [MaterialReviewController::class, 'markReviewed'])->name('materials.reviews.mark');
+        Route::post('/materials/reviews/{id}/confirm', [MaterialReviewController::class, 'confirm'])->whereNumber('id')->name('materials.reviews.confirm');
+        Route::post('/materials/reviews/{id}/reject', [MaterialReviewController::class, 'reject'])->whereNumber('id')->name('materials.reviews.reject');
     });
 
     // Google連携（D-21-01、D-21-07）と分析

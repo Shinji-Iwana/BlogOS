@@ -104,6 +104,14 @@ class PagesSmokeTest extends TestCase
             'wp api statuses'         => ['wp-api.resources.index', ['resource' => 'statuses']],
             'wp api types'            => ['wp-api.resources.index', ['resource' => 'types']],
             'wp api taxonomies'       => ['wp-api.resources.index', ['resource' => 'taxonomies']],
+            // 教材（D-30）
+            'materials'               => ['materials.index'],
+            'material create'         => ['materials.create', ['kind' => 'school']],
+            'materials detected'      => ['materials.detected'],
+            'materials discover'      => ['materials.discover.create'],
+            'material suggestions'    => ['materials.suggestions.index'],
+            'material reviews'        => ['materials.reviews.index'],
+            'ai settings'             => ['ai.settings.edit'],
         ];
     }
 

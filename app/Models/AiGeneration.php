@@ -31,6 +31,7 @@ class AiGeneration extends Model
             'execution_method' => AiExecutionMethod::class,
             'status'           => AiGenerationStatus::class,
             'estimated_cost'   => 'float',
+            'use_web_search'   => 'boolean',
             'started_at'       => 'datetime',
             'completed_at'     => 'datetime',
         ];
@@ -54,6 +55,14 @@ class AiGeneration extends Model
     public function draft(): BelongsTo
     {
         return $this->belongsTo(ArticleDraft::class, 'article_draft_id');
+    }
+
+    /**
+     * 教材の調査の対象（D-30）
+     */
+    public function material(): BelongsTo
+    {
+        return $this->belongsTo(Material::class);
     }
 
     public function requester(): BelongsTo

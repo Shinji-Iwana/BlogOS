@@ -58,7 +58,7 @@ class AiApiPolicy
     /**
      * 費用の目安（米ドル）。キャッシュが効いた入力と、それ以外の入力は単価が違う。推論のトークンは出力に含まれる
      */
-    public function cost(string $model, int $inputTokens, int $cachedInputTokens, int $outputTokens): ?float
+    public function cost(string $model, int $inputTokens, int $cachedInputTokens, int $outputTokens, int $webSearchCalls = 0): ?float
     {
         $price = $this->models()[$model] ?? null;
         if ($price === null) {
@@ -67,15 +67,29 @@ class AiApiPolicy
 
         $cached = min($cachedInputTokens, $inputTokens);
 
-        return round((($inputTokens - $cached) * $price['input'] + $cached * $price['cached_input'] + $outputTokens * $price['output']) / 1_000_000, 4);
+        return round((($inputTokens - $cached) * $price['input'] + $cached * $price['cached_input'] + $outputTokens * $price['output']) / 1_000_000
+            + $webSearchCalls * $this->webSearch()['cost_per_call'], 4);
     }
 
     /**
-     * 1回の実行でかかりうる最大の費用。入力のトークン数は、多めに見積もるため文字数とする（日本語は1文字1トークン前後）
+     * 1回の実行でかかりうる最大の費用。入力のトークン数は、多めに見積もるため文字数とする（日本語は1文字1トークン前後）。
+     * Web検索を使う場合は、検索の回数の上限までの料金を加える（検索の結果もトークンとして入力に加わるため、入力を倍に見積もる）
      */
-    public function maxCost(string $model, string $input): float
+    public function maxCost(string $model, string $input, bool $webSearch = false): float
     {
-        return (float) $this->cost($model, mb_strlen($input), 0, $this->maxOutputTokens());
+        $inputTokens = mb_strlen($input) * ($webSearch ? 2 : 1);
+
+        return (float) $this->cost($model, $inputTokens, 0, $this->maxOutputTokens(), $webSearch ? $this->webSearch()['max_calls'] : 0);
+    }
+
+    /**
+     * Web検索の設定（D-30）
+     *
+     * @return array{tool: string, cost_per_call: float, max_calls: int}
+     */
+    public function webSearch(): array
+    {
+        return (array) config('blogos.ai.api.web_search');
     }
 
     public function maxOutputTokens(): int
@@ -101,14 +115,14 @@ class AiApiPolicy
     /**
      * @throws AiApiUnavailableException
      */
-    public function assertCanRun(string $model, string $input): void
+    public function assertCanRun(string $model, string $input, bool $webSearch = false): void
     {
         if (! $this->isConfigured()) {
             throw new AiApiUnavailableException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。手動実行を選ぶか、APIキーを設定してください。');
         }
 
         $spent = $this->spentThisMonth();
-        $max = $this->maxCost($model, $input);
+        $max = $this->maxCost($model, $input, $webSearch);
         $budget = $this->monthlyBudget();
 
         if ($spent + $max > $budget) {

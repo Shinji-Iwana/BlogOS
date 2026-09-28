@@ -13,6 +13,7 @@ use App\Enums\RevisionScope;
 use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\AiGenerationRepository;
@@ -23,6 +24,7 @@ use App\Services\Ai\Executors\AiExecutor;
 use App\Services\Ai\Executors\ApiExecutor;
 use App\Services\Ai\Executors\ManualExecutor;
 use App\Services\Articles\DraftService;
+use App\Services\Materials\MaterialAiResultService;
 use App\Services\Push\PushException;
 use App\Services\Quality\EvaluationService;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +46,7 @@ class AiRunService
         protected EvaluationService $evaluationService,
         protected AiApiPolicy $apiPolicy,
         protected ArticleManagementSuggestionRepository $suggestions,
+        protected MaterialAiResultService $materialResults,
     ) {
     }
 
@@ -56,7 +59,7 @@ class AiRunService
      *
      * @throws AiException
      */
-    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null, bool $runApiNow = false): AiGeneration
+    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null, bool $runApiNow = false, ?Material $material = null, bool $webSearch = false): AiGeneration
     {
         if ($blog->isArchived()) {
             throw new AiException('アーカイブしたブログでは実行できません。');
@@ -69,6 +72,23 @@ class AiRunService
             $draft = null;
         } elseif (in_array($mode, [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::SeoAnalysis], true) && $article === null && $draft === null) {
             throw new AiException('対象の記事または編集案を指定してください。');
+        }
+
+        // 教材（D-30）：調査は教材が、候補探しはカテゴリか教材の種類が、見直しはWordPressにある記事が対象
+        if ($mode->isMaterialMode()) {
+            $draft = null;
+            if ($mode !== AiMode::MaterialReview) {
+                $article = null;
+            }
+            match (true) {
+                $mode === AiMode::MaterialResearch && ($material === null || $material->blog_id !== $blog->id) => throw new AiException('調べる教材を指定してください。'),
+                $mode === AiMode::MaterialDiscovery && blank($parameters['カテゴリの値'] ?? null)               => throw new AiException('候補を探すカテゴリを指定してください。'),
+                $mode === AiMode::MaterialReview && $article === null                                          => throw new AiException('教材を見直す記事を指定してください。'),
+                default                                                                                         => null,
+            };
+        }
+        if ($mode !== AiMode::MaterialResearch) {
+            $material = null;
         }
 
         // 管理情報の案は、WordPressにある記事が対象（編集案の内容ではなく、記事の内容から作る。D-27）
@@ -94,9 +114,12 @@ class AiRunService
             $this->apiPolicy->assertSelectable($model, $effort);
         }
 
-        $built = $this->prompts->build($mode, $blog, $article, $draft, $parameters, $scope);
+        // Web検索は、教材の調査・候補探しのAPI実行だけで使う
+        $webSearch = $webSearch && $method === AiExecutionMethod::Api && $mode->canUseWebSearch();
+
+        $built = $this->prompts->build($mode, $blog, $article, $draft, $parameters, $scope, $material, $webSearch);
         if ($method === AiExecutionMethod::Api) {
-            $this->apiPolicy->assertCanRun($model, $built['prompt']);
+            $this->apiPolicy->assertCanRun($model, $built['prompt'], $webSearch);
         }
 
         $generation = $this->generations->create([
@@ -104,6 +127,8 @@ class AiRunService
             'post_id'                 => $article instanceof Post ? $article->id : null,
             'page_id'                 => $article instanceof Page ? $article->id : null,
             'article_draft_id'        => $draft?->id,
+            'material_id'             => $material?->id,
+            'use_web_search'          => $webSearch,
             'purpose'                 => $mode,
             'revision_scope'          => $mode === AiMode::Revision ? ($scope ?? RevisionScope::Minor) : null,
             'parameters'              => $parameters,
@@ -170,7 +195,8 @@ class AiRunService
         $client = new OpenAiClient((string) config('services.openai.key'), (string) config('services.openai.base_url'), (int) config('blogos.ai.api.timeout'));
 
         try {
-            $result = $client->respond((string) $generation->model, $generation->input, $generation->reasoning_effort, $this->apiPolicy->maxOutputTokens());
+            $result = $client->respond((string) $generation->model, $generation->input, $generation->reasoning_effort, $this->apiPolicy->maxOutputTokens(),
+                $generation->use_web_search ? $this->apiPolicy->webSearch() : null);
         } catch (OpenAiException $e) {
             $this->generations->update($generation, [
                 'status'       => AiGenerationStatus::Failed,
@@ -209,10 +235,10 @@ class AiRunService
         // 指示文は前の記録のものを使う。モデルは、応答のモデル名（日付付きなど）ではなく、選べるモデル名に戻す
         $model = $this->selectableModel((string) $generation->model);
         $this->apiPolicy->assertSelectable($model, (string) $generation->reasoning_effort);
-        $this->apiPolicy->assertCanRun($model, $generation->input);
+        $this->apiPolicy->assertCanRun($model, $generation->input, (bool) $generation->use_web_search);
 
         $retry = $this->generations->create($generation->only([
-            'blog_id', 'post_id', 'page_id', 'article_draft_id', 'purpose', 'revision_scope', 'parameters', 'execution_method', 'provider',
+            'blog_id', 'post_id', 'page_id', 'article_draft_id', 'material_id', 'use_web_search', 'purpose', 'revision_scope', 'parameters', 'execution_method', 'provider',
             'reasoning_effort', 'template_key', 'template_version', 'quality_common_version', 'quality_profile', 'quality_profile_version', 'input',
         ]) + ['model' => $model, 'status' => AiGenerationStatus::Running, 'requested_by' => $userId]);
 
@@ -250,16 +276,19 @@ class AiRunService
     }
 
     /**
-     * @param array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int} $usage
+     * @param array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls?: int} $usage
      */
     protected function usageAttributes(string $model, array $usage): array
     {
+        $webSearchCalls = (int) ($usage['web_search_calls'] ?? 0);
+
         return [
             'input_tokens'        => $usage['input_tokens'],
             'cached_input_tokens' => $usage['cached_input_tokens'],
             'output_tokens'       => $usage['output_tokens'],
             'reasoning_tokens'    => $usage['reasoning_tokens'],
-            'estimated_cost'      => $this->apiPolicy->cost($this->selectableModel($model), $usage['input_tokens'], $usage['cached_input_tokens'], $usage['output_tokens']),
+            'web_search_calls'    => $webSearchCalls ?: null,
+            'estimated_cost'      => $this->apiPolicy->cost($this->selectableModel($model), $usage['input_tokens'], $usage['cached_input_tokens'], $usage['output_tokens'], $webSearchCalls),
         ];
     }
 
@@ -299,6 +328,10 @@ class AiRunService
             AiMode::Revision         => $this->saveRevision($generation, $userId),
             AiMode::NewArticle       => $this->saveNewArticle($generation, $blog, $userId),
             AiMode::ManagementSuggestion => $this->saveManagementSuggestion($generation, $blog),
+            // 教材（D-30）：人が確認する案として保存する
+            AiMode::MaterialResearch  => $this->materialResults->saveResearch($generation),
+            AiMode::MaterialDiscovery => $this->materialResults->saveDiscovery($generation),
+            AiMode::MaterialReview    => $this->materialResults->saveReview($generation),
             // SEO分析・構成作成は、出力を記録するだけ（段階0：分析・提案）
             default                  => null,
         };

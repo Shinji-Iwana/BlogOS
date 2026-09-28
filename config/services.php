@@ -57,4 +57,13 @@ return [
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
     ],
 
+    /*
+     * 楽天ウェブサービスの楽天ブックス書籍検索API（教材の書籍の情報の取得。D-30）。
+     * アプリID（applicationId）は、楽天ウェブサービスでアプリを登録して取得する（無料）。未設定なら使わない。
+     */
+    'rakuten' => [
+        'application_id' => env('RAKUTEN_APPLICATION_ID'),
+        'books_url'      => env('RAKUTEN_BOOKS_URL', 'https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404'),
+    ],
+
 ];

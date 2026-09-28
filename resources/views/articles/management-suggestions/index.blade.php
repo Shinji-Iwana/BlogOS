@@ -35,7 +35,7 @@
 
             <div style="overflow-x:auto;">
                 <table border="1" cellpadding="4" cellspacing="0">
-                    <thead><tr><th></th><th>記事</th><th>記事種類・細分類</th><th>メインキーワード</th><th>サブキーワード</th><th>主の検索意図</th><th>副の検索意図</th><th>AIの理由</th></tr></thead>
+                    <thead><tr><th></th><th>記事</th><th>記事種類・細分類</th><th>メインキーワード</th><th>サブキーワード</th><th>主の検索意図</th><th>副の検索意図</th><th>対象のバージョン</th><th>AIの理由</th></tr></thead>
                     <tbody>
                         @foreach ($rows as $row)
                             @php
@@ -57,6 +57,7 @@
                                 <td style="color:#666;">今：{{ $subs ?: '未設定' }}</td>
                                 <td style="color:#666;">今：{{ $m?->main_search_intent ?: '未設定' }}</td>
                                 <td style="color:#666;">今：{{ $m?->sub_search_intents ? implode('／', $m->sub_search_intents) : '未設定' }}</td>
+                                <td style="color:#666;">今：{{ $m?->target_versions ?: '未設定' }}</td>
                                 <td rowspan="2" style="max-width:260px;">{{ $s->reason }}</td>
                             </tr>
                             <tr>
@@ -83,6 +84,7 @@
                                 <td><textarea name="{{ $name }}[sub_keywords]" rows="3" style="width:180px;">{{ old("items.{$s->id}.sub_keywords", implode("\n", (array) $s->sub_keywords)) }}</textarea></td>
                                 <td><textarea name="{{ $name }}[main_search_intent]" rows="3" style="width:200px;">{{ old("items.{$s->id}.main_search_intent", $s->main_search_intent) }}</textarea></td>
                                 <td><textarea name="{{ $name }}[sub_search_intents]" rows="3" style="width:200px;">{{ old("items.{$s->id}.sub_search_intents", implode("\n", (array) $s->sub_search_intents)) }}</textarea></td>
+                                <td><input type="text" name="{{ $name }}[target_versions]" value="{{ old("items.{$s->id}.target_versions", $s->target_versions ?? $m?->target_versions) }}" style="width:140px;"></td>
                             </tr>
                         @endforeach
                     </tbody>

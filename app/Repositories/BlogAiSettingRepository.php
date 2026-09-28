@@ -22,6 +22,7 @@ class BlogAiSettingRepository
             'auto_reasoning_effort'     => config('blogos.ai.auto_reevaluation.effort'),
             'auto_revision_enabled'     => true,
             'auto_revision_scope'       => 'auto',
+            'material_check_enabled'    => false,
         ]);
     }
 

@@ -25,7 +25,7 @@ class AiBatchController extends Controller
     /**
      * まとめて実行できる実行モード
      */
-    public const MODES = [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::ManagementSuggestion];
+    public const MODES = [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::ManagementSuggestion, AiMode::MaterialReview];
 
     public function __construct(
         protected AiBatchService $service,

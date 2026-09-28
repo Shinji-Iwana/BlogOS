@@ -17,8 +17,11 @@ Schedule::command('blogs:sync')->dailyAt('03:00')->timezone(config('blogos.displ
 // 毎日のGoogleのデータの取得（D-21-07）。WordPressとの同期の後に行う
 Schedule::command('google:fetch')->dailyAt('05:00')->timezone(config('blogos.display_timezone'));
 
-// 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
 // 条件による自動の再評価（AIの設定で有効にしたブログだけ）。同期（3:00）とGoogleの取得（5:00）の後に判定する（D-25）
 Schedule::command('ai:auto-reevaluate')->dailyAt('06:00')->timezone(config('blogos.display_timezone'));
 
+// 教材の定期チェック（AIの設定で有効にしたブログだけ）。前回の調査から期間が過ぎた教材を、1日に上限の数まで調べ直す（D-30）
+Schedule::command('materials:check')->dailyAt('06:30')->timezone(config('blogos.display_timezone'));
+
+// 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
 Schedule::command('model:prune')->dailyAt('04:00')->timezone(config('blogos.display_timezone'));

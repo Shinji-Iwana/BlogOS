@@ -3,6 +3,9 @@
 namespace App\Services\Ai;
 
 use App\Enums\Judgment;
+use App\Enums\MaterialKind;
+use App\Models\Material;
+use App\Support\AffiliateLink;
 
 /**
  * AIの出力を読み取る（出力の形式は resources/ai/templates/ の各テンプレートで指定している）。
@@ -57,7 +60,7 @@ class AiOutputParser
     /**
      * 管理情報の案の出力（```json のコードブロック。D-27）
      *
-     * @return array{article_type: string|null, article_subtype: string|null, main_keyword: string|null, sub_keywords: list<string>, main_search_intent: string|null, sub_search_intents: list<string>, reason: string|null}
+     * @return array{article_type: string|null, article_subtype: string|null, main_keyword: string|null, sub_keywords: list<string>, main_search_intent: string|null, sub_search_intents: list<string>, target_versions: string|null, reason: string|null}
      *
      * @throws AiException
      */
@@ -81,8 +84,202 @@ class AiOutputParser
             'sub_keywords'       => $list($data['sub_keywords'] ?? [], 5),
             'main_search_intent' => $text($data['main_search_intent'] ?? null),
             'sub_search_intents' => $list($data['sub_search_intents'] ?? [], 3),
+            'target_versions'    => is_array($data['target_versions'] ?? null) ? (implode('、', $list($data['target_versions'], 10)) ?: null) : $text($data['target_versions'] ?? null),
             'reason'             => $text($data['reason'] ?? null),
         ];
+    }
+
+    /**
+     * 教材の調査の出力（```json のコードブロック。D-30）
+     *
+     * @return array{material: array<string, mixed>, availability: string|null, newer: list<array<string, mixed>>, sources: list<string>, reason: string|null}
+     *
+     * @throws AiException
+     */
+    public function materialResearch(string $output): array
+    {
+        $data = $this->json($output);
+        if (! is_array($data['material'] ?? null)) {
+            throw new AiException('出力からJSON（material）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $sources = $this->urls($data['sources'] ?? []);
+        $newer = [];
+        foreach (array_slice((array) ($data['newer'] ?? []), 0, 10) as $item) {
+            $candidate = is_array($item) ? $this->material($item) : null;
+            if ($candidate !== null && $candidate['name'] !== null) {
+                $newer[] = $candidate + [
+                    'relation' => in_array($item['relation'] ?? null, ['new_edition', 'successor', 'same_author'], true) ? $item['relation'] : 'same_author',
+                    'reason'   => $this->text($item['reason'] ?? null),
+                ];
+            }
+        }
+
+        return [
+            'material'     => ['sources' => $sources] + $this->material($data['material']),
+            'availability' => $this->text($data['material']['availability'] ?? null),
+            'newer'        => $newer,
+            'sources'      => $sources,
+            'reason'       => $this->text($data['reason'] ?? null),
+        ];
+    }
+
+    /**
+     * 教材の候補探しの出力（D-30）
+     *
+     * @return array{candidates: list<array<string, mixed>>, reason: string|null}
+     *
+     * @throws AiException
+     */
+    public function materialCandidates(string $output): array
+    {
+        $data = $this->json($output);
+        if (! array_key_exists('candidates', $data)) {
+            throw new AiException('出力からJSON（candidates）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $candidates = [];
+        foreach (array_slice((array) $data['candidates'], 0, 20) as $item) {
+            $candidate = is_array($item) ? $this->material($item) : null;
+            if ($candidate !== null && $candidate['name'] !== null) {
+                $candidates[] = $candidate + ['sources' => $this->urls($item['sources'] ?? []), 'reason' => $this->text($item['reason'] ?? null)];
+            }
+        }
+
+        return ['candidates' => $candidates, 'reason' => $this->text($data['reason'] ?? null)];
+    }
+
+    /**
+     * 記事の教材の見直しの出力（D-30）
+     *
+     * @param array<int, int> $allowedIds 使ってよい教材ID（候補と、今使っている教材）
+     * @return array{current: list<array{material_id: int, judgment: string, replace_with: int|null, reason: string|null}>, additions: list<array{material_id: int, reason: string|null}>, summary: string|null}
+     *
+     * @throws AiException
+     */
+    public function materialReview(string $output, array $allowedIds): array
+    {
+        $data = $this->json($output);
+        if (! array_key_exists('current', $data) && ! array_key_exists('additions', $data)) {
+            throw new AiException('出力からJSON（current・additions）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $id = fn ($value) => is_numeric($value) && in_array((int) $value, $allowedIds, true) ? (int) $value : null;
+
+        $current = [];
+        foreach ((array) ($data['current'] ?? []) as $item) {
+            if (! is_array($item) || ($materialId = $id($item['material_id'] ?? null)) === null) {
+                continue;
+            }
+            $judgment = in_array($item['judgment'] ?? null, ['keep', 'replace', 'remove'], true) ? $item['judgment'] : 'keep';
+            $replaceWith = $judgment === 'replace' ? $id($item['replace_with'] ?? null) : null;
+            $current[] = [
+                'material_id'  => $materialId,
+                'judgment'     => $judgment === 'replace' && $replaceWith === null ? 'remove' : $judgment,
+                'replace_with' => $replaceWith,
+                'reason'       => $this->text($item['reason'] ?? null),
+            ];
+        }
+
+        $additions = [];
+        foreach ((array) ($data['additions'] ?? []) as $item) {
+            if (is_array($item) && ($materialId = $id($item['material_id'] ?? null)) !== null) {
+                $additions[] = ['material_id' => $materialId, 'reason' => $this->text($item['reason'] ?? null)];
+            }
+        }
+
+        return ['current' => $current, 'additions' => $additions, 'summary' => $this->text($data['summary'] ?? null)];
+    }
+
+    /**
+     * 教材の情報（materials の列と同じ名前）。値の形を整え、選べない値は除く
+     *
+     * @return array<string, mixed>
+     */
+    protected function material(array $item): array
+    {
+        $list = fn ($value, int $max) => array_slice(array_values(array_filter(array_map(fn ($v) => $this->text(is_scalar($v) ? (string) $v : null), (array) $value))), 0, $max);
+        $choices = fn ($value, array $allowed) => array_values(array_intersect(array_unique(array_map('strval', array_filter((array) $value, 'is_scalar'))), array_keys($allowed)));
+
+        $isbn = preg_replace('/[^0-9X]/i', '', (string) ($item['isbn'] ?? ''));
+        $isbn = strlen($isbn) === 10 ? AffiliateLink::isbn13FromAsin(strtoupper($isbn)) : (strlen($isbn) === 13 ? $isbn : null);
+
+        // 書籍の Amazon・楽天の商品ページは、それぞれの欄に分ける（product_url に入っていた場合も。D-30-09）
+        $productUrl = $this->urls([$item['product_url'] ?? null])[0] ?? null;
+        $isStorePage = AffiliateLink::amazonProductUrl($productUrl) !== null || AffiliateLink::rakutenProductUrl($productUrl) !== null;
+
+        return [
+            'kind'            => MaterialKind::tryFrom((string) ($item['kind'] ?? ''))?->value,
+            'name'            => $this->text($item['name'] ?? null),
+            'creator'         => $this->text($item['creator'] ?? null),
+            'publisher'       => $this->text($item['publisher'] ?? null),
+            'edition'         => $this->text($item['edition'] ?? null),
+            'published_on'    => $this->date($item['published_on'] ?? null),
+            'isbn'            => $isbn,
+            'product_url'         => $isStorePage ? null : $productUrl,
+            'amazon_product_url'  => AffiliateLink::amazonProductUrl($this->urls([$item['amazon_product_url'] ?? null])[0] ?? $productUrl),
+            'rakuten_product_url' => AffiliateLink::rakutenProductUrl($this->urls([$item['rakuten_product_url'] ?? null])[0] ?? $productUrl),
+            'category_ids'    => array_values(array_unique(array_map('intval', array_filter((array) ($item['category_ids'] ?? []), 'is_numeric')))),
+            'topics'          => $list($item['topics'] ?? [], 10),
+            'target_versions' => $list($item['target_versions'] ?? [], 10),
+            'levels'          => $choices($item['levels'] ?? [], Material::LEVELS),
+            'scenes'          => $choices($item['scenes'] ?? [], Material::SCENES),
+            'summary'         => $this->text($item['summary'] ?? null),
+            'target_readers'  => $this->text($item['target_readers'] ?? null),
+            'not_for'         => $this->text($item['not_for'] ?? null),
+            'merits'          => $list($item['merits'] ?? [], 6),
+            'cautions'        => $list($item['cautions'] ?? [], 6),
+            'cost_note'       => $this->text($item['cost_note'] ?? null),
+            'duration_note'   => $this->text($item['duration_note'] ?? null),
+        ];
+    }
+
+    /**
+     * @throws AiException
+     */
+    protected function json(string $output): array
+    {
+        $output = $this->withoutCitationMarkers($output);
+        $json = preg_match('/```json\s*(\{.*\})\s*```/su', $output, $matches) ? $matches[1] : $this->outermostObject($output);
+        $data = $json !== null ? json_decode($json, true) : null;
+
+        if (! is_array($data)) {
+            throw new AiException('出力からJSONを読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        return $data;
+    }
+
+    protected function text(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' && strtolower(trim($value)) !== 'null' ? trim($value) : null;
+    }
+
+    /**
+     * YYYY-MM-DD・YYYY-MM・YYYY を日付にする（月・日が分からない場合は1日・1月とする）
+     */
+    protected function date(mixed $value): ?string
+    {
+        if (! is_string($value) || ! preg_match('/^(\d{4})(?:[-\/年](\d{1,2}))?(?:[-\/月](\d{1,2}))?/u', trim($value), $m)) {
+            return null;
+        }
+
+        $year = (int) $m[1];
+        $month = (int) ($m[2] ?? 1) ?: 1;
+        $day = (int) ($m[3] ?? 1) ?: 1;
+
+        return checkdate($month, $day, $year) && $year >= 1980 ? sprintf('%04d-%02d-%02d', $year, $month, $day) : null;
+    }
+
+    /**
+     * @return list<string> http(s) のURLだけ
+     */
+    protected function urls(mixed $values): array
+    {
+        return array_values(array_unique(array_filter(array_map(
+            fn ($url) => is_string($url) && preg_match('#^https?://[^\s]+$#i', trim($url)) ? trim($url) : null,
+            (array) $values
+        ))));
     }
 
     /**

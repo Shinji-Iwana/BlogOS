@@ -23,17 +23,20 @@ class OpenAiClient
     }
 
     /**
-     * @return array{text: string, model: string, response_id: string|null, input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int}
+     * @param array{tool: string, max_calls: int}|null $webSearch Web検索を使う場合の設定（教材の調査。D-30）
+     * @return array{text: string, model: string, response_id: string|null, input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls: int}
      *
      * @throws OpenAiException
      */
-    public function respond(string $model, string $input, ?string $effort, int $maxOutputTokens): array
+    public function respond(string $model, string $input, ?string $effort, int $maxOutputTokens, ?array $webSearch = null): array
     {
         $body = array_filter([
             'model'             => $model,
             'input'             => $input,
             'reasoning'         => $effort !== null ? ['effort' => $effort] : null,
             'max_output_tokens' => $maxOutputTokens,
+            'tools'             => $webSearch !== null ? [['type' => $webSearch['tool']]] : null,
+            'max_tool_calls'    => $webSearch !== null ? $webSearch['max_calls'] : null,
             'store'             => false,
         ], fn ($value) => $value !== null);
 
@@ -72,7 +75,7 @@ class OpenAiClient
     }
 
     /**
-     * @return array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int}
+     * @return array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls: int}
      */
     protected function usage(array $data): array
     {
@@ -83,6 +86,8 @@ class OpenAiClient
             'cached_input_tokens' => (int) ($usage['input_tokens_details']['cached_tokens'] ?? 0),
             'output_tokens'       => (int) ($usage['output_tokens'] ?? 0),
             'reasoning_tokens'    => (int) ($usage['output_tokens_details']['reasoning_tokens'] ?? 0),
+            // Web検索の回数（検索1回ごとに料金がかかる）
+            'web_search_calls'    => count(array_filter((array) ($data['output'] ?? []), fn ($item) => ($item['type'] ?? null) === 'web_search_call')),
         ];
     }
 

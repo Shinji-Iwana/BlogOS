@@ -7,12 +7,14 @@ use App\Enums\KeywordType;
 use App\Enums\RevisionScope;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
+use App\Services\Materials\MaterialPromptValues;
 use App\Services\Quality\QualityStandard;
 use App\Services\Quality\QualityStandardLoader;
 use App\Support\QualityProfiles;
@@ -35,20 +37,28 @@ class PromptBuilder
         'full'        => '全面改修（人が指定）：構成・文章・図解・見出しを全面的に見直してよい。',
     ];
 
+    /**
+     * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
+     */
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値'];
+
     public function __construct(
         protected QualityStandardLoader $loader,
         protected ArticleRepository $articles,
         protected ArticleManagementRepository $managements,
         protected ArticleEvaluationRepository $evaluations,
         protected GoogleMetricRepository $metrics,
+        protected MaterialPromptValues $materialValues,
     ) {
     }
 
     /**
      * @param array<string, string|null> $parameters 人が画面で入力した情報（ラベル => 値）
+     * @param Material|null $material 教材の調査の対象（D-30）
+     * @param bool $webSearch Web検索を使うAPI実行か（教材の調査・候補探し）
      * @return array{prompt: string, template: AiTemplate, standard: QualityStandard}
      */
-    public function build(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope): array
+    public function build(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?Material $material = null, bool $webSearch = false): array
     {
         $template = AiTemplate::load($mode);
         $standard = $this->loader->load($blog->quality_profile);
@@ -69,6 +79,11 @@ class PromptBuilder
             'article_list'     => $this->articleList($blog),
             'article_type_options' => $this->articleTypeOptions($blog),
         ];
+
+        // 教材の調査・候補探し・見直し（D-30）
+        if ($mode->isMaterialMode()) {
+            $values = $this->materialValues->values($mode, $blog, $article, $material, $parameters, $webSearch) + $values;
+        }
 
         $prompt = preg_replace_callback('/\{\{([a-z_]+)\}\}/', fn ($m) => $values[$m[1]] ?? $m[0], $template->body);
 
@@ -153,6 +168,9 @@ class PromptBuilder
                 $lines[] = '- 記事種類：' . ($types['types'][$management->article_type] ?? $management->article_type ?? '未設定')
                     . ($management->article_subtype ? '（' . ($types['subtypes'][$management->article_subtype] ?? $management->article_subtype) . '）' : '');
                 $lines[] = '- 主の検索意図：' . ($management->main_search_intent ?: '未設定');
+                if (filled($management->target_versions)) {
+                    $lines[] = '- 対象のバージョン：' . $management->target_versions;
+                }
                 if ($management->sub_search_intents) {
                     $lines[] = '- 副の検索意図：' . implode('／', $management->sub_search_intents);
                 }
@@ -207,7 +225,7 @@ class PromptBuilder
     {
         $lines = [];
         foreach ($parameters as $label => $value) {
-            if ($label === '記事種類の値' || blank($value)) {
+            if (in_array($label, self::HIDDEN_PARAMETERS, true) || blank($value)) {
                 continue;
             }
             $lines[] = "- {$label}：" . str_replace("\n", "\n  ", trim((string) $value));

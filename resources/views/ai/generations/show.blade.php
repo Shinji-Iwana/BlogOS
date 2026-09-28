@@ -14,6 +14,7 @@
         <a href="{{ route('ai.generations.index') }}">AI実行記録の一覧</a>
         @if ($generation->draft) ・<a href="{{ route('drafts.edit', ['id' => $generation->draft->id]) }}">対象の編集案 #{{ $generation->draft->id }}</a>@endif
         @if ($article) ・<a href="{{ route('articles.show', ['type' => $generation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">対象の記事「{{ $article->title_raw }}」</a>@endif
+        @if ($generation->material) ・<a href="{{ route('materials.edit', ['id' => $generation->material->id]) }}">対象の教材「{{ $generation->material->name }}」</a>@endif
     </p>
 
     @include('partials.flash')
@@ -58,6 +59,12 @@
         @endforeach
         @if ($generation->purpose === \App\Enums\AiMode::ManagementSuggestion)
             <p>管理情報の案を作りました：<a href="{{ route('management-suggestions.index') }}"><strong>管理情報の案の確認</strong></a>の画面で確認して登録してください。</p>
+        @endif
+        @if (in_array($generation->purpose, [\App\Enums\AiMode::MaterialResearch, \App\Enums\AiMode::MaterialDiscovery], true))
+            <p>教材の案を作りました：<a href="{{ route('materials.suggestions.index') }}"><strong>教材の案の確認</strong></a>の画面で確認して登録してください。</p>
+        @endif
+        @if ($generation->purpose === \App\Enums\AiMode::MaterialReview)
+            <p>教材の見直しの結果を作りました：<a href="{{ route('materials.reviews.index') }}"><strong>記事の教材の見直し</strong></a>の画面で確認してください。</p>
         @endif
         @foreach ($generation->createdDrafts as $createdDraft)
             <p>編集案に取り込みました：<a href="{{ route('drafts.edit', ['id' => $createdDraft->id]) }}"><strong>編集案 #{{ $createdDraft->id }}「{{ $createdDraft->title_raw }}」</strong></a>（内容を確認し、必要なら直してから、反映の確認へ進んでください）</p>
@@ -112,12 +119,15 @@
                     入力 {{ number_format($generation->input_tokens) }}（うちキャッシュ {{ number_format((int) $generation->cached_input_tokens) }}）・出力 {{ number_format($generation->output_tokens) }}（うち推論 {{ number_format((int) $generation->reasoning_tokens) }}）
                 @else - @endif
             </td></tr>
+            @if ($generation->use_web_search)
+                <tr><th style="text-align:left;">Web検索</th><td>使う（検索した回数：{{ $generation->web_search_calls ?? 0 }}回）</td></tr>
+            @endif
             <tr><th style="text-align:left;">費用の目安</th><td>{{ $generation->estimated_cost !== null ? '$' . number_format($generation->estimated_cost, 4) : '-' }}（設定の料金表による計算。実際の請求はOpenAIの画面で確認）</td></tr>
         @endif
         <tr><th style="text-align:left;">テンプレート</th><td>{{ $generation->template_key }} {{ $generation->template_version }}</td></tr>
         <tr><th style="text-align:left;">品質基準</th><td>共通基準 {{ $generation->quality_common_version }}{{ $generation->quality_profile ? '、' . $generation->quality_profile . ' ' . $generation->quality_profile_version : '' }}</td></tr>
         @if ($generation->revision_scope)<tr><th style="text-align:left;">改修範囲</th><td>{{ $generation->revision_scope->label() }}</td></tr>@endif
-        <tr><th style="text-align:left;">人が提供した情報</th><td style="white-space:pre-wrap;">@foreach ((array) $generation->parameters as $label => $value)@continue($label === '記事種類の値'){{ $label }}：{{ $value }}
+        <tr><th style="text-align:left;">人が提供した情報</th><td style="white-space:pre-wrap;">@foreach ((array) $generation->parameters as $label => $value)@continue(in_array($label, \App\Services\Ai\PromptBuilder::HIDDEN_PARAMETERS, true)){{ $label }}：{{ $value }}
 @endforeach</td></tr>
         <tr><th style="text-align:left;">日時</th><td>{{ \App\Support\DisplayTime::format($generation->created_at) }}〜{{ \App\Support\DisplayTime::format($generation->completed_at) }}（{{ $generation->requester?->name ?? '-' }}）</td></tr>
     </table>

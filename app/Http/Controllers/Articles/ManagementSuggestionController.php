@@ -68,6 +68,7 @@ class ManagementSuggestionController extends Controller
             'items.*.sub_keywords'              => ['nullable', 'string', 'max:5000'],
             'items.*.main_search_intent'        => ['nullable', 'string', 'max:2000'],
             'items.*.sub_search_intents'        => ['nullable', 'string', 'max:5000'],
+            'items.*.target_versions'           => ['nullable', 'string', 'max:1000'],
         ], [
             'selected.required' => '登録・不採用にする案を、1つ以上チェックしてください。',
         ]);
@@ -97,6 +98,7 @@ class ManagementSuggestionController extends Controller
                         'article_subtype'    => $values['article_subtype'] ?? null,
                         'main_search_intent' => $values['main_search_intent'] ?? null,
                         'sub_search_intents' => $this->lines($values['sub_search_intents'] ?? null) ?: null,
+                        'target_versions'    => $values['target_versions'] ?? null,
                     ],
                     $values['main_keyword'] ?? null,
                     $this->lines($values['sub_keywords'] ?? null),

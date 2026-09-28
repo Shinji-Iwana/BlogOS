@@ -28,6 +28,12 @@ enum AiBatchTarget: string
     // 管理情報（記事種類とメインキーワード）が未登録で、確認待ちの案もない記事（D-27）
     case Unmanaged = 'unmanaged';
 
+    // 紹介している教材の見直しが必要な記事（D-30）
+    case MaterialsNeedReview = 'materials_need_review';
+
+    // 登録済みの教材を紹介している全ての記事（D-30）
+    case WithMaterials = 'with_materials';
+
     public function label(): string
     {
         return match ($this) {
@@ -38,6 +44,8 @@ enum AiBatchTarget: string
             self::Auto              => '自動の再評価の条件に当てはまる記事',
             self::AfterDiagnosis    => '品質診断の結果、基準に満たなかった記事',
             self::Unmanaged         => '管理情報（記事種類・メインキーワード）が未登録の記事',
+            self::MaterialsNeedReview => '紹介している教材の見直しが必要な記事',
+            self::WithMaterials     => '登録済みの教材を紹介している記事',
         };
     }
 
@@ -53,6 +61,7 @@ enum AiBatchTarget: string
             // 改修は、評価の結果をもとにする（評価していない記事は対象にしない）
             AiMode::Revision         => [self::BelowScore],
             AiMode::ManagementSuggestion => [self::Unmanaged, self::All],
+            AiMode::MaterialReview   => [self::MaterialsNeedReview, self::WithMaterials],
             default                  => [],
         };
     }

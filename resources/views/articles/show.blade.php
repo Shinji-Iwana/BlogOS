@@ -219,6 +219,10 @@
             <label>副の検索意図（1行に1つ）<br><textarea name="sub_search_intents" rows="3" style="width:100%; max-width:700px;">{{ old('sub_search_intents', implode("\n", $management?->sub_search_intents ?? [])) }}</textarea></label>
         </p>
         <p>
+            <label>対象のバージョン（任意。例：JavaScript ES2022、Laravel 11）<br><input type="text" name="target_versions" value="{{ old('target_versions', $management?->target_versions) }}" maxlength="1000" style="width:100%; max-width:700px;"></label><br>
+            <span style="color:#666;">記事が扱う言語・フレームワーク・試験などのバージョン。教材のバージョンと比べて、紹介する教材を判断するのに使います。</span>
+        </p>
+        <p>
             <label>メインキーワード<br><input type="text" name="main_keyword" value="{{ old('main_keyword', $keywords->firstWhere('keyword_type', \App\Enums\KeywordType::Main)?->keyword) }}" maxlength="191" style="width:100%; max-width:400px;"></label>
         </p>
         <p>
@@ -228,6 +232,38 @@
             <label>メモ<br><textarea name="memo" rows="3" style="width:100%; max-width:700px;">{{ old('memo', $management?->memo) }}</textarea></label>
         </p>
         <button type="submit">管理情報を保存する</button>
+    </form>
+
+    {{-- 記事で使っている教材（D-30） --}}
+    <h2>紹介している教材（{{ $articleMaterials->count() }}件）</h2>
+    @if ($articleMaterials->isEmpty())
+        <p>本文に、登録済みの教材のリンクはありません。</p>
+    @else
+        <ul>
+            @foreach ($articleMaterials as $record)
+                <li>
+                    {{ $record->material->kind->label() }}：<a href="{{ route('materials.edit', ['id' => $record->material_id]) }}">{{ $record->material->name }}</a>
+                    @if ($reason = $record->reviewReason())<span style="color:#b60;">見直し：{{ $reason }}</span>@endif
+                </li>
+            @endforeach
+        </ul>
+    @endif
+    <p>
+        @if ($materialReview)
+            最新の見直し：{{ \App\Support\DisplayTime::format($materialReview->created_at) }}（{{ $materialReview->status->value === 'pending' ? '確認待ち' : '確認済み' }}）
+            ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
+        @else
+            <a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
+        @endif
+    </p>
+    <form method="POST" action="{{ route('materials.reviews.run') }}">
+        @csrf
+        @include('partials.selected-blog-field')
+        <input type="hidden" name="target" value="{{ $type }}:{{ $article->id }}">
+        AIで教材を見直す：
+        <label><input type="radio" name="execution_method" value="manual" checked> 手動実行</label>
+        <label><input type="radio" name="execution_method" value="api"> API実行（標準のモデル・料金がかかります）</label>
+        <button type="submit">見直す</button>
     </form>
 
     {{-- 記事同士の関係（D-08-04） --}}

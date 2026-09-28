@@ -24,6 +24,7 @@ use App\Repositories\AiGenerationRepository;
 use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementSuggestionRepository;
+use App\Repositories\MaterialRepository;
 use App\Services\Quality\ReevaluationDetector;
 
 /**
@@ -49,7 +50,26 @@ class AiBatchService
         protected ArticleDraftRepository $drafts,
         protected ArticleEvaluationRepository $evaluations,
         protected ArticleManagementSuggestionRepository $suggestions,
+        protected MaterialRepository $materials,
     ) {
+    }
+
+    /**
+     * 登録済みの教材を紹介している記事（D-30）
+     *
+     * @param bool $needsReview 見直しが必要な記事だけ
+     * @return array{posts: array<int, true>, pages: array<int, true>}
+     */
+    protected function materialArticles(Blog $blog, bool $needsReview): array
+    {
+        $result = ['posts' => [], 'pages' => []];
+        foreach ($this->materials->articleMaterialsForBlog($blog->id) as $record) {
+            if (! $needsReview || $record->reviewReason() !== null) {
+                $result[$record->post_id !== null ? 'posts' : 'pages'][$record->post_id ?? $record->page_id] = true;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -70,15 +90,22 @@ class AiBatchService
 
         // 管理情報の案：登録済みの記事と、確認待ちの案がある記事は除く（D-27）
         $managed = $target === AiBatchTarget::Unmanaged ? $this->suggestions->managedArticles($blog->id) : ['posts' => [], 'pages' => []];
-        $pending = $mode === AiMode::ManagementSuggestion ? $this->suggestions->pendingArticles($blog->id) : ['posts' => [], 'pages' => []];
+        $pending = match ($mode) {
+            AiMode::ManagementSuggestion => $this->suggestions->pendingArticles($blog->id),
+            // 記事の教材の見直し：確認待ちの結果がある記事は除く（D-30）
+            AiMode::MaterialReview       => $this->materials->pendingReviewArticles($blog->id),
+            default                      => ['posts' => [], 'pages' => []],
+        };
+        $withMaterials = $mode === AiMode::MaterialReview ? $this->materialArticles($blog, $target === AiBatchTarget::MaterialsNeedReview) : ['posts' => [], 'pages' => []];
 
-        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending) {
+        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending, $withMaterials) {
             $key = $row['article'] instanceof Post ? 'posts' : 'pages';
 
             return match ($target) {
                 AiBatchTarget::Unevaluated => $row['evaluation'] === null,
                 AiBatchTarget::BelowScore  => $row['evaluation']?->score !== null && $row['evaluation']->score < (float) $belowScore,
                 AiBatchTarget::Unmanaged   => ! isset($managed[$key][$row['article']->id]),
+                AiBatchTarget::MaterialsNeedReview, AiBatchTarget::WithMaterials => isset($withMaterials[$key][$row['article']->id]),
                 default                    => true,
             } && ! isset($pending[$key][$row['article']->id]);
         });
@@ -102,8 +129,8 @@ class AiBatchService
         if ($blog->isArchived()) {
             throw new AiException('アーカイブしたブログでは実行できません。');
         }
-        if (! in_array($mode, [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::ManagementSuggestion], true)) {
-            throw new AiException('まとめて実行できるのは、品質診断・記事改修・管理情報の案だけです。');
+        if (! in_array($mode, [AiMode::QualityDiagnosis, AiMode::Revision, AiMode::ManagementSuggestion, AiMode::MaterialReview], true)) {
+            throw new AiException('まとめて実行できるのは、品質診断・記事改修・管理情報の案・記事の教材の見直しだけです。');
         }
         if ($targets === []) {
             throw new AiException('対象の記事がありません。');

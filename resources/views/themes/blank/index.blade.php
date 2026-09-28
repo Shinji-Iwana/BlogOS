@@ -48,6 +48,11 @@
             ・<a href="{{ route('ai.settings.edit') }}">AIの設定</a>
             ・<a href="{{ route('management-suggestions.index') }}">管理情報の案の確認</a>
         </p>
+        <p>
+            収益：<a href="{{ route('materials.index') }}">教材（書籍・Udemy・スクール）</a>
+            ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
+            ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
+        </p>
         <p><a href="{{ route('database.wordpress-records.tables') }}">取り込んだWordPressのデータ（DB確認）へ</a></p>
         <p><a href="{{ route('wp-api.home') }}">WordPress API確認ページへ</a></p>
         <p><a href="{{ route('api-site-search') }}">サイト内検索ページへ</a></p>

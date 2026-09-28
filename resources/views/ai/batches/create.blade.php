@@ -35,6 +35,8 @@
             作業中の編集案がある記事は、人の作業を上書きしないため改修しません。
         @elseif ($mode === \App\Enums\AiMode::ManagementSuggestion)
             記事種類・キーワード・検索意図の案を作ります。案は<a href="{{ route('management-suggestions.index') }}">管理情報の案の確認</a>の画面で、人が確認して登録します（自動では登録しません）。
+        @elseif ($mode === \App\Enums\AiMode::MaterialReview)
+            紹介している教材が今のままでよいかを、AIが判断します。結果は<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>の画面で、人が確認します（記事は自動では変わりません）。
         @endif
     </p>
 

@@ -17,6 +17,7 @@ class BlogAiSetting extends Model
         return [
             'auto_reevaluation_enabled' => 'boolean',
             'auto_revision_enabled'     => 'boolean',
+            'material_check_enabled'    => 'boolean',
         ];
     }
 

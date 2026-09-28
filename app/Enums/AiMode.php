@@ -16,6 +16,11 @@ enum AiMode: string
     // 記事の管理情報（記事種類・キーワード・検索意図）の案。人が確認して登録する（D-27）
     case ManagementSuggestion = 'management_suggestion';
 
+    // 教材（D-30）：登録済みの教材の情報の調査（定期チェックを兼ねる）、カテゴリを指定した候補探し、記事の教材の見直し
+    case MaterialResearch = 'material_research';
+    case MaterialDiscovery = 'material_discovery';
+    case MaterialReview = 'material_review';
+
     public function label(): string
     {
         return match ($this) {
@@ -25,6 +30,25 @@ enum AiMode: string
             self::QualityDiagnosis => '品質診断',
             self::Revision         => '記事改修',
             self::NewArticle       => '新規記事作成',
+            self::MaterialResearch  => '教材の調査',
+            self::MaterialDiscovery => '教材の候補探し',
+            self::MaterialReview    => '記事の教材の見直し',
         };
+    }
+
+    /**
+     * 教材の画面から実行するモード（AIの実行の画面では選ばない）
+     */
+    public function isMaterialMode(): bool
+    {
+        return in_array($this, [self::MaterialResearch, self::MaterialDiscovery, self::MaterialReview], true);
+    }
+
+    /**
+     * Web検索を使えるモード（API実行）
+     */
+    public function canUseWebSearch(): bool
+    {
+        return in_array($this, [self::MaterialResearch, self::MaterialDiscovery], true);
     }
 }

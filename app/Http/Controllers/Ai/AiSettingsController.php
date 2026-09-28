@@ -11,6 +11,7 @@ use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiBatchService;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AutoReevaluationService;
+use App\Services\Materials\MaterialCheckService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,7 @@ class AiSettingsController extends Controller
         protected AiApiPolicy $apiPolicy,
         protected AiBatchService $batchService,
         protected AutoReevaluationService $autoService,
+        protected MaterialCheckService $materialCheck,
     ) {
     }
 
@@ -44,6 +46,10 @@ class AiSettingsController extends Controller
             'config'     => config('blogos.ai.auto_reevaluation'),
             'revision'   => $this->autoService->followUpRevision(null, null),
             'scopeOptions' => AutoReevaluationService::scopeOptions(),
+            // 教材の定期チェック（D-30）
+            'materialCheck'    => config('blogos.materials.check'),
+            'materialDefaults' => $this->apiPolicy->defaults(AiMode::MaterialResearch),
+            'materialDue'      => $this->materialCheck->due($blog)->count(),
         ]);
     }
 
@@ -59,6 +65,7 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => ['required', 'string', 'max:100'],
             'auto_revision_reasoning_effort' => ['required', 'string', 'max:30'],
             'auto_revision_scope'            => ['nullable', Rule::in(array_keys(AutoReevaluationService::scopeOptions()))],
+            'material_check_enabled'         => ['nullable', 'boolean'],
         ]);
 
         try {
@@ -77,6 +84,7 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => $validated['auto_revision_model'],
             'auto_revision_reasoning_effort' => $validated['auto_revision_reasoning_effort'],
             'auto_revision_scope'            => $validated['auto_revision_scope'] ?? AiBatchService::SCOPE_BY_SCORE,
+            'material_check_enabled'         => (bool) ($validated['material_check_enabled'] ?? false),
         ], $request->user()?->id);
 
         return redirect()->route('ai.settings.edit')->with('status', 'AIの設定を保存しました。' . ($enabled && ! $this->apiPolicy->isConfigured() ? '（APIキーが設定されていないため、自動の再評価は実行されません）' : ''));

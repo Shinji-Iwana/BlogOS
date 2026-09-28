@@ -99,6 +99,9 @@
                                 @if ($batch->purpose === \App\Enums\AiMode::ManagementSuggestion && $item->status === \App\Enums\AiBatchItemStatus::Succeeded)
                                     ・<a href="{{ route('management-suggestions.index') }}">案を確認する</a>
                                 @endif
+                                @if ($batch->purpose === \App\Enums\AiMode::MaterialReview && $item->status === \App\Enums\AiBatchItemStatus::Succeeded)
+                                    ・<a href="{{ route('materials.reviews.index') }}">結果を確認する</a>
+                                @endif
                             @else - @endif
                         </td>
                         @php $itemCost = (float) $item->generation?->estimated_cost + (float) $item->diagnosisGeneration?->estimated_cost; @endphp

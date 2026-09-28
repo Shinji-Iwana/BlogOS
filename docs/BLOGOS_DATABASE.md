@@ -541,6 +541,7 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `article_subtype` | 細分類 |
 | `main_search_intent` | 主の検索意図 |
 | `sub_search_intents` | 副の検索意図（JSON） |
+| `target_versions` | 対象のバージョン（例：JavaScript ES2022、Laravel 11。紹介する教材の判断に使う。D-30-06） |
 | `work_status` | 作業状態（下表） |
 | `memo` | メモ |
 
@@ -650,12 +651,12 @@ BlogOSのAI機能の実行記録（D-07-04、D-07-07）。
 
 | 分類 | 列 |
 | --- | --- |
-| 対象 | `blog_id`、`post_id` / `page_id`（多くとも一方）、`article_draft_id` |
-| 実行の内容 | `purpose`（実行モード：`seo_analysis` / `structure` / `quality_diagnosis` / `revision` / `new_article`。HTML出力は `html-rules.md` の作成後）、`revision_scope`、`parameters`（人が画面で入力した情報。JSON） |
+| 対象 | `blog_id`、`post_id` / `page_id`（多くとも一方）、`article_draft_id`、`material_id`（教材の調査の対象。D-30） |
+| 実行の内容 | `purpose`（実行モード：`seo_analysis` / `structure` / `quality_diagnosis` / `revision` / `new_article` / `management_suggestion` / `material_research` / `material_discovery` / `material_review`。HTML出力は `html-rules.md` の作成後）、`revision_scope`、`parameters`（人が画面で入力した情報。JSON）、`use_web_search`（Web検索を使うAPI実行か。D-30-04） |
 | 生成方法 | `execution_method`（`manual` / `api`）、`provider`、`provider_response_id`（API実行の応答のID）、`service_plan`（手動実行の利用プラン）、`model`（API実行は応答に含まれる正確なモデル名。手動実行は画面に表示されたモデル名）、`reasoning_effort` |
 | バージョン | `template_key` / `template_version`、`quality_common_version`、`quality_profile` / `quality_profile_version` |
 | 入出力 | `input`、`output`（全文。LONGTEXT） |
-| 費用 | `input_tokens`（うち `cached_input_tokens`）、`output_tokens`（うち `reasoning_tokens`）、`estimated_cost`（API実行の費用の目安。米ドル。失敗した実行も課金された分を記録する。D-24） |
+| 費用 | `input_tokens`（うち `cached_input_tokens`）、`output_tokens`（うち `reasoning_tokens`）、`web_search_calls`（Web検索の回数）、`estimated_cost`（API実行の費用の目安。米ドル。Web検索の料金を含む。失敗した実行も課金された分を記録する。D-24） |
 | 状態 | `status`、`error`、`requested_by`（`users.id`）、`started_at`、`completed_at` |
 
 * 新規記事の作成では、記事を持たない（`post_id` / `page_id` ともにNULL）。
@@ -690,13 +691,39 @@ BlogOSのAI機能のまとめて実行（人が画面から実行したもの・
 
 ## 9-8. blog_ai_settings
 
-ブログごとのAIの設定（1ブログ1行。D-25）。`auto_reevaluation_enabled`（条件による自動の再評価。初期値は無効）、`auto_model` / `auto_reasoning_effort`（自動の再評価で使うモデル。初期値は gpt-6-luna・medium）、`auto_revision_enabled` / `auto_revision_model` / `auto_revision_reasoning_effort`（自動の再評価の後に、基準に満たない記事の編集案を作るか（初期値は有効）と、使うモデル。D-26）、`auto_revision_scope`（その改修範囲。`auto`：点数で自動判別（初期値） / `minor` / `restructure` / `full`。D-27-02）、`updated_by`。
+ブログごとのAIの設定（1ブログ1行。D-25）。`auto_reevaluation_enabled`（条件による自動の再評価。初期値は無効）、`auto_model` / `auto_reasoning_effort`（自動の再評価で使うモデル。初期値は gpt-6-luna・medium）、`auto_revision_enabled` / `auto_revision_model` / `auto_revision_reasoning_effort`（自動の再評価の後に、基準に満たない記事の編集案を作るか（初期値は有効）と、使うモデル。D-26）、`auto_revision_scope`（その改修範囲。`auto`：点数で自動判別（初期値） / `minor` / `restructure` / `full`。D-27-02）、`material_check_enabled`（教材の定期チェック。初期値は無効。D-30-07）、`updated_by`。
 
 ## 9-9. article_management_suggestions
 
-AIが作った記事の管理情報の案（D-27-03）。`blog_id`、`post_id` / `page_id`（ちょうど一方）、`ai_generation_id`、案の値（`article_type`・`article_subtype`・`main_keyword`・`sub_keywords`（JSON）・`main_search_intent`・`sub_search_intents`（JSON））、`reason`（AIが示した理由）、`status`（`pending` / `accepted` / `rejected` / `superseded`）、`reviewed_by` / `reviewed_at`。人が登録するまで、`article_managements`・`article_keywords` は変わらない。
+AIが作った記事の管理情報の案（D-27-03）。`blog_id`、`post_id` / `page_id`（ちょうど一方）、`ai_generation_id`、案の値（`article_type`・`article_subtype`・`main_keyword`・`sub_keywords`（JSON）・`main_search_intent`・`sub_search_intents`（JSON）・`target_versions`）、`reason`（AIが示した理由）、`status`（`pending` / `accepted` / `rejected` / `superseded`）、`reviewed_by` / `reviewed_at`。人が登録するまで、`article_managements`・`article_keywords` は変わらない。
 
 `article_evaluations.inbound_link_count` には、評価した時点の「この記事へのリンク」の数を記録する（数が変わったら再評価する。D-25-04）。
+
+## 9-10. materials / material_categories
+
+収益用の教材（書籍・Udemy・スクール。D-30-01、D-30-04）。
+
+| 分類 | 列 |
+| --- | --- |
+| 基本 | `blog_id`、`kind`（`book` / `udemy` / `school`）、`status`（`active`：使う / `inactive`：使わない）、`name` |
+| リンク | `amazon_url` / `rakuten_url`（書籍。もしも経由のアフィリエイト）、`affiliate_url`（Udemy・スクール）、`extra_urls`（同じ教材の別のリンク。記事との照合用。JSON）、`amazon_product_url` / `rakuten_product_url`（書籍の Amazon・楽天ブックスの商品ページ。空ならリンクの遷移先から補う。D-30-09）、`product_url`（アフィリエイトではない商品ページ：Udemy の講座ページ・スクールの公式サイト・書籍の出版社のページ） |
+| 出版 | `isbn`（ISBN-13）、`asin`、`creator`（著者・講師・運営）、`publisher`、`edition`（版）、`published_on`（出版日。Udemy は最終更新日）、`previous_material_id`（前の版） |
+| 選ぶための情報 | `topics`（分野の語句）・`target_versions`・`levels`（`intro` / `beginner` / `intermediate` / `practical`）・`scenes`（向いている場面。値は `App\Models\Material::SCENES`）・`merits`・`cautions`・`sources`（調査の根拠のURL）は JSON。`summary`・`target_readers`・`not_for`、スクールの `cost_note`・`duration_note`・`cost_checked_on` |
+| 管理 | `memo`、`info_updated_at`（選ぶための情報を最後に更新した日時。記事の見直しの判定に使う）、`researched_at`（最後にAIで調べた日時。定期チェックの判定に使う）、`created_by` |
+
+`material_categories`：教材の分野（`material_id`・`category_id`。一意）。記事のカテゴリ（とその親）との一致で候補を絞る。
+
+## 9-11. article_materials
+
+記事で使っている教材（D-30-02）。`blog_id`、`post_id` / `page_id`（ちょうど一方）、`material_id`、`source`（`detected`：本文から検出 / `human`：人が登録）、`reviewed_at`（最後に見直した日時）。一意キー：記事 + `material_id`。本文から検出した記録は、同期で本文を取り込むたびに作り直す（本文からなくなった教材の記録は消す）。見直しが必要かは、教材の状態・新しい版・`materials.info_updated_at`・記事の `wordpress_modified_gmt` と `reviewed_at` を比べて判定する（D-30-07）。
+
+## 9-12. material_suggestions
+
+AIが作った教材の案（D-30-04、D-30-05）。`blog_id`、`type`（`research`：登録済みの教材の情報 / `candidate`：新しい教材の候補）、`material_id`（調査の対象。候補では、登録したときに登録した教材）、`related_material_id`（新しい版の候補のときの前の版）、`ai_generation_id`、`kind`、`name`、`data`（案の値。`materials` の列と同じ名前。JSON）、`reason`、`status`（`pending` / `accepted` / `rejected` / `superseded`）、`reviewed_by` / `reviewed_at`。人が登録するまで、`materials` は変わらない（`researched_at` だけを記録する）。
+
+## 9-13. article_material_reviews
+
+AIによる記事の教材の見直しの結果（D-30-07）。`blog_id`、`post_id` / `page_id`（ちょうど一方）、`ai_generation_id`、`result`（今の教材ごとの判定 `current`（`material_id`・`judgment`：`keep` / `replace` / `remove`・`replace_with`・`reason`）と、追加の候補 `additions`。JSON）、`summary`、`status`（`pending` / `accepted`：確認した / `rejected` / `superseded`）、`reviewed_by` / `reviewed_at`。確認すると、記事の `article_materials.reviewed_at` を更新する。記事は変えない。
 
 ---
 

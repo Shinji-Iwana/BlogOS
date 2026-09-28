@@ -50,12 +50,16 @@ class AiGenerationController extends Controller
     {
         $blog = $this->selectedBlog();
         $mode = AiMode::tryFrom((string) $request->query('mode')) ?? AiMode::QualityDiagnosis;
+        // 教材のモードは、教材の画面から実行する（D-30）
+        if ($mode->isMaterialMode()) {
+            $mode = AiMode::QualityDiagnosis;
+        }
         ['article' => $article, 'draft' => $draft] = $this->resolveTarget($blog->id, $request->query('target'));
 
         return view('ai.generations.create', [
             'blog'         => $blog,
             'mode'         => $mode,
-            'modes'        => AiMode::cases(),
+            'modes'        => array_values(array_filter(AiMode::cases(), fn (AiMode $option) => ! $option->isMaterialMode())),
             'target'       => $this->targetKey($article, $draft),
             'article'      => $article,
             'draft'        => $draft,
@@ -88,6 +92,7 @@ class AiGenerationController extends Controller
         ]);
 
         $mode = AiMode::from($validated['mode']);
+        abort_if($mode->isMaterialMode(), 404);
         ['article' => $article, 'draft' => $draft] = $this->resolveTarget($blog->id, $validated['target'] ?? null);
 
         if ($mode === AiMode::NewArticle && blank($validated['main_keyword'] ?? null) && blank($validated['notes'] ?? null)) {

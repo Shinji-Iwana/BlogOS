@@ -6,9 +6,10 @@ use App\Models\Blog;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\ArticleContentRepository;
+use App\Services\Materials\MaterialLinkService;
 
 /**
- * 本文からの内部リンク・本文中のメディアの抽出と照合（BLOGOS_WORDPRESS_API.md 15-5、D-08-04、D-15-09）。
+ * 本文からの内部リンク・本文中のメディア・教材のリンクの抽出と照合（BLOGOS_WORDPRESS_API.md 15-5、D-08-04、D-15-09、D-30）。
  * 同期で投稿・固定ページの詳細を取得したときに使う。WordPress APIへのアクセスは増えない。
  */
 class ContentExtractionService
@@ -16,6 +17,7 @@ class ContentExtractionService
     public function __construct(
         protected ContentExtractor $extractor,
         protected ArticleContentRepository $repository,
+        protected MaterialLinkService $materialLinks,
     ) {
     }
 
@@ -26,6 +28,9 @@ class ContentExtractionService
             $this->extractor->internalLinks($article->content_raw, $blog->home),
             $this->extractor->images($article->content_raw, $blog->home)
         );
+
+        // 本文にある教材のリンク（D-30）
+        $this->materialLinks->syncArticle($article);
     }
 
     /**

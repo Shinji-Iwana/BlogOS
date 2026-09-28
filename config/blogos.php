@@ -48,6 +48,10 @@ return [
             'revision'          => env('BLOGOS_AI_METHOD_REVISION', 'manual'),
             'new_article'       => env('BLOGOS_AI_METHOD_NEW_ARTICLE', 'manual'),
             'management_suggestion' => env('BLOGOS_AI_METHOD_MANAGEMENT_SUGGESTION', 'manual'),
+            // 教材の調査・候補探し・記事の教材の見直し（D-30）。調査・候補探しは、Web検索を使えるAPI実行を標準にする
+            'material_research'  => env('BLOGOS_AI_METHOD_MATERIAL_RESEARCH', 'api'),
+            'material_discovery' => env('BLOGOS_AI_METHOD_MATERIAL_DISCOVERY', 'api'),
+            'material_review'    => env('BLOGOS_AI_METHOD_MATERIAL_REVIEW', 'manual'),
         ],
 
         // 手動実行で記録する、利用しているサービスとモデルの候補（画面で選ぶか、直接入力する。D-07-07）
@@ -71,6 +75,9 @@ return [
                 'revision'          => ['model' => env('BLOGOS_AI_MODEL_REVISION', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_REVISION', 'medium')],
                 'new_article'       => ['model' => env('BLOGOS_AI_MODEL_NEW_ARTICLE', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_NEW_ARTICLE', 'medium')],
                 'management_suggestion' => ['model' => env('BLOGOS_AI_MODEL_MANAGEMENT_SUGGESTION', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MANAGEMENT_SUGGESTION', 'medium')],
+                'material_research'  => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_RESEARCH', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_RESEARCH', 'medium')],
+                'material_discovery' => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_DISCOVERY', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_DISCOVERY', 'medium')],
+                'material_review'    => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_REVIEW', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_REVIEW', 'medium')],
             ],
 
             // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-26 に公式の料金表で確認）。
@@ -90,6 +97,14 @@ return [
 
             // 応答を待つ時間（秒）。推論が長いと数分かかる
             'timeout' => (int) env('BLOGOS_AI_TIMEOUT', 900),
+
+            // Web検索（教材の調査・候補探し。D-30）。検索1回ごとに、トークンの料金とは別に料金がかかる。
+            // 料金はOpenAIの料金表で確かめて、ここを直す。1回の実行で検索する回数に上限を付ける（費用の上限の判定にも使う）
+            'web_search' => [
+                'tool'          => env('BLOGOS_AI_WEB_SEARCH_TOOL', 'web_search'),
+                'cost_per_call' => (float) env('BLOGOS_AI_WEB_SEARCH_COST', 0.01),
+                'max_calls'     => (int) env('BLOGOS_AI_WEB_SEARCH_MAX_CALLS', 8),
+            ],
         ],
 
         // 条件による自動の再評価（品質診断だけ。D-25）。有効・無効と、使うモデル・推論の深さは、ブログごとに画面で設定する
@@ -131,6 +146,21 @@ return [
 
         // 1回の指示で実行する回数（D-07-03）
         'runs_per_instruction' => 1,
+    ],
+
+    /*
+     * 収益用の教材（書籍・Udemy・スクール。D-30）
+     */
+    'materials' => [
+        // 記事ごとにAIへ渡す教材の候補の数（一段目の絞り込み。二段目でAIが選ぶ）
+        'max_candidates' => (int) env('BLOGOS_MATERIAL_MAX_CANDIDATES', 8),
+
+        // 定期チェック（AIの設定で有効にしたブログだけ。API実行）。前回の調査からこの月数が過ぎた教材を調べ直す
+        'check' => [
+            'interval_months' => (int) env('BLOGOS_MATERIAL_CHECK_MONTHS', 6),
+            // 1日に調べる教材の上限（ブログごと）。超えた分は翌日以降に回す
+            'daily_limit'     => (int) env('BLOGOS_MATERIAL_CHECK_DAILY_LIMIT', 5),
+        ],
     ],
 
     /*

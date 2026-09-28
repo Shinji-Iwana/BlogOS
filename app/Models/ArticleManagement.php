@@ -25,7 +25,7 @@ class ArticleManagement extends Model
     /**
      * 履歴の対象の列
      */
-    public const TRACKED_COLUMNS = ['article_type', 'article_subtype', 'main_search_intent', 'sub_search_intents', 'work_status', 'memo'];
+    public const TRACKED_COLUMNS = ['article_type', 'article_subtype', 'main_search_intent', 'sub_search_intents', 'target_versions', 'work_status', 'memo'];
 
     protected function casts(): array
     {

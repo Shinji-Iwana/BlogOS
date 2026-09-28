@@ -12,6 +12,9 @@ BlogOSのAI機能が、AIへの指示文を作るときに使うテンプレー�
 | `quality_diagnosis.md` | 品質診断 |
 | `revision.md` | 記事改修 |
 | `new_article.md` | 新規記事作成 |
+| `material_research.md` | 教材の調査（登録済みの教材の情報・新しい版の確認。定期チェックを兼ねる。D-30） |
+| `material_discovery.md` | 教材の候補探し（カテゴリを指定して、新しい教材の候補を探す。D-30） |
+| `material_review.md` | 記事の教材の見直し（紹介している教材が今のままでよいか。D-30） |
 
 HTML出力のテンプレートは、ブログ別のHTMLのルール（`resources/quality/blogs/{ブログ}/html-rules.md`）ができてから作る。
 
@@ -36,6 +39,14 @@ HTML出力のテンプレートは、ブログ別のHTMLのルール（`resource
 | `shortfalls` | 最新の評価で ○ でなかった項目と理由 |
 | `parameters` | 人が画面で入力した情報（キーワード・補足・実体験など） |
 | `article_list` | ブログの公開済みの記事の一覧（タイトルとURL。内部リンクの候補） |
+| `research_method` | 教材の調べ方（Web検索を使えるか） |
+| `material_info` | 調べる教材の登録済みの情報と、紹介リンクの遷移先 |
+| `material_sources` | 確認できた情報（書籍は楽天ブックスAPIの検索結果） |
+| `material_options` | 選べる値（対象のレベル・向いている場面・ブログのカテゴリのID） |
+| `registered_materials` | 登録済みの教材（重複を避けるため） |
+| `discovery_target` | 候補を探すカテゴリ・教材の種類・探す数・カテゴリの記事のタイトル |
+| `article_materials` | 記事で今使っている教材と、見直しの理由 |
+| `material_candidates` | 記事に合う教材の候補（一段目の絞り込みの結果。`App\Services\Materials\MaterialMatcher`） |
 
 ## 3. 変更履歴
 
@@ -43,3 +54,5 @@ HTML出力のテンプレートは、ブログ別のHTMLのルール（`resource
 | --- | --- |
 | 2026-09-26 | 初版（5つの実行モード） |
 | 2026-09-26 | メタディスクリプション（AIOSEO）を追加。記事改修・新規記事作成 1.1.0（出力に「=== メタディスクリプション ===」を追加）、品質診断 1.0.1（判定の根拠を追記）（D-23-04） |
+| 2026-09-28 | 教材の調査・候補探し 1.1.0（書籍の Amazon・楽天の商品ページを別の欄 amazon_product_url・rakuten_product_url で出力）（D-30-09） |
+| 2026-09-27 | 教材の調査・候補探し・記事の教材の見直しのテンプレート（1.0.0）を追加。管理情報の案 1.1.0（出力に対象のバージョン target_versions を追加）（D-30） |
