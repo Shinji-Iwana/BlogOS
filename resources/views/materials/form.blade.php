@@ -90,7 +90,7 @@
                 <th style="text-align:left;">楽天のリンク<br>（もしも）</th>
                 <td><textarea name="rakuten_url" rows="2" style="width:100%;">{{ old('rakuten_url', $material->rakuten_url) }}</textarea></td>
             </tr>
-            <tr data-kind="udemy,school" @style(['display:none' => $kindValue === 'book'])>
+            <tr data-kind="udemy,school,question_bank" @style(['display:none' => $kindValue === 'book'])>
                 <th style="text-align:left;">アフィリエイトのリンク</th>
                 <td><textarea name="affiliate_url" rows="2" style="width:100%;" placeholder="Udemyの紹介リンク、もしものリンクなど（URL または <a href=&quot;...&quot;> を含むHTML）">{{ old('affiliate_url', $material->affiliate_url) }}</textarea></td>
             </tr>
@@ -117,7 +117,7 @@
             </tr>
             <tr>
                 <th style="text-align:left;">
-                    <span data-kind="udemy,school" @style(['display:none' => $kindValue === 'book'])>商品ページ</span>
+                    <span data-kind="udemy,school,question_bank" @style(['display:none' => $kindValue === 'book'])>商品ページ</span>
                     <span data-kind="book" @style(['display:none' => $kindValue !== 'book'])>出版社などのページ</span>
                 </th>
                 <td>
@@ -188,7 +188,7 @@
             <tr><th style="text-align:left; vertical-align:top;">向いていない人</th><td><textarea name="not_for" rows="2" style="width:100%;">{{ old('not_for', $material->not_for) }}</textarea></td></tr>
             <tr><th style="text-align:left; vertical-align:top;">メリット</th><td><textarea name="merits" rows="3" style="width:100%;">{{ old('merits', $lines($material->merits)) }}</textarea></td></tr>
             <tr><th style="text-align:left; vertical-align:top;">注意点</th><td><textarea name="cautions" rows="3" style="width:100%;">{{ old('cautions', $lines($material->cautions)) }}</textarea></td></tr>
-            <tr data-kind="school" @style(['display:none' => $kindValue !== 'school'])>
+            <tr data-kind="school,question_bank" @style(['display:none' => ! in_array($kindValue, ['school', 'question_bank'], true)])>
                 <th style="text-align:left;">費用の目安・学習期間</th>
                 <td>
                     <input type="text" name="cost_note" value="{{ old('cost_note', $material->cost_note) }}" style="width:260px;" placeholder="費用の目安">

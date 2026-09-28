@@ -325,10 +325,11 @@ class MaterialTest extends TestCase
         $this->assertContains($udemy->id, $ids);
         $this->assertNotContains($other->id, $ids);
 
-        // 親ロードマップでは紹介しない（今使っている教材だけ、見直しのために残す）
+        // ロードマップでは、体系的に学べる教材だけを候補にする（それ以外は、今使っている教材として見直しのために残す。D-33-05）
         ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $this->post->id, 'article_type' => 'parent_roadmap']);
-        $roadmap = app(MaterialMatcher::class)->candidates($this->blog, $this->post);
-        $this->assertTrue(collect($roadmap)->every(fn ($row) => $row['used'] && $row['score'] === 0));
+        $roadmap = collect(app(MaterialMatcher::class)->candidates($this->blog, $this->post))->keyBy(fn ($row) => $row['material']->id);
+        $this->assertGreaterThan(0, $roadmap[$book->id]['score']);
+        $this->assertSame(0, $roadmap[$udemy->id]['score']);
         ArticleManagement::query()->delete();
 
         // 二段目：AIの見直し（手動実行）

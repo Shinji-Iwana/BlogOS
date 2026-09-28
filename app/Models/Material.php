@@ -122,6 +122,16 @@ class Material extends Model
     }
 
     /**
+     * リンクのプログラム（提携先の広告）の識別子（AffiliateLink::programKey。D-33-08）
+     *
+     * @return array<string, string|null> 表示名 => プログラムの識別子（分からないリンクは null）
+     */
+    public function programKeys(): array
+    {
+        return array_map(fn ($url) => AffiliateLink::programKey((string) $url), $this->affiliateLinks());
+    }
+
+    /**
      * 記事の本文との照合に使う、リンクの識別子（AffiliateLink::key）
      *
      * @return list<string>

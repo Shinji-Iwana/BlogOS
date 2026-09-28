@@ -13,6 +13,8 @@
         ・登録する：<a href="{{ route('materials.create', ['kind' => 'book']) }}">書籍</a>
         ／<a href="{{ route('materials.create', ['kind' => 'udemy']) }}">Udemy</a>
         ／<a href="{{ route('materials.create', ['kind' => 'school']) }}">スクール</a>
+        ／<a href="{{ route('materials.create', ['kind' => 'question_bank']) }}">問題集・オンライン教材</a>
+        ・<a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラム（提携の状態）</a>
         ・<a href="{{ route('materials.detected') }}">既存の記事のリンクから登録する</a>
         ・<a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
         ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>（{{ $pendingSuggestions }}件）
@@ -67,6 +69,7 @@
                                     <a href="{{ route('materials.edit', ['id' => $material->id]) }}">{{ $material->name }}</a>
                                     @if ($material->successors->isNotEmpty())<br><span style="color:#b60;">新しい版：{{ $material->successors->pluck('name')->implode('、') }}</span>@endif
                                     @if ($material->previous)<br><span style="color:#666;">前の版：{{ $material->previous->name }}</span>@endif
+                                    @if ($programProblems[$material->id] ?? [])<br><span style="color:#b00;">提携中でないリンク：{{ implode('／', $programProblems[$material->id]) }}</span>@endif
                                 </td>
                                 <td>{{ $material->edition }} {{ $material->published_on?->format('Y-m-d') }}</td>
                                 <td style="max-width:260px;">

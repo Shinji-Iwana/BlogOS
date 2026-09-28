@@ -74,7 +74,7 @@
                             // 写す項目の初期値：案があり、今の値と違う項目
                             $checked = filled($proposed) && $proposedText !== $current;
                         @endphp
-                        @continue($field === 'cost_note' || $field === 'duration_note' ? $suggestion->kind !== \App\Enums\MaterialKind::School : false)
+                        @continue($field === 'cost_note' || $field === 'duration_note' ? ! $suggestion->kind?->hasCost() : false)
                         @continue(in_array($field, ['isbn', 'amazon_product_url', 'rakuten_product_url'], true) && $suggestion->kind !== \App\Enums\MaterialKind::Book)
                         <tr>
                             @if ($isResearch)<td><input type="checkbox" class="apply-check" name="apply[]" value="{{ $field }}" @checked(in_array($field, (array) old('apply', $checked ? [$field] : []), true))></td>@endif

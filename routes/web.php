@@ -33,6 +33,7 @@ use App\Http\Controllers\Images\EyecatchController;
 use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Materials\MaterialAiController;
 use App\Http\Controllers\Materials\MaterialController;
+use App\Http\Controllers\Materials\AffiliateProgramController;
 use App\Http\Controllers\Materials\MaterialReviewController;
 use App\Http\Controllers\Materials\MaterialSuggestionController;
 use App\Http\Controllers\Push\PushOperationController;
@@ -192,6 +193,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/materials/suggestions', [MaterialSuggestionController::class, 'index'])->name('materials.suggestions.index');
     Route::get('/materials/suggestions/{id}', [MaterialSuggestionController::class, 'show'])->whereNumber('id')->name('materials.suggestions.show');
     Route::get('/materials/reviews', [MaterialReviewController::class, 'index'])->name('materials.reviews.index');
+    Route::get('/materials/programs', [AffiliateProgramController::class, 'index'])->name('materials.programs.index');
     Route::get('/materials/{id}/edit', [MaterialController::class, 'edit'])->whereNumber('id')->name('materials.edit');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
@@ -206,6 +208,10 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/materials/suggestions/{id}/apply', [MaterialSuggestionController::class, 'apply'])->whereNumber('id')->name('materials.suggestions.apply');
         Route::post('/materials/suggestions/{id}/register', [MaterialSuggestionController::class, 'register'])->whereNumber('id')->name('materials.suggestions.register');
         Route::post('/materials/suggestions/{id}/reject', [MaterialSuggestionController::class, 'reject'])->whereNumber('id')->name('materials.suggestions.reject');
+        Route::post('/materials/programs', [AffiliateProgramController::class, 'store'])->name('materials.programs.store');
+        Route::put('/materials/programs/{id}', [AffiliateProgramController::class, 'update'])->whereNumber('id')->name('materials.programs.update');
+        Route::post('/materials/programs/register', [AffiliateProgramController::class, 'registerFromLinks'])->name('materials.programs.register');
+        Route::post('/materials/programs/check', [AffiliateProgramController::class, 'checkLinks'])->name('materials.programs.check');
         Route::post('/materials/reviews/run', [MaterialAiController::class, 'review'])->name('materials.reviews.run');
         Route::post('/materials/reviews/mark', [MaterialReviewController::class, 'markReviewed'])->name('materials.reviews.mark');
         Route::post('/materials/reviews/{id}/confirm', [MaterialReviewController::class, 'confirm'])->whereNumber('id')->name('materials.reviews.confirm');

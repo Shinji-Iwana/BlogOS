@@ -79,6 +79,38 @@ class AffiliateLink
     }
 
     /**
+     * アフィリエイトのプログラム（提携先の広告）の識別子（D-33-08）。プログラムが分からないリンクは null。
+     * もしもは広告ごと（p_id）、それ以外はサービスごとにまとめる
+     */
+    public static function programKey(?string $url): ?string
+    {
+        $url = self::extractUrl($url);
+        if ($url === null) {
+            return null;
+        }
+
+        $parts = parse_url(html_entity_decode($url, ENT_QUOTES | ENT_HTML5));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        parse_str((string) ($parts['query'] ?? ''), $query);
+
+        return match (true) {
+            $host === 'af.moshimo.com'                                          => filled($query['p_id'] ?? null) && is_string($query['p_id']) ? 'moshimo:' . $query['p_id'] : null,
+            $host === 'trk.udemy.com'                                           => 'udemy',
+            $host === 'hb.afl.rakuten.co.jp'                                    => 'rakuten',
+            $host === 'amzn.to', (bool) preg_match('/(^|\.)amazon\.co\.jp$/', $host) && filled($query['tag'] ?? null) => 'amazon',
+            default                                                             => null,
+        };
+    }
+
+    /**
+     * プログラムの識別子の ASP（affiliate_programs.asp）
+     */
+    public static function aspOf(string $programKey): string
+    {
+        return in_array($programKey, ['udemy', 'rakuten', 'amazon'], true) ? $programKey : (explode(':', $programKey, 2)[0] ?: 'other');
+    }
+
+    /**
      * Amazon の商品ページ（/dp/ASIN、/gp/product/ASIN）の ASIN
      */
     public static function asin(?string $url): ?string

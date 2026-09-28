@@ -111,6 +111,8 @@ class PagesSmokeTest extends TestCase
             'materials discover'      => ['materials.discover.create'],
             'material suggestions'    => ['materials.suggestions.index'],
             'material reviews'        => ['materials.reviews.index'],
+            'affiliate programs'      => ['materials.programs.index'],
+            'question bank create'    => ['materials.create', ['kind' => 'question_bank']],
             'ai settings'             => ['ai.settings.edit'],
         ];
     }

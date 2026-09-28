@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\Material;
 use App\Repositories\MaterialRepository;
 use App\Services\Ai\AiApiPolicy;
+use App\Services\Materials\AffiliateProgramService;
 use App\Services\Materials\MaterialLinkService;
 use App\Services\Materials\MaterialService;
 use App\Support\AffiliateLink;
@@ -32,6 +33,7 @@ class MaterialController extends Controller
         protected MaterialService $service,
         protected MaterialLinkService $links,
         protected AiApiPolicy $apiPolicy,
+        protected AffiliateProgramService $programs,
     ) {
     }
 
@@ -54,6 +56,7 @@ class MaterialController extends Controller
             'kind'             => $kind,
             'materials'        => $materials,
             'needsReview'      => $needsReview,
+            'programProblems'  => $materials->mapWithKeys(fn (Material $material) => [$material->id => $this->programs->problems($material)])->filter()->all(),
             'pendingSuggestions' => $this->materials->countPendingSuggestions($blog->id),
             'api'              => $this->apiSummary(),
             'categories'       => $this->categories($blog),

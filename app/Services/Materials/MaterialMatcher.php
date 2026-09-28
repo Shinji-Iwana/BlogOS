@@ -23,6 +23,7 @@ class MaterialMatcher
     public function __construct(
         protected MaterialRepository $materials,
         protected ArticleManagementRepository $managements,
+        protected AffiliateProgramService $programs,
     ) {
     }
 
@@ -44,7 +45,8 @@ class MaterialMatcher
         $rows = [];
         foreach ($this->materials->activeForBlog($blog->id) as $material) {
             [$score, $reasons] = $this->score($material, $context);
-            if ($score > 0 && $this->allowedFor($material, $context['article_type'])) {
+            // 提携中でないプログラムのリンクしかない教材は、候補にしない（D-33-08）
+            if ($score > 0 && $this->allowedFor($material, $context['article_type']) && $this->programs->isUsable($material)) {
                 $rows[$material->id] = ['material' => $material, 'score' => $score, 'reasons' => $reasons, 'used' => in_array($material->id, $used, true)];
             }
         }
@@ -56,7 +58,8 @@ class MaterialMatcher
         $included = array_map(fn ($row) => $row['material']->id, $rows);
         foreach ($article !== null ? $this->materials->forArticle($article) : [] as $record) {
             if ($record->material !== null && ! in_array($record->material_id, $included, true)) {
-                $rows[] = ['material' => $record->material, 'score' => 0, 'reasons' => ['記事で使っている'], 'used' => true];
+                $problems = $this->programs->isUsable($record->material) ? [] : ['提携中でないため紹介に使えない（' . implode('／', $this->programs->problems($record->material)) . '）。別の教材に差し替えるか、紹介をやめる'];
+                $rows[] = ['material' => $record->material, 'score' => 0, 'reasons' => array_merge(['記事で使っている'], $problems), 'used' => true];
             }
         }
 
@@ -64,14 +67,13 @@ class MaterialMatcher
     }
 
     /**
-     * 記事種類ごとの扱い（品質基準 si-note/article-types.md）。親ロードマップは紹介しない。子ロードマップは体系的に学べる教材だけ
+     * 記事種類ごとの扱い（品質基準 si-note/article-types.md 2-4・3-4）。ロードマップは体系的に学べる教材だけ（数の上限はAIが品質基準で判断する）
      */
     protected function allowedFor(Material $material, ?string $articleType): bool
     {
         return match ($articleType) {
-            'parent_roadmap' => false,
-            'child_roadmap'  => in_array('systematic', (array) $material->scenes, true),
-            default          => true,
+            'parent_roadmap', 'child_roadmap' => in_array('systematic', (array) $material->scenes, true),
+            default                           => true,
         };
     }
 

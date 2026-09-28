@@ -26,5 +26,8 @@ Schedule::command('ai:auto-reevaluate')->dailyAt('06:00')->timezone(config('blog
 // 教材の定期チェック（AIの設定で有効にしたブログだけ）。前回の調査から期間が過ぎた教材を、1日に上限の数まで調べ直す（D-30）
 Schedule::command('materials:check')->dailyAt('06:30')->timezone(config('blogos.display_timezone'));
 
+// アフィリエイトのプログラムのリンクの確認（週1回・月曜）。提携が終わったプログラムを見つける（D-33-09）
+Schedule::command('affiliate:check-links')->weeklyOn(1, '06:45')->timezone(config('blogos.display_timezone'));
+
 // 保存期間を過ぎた同期の記録などを削除する（D-04-08。対象は Prunable を使うModel）
 Schedule::command('model:prune')->dailyAt('04:00')->timezone(config('blogos.display_timezone'));

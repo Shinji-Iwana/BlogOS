@@ -721,17 +721,21 @@ OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`
 
 ## 9-10. materials / material_categories
 
-収益用の教材（書籍・Udemy・スクール。D-30-01、D-30-04）。
+収益用の教材（書籍・Udemy・スクール・問題集。D-30-01、D-30-04、D-33-08）。
 
 | 分類 | 列 |
 | --- | --- |
-| 基本 | `blog_id`、`kind`（`book` / `udemy` / `school`）、`status`（`active`：使う / `inactive`：使わない）、`name` |
+| 基本 | `blog_id`、`kind`（`book` / `udemy` / `school` / `question_bank`：問題集・オンライン教材）、`status`（`active`：使う / `inactive`：使わない）、`name` |
 | リンク | `amazon_url` / `rakuten_url`（書籍。もしも経由のアフィリエイト）、`affiliate_url`（Udemy・スクール）、`extra_urls`（同じ教材の別のリンク。記事との照合用。JSON）、`amazon_product_url` / `rakuten_product_url`（書籍の Amazon・楽天ブックスの商品ページ。空ならリンクの遷移先から補う。D-30-09）、`product_url`（アフィリエイトではない商品ページ：Udemy の講座ページ・スクールの公式サイト・書籍の出版社のページ） |
 | 出版 | `isbn`（ISBN-13）、`asin`、`creator`（著者・講師・運営）、`publisher`、`edition`（版）、`published_on`（出版日。Udemy は最終更新日）、`previous_material_id`（前の版） |
 | 選ぶための情報 | `topics`（分野の語句）・`target_versions`・`levels`（`intro` / `beginner` / `intermediate` / `practical`）・`scenes`（向いている場面。値は `App\Models\Material::SCENES`）・`merits`・`cautions`・`sources`（調査の根拠のURL）は JSON。`summary`・`target_readers`・`not_for`、スクールの `cost_note`・`duration_note`・`cost_checked_on` |
 | 管理 | `memo`、`info_updated_at`（選ぶための情報を最後に更新した日時。記事の見直しの判定に使う）、`researched_at`（最後にAIで調べた日時。定期チェックの判定に使う）、`created_by` |
 
 `material_categories`：教材の分野（`material_id`・`category_id`。一意）。記事のカテゴリ（とその親）との一致で候補を絞る。
+
+## 9-10-2. affiliate_programs
+
+ASP のプログラム（提携先の広告）と状態（D-33-08）。`blog_id`、`program_key`（リンクから読み取る識別子。`App\Support\AffiliateLink::programKey`。もしもは `moshimo:{p_id}`、ほかは `udemy` / `amazon` / `rakuten`。一意キー：`blog_id` + `program_key`）、`asp`（`moshimo` / `udemy` / `rakuten` / `amazon` / `a8` / `other`）、`name`、`material_kind`（このプログラムの教材の種類。リンクから教材を登録するときに使う。null 可）、`status`（`active`：提携中 / `applying`：申請中 / `rejected`：否認 / `ended`：提携終了 / `unconfirmed`：未確認）、`status_changed_on`、`memo`、リンクの定期確認の結果（D-33-09）：`check_url`（確認に使ったリンク）・`check_result`（`ok` / `suspect`：提携終了の疑い / `error`：確認できなかった）・`check_detail`・`checked_at`。提携中・未確認のプログラムのリンクだけを紹介に使う。教材とは列で結ばず、教材のリンクの識別子で対応させる（書籍は Amazon と楽天で別のプログラムになるため）。
 
 ## 9-11. article_materials
 

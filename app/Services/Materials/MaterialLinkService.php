@@ -8,6 +8,7 @@ use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\MaterialRepository;
+use App\Support\AffiliateLink;
 
 /**
  * 記事の本文にある教材のリンクと、登録した教材の照合（D-30）。
@@ -25,6 +26,7 @@ class MaterialLinkService
     public function __construct(
         protected MaterialLinkScanner $scanner,
         protected MaterialRepository $materials,
+        protected AffiliateProgramService $programs,
     ) {
     }
 
@@ -44,11 +46,19 @@ class MaterialLinkService
             return $parent[$key] === $key ? $key : ($parent[$key] = $find($parent[$key]));
         };
 
+        // 教材の種類は、プログラム（提携先の広告）に種類を登録していれば、それに合わせる（D-33-08。問題集など）
+        $this->programs->forget($blog->id);
+        $programs = $this->programs->programs($blog->id);
+
         $links = [];
         foreach ([Post::class, Page::class] as $modelClass) {
             foreach ($modelClass::where('blog_id', $blog->id)->existing()->get(['id', 'blog_id', 'title_raw', 'link', 'status', 'content_raw']) as $article) {
                 $groups = [];
                 foreach ($this->scanner->scan((string) $article->content_raw) as $link) {
+                    $programKind = $programs->get((string) AffiliateLink::programKey($link['url']))?->material_kind;
+                    if ($programKind !== null && $link['link_type'] === 'affiliate') {
+                        $link['kind'] = $programKind;
+                    }
                     $links[] = $link + ['article' => $article];
                     $groups[$link['group']][] = $link['key'];
                 }

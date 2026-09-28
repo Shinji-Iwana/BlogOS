@@ -103,4 +103,14 @@ class AffiliateLinkTest extends TestCase
         $this->assertSame('DMM WEBCAMP 学習コース', $school['name']);
         $this->assertNotSame($udemy['group'], $school['group']);
     }
+
+    public function test_program_key_identifies_the_affiliate_program(): void
+    {
+        $this->assertSame('moshimo:5256', AffiliateLink::programKey('//af.moshimo.com/af/c/click?a_id=4&p_id=5256&pc_id=14256&pl_id=68863'));
+        $this->assertSame('udemy', AffiliateLink::programKey('https://trk.udemy.com/3kkdxr'));
+        $this->assertSame('amazon', AffiliateLink::programKey('https://www.amazon.co.jp/dp/4295005924?tag=example-22'));
+        $this->assertNull(AffiliateLink::programKey('https://www.amazon.co.jp/dp/4295005924'));
+        $this->assertSame('moshimo', AffiliateLink::aspOf('moshimo:5256'));
+        $this->assertSame('udemy', AffiliateLink::aspOf('udemy'));
+    }
 }

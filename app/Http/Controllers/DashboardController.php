@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AffiliateLinkCheckResult;
+use App\Enums\AffiliateProgramStatus;
+use App\Models\AffiliateProgram;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Sync\SyncStatusService;
@@ -39,6 +42,10 @@ class DashboardController extends Controller
                 'failed'  => $latestCheck !== null && ! $latestCheck->succeeded(),
                 'applied' => $this->priceRepository->appliedSince(now()->subDays(7)),
             ],
+            // アフィリエイトのリンクの確認で、提携終了の疑いがあるプログラムの数（D-33-09）
+            'affiliateSuspects' => $selectedBlog ? AffiliateProgram::where('blog_id', $selectedBlog->id)
+                ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])
+                ->where('check_result', AffiliateLinkCheckResult::Suspect)->count() : 0,
         ]);
     }
 }

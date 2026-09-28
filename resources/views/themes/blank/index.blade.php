@@ -47,6 +47,14 @@
         </p>
     @endif
 
+    {{-- アフィリエイトのリンクの確認（D-33-09） --}}
+    @if (($affiliateSuspects ?? 0) > 0)
+        <p style="color:#b00;">
+            アフィリエイトのリンク：提携終了の疑いがあるプログラムが{{ $affiliateSuspects }}件あります。
+            <a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラムを確認する</a>
+        </p>
+    @endif
+
     <p><a href="{{ route('blogs.create') }}">ブログを登録する</a></p>
     <p><a href="{{ route('database-blog-list') }}">ブログ一覧ページへ</a></p>
     <p><a href="{{ route('database-blog-history-list') }}">ブログ変更履歴一覧ページへ</a></p>
@@ -66,7 +74,8 @@
             ・<a href="{{ route('management-suggestions.index') }}">管理情報の案の確認</a>
         </p>
         <p>
-            収益：<a href="{{ route('materials.index') }}">教材（書籍・Udemy・スクール）</a>
+            収益：<a href="{{ route('materials.index') }}">教材（書籍・Udemy・スクール・問題集）</a>
+            ・<a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラム</a>
             ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
             ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
         </p>
