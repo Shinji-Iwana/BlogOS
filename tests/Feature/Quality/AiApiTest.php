@@ -222,6 +222,34 @@ class AiApiTest extends TestCase
         $this->assertSame(3, AiGeneration::count());
     }
 
+    public function test_saved_output_can_be_reprocessed_without_calling_api(): void
+    {
+        Http::fake(['api.openai.com/v1/responses' => Http::response($this->response('診断しました（JSONなし）'))]);
+
+        $this->post(route('ai.generations.store'), $this->selected([
+            'mode' => 'quality_diagnosis', 'target' => "posts:{$this->post->id}", 'execution_method' => 'api', 'model' => 'gpt-6-luna', 'reasoning_effort' => 'medium',
+        ]));
+
+        // 回答はあるが取り込めなかった：回答と費用は残す
+        $generation = AiGeneration::sole();
+        $this->assertSame(AiGenerationStatus::Failed, $generation->status);
+        $this->assertSame('診断しました（JSONなし）', $generation->output);
+        $this->get(route('ai.generations.show', ['id' => $generation->id]))->assertOk()->assertSee('保存済みの回答を、もう一度取り込む');
+
+        // 取り込めない回答のままなら、失敗のまま
+        $this->post(route('ai.generations.reprocess', ['id' => $generation->id]), $this->selected())->assertSessionHasErrors('ai');
+
+        // 取り込める回答なら、APIを呼ばずに取り込む（取り込みの仕組みを直した後を想定）
+        $generation->update(['output' => $this->diagnosisOutput()]);
+        $this->post(route('ai.generations.reprocess', ['id' => $generation->id]), $this->selected())->assertRedirect();
+        $this->assertSame(AiGenerationStatus::Succeeded, $generation->fresh()->status);
+        $this->assertSame(1, ArticleEvaluation::count());
+        Http::assertSentCount(1);
+
+        // 成功した実行は、取り込み直せない
+        $this->post(route('ai.generations.reprocess', ['id' => $generation->id]), $this->selected())->assertSessionHasErrors('ai');
+    }
+
     public function test_job_runs_only_once_and_waits_for_queue(): void
     {
         Queue::fake();

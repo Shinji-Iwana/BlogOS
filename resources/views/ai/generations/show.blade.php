@@ -39,6 +39,16 @@
     @endif
 
     {{-- API実行：失敗したら、同じ指示文でもう一度実行できる（料金がかかる） --}}
+    @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed && filled($generation->output))
+        {{-- 回答はあるが取り込めなかった場合：保存済みの回答で取り込み直す（APIは呼ばない） --}}
+        <form method="POST" action="{{ route('ai.generations.reprocess', ['id' => $generation->id]) }}" style="margin-bottom:8px;">
+            @csrf
+            @include('partials.selected-blog-field')
+            <button type="submit">保存済みの回答を、もう一度取り込む</button>
+            （APIは呼ばないため、料金はかかりません。取り込みの仕組みを直した後などに使います）
+        </form>
+    @endif
+
     @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed)
         <form method="POST" action="{{ route('ai.generations.retry', ['id' => $generation->id]) }}" onsubmit="return confirm('同じ指示文で、もう一度API実行しますか？（料金がかかります）');">
             @csrf

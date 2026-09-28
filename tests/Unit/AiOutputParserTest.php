@@ -36,6 +36,33 @@ class AiOutputParserTest extends TestCase
         $this->assertSame("製品体系が古い。 修正が必要。\n\n改善点：\n- 最優先：公式情報に合わせる。", $result['summary']);
     }
 
+    public function test_trailing_commas_in_json_are_tolerated(): void
+    {
+        // AIがよくする書き間違い：閉じかっこの直前の余分な「,」。文字列の中の「,}」は変えない
+        $output = <<<'TEXT'
+            ```json
+            {
+              "material": {
+                "name": "入門書",
+                "summary": "基礎を学べる。,}も含む説明",
+                "topics": ["JavaScript", "DOM",],
+                "availability": "発売中",
+              },
+              "newer": [],
+              "sources": [],
+              "reason": "確認した",
+            }
+            ```
+            TEXT;
+
+        $result = (new AiOutputParser())->materialResearch($output);
+
+        $this->assertSame('入門書', $result['material']['name']);
+        $this->assertSame('基礎を学べる。,}も含む説明', $result['material']['summary']);
+        $this->assertSame(['JavaScript', 'DOM'], $result['material']['topics']);
+        $this->assertSame('発売中', $result['availability']);
+    }
+
     public function test_article_sections_without_citation_markers(): void
     {
         $output = "=== タイトル ===\nMAとは\n=== メタディスクリプション ===\nMAの説明。:contentReference[oaicite:0]{index=0}\n=== 本文 ===\n<p>本文</p>";

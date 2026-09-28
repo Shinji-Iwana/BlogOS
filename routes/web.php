@@ -165,6 +165,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/{id}/output', [AiGenerationController::class, 'submit'])->whereNumber('id')->name('ai.generations.submit');
         Route::post('/ai/{id}/cancel', [AiGenerationController::class, 'cancel'])->whereNumber('id')->name('ai.generations.cancel');
         Route::post('/ai/{id}/retry', [AiGenerationController::class, 'retry'])->whereNumber('id')->name('ai.generations.retry');
+        Route::post('/ai/{id}/reprocess', [AiGenerationController::class, 'reprocess'])->whereNumber('id')->name('ai.generations.reprocess');
         Route::post('/ai/batches', [AiBatchController::class, 'store'])->name('ai.batches.store');
         Route::post('/ai/batches/{id}/cancel', [AiBatchController::class, 'cancel'])->whereNumber('id')->name('ai.batches.cancel');
         Route::put('/ai/settings', [AiSettingsController::class, 'update'])->name('ai.settings.update');

@@ -222,6 +222,20 @@ class AiRunService
     }
 
     /**
+     * 回答を取り込めずに失敗したAPI実行を、保存済みの回答でもう一度取り込む（APIは呼ばないため、料金はかからない）
+     *
+     * @throws AiException
+     */
+    public function reprocessApiOutput(AiGeneration $generation, ?int $userId): void
+    {
+        if ($generation->execution_method !== AiExecutionMethod::Api || $generation->status !== AiGenerationStatus::Failed || blank($generation->output)) {
+            throw new AiException('回答を取り込めずに失敗したAPI実行だけを、取り込み直せます。');
+        }
+
+        $this->complete($generation, $userId);
+    }
+
+    /**
      * 失敗したAPI実行を、同じ指示文でもう一度実行する（新しい実行記録を作る。前の記録の費用は残す）
      *
      * @throws AiException

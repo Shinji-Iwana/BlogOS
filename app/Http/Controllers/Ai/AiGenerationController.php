@@ -166,6 +166,24 @@ class AiGenerationController extends Controller
     }
 
     /**
+     * 回答を取り込めずに失敗したAPI実行を、保存済みの回答で取り込み直す（料金はかからない）
+     */
+    public function reprocess(Request $request, int $id)
+    {
+        $blog = $this->selectedBlog();
+        $generation = $this->generations->findForBlog($blog->id, $id);
+        abort_if($generation === null, 404);
+
+        try {
+            $this->runService->reprocessApiOutput($generation, $request->user()?->id);
+        } catch (AiException $e) {
+            return redirect()->route('ai.generations.show', ['id' => $id])->withErrors(['ai' => "回答を取り込めませんでした：{$e->getMessage()}"]);
+        }
+
+        return redirect()->route('ai.generations.show', ['id' => $id])->with('status', '保存済みの回答を取り込みました。');
+    }
+
+    /**
      * API実行の設定と、今月の費用の目安（画面の表示用）
      */
     protected function apiSummary(AiMode $mode): array

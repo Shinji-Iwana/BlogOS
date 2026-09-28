@@ -23,7 +23,7 @@ class AiOutputParser
     {
         $output = $this->withoutCitationMarkers($output);
         $json = preg_match('/```json\s*(\{.*\})\s*```/su', $output, $matches) ? $matches[1] : $this->outermostObject($output);
-        $data = $json !== null ? json_decode($json, true) : null;
+        $data = $json !== null ? $this->decode($json) : null;
 
         if (! is_array($data) || (! isset($data['items']) && ! isset($data['required']))) {
             throw new AiException('出力からJSON（required・items）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
@@ -68,7 +68,7 @@ class AiOutputParser
     {
         $output = $this->withoutCitationMarkers($output);
         $json = preg_match('/```json\s*(\{.*\})\s*```/su', $output, $matches) ? $matches[1] : $this->outermostObject($output);
-        $data = $json !== null ? json_decode($json, true) : null;
+        $data = $json !== null ? $this->decode($json) : null;
 
         if (! is_array($data) || ! array_key_exists('main_keyword', $data)) {
             throw new AiException('出力からJSON（main_keyword など）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
@@ -241,7 +241,7 @@ class AiOutputParser
     {
         $output = $this->withoutCitationMarkers($output);
         $json = preg_match('/```json\s*(\{.*\})\s*```/su', $output, $matches) ? $matches[1] : $this->outermostObject($output);
-        $data = $json !== null ? json_decode($json, true) : null;
+        $data = $json !== null ? $this->decode($json) : null;
 
         if (! is_array($data)) {
             throw new AiException('出力からJSONを読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
@@ -319,6 +319,22 @@ class AiOutputParser
             '/【oaicite:\d+】/u',
             '/\x{E200}cite\x{E202}[^\x{E201}]*\x{E201}/u',
         ], '', $text) ?? $text;
+    }
+
+    /**
+     * JSONを読み取る。AIがよくする小さな書き間違い（閉じかっこの直前の余分な「,」）は、直してから読み取る
+     */
+    protected function decode(string $json): mixed
+    {
+        $data = json_decode($json, true);
+        if ($data !== null || json_last_error() === JSON_ERROR_NONE) {
+            return $data;
+        }
+
+        // 文字列の中の「,」は変えないよう、文字列とそれ以外に分けて直す
+        $fixed = preg_replace_callback('/"(?:[^"\\\\]|\\\\.)*"|[^"]+/s', fn ($m) => $m[0][0] === '"' ? $m[0] : preg_replace('/,(\s*[}\]])/', '$1', $m[0]), $json);
+
+        return $fixed !== null ? json_decode($fixed, true) : null;
     }
 
     protected function outermostObject(string $text): ?string
