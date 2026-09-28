@@ -54,7 +54,7 @@
             @csrf
             @include('partials.selected-blog-field')
             <button type="submit">同じ指示文で、もう一度API実行する</button>
-            （今月の費用の目安：${{ number_format($api['spent'], 2) }} ／ 上限 ${{ number_format($api['budget'], 2) }}）
+            （@include('partials.ai-cost-line')）
         </form>
     @endif
 

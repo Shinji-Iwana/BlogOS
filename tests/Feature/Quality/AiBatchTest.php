@@ -342,7 +342,7 @@ class AiBatchTest extends TestCase
 
         $batch = AiBatch::sole();
         $this->assertSame(AiBatchStatus::Stopped, $batch->status);
-        $this->assertStringContainsString('月の費用の上限', $batch->stop_reason);
+        $this->assertStringContainsString('月の支出の上限', $batch->stop_reason);
         $this->assertSame(1, AiBatchItem::where('status', AiBatchItemStatus::Succeeded)->count());
         $this->assertSame(2, AiBatchItem::where('status', AiBatchItemStatus::Skipped)->count());
         Http::assertSentCount(1);

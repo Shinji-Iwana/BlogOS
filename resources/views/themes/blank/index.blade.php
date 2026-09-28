@@ -31,6 +31,22 @@
         @include('partials.sync-status')
     @endif
 
+    {{-- OpenAI の残高の見込みのお知らせ（D-31-04） --}}
+    @if ($selectedBlog)
+        @include('partials.ai-credit-notice')
+    @endif
+
+    {{-- API実行の料金表のお知らせ（D-31-03） --}}
+    @if ($selectedBlog && ($priceNotice['pending'] || $priceNotice['failed'] || $priceNotice['applied']))
+        <p style="color:#b60;">
+            AIの料金表：
+            @if ($priceNotice['failed'])<strong style="color:#b00;">公式のページから読み取れなかった料金があります。</strong>@endif
+            @if ($priceNotice['pending'])値下がりの確認待ちが{{ $priceNotice['pending'] }}件あります。@endif
+            @if ($priceNotice['applied'])直近7日に{{ $priceNotice['applied'] }}件の料金を変更しました。@endif
+            <a href="{{ route('ai.settings.edit') }}#prices">料金表を確認する</a>
+        </p>
+    @endif
+
     <p><a href="{{ route('blogs.create') }}">ブログを登録する</a></p>
     <p><a href="{{ route('database-blog-list') }}">ブログ一覧ページへ</a></p>
     <p><a href="{{ route('database-blog-history-list') }}">ブログ変更履歴一覧ページへ</a></p>
@@ -46,6 +62,7 @@
             ・<a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
             ・<a href="{{ route('ai.batches.index') }}">AIのまとめて実行</a>
             ・<a href="{{ route('ai.settings.edit') }}">AIの設定</a>
+            ・<a href="{{ route('ai.credits.index') }}">AIの費用と残高</a>
             ・<a href="{{ route('management-suggestions.index') }}">管理情報の案の確認</a>
         </p>
         <p>

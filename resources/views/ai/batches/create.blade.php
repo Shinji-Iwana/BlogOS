@@ -15,6 +15,8 @@
 
     @include('partials.flash')
 
+    @include('partials.ai-credit-notice')
+
     <p>
         実行モード：
         @foreach (\App\Http\Controllers\Ai\AiBatchController::MODES as $option)
@@ -89,7 +91,7 @@
         @else
             費用の目安：{{ $model }} で{{ $mode->label() }}を実行したことがないため、計算できません。
         @endif
-        今月の費用の目安：${{ number_format($api['spent'], 2) }} ／ 上限 ${{ number_format($api['budget'], 2) }}（上限に近づいたら、残りの記事は実行せずに止めます）。
+        @include('partials.ai-cost-line')。OpenAI の残高が足りなくなる見込みになったら、残りの記事は実行せずに止めます。
     </p>
 
     @if ($targets !== [] && $api['configured'])

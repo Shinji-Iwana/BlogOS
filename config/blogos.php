@@ -81,7 +81,8 @@ return [
             ],
 
             // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-28 に公式のモデルのページで確認）。
-            // 料金は費用の目安と上限の判定に使う。料金が変わったらここを直す。
+            // 料金は費用の目安と上限の判定に使う。料金はDBの料金表（ai_prices）を使い、毎日OpenAIの公式のページと照合する（D-31-03）。
+            // ここの料金は、料金表を作るときの初期値と、料金表にないモデルの値。
             // cache_write：キャッシュの書き込み（キャッシュされていない入力は、OpenAIが自動でキャッシュに書き込み、入力の1.25倍の料金になる。D-31-01）
             // 推論の深さは、費用がかさむ xhigh・max を選べないようにしている（astra は none に対応していない）
             'models' => [
@@ -100,11 +101,18 @@ return [
             // キャッシュの書き込みが起きる、入力の最小のトークン数（これより短い入力はキャッシュされず、入力の料金になる）
             'cache_min_tokens' => 1024,
 
+            // 料金表の照合に使う、OpenAIの公式のページ（毎日。AIを使わずに読むため、料金はかからない。D-31-03）
+            'price_check' => [
+                'model_url'   => env('BLOGOS_AI_PRICE_MODEL_URL', 'https://developers.openai.com/api/docs/models/{model}'),
+                'pricing_url' => env('BLOGOS_AI_PRICE_PAGE_URL', 'https://developers.openai.com/api/docs/pricing'),
+            ],
+
             // 1回あたりの出力トークン（推論のトークンを含む）の上限。超えた場合は途中で打ち切られ、失敗になる
             'max_output_tokens' => (int) env('BLOGOS_AI_MAX_OUTPUT_TOKENS', 48000),
 
-            // 月の費用の上限（米ドル。日本時間の月初から数える）。実行前に「今月の費用＋今回の最大の費用」がこれを超えるなら実行しない
-            'monthly_budget_usd' => (float) env('BLOGOS_AI_MONTHLY_BUDGET_USD', 10),
+            // 月の支出の上限（米ドル。日本時間の月初から数える。任意）。設定した場合、「今月の費用＋今回の最大の費用」がこれを超えるなら実行しない。
+            // 空なら上限を設けない（OpenAI の残高の見込みでは判定する。下の credit。D-31-04）
+            'monthly_budget_usd' => filled(env('BLOGOS_AI_MONTHLY_BUDGET_USD')) ? (float) env('BLOGOS_AI_MONTHLY_BUDGET_USD') : null,
 
             // 応答を待つ時間（秒）。推論が長いと数分かかる
             'timeout' => (int) env('BLOGOS_AI_TIMEOUT', 900),
@@ -117,6 +125,16 @@ return [
                 'cost_per_call' => (float) env('BLOGOS_AI_WEB_SEARCH_COST', 0.01),
                 'max_calls'     => (int) env('BLOGOS_AI_WEB_SEARCH_MAX_CALLS', 8),
             ],
+        ],
+
+        // OpenAI の残高（前払いのクレジット）の見込み（D-31-04）。人が OpenAI の画面で見た残高と課金した額を登録し、その後の費用の目安を引いて見込む
+        'credit' => [
+            // 残高の見込みがこの額以下になったら、画面で知らせる（OpenAI で課金して、BlogOS に登録する）
+            'warning_usd' => (float) env('BLOGOS_AI_CREDIT_WARNING_USD', 3),
+            // 「残高の見込み − 今回の最大の費用」がこの額を下回るなら、API実行をしない（見込みのずれに備えて残しておく額）
+            'reserve_usd' => (float) env('BLOGOS_AI_CREDIT_RESERVE_USD', 0.5),
+            // 最後に残高を登録してからこの日数が過ぎたら、実際の残高との照合を促す
+            'reconcile_days' => (int) env('BLOGOS_AI_CREDIT_RECONCILE_DAYS', 30),
         ],
 
         // 条件による自動の再評価（品質診断だけ。D-25）。有効・無効と、使うモデル・推論の深さは、ブログごとに画面で設定する

@@ -58,7 +58,7 @@
             <legend>実行方式</legend>
             @include('materials.partials.method', ['webSearch' => true, 'prefix' => 'discover'])
             @if ($api['configured'])
-                <p style="color:#666;">今月の費用の目安：${{ number_format($api['spent'], 2) }} ／ 上限 ${{ number_format($api['budget'], 2) }}。</p>
+                <p style="color:#666;">@include('partials.ai-cost-line')。</p>
             @endif
         </fieldset>
 

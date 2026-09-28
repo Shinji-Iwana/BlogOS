@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Services\Ai\AiApiPolicy;
+use App\Services\Ai\AiCreditService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,5 +42,13 @@ class AppServiceProvider extends ServiceProvider
         if (filled($caBundle) && is_file($caBundle)) {
             Http::globalOptions(['verify' => $caBundle]);
         }
+
+        // OpenAI の残高の見込みのお知らせ（D-31-04）。表示する画面ごとに、Controller から渡さなくてよいようにする
+        View::composer(['partials.ai-credit-notice', 'partials.ai-cost-line'], function ($view) {
+            $view->with([
+                'creditStatus'        => app(AiCreditService::class)->status(),
+                'creditApiConfigured' => app(AiApiPolicy::class)->isConfigured(),
+            ]);
+        });
     }
 }

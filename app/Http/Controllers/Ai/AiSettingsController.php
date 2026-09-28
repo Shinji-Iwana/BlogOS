@@ -6,6 +6,7 @@ use App\Enums\AiBatchTarget;
 use App\Enums\AiMode;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
+use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogAiSettingRepository;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiBatchService;
@@ -28,6 +29,7 @@ class AiSettingsController extends Controller
         protected AiBatchService $batchService,
         protected AutoReevaluationService $autoService,
         protected MaterialCheckService $materialCheck,
+        protected AiPriceRepository $priceRepository,
     ) {
     }
 
@@ -50,6 +52,13 @@ class AiSettingsController extends Controller
             'materialCheck'    => config('blogos.materials.check'),
             'materialDefaults' => $this->apiPolicy->defaults(AiMode::MaterialResearch),
             'materialDue'      => $this->materialCheck->due($blog)->count(),
+            // API実行の料金表（全ブログ共通。D-31-03）
+            'priceModels'      => $this->apiPolicy->models(),
+            'webSearchPrice'   => $this->apiPolicy->webSearch()['cost_per_call'],
+            'storedPrices'     => $this->priceRepository->all(),
+            'pendingPrices'    => $this->priceRepository->pending(),
+            'priceHistory'     => $this->priceRepository->recentChanges(10),
+            'latestPriceCheck' => $this->priceRepository->latestCheck(),
         ]);
     }
 

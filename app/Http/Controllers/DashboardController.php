@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Sync\SyncStatusService;
 use App\Services\ThemeService;
@@ -11,6 +12,7 @@ class DashboardController extends Controller
     public function __construct(
         protected BlogRepository $blogRepository,
         protected SyncStatusService $syncStatusService,
+        protected AiPriceRepository $priceRepository,
     ) {
     }
 
@@ -25,10 +27,18 @@ class DashboardController extends Controller
     {
         $selectedBlog = $this->blogRepository->findSelected();
 
+        // API実行の料金表のお知らせ（D-31-03）：確認待ちの値下がり、読み取れなかった料金、直近7日の値上がり
+        $latestCheck = $this->priceRepository->latestCheck();
+
         return view(ThemeService::index(), [
             'blogs'        => $this->blogRepository->getAll(),
             'selectedBlog' => $selectedBlog,
             'syncStatus'   => $selectedBlog ? $this->syncStatusService->forBlog($selectedBlog) : null,
+            'priceNotice'  => [
+                'pending' => $this->priceRepository->pending()->count(),
+                'failed'  => $latestCheck !== null && ! $latestCheck->succeeded(),
+                'applied' => $this->priceRepository->appliedSince(now()->subDays(7)),
+            ],
         ]);
     }
 }

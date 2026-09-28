@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Ai\AiBatchController;
+use App\Http\Controllers\Ai\AiCreditController;
 use App\Http\Controllers\Ai\AiGenerationController;
+use App\Http\Controllers\Ai\AiPriceController;
 use App\Http\Controllers\Ai\AiSettingsController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
@@ -158,6 +160,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/ai/batches/create', [AiBatchController::class, 'create'])->name('ai.batches.create');
     Route::get('/ai/batches/{id}', [AiBatchController::class, 'show'])->whereNumber('id')->name('ai.batches.show');
     Route::get('/ai/settings', [AiSettingsController::class, 'edit'])->name('ai.settings.edit');
+    Route::get('/ai/credits', [AiCreditController::class, 'index'])->name('ai.credits.index');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::post('/evaluations', [EvaluationController::class, 'store'])->name('evaluations.store');
@@ -169,6 +172,14 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/batches', [AiBatchController::class, 'store'])->name('ai.batches.store');
         Route::post('/ai/batches/{id}/cancel', [AiBatchController::class, 'cancel'])->whereNumber('id')->name('ai.batches.cancel');
         Route::put('/ai/settings', [AiSettingsController::class, 'update'])->name('ai.settings.update');
+        // AIの費用と残高（D-31-04）
+        Route::post('/ai/credits/balance', [AiCreditController::class, 'storeBalance'])->name('ai.credits.balance');
+        Route::post('/ai/credits/purchase', [AiCreditController::class, 'storePurchase'])->name('ai.credits.purchase');
+        Route::delete('/ai/credits/{id}', [AiCreditController::class, 'destroy'])->whereNumber('id')->name('ai.credits.destroy');
+        // API実行の料金表（D-31-03）
+        Route::post('/ai/prices/check', [AiPriceController::class, 'check'])->name('ai.prices.check');
+        Route::post('/ai/prices/changes/{id}/apply', [AiPriceController::class, 'apply'])->whereNumber('id')->name('ai.prices.apply');
+        Route::post('/ai/prices/changes/{id}/reject', [AiPriceController::class, 'reject'])->whereNumber('id')->name('ai.prices.reject');
     });
 
     // 収益用の教材（書籍・Udemy・スクール）。D-30

@@ -55,6 +55,35 @@ class AiGenerationRepository
     }
 
     /**
+     * 指定した日時より後に費用が記録されたAPI実行の、費用の目安の合計（残高の見込みの計算。D-31-04）。
+     * 実行の途中（まだ費用がない）ものは、終わったときに加わる
+     */
+    public function apiCostAfter(DateTimeInterface $after): float
+    {
+        return (float) AiGeneration::where('execution_method', AiExecutionMethod::Api)
+            ->whereRaw('COALESCE(completed_at, created_at) > ?', [$after])
+            ->sum('estimated_cost');
+    }
+
+    /**
+     * API実行の日ごと・モデルごとの集計（OpenAI の Usage の画面と比べるため。日付は UTC。D-31-04）
+     *
+     * @return Collection<int, object{day: string, model: string, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, web_search_calls: int, cost: float}>
+     */
+    public function apiUsageByDay(DateTimeInterface $from, DateTimeInterface $to): Collection
+    {
+        return AiGeneration::where('execution_method', AiExecutionMethod::Api)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotNull('input_tokens')
+            ->selectRaw('DATE(created_at) as day, model, COUNT(*) as requests, SUM(input_tokens) as input_tokens, SUM(COALESCE(cached_input_tokens, 0)) as cached_input_tokens, SUM(output_tokens) as output_tokens, SUM(COALESCE(web_search_calls, 0)) as web_search_calls, SUM(estimated_cost) as cost')
+            ->groupBy('day', 'model')
+            ->orderByDesc('day')
+            ->orderBy('model')
+            ->toBase()
+            ->get();
+    }
+
+    /**
      * 成功したAPI実行の、1回あたりの費用の平均（まとめて実行の費用の目安。モデル名は応答の日付付きの名前を含む）
      */
     public function averageApiCost(AiMode $mode, string $model): ?float

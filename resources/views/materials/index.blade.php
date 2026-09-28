@@ -21,6 +21,8 @@
 
     @include('partials.flash')
 
+    @include('partials.ai-credit-notice')
+
     <p style="color:#666;">
         記事の本文にある教材のリンクは、同期のたびに照合し、どの記事でどの教材を使っているかを記録します。
         記事に合う教材を選ぶための情報（分野・レベル・向いている場面など）は、各教材の「AIで調べる」で調べ、人が確認して登録します。
@@ -91,7 +93,7 @@
             @if ($api['configured'])
                 <p style="color:#666;">
                     API実行だけです（1つずつ調べるときは、教材の画面から手動実行も選べます）。結果は「教材の案の確認」で確認して登録します。
-                    今月の費用の目安：${{ number_format($api['spent'], 2) }} ／ 上限 ${{ number_format($api['budget'], 2) }}。
+                    @include('partials.ai-cost-line')。
                 </p>
                 @include('materials.partials.method', ['method' => 'api', 'webSearch' => true, 'prefix' => 'bulk', 'apiOnly' => true, 'api' => $api + ['defaults' => config('blogos.ai.api.defaults.material_research')]])
                 <p><button type="submit">チェックした教材を調べる</button></p>

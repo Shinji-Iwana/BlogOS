@@ -3,18 +3,31 @@
 namespace App\Services\Ai;
 
 use App\Enums\AiMode;
+use App\Models\AiPrice;
 use App\Repositories\AiGenerationRepository;
+use App\Repositories\AiPriceRepository;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * API実行の設定・費用の目安・費用の上限（D-07-08、D-24）。
  *
- * 料金は config/blogos.php の ai.api.models（1Mトークンあたりの米ドル）で計算する。実際の請求はOpenAIの画面で確認する。
+ * 選べるモデルと推論の深さは config/blogos.php の ai.api.models で決める。料金（1Mトークンあたりの米ドル）は、
+ * 毎日OpenAIの公式のページと照合するDBの料金表（ai_prices。D-31-03）を使い、DBにないモデルは設定の値を使う。
+ * 実際の請求はOpenAIの画面で確認する。
  */
 class AiApiPolicy
 {
+    /**
+     * @var array<string, array<string, mixed>>|null
+     */
+    protected ?array $models = null;
+
     public function __construct(
         protected AiGenerationRepository $generations,
+        protected AiPriceRepository $prices,
+        protected AiCreditService $credits,
     ) {
     }
 
@@ -24,11 +37,55 @@ class AiApiPolicy
     }
 
     /**
-     * @return array<string, array{input: float, cached_input: float, cache_write: float, output: float, efforts: list<string>}>
+     * @return array<string, array{input: float, cached_input: float, cache_write: float, output: float, efforts: list<string>, long_context: array{threshold_tokens: int, input_multiplier: float, output_multiplier: float}}>
      */
     public function models(): array
     {
-        return (array) config('blogos.ai.api.models', []);
+        if ($this->models !== null) {
+            return $this->models;
+        }
+
+        $prices = $this->storedPrices();
+        $defaultLong = (array) config('blogos.ai.api.long_context');
+        $models = [];
+        foreach ((array) config('blogos.ai.api.models', []) as $name => $config) {
+            $stored = $prices->get($name);
+            $models[$name] = [
+                'input'        => $stored?->input ?? $config['input'],
+                'cached_input' => $stored?->cached_input ?? $config['cached_input'],
+                'cache_write'  => $stored?->cache_write ?? $config['cache_write'] ?? $config['input'],
+                'output'       => $stored?->output ?? $config['output'],
+                'efforts'      => $config['efforts'],
+                'long_context' => [
+                    'threshold_tokens'  => $stored?->long_context_threshold ?? (int) ($defaultLong['threshold_tokens'] ?? PHP_INT_MAX),
+                    'input_multiplier'  => $stored?->long_input_multiplier ?? (float) ($defaultLong['input_multiplier'] ?? 1),
+                    'output_multiplier' => $stored?->long_output_multiplier ?? (float) ($defaultLong['output_multiplier'] ?? 1),
+                ],
+            ];
+        }
+
+        return $this->models = $models;
+    }
+
+    /**
+     * 料金表が変わったときに、読み直す
+     */
+    public function forgetPrices(): void
+    {
+        $this->models = null;
+    }
+
+    /**
+     * @return Collection<string, AiPrice>
+     */
+    protected function storedPrices(): Collection
+    {
+        try {
+            return $this->prices->all();
+        } catch (QueryException) {
+            // 料金表のテーブルを作る前（Migrationの前）は、設定の値を使う
+            return new Collection();
+        }
     }
 
     /**
@@ -70,8 +127,8 @@ class AiApiPolicy
         $uncachedRate = $inputTokens >= (int) config('blogos.ai.api.cache_min_tokens', 1024) ? ($price['cache_write'] ?? $price['input']) : $price['input'];
 
         // 長い入力は、その1回すべてを高い料金で計算する
-        $long = (array) config('blogos.ai.api.long_context');
-        $isLong = $inputTokens > (int) ($long['threshold_tokens'] ?? PHP_INT_MAX);
+        $long = $price['long_context'];
+        $isLong = $inputTokens > (int) $long['threshold_tokens'];
         $inputMultiplier = $isLong ? (float) $long['input_multiplier'] : 1.0;
         $outputMultiplier = $isLong ? (float) $long['output_multiplier'] : 1.0;
 
@@ -97,7 +154,10 @@ class AiApiPolicy
      */
     public function webSearch(): array
     {
-        return (array) config('blogos.ai.api.web_search');
+        $config = (array) config('blogos.ai.api.web_search');
+        $stored = $this->storedPrices()->get(AiPrice::WEB_SEARCH)?->per_call;
+
+        return ['cost_per_call' => $stored ?? (float) $config['cost_per_call']] + $config;
     }
 
     public function maxOutputTokens(): int
@@ -105,9 +165,22 @@ class AiApiPolicy
         return (int) config('blogos.ai.api.max_output_tokens');
     }
 
-    public function monthlyBudget(): float
+    /**
+     * 月の支出の上限（任意。設定がなければ null で、上限を設けない。D-31-04）
+     */
+    public function monthlyBudget(): ?float
     {
-        return (float) config('blogos.ai.api.monthly_budget_usd');
+        $budget = config('blogos.ai.api.monthly_budget_usd');
+
+        return $budget === null || $budget === '' ? null : (float) $budget;
+    }
+
+    /**
+     * OpenAI の残高の見込み（残高が未登録なら null。D-31-04）
+     */
+    public function estimatedBalance(): ?float
+    {
+        return $this->credits->status()['balance'];
     }
 
     /**
@@ -129,13 +202,25 @@ class AiApiPolicy
             throw new AiApiUnavailableException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。手動実行を選ぶか、APIキーを設定してください。');
         }
 
-        $spent = $this->spentThisMonth();
         $max = $this->maxCost($model, $input, $webSearch);
-        $budget = $this->monthlyBudget();
 
-        if ($spent + $max > $budget) {
+        // OpenAI の残高の見込み：今回の最大の費用を引いて、残しておく額を下回るなら実行しない（残高が未登録なら判定しない。画面で登録を促す）
+        $credit = $this->credits->status();
+        if ($credit['balance'] !== null && $credit['balance'] - $max < $credit['reserve']) {
             throw new AiApiUnavailableException(sprintf(
-                '月の費用の上限を超えるおそれがあるため、実行しません（今月の費用の目安 $%.2f ＋ 今回の最大 $%.2f ＞ 上限 $%.2f）。上限は .env の BLOGOS_AI_MONTHLY_BUDGET_USD で変えられます。',
+                'OpenAI の残高が足りなくなる見込みのため、実行しません（残高の見込み $%.2f − 今回の最大 $%.2f ＜ 残しておく額 $%.2f）。OpenAI の画面（Billing）で残高を確認し、課金した場合は、BlogOS の「AIの費用と残高」に課金した額を登録してください。見込みと実際の残高が違う場合は、実際の残高を登録してください。',
+                $credit['balance'],
+                $max,
+                $credit['reserve']
+            ));
+        }
+
+        // 月の支出の上限（設定した場合だけ）
+        $budget = $this->monthlyBudget();
+        $spent = $this->spentThisMonth();
+        if ($budget !== null && $spent + $max > $budget) {
+            throw new AiApiUnavailableException(sprintf(
+                '月の支出の上限を超えるおそれがあるため、実行しません（今月の費用の目安 $%.2f ＋ 今回の最大 $%.2f ＞ 上限 $%.2f）。上限は .env の BLOGOS_AI_MONTHLY_BUDGET_USD で変えられます（空にすると上限なし）。',
                 $spent,
                 $max,
                 $budget
