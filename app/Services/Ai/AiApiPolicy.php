@@ -24,7 +24,7 @@ class AiApiPolicy
     }
 
     /**
-     * @return array<string, array{input: float, cached_input: float, output: float, efforts: list<string>}>
+     * @return array<string, array{input: float, cached_input: float, cache_write: float, output: float, efforts: list<string>}>
      */
     public function models(): array
     {
@@ -65,9 +65,17 @@ class AiApiPolicy
             return null;
         }
 
+        // キャッシュされていない入力は、OpenAIが自動でキャッシュに書き込むため、書き込みの料金になる（短い入力はキャッシュされない。D-31-01）
         $cached = min($cachedInputTokens, $inputTokens);
+        $uncachedRate = $inputTokens >= (int) config('blogos.ai.api.cache_min_tokens', 1024) ? ($price['cache_write'] ?? $price['input']) : $price['input'];
 
-        return round((($inputTokens - $cached) * $price['input'] + $cached * $price['cached_input'] + $outputTokens * $price['output']) / 1_000_000
+        // 長い入力は、その1回すべてを高い料金で計算する
+        $long = (array) config('blogos.ai.api.long_context');
+        $isLong = $inputTokens > (int) ($long['threshold_tokens'] ?? PHP_INT_MAX);
+        $inputMultiplier = $isLong ? (float) $long['input_multiplier'] : 1.0;
+        $outputMultiplier = $isLong ? (float) $long['output_multiplier'] : 1.0;
+
+        return round((($inputTokens - $cached) * $uncachedRate * $inputMultiplier + $cached * $price['cached_input'] * $inputMultiplier + $outputTokens * $price['output'] * $outputMultiplier) / 1_000_000
             + $webSearchCalls * $this->webSearch()['cost_per_call'], 4);
     }
 

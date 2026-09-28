@@ -13,6 +13,7 @@ use App\Models\Blog;
 use App\Models\Post;
 use App\Models\User;
 use App\Repositories\AiGenerationRepository;
+use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiRunService;
 use App\Services\Quality\QualityStandardLoader;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -123,14 +124,14 @@ class AiApiTest extends TestCase
         $this->assertSame(10000, $generation->cached_input_tokens);
         $this->assertSame(12000, $generation->output_tokens);
         $this->assertSame(4000, $generation->reasoning_tokens);
-        // (20000 × $2 + 10000 × $0.20 + 12000 × $10) / 1M = $0.162
-        $this->assertSame(0.162, $generation->estimated_cost);
+        // キャッシュされていない入力は書き込みの料金（D-31-01）：(20000 × $2.50 + 10000 × $0.20 + 12000 × $10) / 1M = $0.172
+        $this->assertSame(0.172, $generation->estimated_cost);
 
         $evaluation = ArticleEvaluation::sole();
         $this->assertSame(EvaluatorType::Ai, $evaluation->evaluator_type);
         $this->assertSame($generation->id, $evaluation->ai_generation_id);
 
-        $this->get(route('ai.generations.show', ['id' => $generation->id]))->assertOk()->assertSee('$0.1620')->assertSee('うち推論 4,000');
+        $this->get(route('ai.generations.show', ['id' => $generation->id]))->assertOk()->assertSee('$0.1720')->assertSee('うち推論 4,000');
     }
 
     public function test_revision_via_api_uses_mode_defaults(): void
@@ -197,7 +198,7 @@ class AiApiTest extends TestCase
         $first = AiGeneration::sole();
         $this->assertSame(AiGenerationStatus::Failed, $first->status);
         $this->assertStringContainsString('max_output_tokens', $first->error);
-        $this->assertSame(0.162, $first->estimated_cost);
+        $this->assertSame(0.172, $first->estimated_cost);
         $this->assertNull($first->output);
         $this->assertSame(0, ArticleEvaluation::count());
 
@@ -220,6 +221,21 @@ class AiApiTest extends TestCase
         // 成功した実行は、実行し直せない
         $this->post(route('ai.generations.retry', ['id' => $third->id]), $this->selected())->assertSessionHasErrors('ai');
         $this->assertSame(3, AiGeneration::count());
+    }
+
+    public function test_cost_includes_cache_writes_and_long_context(): void
+    {
+        $policy = app(AiApiPolicy::class);
+
+        // キャッシュされていない入力（30000 − 10000）は書き込みの料金、キャッシュ済みの入力は安い料金（D-31-01）
+        $this->assertSame(0.0086, $policy->cost('gpt-6-luna', 30000, 10000, 12000));
+        // 短い入力はキャッシュされないため、入力の料金
+        $this->assertSame(round((1000 * 0.10 + 100 * 0.50) / 1_000_000, 4), $policy->cost('gpt-6-luna', 1000, 0, 100));
+        // 長い入力（27万2千トークン超）は、その1回すべてを 入力・キャッシュ2倍、出力1.5倍
+        $this->assertSame(round((300000 * 0.125 * 2 + 1000 * 0.50 * 1.5) / 1_000_000, 4), $policy->cost('gpt-6-luna', 300000, 0, 1000));
+        // Web検索は1回ごとに加える
+        $this->assertSame(round(0.0086 + 3 * 0.01, 4), $policy->cost('gpt-6-luna', 30000, 10000, 12000, 3));
+        $this->assertNull($policy->cost('unknown-model', 1, 0, 1));
     }
 
     public function test_saved_output_can_be_reprocessed_without_calling_api(): void
@@ -274,7 +290,7 @@ class AiApiTest extends TestCase
         $stuck = AiGeneration::create($generation->only(['blog_id', 'post_id', 'purpose', 'execution_method', 'template_key', 'template_version', 'input']) + ['status' => 'running']);
         (new RunAiApiJob($stuck->id))->failed(new \RuntimeException('timeout'));
         $this->assertSame(AiGenerationStatus::Failed, $stuck->fresh()->status);
-        // 標準の gpt-6-luna の料金：(20000 × $0.10 + 10000 × $0.01 + 12000 × $0.50) / 1M = $0.0081
-        $this->assertSame(0.0081, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()));
+        // 標準の gpt-6-luna の料金：(20000 × $0.125 + 10000 × $0.01 + 12000 × $0.50) / 1M = $0.0086
+        $this->assertSame(0.0086, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()));
     }
 }

@@ -381,8 +381,10 @@ class MaterialTest extends TestCase
             'api.openai.com/v1/responses' => Http::response([
                 'id' => 'resp_1', 'status' => 'completed', 'model' => 'gpt-6-luna',
                 'output' => [
+                    ['type' => 'web_search_call', 'status' => 'completed', 'action' => ['type' => 'search', 'query' => 'いちばんやさしいJavaScriptの教本']],
                     ['type' => 'web_search_call', 'status' => 'completed'],
-                    ['type' => 'web_search_call', 'status' => 'completed'],
+                    // ページを開く動作は、料金の対象ではないため数えない（D-31-01）
+                    ['type' => 'web_search_call', 'status' => 'completed', 'action' => ['type' => 'open_page', 'url' => 'https://book.impress.co.jp/']],
                     ['type' => 'message', 'content' => [['type' => 'output_text', 'text' => $output]]],
                 ],
                 'usage' => ['input_tokens' => 10000, 'input_tokens_details' => ['cached_tokens' => 0], 'output_tokens' => 2000, 'output_tokens_details' => ['reasoning_tokens' => 1000]],
@@ -404,8 +406,8 @@ class MaterialTest extends TestCase
         $this->assertTrue($generation->use_web_search);
         $this->assertSame(AiGenerationStatus::Succeeded, $generation->status);
         $this->assertSame(2, $generation->web_search_calls);
-        // 料金：入力 10000×0.10 + 出力 2000×0.50（/1M）+ 検索 2回×0.01
-        $this->assertEqualsWithDelta(0.001 + 0.001 + 0.02, $generation->estimated_cost, 0.00001);
+        // 料金：入力 10000×0.125（キャッシュの書き込み）+ 出力 2000×0.50（/1M）+ 検索 2回×0.01
+        $this->assertEqualsWithDelta(0.00125 + 0.001 + 0.02, $generation->estimated_cost, 0.0001);
         $this->assertSame(1, MaterialSuggestion::count());
     }
 

@@ -80,14 +80,25 @@ return [
                 'material_review'    => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_REVIEW', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_REVIEW', 'medium')],
             ],
 
-            // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-26 に公式の料金表で確認）。
+            // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-28 に公式のモデルのページで確認）。
             // 料金は費用の目安と上限の判定に使う。料金が変わったらここを直す。
+            // cache_write：キャッシュの書き込み（キャッシュされていない入力は、OpenAIが自動でキャッシュに書き込み、入力の1.25倍の料金になる。D-31-01）
             // 推論の深さは、費用がかさむ xhigh・max を選べないようにしている（astra は none に対応していない）
             'models' => [
-                'gpt-6-luna'  => ['input' => 0.10, 'cached_input' => 0.01, 'output' => 0.50, 'efforts' => ['none', 'low', 'medium', 'high']],
-                'gpt-6-sol'   => ['input' => 2.00, 'cached_input' => 0.20, 'output' => 10.00, 'efforts' => ['none', 'low', 'medium', 'high']],
-                'gpt-6-astra' => ['input' => 10.00, 'cached_input' => 1.00, 'output' => 50.00, 'efforts' => ['low', 'medium', 'high']],
+                'gpt-6-luna'  => ['input' => 0.10, 'cached_input' => 0.01, 'cache_write' => 0.125, 'output' => 0.50, 'efforts' => ['none', 'low', 'medium', 'high']],
+                'gpt-6-sol'   => ['input' => 2.00, 'cached_input' => 0.20, 'cache_write' => 2.50, 'output' => 10.00, 'efforts' => ['none', 'low', 'medium', 'high']],
+                'gpt-6-astra' => ['input' => 10.00, 'cached_input' => 1.00, 'cache_write' => 12.50, 'output' => 50.00, 'efforts' => ['low', 'medium', 'high']],
             ],
+
+            // 長い入力：1回の入力がこのトークン数を超えたら、その1回すべてを、入力・キャッシュは2倍、出力は1.5倍の料金で計算する（D-31-01）
+            'long_context' => [
+                'threshold_tokens'  => 272000,
+                'input_multiplier'  => 2.0,
+                'output_multiplier' => 1.5,
+            ],
+
+            // キャッシュの書き込みが起きる、入力の最小のトークン数（これより短い入力はキャッシュされず、入力の料金になる）
+            'cache_min_tokens' => 1024,
 
             // 1回あたりの出力トークン（推論のトークンを含む）の上限。超えた場合は途中で打ち切られ、失敗になる
             'max_output_tokens' => (int) env('BLOGOS_AI_MAX_OUTPUT_TOKENS', 48000),
@@ -98,8 +109,9 @@ return [
             // 応答を待つ時間（秒）。推論が長いと数分かかる
             'timeout' => (int) env('BLOGOS_AI_TIMEOUT', 900),
 
-            // Web検索（教材の調査・候補探し。D-30）。検索1回ごとに、トークンの料金とは別に料金がかかる。
-            // 料金はOpenAIの料金表で確かめて、ここを直す。1回の実行で検索する回数に上限を付ける（費用の上限の判定にも使う）
+            // Web検索（教材の調査・候補探し。D-30）。検索1回ごとに、トークンの料金とは別に料金がかかる（$10 / 1,000回。2026-09-28 に確認）。
+            // 検索で読んだ内容は、入力のトークンとして別に課金される（応答のトークン数に含まれる）。
+            // 1回の実行で検索する回数に上限を付ける（費用の上限の判定にも使う）
             'web_search' => [
                 'tool'          => env('BLOGOS_AI_WEB_SEARCH_TOOL', 'web_search'),
                 'cost_per_call' => (float) env('BLOGOS_AI_WEB_SEARCH_COST', 0.01),

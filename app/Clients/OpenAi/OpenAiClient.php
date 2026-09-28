@@ -86,8 +86,9 @@ class OpenAiClient
             'cached_input_tokens' => (int) ($usage['input_tokens_details']['cached_tokens'] ?? 0),
             'output_tokens'       => (int) ($usage['output_tokens'] ?? 0),
             'reasoning_tokens'    => (int) ($usage['output_tokens_details']['reasoning_tokens'] ?? 0),
-            // Web検索の回数（検索1回ごとに料金がかかる）
-            'web_search_calls'    => count(array_filter((array) ($data['output'] ?? []), fn ($item) => ($item['type'] ?? null) === 'web_search_call')),
+            // Web検索の回数（検索1回ごとに料金がかかる）。ページを開く・ページの中を探す動作は、料金の対象ではないため数えない（D-31-01）
+            'web_search_calls'    => count(array_filter((array) ($data['output'] ?? []), fn ($item) => ($item['type'] ?? null) === 'web_search_call'
+                && in_array($item['action']['type'] ?? 'search', ['search'], true))),
         ];
     }
 
