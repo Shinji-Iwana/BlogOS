@@ -70,6 +70,10 @@
             ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
             ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
         </p>
+        <p>
+            画像：<a href="{{ route('images.index') }}">画像（図解・イラスト・アイキャッチ・スクリーンショット）</a>
+            ・<a href="{{ route('images.eyecatches') }}">カテゴリごとのアイキャッチ</a>
+        </p>
         <p><a href="{{ route('database.wordpress-records.tables') }}">取り込んだWordPressのデータ（DB確認）へ</a></p>
         <p><a href="{{ route('wp-api.home') }}">WordPress API確認ページへ</a></p>
         <p><a href="{{ route('api-site-search') }}">サイト内検索ページへ</a></p>

@@ -52,6 +52,8 @@ return [
             'material_research'  => env('BLOGOS_AI_METHOD_MATERIAL_RESEARCH', 'api'),
             'material_discovery' => env('BLOGOS_AI_METHOD_MATERIAL_DISCOVERY', 'api'),
             'material_review'    => env('BLOGOS_AI_METHOD_MATERIAL_REVIEW', 'manual'),
+            // 図の作成（D-32）
+            'image_design'       => env('BLOGOS_AI_METHOD_IMAGE_DESIGN', 'manual'),
         ],
 
         // 手動実行で記録する、利用しているサービスとモデルの候補（画面で選ぶか、直接入力する。D-07-07）
@@ -78,6 +80,7 @@ return [
                 'material_research'  => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_RESEARCH', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_RESEARCH', 'medium')],
                 'material_discovery' => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_DISCOVERY', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_DISCOVERY', 'medium')],
                 'material_review'    => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_REVIEW', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_REVIEW', 'medium')],
+                'image_design'       => ['model' => env('BLOGOS_AI_MODEL_IMAGE_DESIGN', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_IMAGE_DESIGN', 'medium')],
             ],
 
             // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-28 に公式のモデルのページで確認）。
@@ -125,6 +128,32 @@ return [
                 'cost_per_call' => (float) env('BLOGOS_AI_WEB_SEARCH_COST', 0.01),
                 'max_calls'     => (int) env('BLOGOS_AI_WEB_SEARCH_MAX_CALLS', 8),
             ],
+        ],
+
+        // 画像（D-32）。画像そのものは画像モデル（gpt-image 系）が作る。図解の SVG・画像の指示文は、文章のモデル（ai.api.defaults.image_design）が作る
+        'image' => [
+            // 画像モデル。料金は1Mトークンあたりの米ドル（2026-09-28 に公式の料金ページで確認。料金表 ai_prices に入れて、毎日照合する）
+            'model'   => env('BLOGOS_AI_IMAGE_MODEL', 'gpt-image-2.5-flare'),
+            'quality' => env('BLOGOS_AI_IMAGE_QUALITY', 'medium'),
+            'models'  => [
+                'gpt-image-2.5-flare' => ['text_input' => 5.00, 'text_cached_input' => 1.25, 'image_input' => 8.00, 'image_cached_input' => 2.00, 'image_output' => 30.00],
+            ],
+            // 画面で選べる品質と、1枚の出力のトークン数の見積もり（実行前の費用の上限の判定に使う。多めに見積もる。実際の費用は応答のトークン数で計算する）
+            'qualities' => [
+                'low'    => 1500,
+                'medium' => 4000,
+                'high'   => 12000,
+            ],
+            // 種類ごとの画像の大きさ（アイキャッチは今の si-note に合わせて正方形）
+            'sizes' => [
+                'illustration' => '1536x1024',
+                'eyecatch'     => '1024x1024',
+            ],
+            // アップロード・保存する画像の上限
+            'max_upload_kb' => (int) env('BLOGOS_IMAGE_MAX_UPLOAD_KB', 10240),
+            // ブラウザで縮める横幅の上限（ページの表示を重くしないため）と、図解の PNG の倍率（高解像度の画面でもぼやけないため）
+            'max_width'     => 1600,
+            'png_scale'     => 2,
         ],
 
         // OpenAI の残高（前払いのクレジット）の見込み（D-31-04）。人が OpenAI の画面で見た残高と課金した額を登録し、その後の費用の目安を引いて見込む

@@ -68,6 +68,57 @@ class AiApiPolicy
     }
 
     /**
+     * 画像モデルと料金（1Mトークンあたり。D-32）。料金表（ai_prices）にあればその値
+     *
+     * @return array<string, array{text_input: float, text_cached_input: float, image_input: float, image_cached_input: float, image_output: float}>
+     */
+    public function imageModels(): array
+    {
+        $prices = $this->storedPrices();
+        $models = [];
+        foreach ((array) config('blogos.ai.image.models', []) as $name => $config) {
+            $stored = $prices->get($name);
+            $models[$name] = [
+                'text_input'         => $stored?->input ?? $config['text_input'],
+                'text_cached_input'  => $stored?->cached_input ?? $config['text_cached_input'],
+                'image_input'        => $stored?->image_input ?? $config['image_input'],
+                'image_cached_input' => $stored?->image_cached_input ?? $config['image_cached_input'],
+                'image_output'       => $stored?->output ?? $config['image_output'],
+            ];
+        }
+
+        return $models;
+    }
+
+    /**
+     * 画像の品質と、1枚の出力のトークン数の見積もり
+     *
+     * @return array<string, int>
+     */
+    public function imageQualities(): array
+    {
+        return (array) config('blogos.ai.image.qualities');
+    }
+
+    /**
+     * 画像の生成の費用（応答のトークン数から）
+     */
+    public function imageCost(string $model, int $textInputTokens, int $imageInputTokens, int $outputTokens): ?float
+    {
+        $price = $this->imageModels()[$model] ?? null;
+
+        return $price === null ? null : round(($textInputTokens * $price['text_input'] + $imageInputTokens * $price['image_input'] + $outputTokens * $price['image_output']) / 1_000_000, 4);
+    }
+
+    /**
+     * 画像の生成でかかりうる最大の費用（指示文の文字数と、品質ごとの出力の見積もりから）
+     */
+    public function imageMaxCost(string $model, string $prompt, string $quality): float
+    {
+        return (float) $this->imageCost($model, mb_strlen($prompt) * 2, 0, (int) ($this->imageQualities()[$quality] ?? max($this->imageQualities())));
+    }
+
+    /**
      * 料金表が変わったときに、読み直す
      */
     public function forgetPrices(): void
@@ -202,8 +253,37 @@ class AiApiPolicy
             throw new AiApiUnavailableException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。手動実行を選ぶか、APIキーを設定してください。');
         }
 
-        $max = $this->maxCost($model, $input, $webSearch);
+        $this->assertAffordable($this->maxCost($model, $input, $webSearch));
+    }
 
+    /**
+     * 画像の生成を実行できるか（D-32）
+     *
+     * @throws AiApiUnavailableException
+     * @throws AiException
+     */
+    public function assertCanRunImage(string $model, string $prompt, string $quality): void
+    {
+        if (! $this->isConfigured()) {
+            throw new AiApiUnavailableException('OpenAIのAPIキーが設定されていません（.env の OPENAI_API_KEY）。ChatGPT 等で作った画像をアップロードしてください。');
+        }
+        if (! isset($this->imageModels()[$model])) {
+            throw new AiException("画像モデル {$model} は使えません（config/blogos.php の ai.image.models）。");
+        }
+        if (! isset($this->imageQualities()[$quality])) {
+            throw new AiException("画像の品質 {$quality} は選べません。");
+        }
+
+        $this->assertAffordable($this->imageMaxCost($model, $prompt, $quality));
+    }
+
+    /**
+     * 今回の最大の費用で、残高の見込み・月の支出の上限を超えないか確かめる
+     *
+     * @throws AiApiUnavailableException
+     */
+    protected function assertAffordable(float $max): void
+    {
         // OpenAI の残高の見込み：今回の最大の費用を引いて、残しておく額を下回るなら実行しない（残高が未登録なら判定しない。画面で登録を促す）
         $credit = $this->credits->status();
         if ($credit['balance'] !== null && $credit['balance'] - $max < $credit['reserve']) {

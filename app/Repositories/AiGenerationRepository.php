@@ -99,7 +99,7 @@ class AiGenerationRepository
 
     public function findForBlog(int $blogId, int $id): ?AiGeneration
     {
-        return AiGeneration::with(['post', 'page', 'draft', 'material', 'requester', 'createdDrafts', 'evaluations'])->where('blog_id', $blogId)->find($id);
+        return AiGeneration::with(['post', 'page', 'draft', 'material', 'image', 'requester', 'createdDrafts', 'evaluations'])->where('blog_id', $blogId)->find($id);
     }
 
     /**

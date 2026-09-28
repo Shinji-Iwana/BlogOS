@@ -29,6 +29,8 @@ use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
 use App\Http\Controllers\Google\GoogleOAuthController;
 use App\Http\Controllers\Google\GoogleSettingsController;
+use App\Http\Controllers\Images\EyecatchController;
+use App\Http\Controllers\Images\ImageController;
 use App\Http\Controllers\Materials\MaterialAiController;
 use App\Http\Controllers\Materials\MaterialController;
 use App\Http\Controllers\Materials\MaterialReviewController;
@@ -208,6 +210,27 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/materials/reviews/mark', [MaterialReviewController::class, 'markReviewed'])->name('materials.reviews.mark');
         Route::post('/materials/reviews/{id}/confirm', [MaterialReviewController::class, 'confirm'])->whereNumber('id')->name('materials.reviews.confirm');
         Route::post('/materials/reviews/{id}/reject', [MaterialReviewController::class, 'reject'])->whereNumber('id')->name('materials.reviews.reject');
+    });
+
+    // 記事で使う画像（D-32）
+    Route::get('/images', [ImageController::class, 'index'])->name('images.index');
+    Route::get('/images/eyecatches', [EyecatchController::class, 'index'])->name('images.eyecatches');
+    Route::get('/images/{id}', [ImageController::class, 'show'])->whereNumber('id')->name('images.show');
+    Route::get('/images/{id}/file', [ImageController::class, 'file'])->whereNumber('id')->name('images.file');
+
+    Route::middleware(EnsureSelectedBlog::class)->group(function () {
+        Route::post('/images', [ImageController::class, 'store'])->name('images.store');
+        Route::post('/images/design', [ImageController::class, 'design'])->name('images.design');
+        Route::put('/images/eyecatches', [EyecatchController::class, 'update'])->name('images.eyecatches.update');
+        Route::put('/images/{id}', [ImageController::class, 'update'])->whereNumber('id')->name('images.update');
+        Route::put('/images/{id}/svg', [ImageController::class, 'updateSvg'])->whereNumber('id')->name('images.svg');
+        Route::post('/images/{id}/png', [ImageController::class, 'storePng'])->whereNumber('id')->name('images.png');
+        Route::post('/images/{id}/file', [ImageController::class, 'replaceFile'])->whereNumber('id')->name('images.file.replace');
+        Route::post('/images/{id}/ready', [ImageController::class, 'markReady'])->whereNumber('id')->name('images.ready');
+        Route::post('/images/{id}/generate', [ImageController::class, 'generate'])->whereNumber('id')->name('images.generate');
+        Route::post('/images/{id}/variant', [ImageController::class, 'variant'])->whereNumber('id')->name('images.variant');
+        Route::post('/images/{id}/wordpress', [ImageController::class, 'uploadToWordPress'])->whereNumber('id')->name('images.wordpress');
+        Route::delete('/images/{id}', [ImageController::class, 'destroy'])->whereNumber('id')->name('images.destroy');
     });
 
     // Google連携（D-21-01、D-21-07）と分析

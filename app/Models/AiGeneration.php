@@ -65,6 +65,14 @@ class AiGeneration extends Model
         return $this->belongsTo(Material::class);
     }
 
+    /**
+     * 図の作成・画像の生成の対象の画像（D-32）
+     */
+    public function image(): BelongsTo
+    {
+        return $this->belongsTo(Image::class);
+    }
+
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');

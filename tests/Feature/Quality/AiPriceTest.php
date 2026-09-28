@@ -56,7 +56,9 @@ class AiPriceTest extends TestCase
             'gpt-6-luna'  => $this->modelPage(...$luna),
             'gpt-6-sol'   => $solPage ?? $this->modelPage('2.00', '0.20', '2.50', '10.00'),
             'gpt-6-astra' => $this->modelPage('10.00', '1.00', '12.50', '50.00'),
-            'pricing'     => "<td>Web search (all models)</td><td>\${$webSearch} / 1k calls</td>",
+            'pricing'     => "<td>Web search (all models)</td><td>\${$webSearch} / 1k calls</td>"
+                // 画像モデル（標準の処理の表）
+                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$2.00</td><td>$30.00</td></tr><tr><td>Text</td><td>$5.00</td><td>$1.25</td><td>-</td></tr>',
         ];
 
         Http::fake(fn ($request) => Http::response($this->pages[basename(parse_url($request->url(), PHP_URL_PATH))] ?? '', 200));

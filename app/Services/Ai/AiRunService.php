@@ -13,6 +13,7 @@ use App\Enums\RevisionScope;
 use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\Image;
 use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
@@ -24,6 +25,7 @@ use App\Services\Ai\Executors\AiExecutor;
 use App\Services\Ai\Executors\ApiExecutor;
 use App\Services\Ai\Executors\ManualExecutor;
 use App\Services\Articles\DraftService;
+use App\Services\Images\ImageAiResultService;
 use App\Services\Materials\MaterialAiResultService;
 use App\Services\Push\PushException;
 use App\Services\Quality\EvaluationService;
@@ -47,6 +49,7 @@ class AiRunService
         protected AiApiPolicy $apiPolicy,
         protected ArticleManagementSuggestionRepository $suggestions,
         protected MaterialAiResultService $materialResults,
+        protected ImageAiResultService $imageResults,
     ) {
     }
 
@@ -59,7 +62,7 @@ class AiRunService
      *
      * @throws AiException
      */
-    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null, bool $runApiNow = false, ?Material $material = null, bool $webSearch = false): AiGeneration
+    public function start(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?int $userId, ?AiExecutionMethod $method = null, ?string $model = null, ?string $effort = null, bool $runApiNow = false, ?Material $material = null, bool $webSearch = false, ?Image $image = null): AiGeneration
     {
         if ($blog->isArchived()) {
             throw new AiException('アーカイブしたブログでは実行できません。');
@@ -91,6 +94,19 @@ class AiRunService
             $material = null;
         }
 
+        // 図の作成（D-32）：対象の画像が必要。記事は、図を載せる記事として任意。画像の生成は ImageGenerationService で行う
+        if ($mode === AiMode::ImageGeneration) {
+            throw new AiException('画像の生成は、画像の画面から行ってください。');
+        }
+        if ($mode === AiMode::ImageDesign) {
+            $draft = null;
+            if ($image === null || $image->blog_id !== $blog->id) {
+                throw new AiException('図を作る画像を指定してください。');
+            }
+        } else {
+            $image = null;
+        }
+
         // 管理情報の案は、WordPressにある記事が対象（編集案の内容ではなく、記事の内容から作る。D-27）
         if ($mode === AiMode::ManagementSuggestion) {
             if ($article === null) {
@@ -117,7 +133,7 @@ class AiRunService
         // Web検索は、教材の調査・候補探しのAPI実行だけで使う
         $webSearch = $webSearch && $method === AiExecutionMethod::Api && $mode->canUseWebSearch();
 
-        $built = $this->prompts->build($mode, $blog, $article, $draft, $parameters, $scope, $material, $webSearch);
+        $built = $this->prompts->build($mode, $blog, $article, $draft, $parameters, $scope, $material, $webSearch, $image);
         if ($method === AiExecutionMethod::Api) {
             $this->apiPolicy->assertCanRun($model, $built['prompt'], $webSearch);
         }
@@ -128,6 +144,7 @@ class AiRunService
             'page_id'                 => $article instanceof Page ? $article->id : null,
             'article_draft_id'        => $draft?->id,
             'material_id'             => $material?->id,
+            'image_id'                => $image?->id,
             'use_web_search'          => $webSearch,
             'purpose'                 => $mode,
             'revision_scope'          => $mode === AiMode::Revision ? ($scope ?? RevisionScope::Minor) : null,
@@ -228,7 +245,8 @@ class AiRunService
      */
     public function reprocessApiOutput(AiGeneration $generation, ?int $userId): void
     {
-        if ($generation->execution_method !== AiExecutionMethod::Api || $generation->status !== AiGenerationStatus::Failed || blank($generation->output)) {
+        if ($generation->execution_method !== AiExecutionMethod::Api || $generation->status !== AiGenerationStatus::Failed || blank($generation->output)
+            || $generation->purpose === AiMode::ImageGeneration) {
             throw new AiException('回答を取り込めずに失敗したAPI実行だけを、取り込み直せます。');
         }
 
@@ -245,6 +263,10 @@ class AiRunService
         if ($generation->execution_method !== AiExecutionMethod::Api || $generation->status !== AiGenerationStatus::Failed) {
             throw new AiException('失敗したAPI実行だけを、実行し直せます。');
         }
+        // 画像の生成は、画像の画面から作り直す（D-32）
+        if ($generation->purpose === AiMode::ImageGeneration) {
+            throw new AiException('画像の生成は、画像の画面から作り直してください。');
+        }
 
         // 指示文は前の記録のものを使う。モデルは、応答のモデル名（日付付きなど）ではなく、選べるモデル名に戻す
         $model = $this->selectableModel((string) $generation->model);
@@ -252,7 +274,7 @@ class AiRunService
         $this->apiPolicy->assertCanRun($model, $generation->input, (bool) $generation->use_web_search);
 
         $retry = $this->generations->create($generation->only([
-            'blog_id', 'post_id', 'page_id', 'article_draft_id', 'material_id', 'use_web_search', 'purpose', 'revision_scope', 'parameters', 'execution_method', 'provider',
+            'blog_id', 'post_id', 'page_id', 'article_draft_id', 'material_id', 'image_id', 'use_web_search', 'purpose', 'revision_scope', 'parameters', 'execution_method', 'provider',
             'reasoning_effort', 'template_key', 'template_version', 'quality_common_version', 'quality_profile', 'quality_profile_version', 'input',
         ]) + ['model' => $model, 'status' => AiGenerationStatus::Running, 'requested_by' => $userId]);
 
@@ -346,6 +368,8 @@ class AiRunService
             AiMode::MaterialResearch  => $this->materialResults->saveResearch($generation),
             AiMode::MaterialDiscovery => $this->materialResults->saveDiscovery($generation),
             AiMode::MaterialReview    => $this->materialResults->saveReview($generation),
+            // 図の作成（D-32）
+            AiMode::ImageDesign       => $this->imageResults->saveDesign($generation),
             // SEO分析・構成作成は、出力を記録するだけ（段階0：分析・提案）
             default                  => null,
         };

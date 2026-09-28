@@ -55,6 +55,7 @@ class AiSettingsController extends Controller
             // API実行の料金表（全ブログ共通。D-31-03）
             'priceModels'      => $this->apiPolicy->models(),
             'webSearchPrice'   => $this->apiPolicy->webSearch()['cost_per_call'],
+            'imagePriceModels' => $this->apiPolicy->imageModels(),
             'storedPrices'     => $this->priceRepository->all(),
             'pendingPrices'    => $this->priceRepository->pending(),
             'priceHistory'     => $this->priceRepository->recentChanges(10),

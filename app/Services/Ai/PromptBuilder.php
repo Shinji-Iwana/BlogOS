@@ -14,6 +14,8 @@ use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
+use App\Models\Image;
+use App\Services\Images\ImagePromptValues;
 use App\Services\Materials\MaterialPromptValues;
 use App\Services\Quality\QualityStandard;
 use App\Services\Quality\QualityStandardLoader;
@@ -40,7 +42,7 @@ class PromptBuilder
     /**
      * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
      */
-    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値'];
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値'];
 
     public function __construct(
         protected QualityStandardLoader $loader,
@@ -49,6 +51,7 @@ class PromptBuilder
         protected ArticleEvaluationRepository $evaluations,
         protected GoogleMetricRepository $metrics,
         protected MaterialPromptValues $materialValues,
+        protected ImagePromptValues $imageValues,
     ) {
     }
 
@@ -58,7 +61,7 @@ class PromptBuilder
      * @param bool $webSearch Web検索を使うAPI実行か（教材の調査・候補探し）
      * @return array{prompt: string, template: AiTemplate, standard: QualityStandard}
      */
-    public function build(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?Material $material = null, bool $webSearch = false): array
+    public function build(AiMode $mode, Blog $blog, Post|Page|null $article, ?ArticleDraft $draft, array $parameters, ?RevisionScope $scope, ?Material $material = null, bool $webSearch = false, ?Image $image = null): array
     {
         $template = AiTemplate::load($mode);
         $standard = $this->loader->load($blog->quality_profile);
@@ -83,6 +86,11 @@ class PromptBuilder
         // 教材の調査・候補探し・見直し（D-30）
         if ($mode->isMaterialMode()) {
             $values = $this->materialValues->values($mode, $blog, $article, $material, $parameters, $webSearch) + $values;
+        }
+
+        // 図の作成（D-32）
+        if ($mode === AiMode::ImageDesign) {
+            $values = $this->imageValues->values($image, $article, $parameters) + $values;
         }
 
         $prompt = preg_replace_callback('/\{\{([a-z_]+)\}\}/', fn ($m) => $values[$m[1]] ?? $m[0], $template->body);

@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Log;
  */
 class AiPriceCheckService
 {
+    /**
+     * 料金ページの文字（1回の照合で1回だけ読む）
+     */
+    protected ?string $pricingText = null;
+
     public function __construct(
         protected AiPriceRepository $prices,
     ) {
@@ -28,6 +33,7 @@ class AiPriceCheckService
      */
     public function check(bool $dryRun = false): array
     {
+        $this->pricingText = null;
         $messages = [];
         $applied = 0;
         $pending = 0;
@@ -47,6 +53,15 @@ class AiPriceCheckService
         } catch (AiException $e) {
             $failed = true;
             $messages[] = "Web検索：{$e->getMessage()}";
+        }
+        // 画像モデル（料金ページの Image generation の表。D-32）
+        foreach (array_keys((array) config('blogos.ai.image.models')) as $model) {
+            try {
+                $found[$model] = $this->imageModelPrices($model);
+            } catch (AiException $e) {
+                $failed = true;
+                $messages[] = "{$model}：{$e->getMessage()}";
+            }
         }
 
         foreach ($found as $key => $values) {
@@ -133,13 +148,51 @@ class AiPriceCheckService
      */
     public function webSearchPrice(): float
     {
-        $text = $this->pageText((string) config('blogos.ai.api.price_check.pricing_url'));
+        $text = $this->pricingPageText();
 
         if (! preg_match('/Web search \(all models\)\s*\$([0-9.]+)\s*\/\s*1k calls/u', $text, $m) || (float) $m[1] <= 0 || (float) $m[1] > 1000) {
             throw new AiException('料金ページから、Web検索の料金（Web search (all models) … / 1k calls）を読み取れませんでした。');
         }
 
         return round((float) $m[1] / 1000, 6);
+    }
+
+    /**
+     * 画像モデルの料金（料金ページの「{モデル}Image $入力 $キャッシュ $出力 Text $入力 $キャッシュ」。最初の表が標準の処理）
+     *
+     * @return array<string, float>
+     *
+     * @throws AiException
+     */
+    public function imageModelPrices(string $model): array
+    {
+        $text = $this->pricingPageText();
+
+        if (! preg_match('/' . preg_quote($model, '/') . '\s*Image\s*\$([0-9.]+)\s*\$([0-9.]+)\s*\$([0-9.]+)\s*Text\s*\$([0-9.]+)\s*\$([0-9.]+)/u', $text, $m)) {
+            throw new AiException('料金ページから、画像モデルの料金（Image・Text の入力・キャッシュ・出力）を読み取れませんでした。ページの形が変わった可能性があります。');
+        }
+        [$imageInput, $imageCached, $output, $textInput, $textCached] = array_map('floatval', array_slice($m, 1, 5));
+        if ($imageInput <= 0 || $output <= 0 || $textInput <= 0 || $imageCached > $imageInput || $textCached > $textInput || $output > 1000) {
+            throw new AiException("料金ページから読み取った画像モデルの料金が、ありえない値でした（画像の入力 {$imageInput}・出力 {$output}・文章の入力 {$textInput}）。");
+        }
+
+        return [
+            'input'              => $textInput,
+            'cached_input'       => $textCached,
+            'image_input'        => $imageInput,
+            'image_cached_input' => $imageCached,
+            'output'             => $output,
+        ];
+    }
+
+    /**
+     * 料金ページ（1回の照合で1回だけ読む）
+     *
+     * @throws AiException
+     */
+    protected function pricingPageText(): string
+    {
+        return $this->pricingText ??= $this->pageText((string) config('blogos.ai.api.price_check.pricing_url'));
     }
 
     /**
@@ -167,6 +220,8 @@ class AiPriceCheckService
         $fields = [
             'input'                  => '入力',
             'cached_input'           => 'キャッシュ済みの入力',
+            'image_input'            => '画像の入力',
+            'image_cached_input'     => 'キャッシュ済みの画像の入力',
             'cache_write'            => 'キャッシュの書き込み',
             'output'                 => '出力',
             'per_call'               => '1回あたり',

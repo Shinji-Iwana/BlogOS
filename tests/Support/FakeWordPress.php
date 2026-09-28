@@ -69,6 +69,12 @@ class FakeWordPress
     protected function respond(Request $request)
     {
         $path = parse_url($request->url(), PHP_URL_PATH) ?? '/';
+
+        // WordPress の REST API 以外への要求（OpenAI など）には答えない（後から登録した Http::fake に任せる）
+        if (! str_starts_with($path, '/wp-json')) {
+            return null;
+        }
+
         parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
         $this->requests[] = ['path' => $path, 'query' => $query];
 
@@ -132,6 +138,13 @@ class FakeWordPress
      */
     public string|int|null $writeFailure = null;
 
+    /**
+     * 受け取ったファイル（メディアの新規登録）
+     *
+     * @var list<array{filename: string|null, bytes: int}>
+     */
+    public array $uploadedFiles = [];
+
     /** 書き込みのたびに進める、更新日時の元 */
     protected int $tick = 0;
 
@@ -181,10 +194,25 @@ class FakeWordPress
 
         // POST（作成・更新）
         $data = $request->data();
+        // ファイルの送信（multipart）：ファイル以外の項目を取り出し、ファイル名を残す
+        if ($request->isMultipart()) {
+            $fields = [];
+            foreach ($data as $part) {
+                if (($part['name'] ?? null) === 'file') {
+                    $this->uploadedFiles[] = ['filename' => $part['filename'] ?? null, 'bytes' => strlen((string) ($part['contents'] ?? ''))];
+                } elseif (isset($part['name'])) {
+                    $fields[$part['name']] = $part['contents'];
+                }
+            }
+            $data = $fields;
+        }
         if ($id === null) {
-            $newId = max(array_merge([1000], array_column($this->lists['posts'], 'id'), array_column($this->lists['pages'], 'id'))) + 1;
-            $item = $name === 'posts' ? self::post($newId) : self::page($newId);
-            $item['status'] = 'draft';
+            $newId = max(array_merge([1000], array_column($this->lists['posts'], 'id'), array_column($this->lists['pages'], 'id'), array_column($this->lists['media'], 'id'))) + 1;
+            $item = match ($name) {
+                'posts' => self::post($newId, ['status' => 'draft']),
+                'media' => self::media($newId, ['source_url' => "https://blog.example.test/wp-content/uploads/" . (end($this->uploadedFiles)['filename'] ?? "{$newId}.png")]),
+                default => self::page($newId, ['status' => 'draft']),
+            };
         } else {
             $item = $this->lists[$name][$index];
         }

@@ -15,6 +15,7 @@
         @if ($generation->draft) ・<a href="{{ route('drafts.edit', ['id' => $generation->draft->id]) }}">対象の編集案 #{{ $generation->draft->id }}</a>@endif
         @if ($article) ・<a href="{{ route('articles.show', ['type' => $generation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">対象の記事「{{ $article->title_raw }}」</a>@endif
         @if ($generation->material) ・<a href="{{ route('materials.edit', ['id' => $generation->material->id]) }}">対象の教材「{{ $generation->material->name }}」</a>@endif
+        @if ($generation->image) ・<a href="{{ route('images.show', ['id' => $generation->image->id]) }}">対象の画像「{{ $generation->image->title }}」</a>@endif
     </p>
 
     @include('partials.flash')
@@ -39,7 +40,9 @@
     @endif
 
     {{-- API実行：失敗したら、同じ指示文でもう一度実行できる（料金がかかる） --}}
-    @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed && filled($generation->output))
+    @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed && $generation->purpose === \App\Enums\AiMode::ImageGeneration)
+        <p>画像の生成は、<a href="{{ route('images.show', ['id' => $generation->image_id]) }}">画像の画面</a>から作り直してください。</p>
+    @elseif ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed && filled($generation->output))
         {{-- 回答はあるが取り込めなかった場合：保存済みの回答で取り込み直す（APIは呼ばない） --}}
         <form method="POST" action="{{ route('ai.generations.reprocess', ['id' => $generation->id]) }}" style="margin-bottom:8px;">
             @csrf
@@ -49,7 +52,7 @@
         </form>
     @endif
 
-    @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed)
+    @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Failed && $generation->purpose !== \App\Enums\AiMode::ImageGeneration)
         <form method="POST" action="{{ route('ai.generations.retry', ['id' => $generation->id]) }}" onsubmit="return confirm('同じ指示文で、もう一度API実行しますか？（料金がかかります）');">
             @csrf
             @include('partials.selected-blog-field')
@@ -72,6 +75,9 @@
         @endif
         @if (in_array($generation->purpose, [\App\Enums\AiMode::MaterialResearch, \App\Enums\AiMode::MaterialDiscovery], true))
             <p>教材の案を作りました：<a href="{{ route('materials.suggestions.index') }}"><strong>教材の案の確認</strong></a>の画面で確認して登録してください。</p>
+        @endif
+        @if ($generation->image && $generation->purpose->isImageMode())
+            <p>画像の案を作りました：<a href="{{ route('images.show', ['id' => $generation->image->id]) }}"><strong>画像「{{ $generation->image->title }}」</strong></a>の画面で確認してください（図解は、画面で PNG にします）。</p>
         @endif
         @if ($generation->purpose === \App\Enums\AiMode::MaterialReview)
             <p>教材の見直しの結果を作りました：<a href="{{ route('materials.reviews.index') }}"><strong>記事の教材の見直し</strong></a>の画面で確認してください。</p>

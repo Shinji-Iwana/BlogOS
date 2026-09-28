@@ -75,6 +75,43 @@ class OpenAiClient
     }
 
     /**
+     * 画像モデルで画像を1枚作る（Images API。D-32）
+     *
+     * @return array{bytes: string, model: string, input_tokens: int, text_input_tokens: int, image_input_tokens: int, output_tokens: int}
+     *
+     * @throws OpenAiException
+     */
+    public function generateImage(string $model, string $prompt, string $size, string $quality, string $format = 'png'): array
+    {
+        $data = $this->post('/images/generations', [
+            'model'         => $model,
+            'prompt'        => $prompt,
+            'size'          => $size,
+            'quality'       => $quality,
+            'output_format' => $format,
+            'n'             => 1,
+        ]);
+
+        $usage = (array) ($data['usage'] ?? []);
+        $details = (array) ($usage['input_tokens_details'] ?? []);
+        $result = [
+            'model'              => $model,
+            'input_tokens'       => (int) ($usage['input_tokens'] ?? 0),
+            'text_input_tokens'  => (int) ($details['text_tokens'] ?? ($usage['input_tokens'] ?? 0)),
+            'image_input_tokens' => (int) ($details['image_tokens'] ?? 0),
+            'output_tokens'      => (int) ($usage['output_tokens'] ?? 0),
+        ];
+
+        $base64 = $data['data'][0]['b64_json'] ?? null;
+        $bytes = is_string($base64) ? base64_decode($base64, true) : false;
+        if ($bytes === false || $bytes === '') {
+            throw new OpenAiException('画像が返ってきませんでした。', 200, null, ['input_tokens' => $result['input_tokens'], 'cached_input_tokens' => 0, 'output_tokens' => $result['output_tokens'], 'reasoning_tokens' => 0]);
+        }
+
+        return ['bytes' => $bytes] + $result;
+    }
+
+    /**
      * @return array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls: int}
      */
     protected function usage(array $data): array
@@ -135,7 +172,12 @@ class OpenAiClient
         $code = (string) ($response->json('error.code') ?? '');
 
         $hint = match (true) {
+            // 権限を制限したAPIキー（Restricted）で、使う機能が許可されていない
+            stripos($message, 'Missing scopes') !== false => 'APIキーの権限（Permissions）が足りません。OpenAI の画面の API keys で、このキーを編集し、不足している権限（'
+                . (preg_match('/Missing scopes:\s*([^\s.]+)/i', $message, $scope) ? $scope[1] : '')
+                . '。画像なら Images）を許可してください。キーの文字列は変わらないため、.env を直す必要はありません。',
             $response->status() === 401                                  => 'APIキーが正しいか（.env の OPENAI_API_KEY）確認してください。',
+            $response->status() === 403 && stripos($message, 'verif') !== false => '画像モデルなど一部のモデルは、OpenAI の組織の本人確認（Organization Verification）が必要です。OpenAI の画面の Settings → Organization で確認してください。',
             $code === 'insufficient_quota'                               => 'OpenAIのクレジット残高が不足しています。Billing の画面で残高を確認してください。',
             $response->status() === 429                                  => '利用の上限（1分あたりの回数・トークン数）に達しました。少し待ってから実行し直してください。',
             $response->status() === 404 || $code === 'model_not_found'   => 'モデル名が正しいか、このAPIキーで使えるモデルか確認してください。',

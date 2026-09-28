@@ -21,9 +21,15 @@ enum AiMode: string
     case MaterialDiscovery = 'material_discovery';
     case MaterialReview = 'material_review';
 
+    // 画像（D-32）：図の作成（SVG か、イラストの指示文を作る）、画像の生成（画像モデル。API実行だけ）
+    case ImageDesign = 'image_design';
+    case ImageGeneration = 'image_generation';
+
     public function label(): string
     {
         return match ($this) {
+            self::ImageDesign     => '図の作成',
+            self::ImageGeneration => '画像の生成',
             self::ManagementSuggestion => '管理情報の案',
             self::SeoAnalysis      => 'SEO分析',
             self::Structure        => '構成作成',
@@ -42,6 +48,14 @@ enum AiMode: string
     public function isMaterialMode(): bool
     {
         return in_array($this, [self::MaterialResearch, self::MaterialDiscovery, self::MaterialReview], true);
+    }
+
+    /**
+     * 画像の画面から実行するモード（AIの実行の画面では選ばない）
+     */
+    public function isImageMode(): bool
+    {
+        return in_array($this, [self::ImageDesign, self::ImageGeneration], true);
     }
 
     /**

@@ -711,6 +711,14 @@ API実行の料金表と、OpenAI の公式のページとの毎日の照合（�
 
 OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`：OpenAI の画面で見た残高 / `purchase`：課金した額）、`amount`（米ドル）、`occurred_at`（見た日時・課金した日時）、`estimated_balance`（残高の登録のとき、その時点の BlogOS の見込み。実際との差を示す）、`note`、`created_by`。残高の見込みは、最後の `balance` ＋ その後の `purchase` − その後の `ai_generations.estimated_cost`（`COALESCE(completed_at, created_at)` で比べる）。
 
+## 9-9-4. images / category_eyecatches
+
+記事で使う画像（D-32）。
+
+* `images`：`blog_id`、`kind`（`diagram` / `illustration` / `eyecatch` / `screenshot`）、`status`（`draft`：案 / `ready`：確認済み）、`source`（`ai_svg` / `ai_image` / `upload`）、`title`・`description`（依頼の内容）・`alt`・`caption`・`filename`（WordPress に登録するファイル名。拡張子なし）、`svg_source`（図解の元の SVG。安全な形にして保存）・`image_prompt`（画像モデルへの指示文）・`ai_note`（AI が形式を選んだ理由）、ファイル（`path`：storage の local ディスクの中のパス、`mime_type`・`width`・`height`・`file_size`）、`variant_of_image_id`（別の形式で作った比較の元）、`media_id`（WordPress に登録したメディア）、`created_by`。
+* `category_eyecatches`：`blog_id`・`category_id`（一意）・`media_id`・`updated_by`。子のカテゴリに設定がなければ、親のカテゴリの設定を使う。
+* `ai_generations.image_id`：図の作成・画像の生成の対象の画像。`ai_prices` の `image_input`・`image_cached_input`：画像モデルの画像の入力の料金（`input`・`cached_input` は文章の入力、`output` は画像の出力）。
+
 ## 9-10. materials / material_categories
 
 収益用の教材（書籍・Udemy・スクール。D-30-01、D-30-04）。

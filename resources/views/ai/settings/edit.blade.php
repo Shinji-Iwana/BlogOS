@@ -166,6 +166,13 @@
                     <td>{{ ($checked = $storedPrices->get($name)?->checked_at) ? \App\Support\DisplayTime::format($checked) : '-' }}</td>
                 </tr>
             @endforeach
+            @foreach ($imagePriceModels as $name => $price)
+                <tr>
+                    <td>{{ $name }}（画像）</td>
+                    <td colspan="5">文章の入力 ${{ $price['text_input'] }}・画像の入力 ${{ $price['image_input'] }}・画像の出力 ${{ $price['image_output'] }}</td>
+                    <td>{{ ($checked = $storedPrices->get($name)?->checked_at) ? \App\Support\DisplayTime::format($checked) : '-' }}</td>
+                </tr>
+            @endforeach
             <tr>
                 <td>Web検索</td>
                 <td colspan="5">1回 ${{ $webSearchPrice }}</td>

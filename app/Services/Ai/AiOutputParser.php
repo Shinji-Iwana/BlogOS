@@ -192,6 +192,38 @@ class AiOutputParser
     }
 
     /**
+     * 図の作成の出力（D-32）
+     *
+     * @return array{format: string, reason: string|null, title: string|null, svg: string|null, illustration_prompt: string|null, alt: string|null, caption: string|null, filename: string|null}
+     *
+     * @throws AiException
+     */
+    public function imageDesign(string $output): array
+    {
+        $data = $this->json($output);
+        $format = in_array($data['format'] ?? null, ['svg', 'illustration'], true) ? $data['format'] : null;
+        if ($format === null) {
+            throw new AiException('出力から format（svg または illustration）を読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $svg = is_string($data['svg'] ?? null) && str_contains($data['svg'], '<svg') ? trim($data['svg']) : null;
+        if ($format === 'svg' && $svg === null) {
+            throw new AiException('format が svg ですが、出力に SVG のコードがありませんでした。');
+        }
+
+        return [
+            'format'              => $format,
+            'reason'              => $this->text($data['reason'] ?? null),
+            'title'               => $this->text($data['title'] ?? null),
+            'svg'                 => $format === 'svg' ? $svg : null,
+            'illustration_prompt' => $this->text($data['illustration_prompt'] ?? null),
+            'alt'                 => $this->text($data['alt'] ?? null),
+            'caption'             => $this->text($data['caption'] ?? null),
+            'filename'            => $this->text($data['filename'] ?? null),
+        ];
+    }
+
+    /**
      * 教材の情報（materials の列と同じ名前）。値の形を整え、選べない値は除く
      *
      * @return array<string, mixed>
