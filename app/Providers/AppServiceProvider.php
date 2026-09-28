@@ -6,6 +6,7 @@ use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Console\ServeCommand;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +43,9 @@ class AppServiceProvider extends ServiceProvider
         if (filled($caBundle) && is_file($caBundle)) {
             Http::globalOptions(['verify' => $caBundle]);
         }
+
+        // 一覧のページ送り。標準の部品は Tailwind CSS 前提で、テーマに CSS がないと矢印の画像が大きく崩れるため、文字だけの部品にする
+        Paginator::defaultView('partials.pagination');
 
         // OpenAI の残高の見込みのお知らせ（D-31-04）。表示する画面ごとに、Controller から渡さなくてよいようにする
         View::composer(['partials.ai-credit-notice', 'partials.ai-cost-line'], function ($view) {

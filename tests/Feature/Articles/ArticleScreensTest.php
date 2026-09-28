@@ -74,6 +74,18 @@ class ArticleScreensTest extends TestCase
             ->assertOk()->assertSee('追加');
     }
 
+    public function test_pagination_renders_text_links_without_svg(): void
+    {
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(range(1, 50), 120, 50, 2, ['path' => '/articles/posts']);
+        $html = (string) $paginator->links();
+
+        $this->assertStringContainsString('全120件中 51〜100件を表示', $html);
+        $this->assertStringContainsString('« 前へ', $html);
+        $this->assertStringContainsString('次へ »', $html);
+        $this->assertStringContainsString('<strong aria-current="page">2</strong>', $html);
+        $this->assertStringNotContainsString('<svg', $html);
+    }
+
     public function test_full_draft_edit_and_push_flow(): void
     {
         $post = Post::where('wordpress_id', 100)->sole();
