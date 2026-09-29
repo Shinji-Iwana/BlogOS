@@ -24,6 +24,8 @@ use Illuminate\Support\Str;
  * 2. WordPress にまだない子カテゴリを作る
  * 3. 記事の編集案にカテゴリ（とカテゴリのアイキャッチ）を設定し、仕上げ直して（公開済みの記事へのリンクにする）公開する
  * 4. 子ロードマップを、親ロードマップの子のページにして、仕上げ直して公開する（記事の後に公開し、公開した記事をリンクにする）
+ *
+ * ⑧ 親ロードマップは、AI が中身を作った編集案を、人が確認してから公開する（publishParentRoadmap）。
  */
 class CategoryLaunchPublishService
 {
@@ -109,7 +111,7 @@ class CategoryLaunchPublishService
         $launch->loadMissing(['blog', 'parentCategory']);
         $slug = (string) $launch->parentCategory->slug;
 
-        $existing = Page::where('blog_id', $launch->blog_id)->existing()->where('slug', $slug)->where('wordpress_parent_id', 0)->first();
+        $existing = $this->parentRoadmapPage($launch);
         if ($existing !== null) {
             return $existing;
         }
@@ -136,6 +138,53 @@ class CategoryLaunchPublishService
         $launch->update(['parent_roadmap_draft_id' => $this->draftService->createFromArticle($page, null, $userId)->id]);
 
         return $page;
+    }
+
+    /**
+     * 親ロードマップの固定ページ（WordPress にあるもの。なければ null）
+     */
+    public function parentRoadmapPage(CategoryLaunch $launch): ?Page
+    {
+        $launch->loadMissing('parentCategory');
+
+        return Page::where('blog_id', $launch->blog_id)->existing()->where('slug', (string) $launch->parentCategory?->slug)->where('wordpress_parent_id', 0)->first();
+    }
+
+    /**
+     * 親ロードマップの作業中の編集案のうち、AI が中身を作ったもの（⑧。「準備中」のまま公開しないため）
+     */
+    public function parentRoadmapDraft(CategoryLaunch $launch): ?ArticleDraft
+    {
+        $page = $this->parentRoadmapPage($launch);
+
+        return $page !== null ? $this->drafts->activeFor($page) : null;
+    }
+
+    /**
+     * ⑧ 親ロードマップを公開する（AI が中身を作った編集案を、仕上げ直して公開する。子ロードマップ・記事がすべて公開済みなら、立ち上げを完了にする）
+     *
+     * @return array{published: int, errors: list<string>}
+     *
+     * @throws PushException
+     */
+    public function publishParentRoadmap(CategoryLaunch $launch, ?int $userId): array
+    {
+        $draft = $this->parentRoadmapDraft($launch);
+        if ($draft === null || $draft->ai_generation_id === null) {
+            throw new PushException('親ロードマップの編集案（AI が中身を作ったもの）がありません。先に「⑧ 親ロードマップの編集案を作る」を実行してください。');
+        }
+
+        $errors = [];
+        if (! $this->publishDraft($draft, ['status' => 'publish'], $userId, $errors)) {
+            return ['published' => 0, 'errors' => $errors];
+        }
+
+        $remaining = ArticleDraft::whereIn('category_launch_child_id', $launch->children()->pluck('id'))->active()->exists();
+        if (! $remaining && $launch->children()->whereNull('roadmap_draft_id')->doesntExist()) {
+            $launch->update(['status' => 'completed']);
+        }
+
+        return ['published' => 1, 'errors' => []];
     }
 
     /**

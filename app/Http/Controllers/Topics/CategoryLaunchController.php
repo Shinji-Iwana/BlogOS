@@ -91,7 +91,7 @@ class CategoryLaunchController extends Controller
         return redirect()->route('launches.index', ['parent_id' => $category->id])->with('status', "親カテゴリ「{$category->name}」を WordPress に作りました。");
     }
 
-    public function show(int $id)
+    public function show(int $id, CategoryLaunchPublishService $publisher)
     {
         $blog = $this->selectedBlog();
         $launch = CategoryLaunch::with(['parentCategory', 'children.roadmapDraft:id,title_raw,state,page_id,content_raw', 'children.category:id,name',
@@ -113,6 +113,8 @@ class CategoryLaunchController extends Controller
                 'webSearch'  => $this->apiPolicy->webSearch(),
             ],
             'perChild'   => CategoryLaunchService::ARTICLES_PER_CHILD,
+            'parentPage'  => $publisher->parentRoadmapPage($launch),
+            'parentDraft' => $publisher->parentRoadmapDraft($launch),
         ]);
     }
 
@@ -208,6 +210,41 @@ class CategoryLaunchController extends Controller
         $redirect = back()->with('status', "{$result['published']}件を公開しました。公開した記事どうしのリンクは、「リンクの切り替え」の画面でまとめて反映できます。");
 
         return $result['errors'] === [] ? $redirect : $redirect->withErrors(['publish' => implode("\n", $result['errors'])]);
+    }
+
+    /**
+     * ⑧ 親ロードマップの編集案を作る（親ロードマップのページの記事改修。ページがなければ WordPress の下書きとして作る）
+     */
+    public function parentRoadmap(Request $request, int $id)
+    {
+        $launch = $this->findLaunch($id);
+        $validated = $request->validate(['model' => ['nullable', 'string', 'max:100'], 'reasoning_effort' => ['nullable', 'string', 'max:30']]);
+
+        try {
+            $generation = $this->service->generateParentRoadmap($launch, $validated['model'] ?? null, $validated['reasoning_effort'] ?? null, $request->user()?->id);
+        } catch (AiException|PushException $e) {
+            return back()->withErrors(['ai' => $e->getMessage()]);
+        }
+
+        return redirect()->route('ai.generations.show', ['id' => $generation->id]);
+    }
+
+    /**
+     * ⑧ 親ロードマップを公開する（人の承認）
+     */
+    public function publishParentRoadmap(int $id, CategoryLaunchPublishService $publisher)
+    {
+        $launch = $this->findLaunch($id);
+
+        try {
+            $result = $publisher->publishParentRoadmap($launch, request()->user()?->id);
+        } catch (PushException $e) {
+            return back()->withErrors(['publish' => $e->getMessage()]);
+        }
+
+        return $result['errors'] === []
+            ? back()->with('status', '親ロードマップを公開しました。' . ($launch->fresh()->status === 'completed' ? 'すべて公開したため、立ち上げを「完了」にしました。' : ''))
+            : back()->withErrors(['publish' => implode("\n", $result['errors'])]);
     }
 
     /**

@@ -1,5 +1,5 @@
 {{--
-    カテゴリの立ち上げ（D-41）：子カテゴリごとの ③記事の企画 → ④記事の編集案 → ⑤子ロードマップの編集案
+    カテゴリの立ち上げ（D-41）：子カテゴリごとの ③記事の企画 → ④記事の編集案 → ⑤子ロードマップの編集案 → ⑥・⑦公開、⑧親ロードマップ
 --}}
 
 @extends('layouts.app')
@@ -14,7 +14,7 @@
     @include('partials.ai-credit-notice')
 
     <p style="color:#666;">
-        子カテゴリごとに、③記事の企画（{{ $perChild }}件。Web検索ありで約 $0.05） → 案を採用 → ④記事の編集案をまとめて作る（API。1件約 $0.012 と図解） → 編集案を確認 → ⑤子ロードマップの編集案、の順に進めます。
+        子カテゴリごとに、③記事の企画（{{ $perChild }}件。Web検索ありで約 $0.05） → 案を採用 → ④記事の編集案をまとめて作る（API。1件約 $0.012 と図解） → 編集案を確認 → ⑤子ロードマップの編集案 → ⑥・⑦公開、の順に進め、すべての子カテゴリがそろったら ⑧親ロードマップを作ります。
         まだ公開していない記事へのリンクは、タイトルだけになります（公開されると、BlogOS がリンクに切り替える編集案を作ります）。
     </p>
 
@@ -138,6 +138,50 @@
             @endif
         </fieldset>
     @endforeach
+
+    {{-- ⑧ 親ロードマップ --}}
+    @php $roadmapsReady = $launch->children->isNotEmpty() && $launch->children->every(fn ($child) => $child->roadmap_draft_id !== null); @endphp
+    <h2>⑧ 親ロードマップ</h2>
+    <p>
+        親ロードマップのページ：
+        @if ($parentPage)
+            「{{ $parentPage->title_raw }}」（/{{ $parentPage->slug }}.html・{{ $parentPage->status === 'publish' ? '公開中' : 'WordPress の下書き' }}）
+        @else
+            まだありません（子ロードマップを公開するときか、下のボタンで、WordPress の下書きとして作ります）
+        @endif
+        @if ($parentDraft)
+            ・<a href="{{ route('drafts.edit', ['id' => $parentDraft->id]) }}">編集案 #{{ $parentDraft->id }}</a>{{ $parentDraft->ai_generation_id === null ? '（中身はまだ作っていません）' : '' }}
+        @endif
+    </p>
+    @if (! $roadmapsReady)
+        <p style="color:#666;">すべての子カテゴリの子ロードマップの編集案ができると、親ロードマップを作れます。</p>
+    @else
+        <form method="POST" action="{{ route('launches.parent-roadmap', ['id' => $launch->id]) }}"
+              onsubmit="return confirm('親ロードマップの編集案を作りますか？（API実行・料金がかかります{{ $parentPage ? '' : '。親ロードマップのページを WordPress の下書きとして先に作ります' }}）');">
+            @csrf
+            @include('partials.selected-blog-field')
+            <p style="color:#666; margin-bottom:0;">
+                {{ $parentPage && $parentPage->status === 'publish'
+                    ? '公開中の親ロードマップに、新しい子ロードマップを加える改修（構成の見直し）をします。'
+                    : '「準備中」のページの中身を、親ロードマップとして初めから作ります（全面改修）。' }}
+                子ロードマップは、公開していなければタイトルだけになり、公開されるとリンクに切り替わります。
+            </p>
+            @include('materials.partials.method', ['method' => 'api', 'apiOnly' => true, 'prefix' => 'parent-roadmap', 'api' => $api + ['defaults' => config('blogos.ai.api.defaults.revision')]])
+            <button type="submit" @disabled(! $api['configured'])>⑧ 親ロードマップの編集案を{{ $parentDraft?->ai_generation_id ? '作り直す' : '作る' }}</button>
+        </form>
+    @endif
+    @if ($parentDraft && $parentDraft->ai_generation_id !== null)
+        @php $parentRemaining = \App\Support\ArticlePlaceholders::remaining($parentDraft->content_raw); @endphp
+        <form method="POST" action="{{ route('launches.parent-roadmap.publish', ['id' => $launch->id]) }}" style="margin-top:8px;"
+              onsubmit="return confirm('親ロードマップ「{{ $parentDraft->title_raw }}」を WordPress に公開しますか？');">
+            @csrf
+            @include('partials.selected-blog-field')
+            @if ($parentRemaining !== [])
+                <p style="color:#b00;">目印が残っているため公開できません：{{ implode('、', $parentRemaining) }}</p>
+            @endif
+            <button type="submit" @disabled($parentRemaining !== [])>親ロードマップ「{{ $parentDraft->title_raw }}」を公開する</button>
+        </form>
+    @endif
 
     <h2>子カテゴリを加える</h2>
     <form method="POST" action="{{ route('launches.children.store', ['id' => $launch->id]) }}">

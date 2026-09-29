@@ -70,7 +70,7 @@ class PromptBuilder
     {
         $template = AiTemplate::load($mode);
         $standard = $this->loader->load($blog->quality_profile);
-        $articleType = $article ? $this->managements->findFor($article)?->article_type : ($parameters['記事種類の値'] ?? null);
+        $articleType = ($article ? $this->managements->findFor($article)?->article_type : null) ?? ($parameters['記事種類の値'] ?? null);
 
         $values = [
             'blog_name'        => $blog->display_name,

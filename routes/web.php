@@ -133,6 +133,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/launches/parents', [CategoryLaunchController::class, 'storeParent'])->name('launches.parents.store');
         Route::post('/launches/{id}/children', [CategoryLaunchController::class, 'addChildren'])->whereNumber('id')->name('launches.children.store');
         Route::post('/launches/{id}/status', [CategoryLaunchController::class, 'updateStatus'])->whereNumber('id')->name('launches.status');
+        Route::post('/launches/{id}/parent-roadmap', [CategoryLaunchController::class, 'parentRoadmap'])->whereNumber('id')->name('launches.parent-roadmap');
+        Route::post('/launches/{id}/parent-roadmap/publish', [CategoryLaunchController::class, 'publishParentRoadmap'])->whereNumber('id')->name('launches.parent-roadmap.publish');
         Route::post('/launch-children/{id}/plan', [CategoryLaunchController::class, 'plan'])->whereNumber('id')->name('launches.children.plan');
         Route::post('/launch-children/{id}/articles', [CategoryLaunchController::class, 'articles'])->whereNumber('id')->name('launches.children.articles');
         Route::post('/launch-children/{id}/roadmap', [CategoryLaunchController::class, 'roadmap'])->whereNumber('id')->name('launches.children.roadmap');

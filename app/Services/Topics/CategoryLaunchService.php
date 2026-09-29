@@ -5,15 +5,18 @@ namespace App\Services\Topics;
 use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
 use App\Enums\AiMode;
+use App\Enums\RevisionScope;
 use App\Enums\SuggestionStatus;
 use App\Models\AiGeneration;
 use App\Models\Blog;
 use App\Models\Category;
 use App\Models\CategoryLaunch;
 use App\Models\CategoryLaunchChild;
+use App\Models\Page;
 use App\Models\TopicSuggestion;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AiRunService;
+use App\Services\Push\PushException;
 use App\Support\QualityProfiles;
 use Illuminate\Support\Collection;
 
@@ -21,7 +24,7 @@ use Illuminate\Support\Collection;
  * カテゴリの立ち上げ（D-41）：①親カテゴリ → ②子カテゴリ → ③記事の企画 → ④記事の編集案 → ⑤子ロードマップの編集案。
  *
  * 各段階は、人が画面で実行・確認してから次へ進む。記事の編集案と子ロードマップは API 実行で作る（費用がかかる）。
- * 公開（カテゴリの作成・まとめて公開）と親ロードマップは、次の段階で作る。
+ * 公開（⑥・⑦）は CategoryLaunchPublishService で行う。⑧ 親ロードマップは、親ロードマップの固定ページの記事改修として作る。
  */
 class CategoryLaunchService
 {
@@ -32,6 +35,7 @@ class CategoryLaunchService
 
     public function __construct(
         protected AiRunService $runService,
+        protected CategoryLaunchPublishService $publisher,
     ) {
     }
 
@@ -169,6 +173,53 @@ class CategoryLaunchService
                 . "\nこのカテゴリの記事（まだ公開していない新しい記事。本文には、この目印をそのまま書いてください）：\n{$articles}"
                 . "\nこれらの記事を、学習の順番のステップ（html-rules.md 3-15 の roadmap-step）に分けて、すべて載せてください。",
         ], null, $userId, AiExecutionMethod::Api, $model, $effort);
+    }
+
+    /**
+     * ⑧ 親ロードマップの編集案を作る（すべての子カテゴリの子ロードマップの編集案がそろってから）。
+     *
+     * 親ロードマップの固定ページ（なければ WordPress の下書きとして作る）の記事改修として作る。BlogOS が仮に作った「準備中」の
+     * ページは全面改修で中身を初めから作り、既にある親ロードマップは構成の見直しで、新しい子ロードマップを加える。
+     *
+     * @throws AiException
+     * @throws PushException 親ロードマップのページを作れなかった場合
+     */
+    public function generateParentRoadmap(CategoryLaunch $launch, ?string $model, ?string $effort, ?int $userId): AiGeneration
+    {
+        $launch->loadMissing(['blog', 'parentCategory', 'children.roadmapDraft:id,title_raw']);
+        if ($launch->children->isEmpty() || $launch->children->contains(fn (CategoryLaunchChild $child) => $child->roadmap_draft_id === null)) {
+            throw new AiException('すべての子カテゴリの子ロードマップの編集案ができてから、親ロードマップを作ってください。');
+        }
+
+        $page = $this->publisher->ensureParentRoadmapPage($launch, $userId);
+        $isNew = $page->status !== 'publish';
+        $parentName = (string) $launch->parentCategory?->name;
+
+        $children = $launch->children->map(fn (CategoryLaunchChild $child) => "- [[記事:下書き{$child->roadmap_draft_id}]] {$child->roadmapDraft?->title_raw}（子カテゴリ「{$child->name}」"
+            . ($child->scope ? "。範囲：{$child->scope}" : '') . '）')->implode("\n");
+        $launchPageIds = $launch->children->map(fn (CategoryLaunchChild $child) => $child->roadmapDraft?->page_id)->filter()->all();
+        $others = Page::where('blog_id', $launch->blog_id)->existing()->where('status', 'publish')->where('wordpress_parent_id', (int) $page->wordpress_id)
+            ->whereNotIn('id', $launchPageIds)->orderBy('menu_order')->orderBy('id')->get(['id', 'wordpress_id', 'title_raw'])
+            ->map(fn (Page $other) => "- [[記事:{$other->wordpress_id}]] {$other->title_raw}")->implode("\n");
+
+        $notes = $isNew
+            ? "このページは、BlogOS が仮に作った「準備中」のページです。今の本文は使わず、「{$parentName}」の親ロードマップ（html-rules.md 2-1）を初めから作ってください。タイトルも付け直してください（「準備中」は外す）。"
+            : "この親ロードマップに、新しく立ち上げた子カテゴリの子ロードマップを加えてください（学習の順番に合うステップに入れる。既存の子ロードマップへのリンクは残す）。";
+        $notes .= "\n新しい子ロードマップ（本文には、この目印をそのまま書いてください）：\n{$children}";
+        if ($others !== '') {
+            $notes .= "\n既にある子ロードマップ（これも載せてください）：\n{$others}";
+        }
+
+        $types = QualityProfiles::articleTypes($launch->blog->quality_profile);
+
+        return $this->runService->start(AiMode::Revision, $launch->blog, $page, null, [
+            '記事種類'         => $types['types']['parent_roadmap'] ?? '親ロードマップ',
+            '記事種類の値'     => 'parent_roadmap',
+            'カテゴリ'         => $parentName,
+            'カテゴリの値'     => (string) $launch->parent_category_id,
+            'メインキーワード' => "{$parentName} ロードマップ",
+            '補足（実体験・検証の結果・伝えたいこと）' => $notes,
+        ], $isNew ? RevisionScope::Full : RevisionScope::Restructure, $userId, AiExecutionMethod::Api, $model, $effort);
     }
 
     /**
