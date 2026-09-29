@@ -210,6 +210,33 @@ return [
     /*
      * 収益用の教材（書籍・Udemy・スクール。D-30）
      */
+    /*
+    |--------------------------------------------------------------------------
+    | 記事の HTML の仕上げ（D-34）
+    |--------------------------------------------------------------------------
+    |
+    | AIの改修案・新規記事の本文に、BlogOS が入れるもの（広告のショートコード・広告を含むことの表示）の設定。
+    | 品質基準のブログ別の定義（html-rules.md）ごとに持つ。定義のないブログには入れない。
+    |
+    */
+    'article_html' => [
+        'si-note' => [
+            // WP QUADS に登録した AdSense の広告ユニット（html-rules.md 4章）
+            'ads' => [
+                'top'     => 1, // rectangle-top：導入文の後
+                'middle'  => 2, // rectangle-middle：本文の H2 の間
+                'middle2' => 4, // rectangle-middle2：本文が長い記事だけ
+                'bottom'  => 3, // rectangle-bottom：FAQ の後・まとめの前
+            ],
+            // id=4 を入れる「長い記事」（タグを除いた本文の文字数と、H2 の数の両方を満たす）
+            'long_article' => ['chars' => 6000, 'h2' => 6],
+            // 広告を含むことの表示（ステマ規制。html-rules.md 3-1）
+            'pr_note' => '本記事にはプロモーション（アフィリエイト広告）を含みます。',
+            // 1記事あたりの画像の依頼の上限（D-34）
+            'image_limits' => ['diagram' => 3, 'illustration' => 1],
+        ],
+    ],
+
     'materials' => [
         // 記事ごとにAIへ渡す教材の候補の数（一段目の絞り込み。二段目でAIが選ぶ）
         'max_candidates' => (int) env('BLOGOS_MATERIAL_MAX_CANDIDATES', 8),

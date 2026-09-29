@@ -58,6 +58,14 @@ class Image extends Model
         return $this->hasMany(AiGeneration::class);
     }
 
+    /**
+     * 画像を依頼した編集案（AIの改修案・新規記事の「画像の依頼」から作った画像。D-34）
+     */
+    public function draft(): BelongsTo
+    {
+        return $this->belongsTo(ArticleDraft::class, 'article_draft_id');
+    }
+
     public function hasFile(): bool
     {
         return filled($this->path);

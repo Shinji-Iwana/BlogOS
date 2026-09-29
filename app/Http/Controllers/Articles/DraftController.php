@@ -8,11 +8,14 @@ use App\Enums\RevisionScope;
 use App\Enums\SyncIssueType;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
+use App\Models\Image;
 use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\SyncIssueRepository;
+use App\Services\Articles\ArticleHtmlFinisher;
 use App\Services\Articles\DraftService;
+use App\Support\ArticlePlaceholders;
 use App\Services\Push\PushException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -109,7 +112,34 @@ class DraftController extends Controller
             'tags'           => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'tags') : collect(),
             'statuses'       => self::STATUSES,
             'revisionScopes' => RevisionScope::cases(),
+            // AIが依頼した画像と、本文に残っている目印（D-34）
+            'draftImages'    => Image::with('media:id,wordpress_id')->where('article_draft_id', $draft->id)->orderBy('id')->get(),
+            'placeholders'   => ArticlePlaceholders::remaining($draft->content_raw),
         ]);
+    }
+
+    /**
+     * 本文を仕上げ直す：目印を置き換え直し、広告・広告を含むことの表示を入れ直す（D-34）。画像を WordPress に登録した後などに使う
+     */
+    public function finish(Request $request, int $id, ArticleHtmlFinisher $finisher)
+    {
+        $blog = $this->selectedBlog();
+        $draft = $this->drafts->findForBlog($blog->id, $id);
+        abort_if($draft === null, 404);
+
+        $finished = $finisher->finish($blog, (string) $draft->content_raw);
+
+        try {
+            $changed = $this->draftService->update($draft, ['content_raw' => $finished['content']], $request->user()?->id);
+        } catch (PushException $e) {
+            return back()->withErrors(['draft' => $e->getMessage()]);
+        }
+        $draft->forceFill(['finish_notes' => $finished['notes'] !== [] ? $finished['notes'] : null])->save();
+
+        $remaining = ArticlePlaceholders::remaining($finished['content']);
+
+        return redirect()->route('drafts.edit', ['id' => $draft->id])->with('status', ($changed === [] ? '本文は変わりませんでした。' : '目印を置き換え直しました。')
+            . ($remaining !== [] ? '置き換えられなかった目印が ' . count($remaining) . '件あります。' : ''));
     }
 
     public function update(Request $request, int $id)

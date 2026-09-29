@@ -270,6 +270,29 @@ class ImageController extends Controller
     }
 
     /**
+     * 登録済みの図解の画像で、図を作る（記事の「画像の依頼」から作った画像など。D-34）
+     */
+    public function redesign(Request $request, int $id)
+    {
+        $blog = $this->selectedBlog();
+        $image = $this->findOr404($blog->id, $id);
+        abort_if($image->kind !== ImageKind::Diagram, 404);
+        $validated = $request->validate([
+            'execution_method' => ['required', Rule::enum(AiExecutionMethod::class)],
+            'model'            => ['nullable', 'string', 'max:100'],
+            'reasoning_effort' => ['nullable', 'string', 'max:30'],
+        ]);
+
+        try {
+            $generation = $this->startDesign($blog, $image, 'svg', null, null, $request, $validated);
+        } catch (AiException $e) {
+            return back()->withErrors(['ai' => $e->getMessage()]);
+        }
+
+        return redirect()->route('ai.generations.show', ['id' => $generation->id]);
+    }
+
+    /**
      * もう一方の形式（SVG の図／イラスト）でも作る。比べて、使う方を選ぶ
      */
     public function variant(Request $request, int $id)

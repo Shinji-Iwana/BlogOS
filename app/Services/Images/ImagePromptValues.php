@@ -31,6 +31,15 @@ class ImagePromptValues
 
         $values = ['image_request' => implode("\n", $lines)];
 
+        // 編集案の「画像の依頼」から作った画像は、編集案の本文（AIの改修案・新規記事）を記事として渡す（D-34）
+        $draft = $image?->loadMissing('draft')->draft;
+        if ($draft !== null) {
+            $values['article_info'] = '- タイトル：' . $draft->title_raw . "\n- この図は、本文の [[画像:{$image->id}]] の位置に載せます。";
+            $values['article_content'] = (string) $draft->content_raw;
+
+            return $values;
+        }
+
         // 図を載せる記事がなければ、記事の情報は入れない
         if ($article === null) {
             $values['article_info'] = '（なし）';

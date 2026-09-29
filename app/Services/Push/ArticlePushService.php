@@ -18,6 +18,7 @@ use App\Repositories\BlogCredentialRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Repositories\WordPressPushOperationRepository;
 use App\Services\Sync\SyncContext;
+use App\Support\ArticlePlaceholders;
 use App\Support\Slug;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -143,6 +144,13 @@ class ArticlePushService
         }
         if ($draft->isLocked()) {
             throw new PushException('結果が確定していない反映記録があるため、反映できません。先に反映記録の画面で確認してください。');
+        }
+
+        // BlogOS の目印（[[画像:5]] など）が残っていると、読者に目印の文字が見えるため反映しない（D-34）
+        $placeholders = ArticlePlaceholders::remaining($draft->content_raw);
+        if ($placeholders !== []) {
+            throw new PushException('本文に、置き換えられていない目印があります：' . implode('、', $placeholders)
+                . '。画像を WordPress に登録してから「目印を置き換え直す」を押すか、本文から削除してください。');
         }
 
         $payload = $this->payload($draft);

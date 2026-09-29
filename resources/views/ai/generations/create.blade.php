@@ -68,6 +68,17 @@
             @if (in_array($mode, [\App\Enums\AiMode::NewArticle, \App\Enums\AiMode::Structure], true))
                 @if ($mode === \App\Enums\AiMode::NewArticle)
                     <p><label>記事の種類 <select name="target_type"><option>投稿</option><option>固定ページ</option></select></label></p>
+                    <p>
+                        <label>カテゴリ（投稿）
+                            <select name="category_id">
+                                <option value="">（指定しない）</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}" @selected((string) old('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <span style="color:#666;">（紹介する教材の候補と、アイキャッチ（カテゴリに登録したもの）に使います）</span>
+                    </p>
                 @endif
                 <p>
                     <label>記事種類

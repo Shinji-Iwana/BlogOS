@@ -80,12 +80,12 @@ class AffiliateProgramTest extends TestCase
         $this->post(route('materials.programs.register'), $this->selected())->assertRedirect();
         $school = Material::create([
             'blog_id' => $this->blog->id, 'kind' => MaterialKind::School, 'status' => MaterialStatus::Active, 'name' => 'DMM WEBCAMP 学習コース',
-            'affiliate_url' => 'https:' . self::SCHOOL, 'topics' => ['AWS'],
+            'affiliate_url' => 'https:' . self::SCHOOL, 'topics' => ['AWS'], 'summary' => '未経験から学べるスクール',
         ]);
         // もしも経由の問題集を、スクールとして登録してしまった場合
         $questionBank = Material::create([
             'blog_id' => $this->blog->id, 'kind' => MaterialKind::School, 'status' => MaterialStatus::Active, 'name' => 'CLF対応オンライン問題集',
-            'affiliate_url' => 'https:' . self::QUESTION_BANK, 'topics' => ['AWS'],
+            'affiliate_url' => 'https:' . self::QUESTION_BANK, 'topics' => ['AWS'], 'summary' => '試験対策のオンライン問題集',
         ]);
         app(MaterialLinkService::class)->syncBlog($this->blog);
 

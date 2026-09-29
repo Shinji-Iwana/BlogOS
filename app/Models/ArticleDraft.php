@@ -53,6 +53,7 @@ class ArticleDraft extends Model
             'edit_ratio'                  => 'decimal:4',
             'pushed_at'                   => 'datetime',
             'discarded_at'                => 'datetime',
+            'finish_notes'                => 'array',
         ];
     }
 
@@ -84,6 +85,14 @@ class ArticleDraft extends Model
     public function pushOperations(): HasMany
     {
         return $this->hasMany(WordPressPushOperation::class);
+    }
+
+    /**
+     * この編集案のために依頼した画像（D-34）
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(Image::class);
     }
 
     /**

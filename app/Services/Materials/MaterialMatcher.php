@@ -46,7 +46,8 @@ class MaterialMatcher
         foreach ($this->materials->activeForBlog($blog->id) as $material) {
             [$score, $reasons] = $this->score($material, $context);
             // 提携中でないプログラムのリンクしかない教材は、候補にしない（D-33-08）
-            if ($score > 0 && $this->allowedFor($material, $context['article_type']) && $this->programs->isUsable($material)) {
+            // 情報（学べる内容など）を調べていない教材も、候補にしない。紹介文を公開されている情報に基づいて書けないため（D-35-04）
+            if ($score > 0 && $this->allowedFor($material, $context['article_type']) && $this->programs->isUsable($material) && filled($material->summary)) {
                 $rows[$material->id] = ['material' => $material, 'score' => $score, 'reasons' => $reasons, 'used' => in_array($material->id, $used, true)];
             }
         }

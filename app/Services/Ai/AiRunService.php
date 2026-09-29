@@ -8,11 +8,13 @@ use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
 use App\Enums\AiMode;
 use App\Enums\EvaluatorType;
+use App\Enums\ImageKind;
 use App\Enums\PushResourceType;
 use App\Enums\RevisionScope;
 use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\Category;
 use App\Models\Image;
 use App\Models\Material;
 use App\Models\Page;
@@ -20,10 +22,13 @@ use App\Models\Post;
 use App\Repositories\AiGenerationRepository;
 use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleManagementSuggestionRepository;
+use App\Repositories\ImageRepository;
 use App\Support\QualityProfiles;
 use App\Services\Ai\Executors\AiExecutor;
 use App\Services\Ai\Executors\ApiExecutor;
 use App\Services\Ai\Executors\ManualExecutor;
+use App\Services\Articles\ArticleHtmlFinisher;
+use App\Services\Articles\ArticleImageRequestService;
 use App\Services\Articles\DraftService;
 use App\Services\Images\ImageAiResultService;
 use App\Services\Materials\MaterialAiResultService;
@@ -50,6 +55,9 @@ class AiRunService
         protected ArticleManagementSuggestionRepository $suggestions,
         protected MaterialAiResultService $materialResults,
         protected ImageAiResultService $imageResults,
+        protected ArticleHtmlFinisher $finisher,
+        protected ArticleImageRequestService $imageRequests,
+        protected ImageRepository $imageRepository,
     ) {
     }
 
@@ -393,12 +401,66 @@ class AiRunService
             $draft = $this->draftService->createFromArticle($article, $generation->revision_scope, $userId, $generation->id);
         }
 
-        $this->draftService->applyAiOutput($draft, [
+        $this->applyArticleOutput($draft, $sections, [
             'title_raw'        => $sections['タイトル'],
             'excerpt_raw'      => $sections['抜粋'] ?? $draft->excerpt_raw,
             'meta_description' => $sections['メタディスクリプション'] ?? $draft->meta_description,
-            'content_raw'      => $sections['本文'],
         ], $generation, $userId);
+    }
+
+    /**
+     * 記事改修・新規記事の出力を編集案に取り込む（D-34）。画像の依頼から画像の登録を作り、本文を仕上げ（目印の置き換え・広告の挿入など）、
+     * 図解は続けて API で図を作る
+     *
+     * @param array<string, string> $sections
+     * @param array<string, mixed> $values 本文以外の値
+     *
+     * @throws PushException
+     */
+    protected function applyArticleOutput(ArticleDraft $draft, array $sections, array $values, AiGeneration $generation, ?int $userId): void
+    {
+        $requests = $this->imageRequests->create($draft, $this->parser->imageRequests($sections['画像の依頼'] ?? null), $userId);
+        $finished = $this->finisher->finish($generation->blog, $this->imageRequests->mapKeys($sections['本文'], $requests['map']));
+
+        $this->draftService->applyAiOutput($draft, $values + ['content_raw' => $finished['content']], $generation, $userId);
+
+        $notes = array_merge($requests['notes'], $finished['notes'], $this->startDiagramDesigns($draft, $requests['images'], $generation, $userId));
+
+        // 教材を紹介しなかった場合は、理由を確かめられるように知らせる（D-35-04）
+        if (! str_contains($sections['本文'], '[[教材:') && ! str_contains($finished['content'], 'rel="nofollow sponsored"')) {
+            $notes[] = 'この編集案には、教材の紹介がありません。理由は AI 実行記録の「変更点」を確認してください。情報（学べる内容など）を調べていない教材は、候補に入りません（教材の画面の「AIで調べる」で調べ、案を登録してください）。';
+        }
+        $draft->forceFill(['finish_notes' => $notes !== [] ? $notes : null])->save();
+    }
+
+    /**
+     * AIが依頼した図解を、API で図にする（SVG。費用が小さいため自動。D-34）。作れない場合は、画像の画面から作れるように案のまま残す
+     *
+     * @param list<Image> $images
+     * @return list<string> 人に伝えること
+     */
+    protected function startDiagramDesigns(ArticleDraft $draft, array $images, AiGeneration $generation, ?int $userId): array
+    {
+        $diagrams = array_values(array_filter($images, fn (Image $image) => $image->kind === ImageKind::Diagram));
+        if ($diagrams === []) {
+            return [];
+        }
+        if (! $this->apiPolicy->isConfigured()) {
+            return ['APIキーが設定されていないため、図解は作っていません。画像の画面の「AIで図を作る」から作ってください。'];
+        }
+
+        $notes = [];
+        foreach ($diagrams as $image) {
+            try {
+                $this->start(AiMode::ImageDesign, $generation->blog, $generation->post ?? $generation->page, null,
+                    ['形式' => 'SVG の図', '形式の値' => 'svg'], null, $userId, AiExecutionMethod::Api, image: $image);
+            } catch (AiException $e) {
+                $image->update(['ai_note' => "図を自動で作れませんでした：{$e->getMessage()}"]);
+                $notes[] = "図解「{$image->title}」を自動で作れませんでした：{$e->getMessage()}";
+            }
+        }
+
+        return $notes;
     }
 
     /**
@@ -429,13 +491,19 @@ class AiRunService
 
         $slug = preg_replace('/[^a-z0-9-]/', '', strtolower($sections['スラッグ'] ?? ''));
 
-        $this->draftService->applyAiOutput($draft, [
-            'title_raw'   => $sections['タイトル'],
-            'slug'        => $slug !== '' ? $slug : null,
-            'excerpt_raw'      => $sections['抜粋'] ?? '',
-            'meta_description' => $sections['メタディスクリプション'] ?? '',
-            'content_raw'      => $sections['本文'],
-        ], $generation, $userId);
+        // 人が選んだカテゴリと、そのカテゴリのアイキャッチ（子のカテゴリに設定がなければ親のカテゴリ。D-32-03）
+        $category = $type === PushResourceType::Post && ctype_digit((string) ($generation->parameters['カテゴリの値'] ?? ''))
+            ? Category::where('blog_id', $blog->id)->find((int) $generation->parameters['カテゴリの値']) : null;
+        $eyecatch = $category !== null ? $this->imageRepository->eyecatchFor($category) : null;
+
+        $this->applyArticleOutput($draft, $sections, array_filter([
+            'title_raw'                   => $sections['タイトル'],
+            'slug'                        => $slug !== '' ? $slug : null,
+            'excerpt_raw'                 => $sections['抜粋'] ?? '',
+            'meta_description'            => $sections['メタディスクリプション'] ?? '',
+            'wordpress_category_ids'      => $category !== null ? [(int) $category->wordpress_id] : null,
+            'wordpress_featured_media_id' => $eyecatch !== null ? (int) $eyecatch->wordpress_id : null,
+        ], fn ($value) => $value !== null), $generation, $userId);
     }
 
     protected function executor(AiExecutionMethod $method): AiExecutor

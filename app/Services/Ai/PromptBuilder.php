@@ -16,6 +16,7 @@ use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
 use App\Models\Image;
 use App\Services\Images\ImagePromptValues;
+use App\Services\Materials\MaterialMatcher;
 use App\Services\Materials\MaterialPromptValues;
 use App\Services\Quality\QualityStandard;
 use App\Services\Quality\QualityStandardLoader;
@@ -52,6 +53,7 @@ class PromptBuilder
         protected GoogleMetricRepository $metrics,
         protected MaterialPromptValues $materialValues,
         protected ImagePromptValues $imageValues,
+        protected MaterialMatcher $materialMatcher,
     ) {
     }
 
@@ -86,6 +88,17 @@ class PromptBuilder
         // 教材の調査・候補探し・見直し（D-30）
         if ($mode->isMaterialMode()) {
             $values = $this->materialValues->values($mode, $blog, $article, $material, $parameters, $webSearch) + $values;
+        }
+
+        // 記事改修・新規記事作成（D-34）：紹介してよい教材の候補と、この記事の画像
+        if (in_array($mode, [AiMode::Revision, AiMode::NewArticle], true)) {
+            $values['material_candidates'] = MaterialMatcher::describe($this->materialMatcher->candidates($blog, $article, [
+                'category_ids' => ctype_digit((string) ($parameters['カテゴリの値'] ?? '')) ? [(int) $parameters['カテゴリの値']] : [],
+                'keywords'     => array_values(array_filter(array_merge([$parameters['メインキーワード'] ?? null], preg_split('/\R/u', (string) ($parameters['サブキーワード'] ?? ''))))),
+                'title'        => $parameters['メインキーワード'] ?? null,
+                'article_type' => $parameters['記事種類の値'] ?? null,
+            ]));
+            $values['image_list'] = $this->imageList($blog, $draft, (string) $values['article_content']);
         }
 
         // 図の作成（D-32）
@@ -264,10 +277,31 @@ class PromptBuilder
         return implode("\n", $lines);
     }
 
+    /**
+     * 公開中の記事。本文でリンクするときは、先頭の目印（[[記事:WordPress の ID]]）を書く（D-34）
+     */
     protected function articleList(Blog $blog): string
     {
-        $lines = $this->articles->publishedList($blog->id)->map(fn ($a) => "- {$a->title_raw}：{$a->link}")->all();
+        $lines = $this->articles->publishedList($blog->id)->map(fn ($a) => "- [[記事:{$a->wordpress_id}]] {$a->title_raw}：{$a->link}")->all();
 
         return $lines === [] ? '（なし）' : implode("\n", $lines);
+    }
+
+    /**
+     * この記事の画像（編集案で依頼した画像と、本文の目印にある画像。D-34）
+     */
+    protected function imageList(Blog $blog, ?ArticleDraft $draft, string $content): string
+    {
+        preg_match_all('/\[\[画像:(\d+)\]\]/u', $content, $matches);
+        $images = Image::where('blog_id', $blog->id)
+            ->where(fn ($query) => $query->whereIn('id', array_map('intval', $matches[1]))->when($draft !== null, fn ($q) => $q->orWhere('article_draft_id', $draft->id)))
+            ->orderBy('id')->get();
+
+        if ($images->isEmpty()) {
+            return '（なし）';
+        }
+
+        return $images->map(fn (Image $image) => "- [[画像:{$image->id}]] {$image->kind->label()}「{$image->title}」" . ($image->alt ? "（alt：{$image->alt}）" : '')
+            . ($image->media_id ? '・WordPress に登録済み' : '・未登録'))->implode("\n");
     }
 }

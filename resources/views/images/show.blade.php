@@ -202,6 +202,18 @@
         <p>WordPress のメディア：<a href="{{ $image->media->source_url }}" target="_blank" rel="noopener noreferrer">{{ $image->media->source_url }}</a>（<a href="{{ route('database.wordpress-records.show', ['table' => 'media', 'id' => $image->media->id]) }}">DB確認</a>）</p>
     @endif
 
+    {{-- 図がまだない図解（記事の「画像の依頼」から作り、自動で図を作れなかった場合など。D-34） --}}
+    @if ($image->kind === \App\Enums\ImageKind::Diagram && blank($image->svg_source) && ! $image->hasFile())
+        <h2>AIで図を作る</h2>
+        <form method="POST" action="{{ route('images.redesign', ['id' => $image->id]) }}">
+            @csrf
+            @include('partials.selected-blog-field')
+            <p style="color:#666;">「依頼の内容」をもとに、SVG の図を作ります。</p>
+            @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'redesign'])
+            <button type="submit">図を作る</button>
+        </form>
+    @endif
+
     {{-- 画像モデル・アップロード --}}
     @if (! $image->media_id && $image->kind !== \App\Enums\ImageKind::Diagram)
         <h2>{{ $image->kind === \App\Enums\ImageKind::Screenshot ? '画像を差し替える' : '画像を作る・差し替える' }}</h2>

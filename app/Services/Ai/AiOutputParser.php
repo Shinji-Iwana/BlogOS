@@ -341,6 +341,50 @@ class AiOutputParser
     }
 
     /**
+     * 記事改修・新規記事作成の「=== 画像の依頼 ===」の節（JSON の配列。D-34）。書かれていない・読み取れない場合は空
+     *
+     * @return list<array{key: string, kind: string, title: string, description: string, alt: string|null, illustration_prompt: string|null}>
+     */
+    public function imageRequests(?string $section): array
+    {
+        $section = trim((string) $section);
+        if ($section === '' || preg_match('/^(なし|none|\[\s*\])$/iu', $section)) {
+            return [];
+        }
+
+        $json = preg_match('/```(?:json)?\s*(.*?)```/su', $section, $m) ? $m[1] : $section;
+        $start = strpos($json, '[');
+        $end = strrpos($json, ']');
+        $data = $start !== false && $end !== false && $end > $start ? $this->decode(substr($json, $start, $end - $start + 1)) : null;
+        if (! is_array($data)) {
+            return [];
+        }
+
+        $requests = [];
+        foreach ($data as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+            $key = trim((string) ($item['key'] ?? ''));
+            $kind = (string) ($item['kind'] ?? '');
+            $title = trim((string) ($item['title'] ?? ''));
+            if ($key === '' || $title === '' || ! in_array($kind, ['diagram', 'illustration', 'screenshot'], true)) {
+                continue;
+            }
+            $requests[] = [
+                'key'                 => mb_substr(preg_replace('/^\[\[画像:|\]\]$/u', '', $key), 0, 30),
+                'kind'                => $kind,
+                'title'               => mb_substr($title, 0, 255),
+                'description'         => trim((string) ($item['description'] ?? '')),
+                'alt'                 => filled($item['alt'] ?? null) ? trim((string) $item['alt']) : null,
+                'illustration_prompt' => filled($item['illustration_prompt'] ?? null) ? trim((string) $item['illustration_prompt']) : null,
+            ];
+        }
+
+        return $requests;
+    }
+
+    /**
      * ChatGPTの画面からコピーすると入る出典の目印（:contentReference[oaicite:0]{index=0} など）を取り除く。
      * 保存しても表示で意味を持たないため（D-22-11）。
      */

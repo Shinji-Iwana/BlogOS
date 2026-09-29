@@ -59,6 +59,72 @@
         </p>
     @endif
 
+    {{-- BlogOS の仕上げ：目印・画像の依頼・広告（D-34） --}}
+    @if ($placeholders !== [] || $draftImages->isNotEmpty() || $draft->finish_notes)
+        <fieldset style="max-width:1000px;">
+            <legend>画像・目印・BlogOS が入れたもの</legend>
+
+            @if ($placeholders !== [])
+                <p style="color:#b00;">
+                    <strong>置き換えられていない目印があるため、反映できません：</strong>{{ implode('、', $placeholders) }}<br>
+                    画像は、画像の画面で作る（またはアップロードする）→ 確認済みにする → WordPress に登録する、の後に「目印を置き換え直す」を押してください。
+                    使わない画像は、本文から目印を削除してください。
+                </p>
+            @endif
+
+            @if ($draftImages->isNotEmpty())
+                <table border="1" cellpadding="4" cellspacing="0">
+                    <thead><tr><th>目印</th><th>種類</th><th>名前・依頼の内容</th><th>状態</th></tr></thead>
+                    <tbody>
+                        @foreach ($draftImages as $image)
+                            <tr>
+                                <td><code>[[画像:{{ $image->id }}]]</code></td>
+                                <td>{{ $image->kind->label() }}</td>
+                                <td style="max-width:480px;">
+                                    <a href="{{ route('images.show', ['id' => $image->id]) }}">{{ $image->title }}</a>
+                                    @if ($image->kind === \App\Enums\ImageKind::Screenshot && ! $image->hasFile())
+                                        <br><span style="color:#b60;">撮影の依頼：{{ $image->description }}</span>
+                                    @elseif ($image->description)
+                                        <br><span style="color:#666;">{{ \Illuminate\Support\Str::limit($image->description, 120) }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($image->media_id)
+                                        WordPress に登録済み
+                                    @elseif ($image->isReady())
+                                        確認済み（WordPress に未登録）
+                                    @elseif ($image->hasFile() || filled($image->svg_source))
+                                        案（確認待ち）
+                                    @else
+                                        <span style="color:#b60;">{{ $image->kind === \App\Enums\ImageKind::Screenshot ? '撮影待ち' : '未作成' }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            @if ($draft->finish_notes)
+                <p style="margin-bottom:0;">BlogOS の仕上げのお知らせ：</p>
+                <ul style="margin-top:0;">
+                    @foreach ($draft->finish_notes as $note)
+                        <li>{{ $note }}</li>
+                    @endforeach
+                </ul>
+            @endif
+
+            @if ($editable)
+                <form method="POST" action="{{ route('drafts.finish', ['id' => $draft->id]) }}">
+                    @csrf
+                    @include('partials.selected-blog-field')
+                    <button type="submit">目印を置き換え直す</button>
+                    <span style="color:#666;">（登録した画像・公開した記事を反映します。広告と広告を含むことの表示も、決まった位置に入れ直します）</span>
+                </form>
+            @endif
+        </fieldset>
+    @endif
+
     @if ($draft->base_wordpress_modified_gmt)
         <p style="color:#666;">編集の起点：WordPressの {{ \App\Support\DisplayTime::format($draft->base_wordpress_modified_gmt) }} の版</p>
     @endif

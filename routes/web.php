@@ -113,6 +113,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
         Route::post('/drafts', [DraftController::class, 'store'])->name('drafts.store');
         Route::put('/drafts/{id}', [DraftController::class, 'update'])->whereNumber('id')->name('drafts.update');
+        Route::post('/drafts/{id}/finish', [DraftController::class, 'finish'])->whereNumber('id')->name('drafts.finish');
         Route::post('/drafts/{id}/state', [DraftController::class, 'changeState'])->whereNumber('id')->name('drafts.state');
         Route::post('/drafts/{id}/push', [DraftPushController::class, 'store'])->whereNumber('id')->name('drafts.push.store');
         Route::post('/drafts/{id}/conflict', [DraftConflictController::class, 'resolve'])->whereNumber('id')->name('drafts.conflict.resolve');
@@ -235,6 +236,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/images/{id}/ready', [ImageController::class, 'markReady'])->whereNumber('id')->name('images.ready');
         Route::post('/images/{id}/generate', [ImageController::class, 'generate'])->whereNumber('id')->name('images.generate');
         Route::post('/images/{id}/variant', [ImageController::class, 'variant'])->whereNumber('id')->name('images.variant');
+        Route::post('/images/{id}/design', [ImageController::class, 'redesign'])->whereNumber('id')->name('images.redesign');
         Route::post('/images/{id}/wordpress', [ImageController::class, 'uploadToWordPress'])->whereNumber('id')->name('images.wordpress');
         Route::delete('/images/{id}', [ImageController::class, 'destroy'])->whereNumber('id')->name('images.destroy');
     });

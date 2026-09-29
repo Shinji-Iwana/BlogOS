@@ -8,6 +8,7 @@ use App\Enums\RevisionScope;
 use App\Http\Controllers\Concerns\ResolvesArticleTarget;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Repositories\AiGenerationRepository;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiException;
@@ -65,6 +66,7 @@ class AiGenerationController extends Controller
             'draft'        => $draft,
             'scopes'       => RevisionScope::cases(),
             'articleTypes' => QualityProfiles::articleTypes($blog->quality_profile),
+            'categories'   => $mode === AiMode::NewArticle ? Category::where('blog_id', $blog->id)->existing()->orderBy('name')->get(['id', 'name']) : collect(),
             'method'       => config("blogos.ai.methods.{$mode->value}", 'manual'),
             'api'          => $this->apiSummary($mode),
         ]);
@@ -79,6 +81,7 @@ class AiGenerationController extends Controller
             'target'          => ['nullable', 'string'],
             'revision_scope'  => ['nullable', Rule::enum(RevisionScope::class)],
             'target_type'     => ['nullable', Rule::in(['投稿', '固定ページ'])],
+            'category_id'     => ['nullable', 'integer'],
             'article_type'    => ['nullable', 'string', 'max:50'],
             'article_subtype' => ['nullable', 'string', 'max:50'],
             'main_keyword'    => ['nullable', 'string', 'max:191'],
@@ -100,10 +103,15 @@ class AiGenerationController extends Controller
         }
 
         $types = QualityProfiles::articleTypes($blog->quality_profile);
+        // 新規記事のカテゴリ（教材の候補・アイキャッチに使う。D-34）
+        $category = $mode === AiMode::NewArticle && filled($validated['category_id'] ?? null)
+            ? Category::where('blog_id', $blog->id)->existing()->find((int) $validated['category_id']) : null;
 
         // 指示文の「人が提供した情報」（D-14-10：実体験・検証の内容は、人が提供したものだけを使う）
         $parameters = array_filter([
             '記事の種類'                         => $mode === AiMode::NewArticle ? ($validated['target_type'] ?? '投稿') : null,
+            'カテゴリ'                           => $category?->name,
+            'カテゴリの値'                       => $category !== null ? (string) $category->id : null,
             '記事種類'                           => isset($validated['article_type']) ? ($types['types'][$validated['article_type']] ?? $validated['article_type']) : null,
             '記事種類の値'                       => $validated['article_type'] ?? null,
             '細分類'                             => isset($validated['article_subtype']) ? ($types['subtypes'][$validated['article_subtype']] ?? $validated['article_subtype']) : null,

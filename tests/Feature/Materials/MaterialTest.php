@@ -312,10 +312,10 @@ class MaterialTest extends TestCase
     {
         $this->registerDetected();
         $udemy = Material::where('kind', MaterialKind::Udemy)->sole();
-        $udemy->update(['topics' => ['JavaScript', 'addEventListener'], 'scenes' => ['hands_on']]);
+        $udemy->update(['topics' => ['JavaScript', 'addEventListener'], 'scenes' => ['hands_on'], 'summary' => '動画で学ぶ入門講座']);
         $book = Material::where('kind', MaterialKind::Book)->sole();
         $book->categories()->sync([$this->javascript->id]);
-        $book->update(['scenes' => ['systematic']]);
+        $book->update(['scenes' => ['systematic'], 'summary' => '基礎を体系的に学べる入門書']);
         $other = Material::create(['blog_id' => $this->blog->id, 'kind' => MaterialKind::Book, 'status' => MaterialStatus::Active, 'name' => 'Python入門', 'topics' => ['Python']]);
 
         // 一段目：カテゴリ（親のカテゴリを含む）・分野の語句で絞る。関係のない教材は候補にしない
