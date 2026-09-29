@@ -341,6 +341,64 @@ class AiOutputParser
     }
 
     /**
+     * 記事の企画の出力（D-40）
+     *
+     * @return array{summary: string|null, articles: list<array<string, mixed>>, categories: list<array<string, mixed>>}
+     *
+     * @throws AiException
+     */
+    public function topicPlanning(string $output): array
+    {
+        $json = preg_match('/```(?:json)?\s*(.*?)```/su', $output, $m) ? $m[1] : $this->outermostObject($output);
+        $data = $json !== null ? $this->decode($json) : null;
+        if (! is_array($data)) {
+            throw new AiException('出力からJSONを読み取れませんでした。テンプレートの「出力の形式」どおりか確認してください。');
+        }
+
+        $article = function (mixed $item): ?array {
+            if (! is_array($item) || blank($item['title'] ?? null)) {
+                return null;
+            }
+
+            return [
+                'title'           => mb_substr(trim((string) $item['title']), 0, 255),
+                'main_keyword'    => filled($item['main_keyword'] ?? null) ? mb_substr(trim((string) $item['main_keyword']), 0, 191) : null,
+                'sub_keywords'    => array_values(array_filter(array_map(fn ($value) => is_string($value) ? trim($value) : null, (array) ($item['sub_keywords'] ?? [])))),
+                'search_intent'   => filled($item['search_intent'] ?? null) ? trim((string) $item['search_intent']) : null,
+                'article_type'    => filled($item['article_type'] ?? null) ? mb_substr((string) $item['article_type'], 0, 50) : null,
+                'article_subtype' => filled($item['article_subtype'] ?? null) ? mb_substr((string) $item['article_subtype'], 0, 50) : null,
+                'roadmap_step'    => filled($item['roadmap_step'] ?? null) ? mb_substr(trim((string) $item['roadmap_step']), 0, 255) : null,
+                'priority'        => in_array($item['priority'] ?? null, ['high', 'medium', 'low'], true) ? $item['priority'] : null,
+                'reason'          => filled($item['reason'] ?? null) ? trim((string) $item['reason']) : null,
+                'sources'         => $this->urls($item['sources'] ?? []),
+            ];
+        };
+
+        $categories = [];
+        foreach ((array) ($data['categories'] ?? []) as $item) {
+            if (! is_array($item) || blank($item['name'] ?? null)) {
+                continue;
+            }
+            $categories[] = [
+                'name'           => mb_substr(trim((string) $item['name']), 0, 255),
+                'slug'           => filled($item['slug'] ?? null) ? mb_substr(preg_replace('/[^a-z0-9-]/', '', strtolower((string) $item['slug'])), 0, 100) : null,
+                'scope'          => filled($item['scope'] ?? null) ? trim((string) $item['scope']) : null,
+                'position'       => filled($item['position'] ?? null) ? mb_substr(trim((string) $item['position']), 0, 255) : null,
+                'priority'       => in_array($item['priority'] ?? null, ['high', 'medium', 'low'], true) ? $item['priority'] : null,
+                'reason'         => filled($item['reason'] ?? null) ? trim((string) $item['reason']) : null,
+                'sources'        => $this->urls($item['sources'] ?? []),
+                'first_articles' => array_values(array_filter(array_map($article, (array) ($item['first_articles'] ?? [])))),
+            ];
+        }
+
+        return [
+            'summary'    => filled($data['summary'] ?? null) ? trim((string) $data['summary']) : null,
+            'articles'   => array_values(array_filter(array_map($article, (array) ($data['articles'] ?? [])))),
+            'categories' => $categories,
+        ];
+    }
+
+    /**
      * 記事改修・新規記事作成の「=== 画像の依頼 ===」の節（JSON の配列。D-34）。書かれていない・読み取れない場合は空
      *
      * @return list<array{key: string, kind: string, title: string, description: string, alt: string|null, illustration_prompt: string|null}>

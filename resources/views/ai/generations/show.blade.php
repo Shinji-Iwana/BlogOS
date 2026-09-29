@@ -79,6 +79,9 @@
         @if ($generation->image && $generation->purpose->isImageMode())
             <p>画像の案を作りました：<a href="{{ route('images.show', ['id' => $generation->image->id]) }}"><strong>画像「{{ $generation->image->title }}」</strong></a>の画面で確認してください（図解は、画面で PNG にします）。</p>
         @endif
+        @if ($generation->purpose === \App\Enums\AiMode::TopicPlanning)
+            <p>記事の企画の案を作りました：<a href="{{ route('topics.index') }}"><strong>記事の企画</strong></a>の画面で確認してください。</p>
+        @endif
         @if ($generation->purpose === \App\Enums\AiMode::MaterialReview)
             <p>教材の見直しの結果を作りました：<a href="{{ route('materials.reviews.index') }}"><strong>記事の教材の見直し</strong></a>の画面で確認してください。</p>
         @endif

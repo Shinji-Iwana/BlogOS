@@ -25,11 +25,15 @@ enum AiMode: string
     case ImageDesign = 'image_design';
     case ImageGeneration = 'image_generation';
 
+    // 記事の企画（D-40）：子カテゴリのまだ記事にしていない内容・親カテゴリの足りない子カテゴリの案。人が確認して採用する
+    case TopicPlanning = 'topic_planning';
+
     public function label(): string
     {
         return match ($this) {
             self::ImageDesign     => '図の作成',
             self::ImageGeneration => '画像の生成',
+            self::TopicPlanning   => '記事の企画',
             self::ManagementSuggestion => '管理情報の案',
             self::SeoAnalysis      => 'SEO分析',
             self::Structure        => '構成作成',
@@ -59,10 +63,18 @@ enum AiMode: string
     }
 
     /**
+     * 専用の画面から実行するモード（AIの実行の画面では選ばない）
+     */
+    public function hasOwnScreen(): bool
+    {
+        return $this->isMaterialMode() || $this->isImageMode() || $this === self::TopicPlanning;
+    }
+
+    /**
      * Web検索を使えるモード（API実行）
      */
     public function canUseWebSearch(): bool
     {
-        return in_array($this, [self::MaterialResearch, self::MaterialDiscovery], true);
+        return in_array($this, [self::MaterialResearch, self::MaterialDiscovery, self::TopicPlanning], true);
     }
 }

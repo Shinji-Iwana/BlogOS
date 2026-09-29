@@ -728,6 +728,10 @@ OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`
 
 WordPress 本体・プラグイン・テーマのバージョン（D-38）。ブログごとの最新の状態（`blog_id`・`type`・`slug` で一意。削除されたものは消す）。`type`（`core` / `plugin` / `theme`）、`slug`（プラグインは「フォルダ/ファイル」、テーマはフォルダ名、本体は `wordpress`）、`name`、`status`（`active` / `inactive`）、`installed_version`、WordPress.org の情報（`wporg_state`：`available` / `closed`：公開停止 / `not_found`、`latest_version`、`requires_php`、`requires_wp`、`wporg_note`：公開停止の日付・理由）、`update_available`、`checked_at`。
 
+## 9-9-7. topic_suggestions
+
+記事の企画の案（D-40）。`blog_id`、`ai_generation_id`、`type`（`article`：記事の案 / `category`：子カテゴリの案）、`category_id`（記事の案はそのカテゴリ、子カテゴリの案は親カテゴリ）、`parent_suggestion_id`（子カテゴリの案の最初の記事の案）、`title`（タイトル案・カテゴリの名前）、`slug`、`main_keyword`、`sub_keywords`（JSON）、`search_intent`、`article_type`、`article_subtype`、`roadmap_step`（記事の案はステップ、子カテゴリの案は位置）、`scope`、`priority`（`high` / `medium` / `low`）、`reason`、`sources`（JSON）、`duplicate_note`（既存の記事・カテゴリと重なる可能性）、`status`（`App\Enums\SuggestionStatus`）、`reviewed_by` / `reviewed_at`。
+
 ## 9-10. materials / material_categories
 
 収益用の教材（書籍・Udemy・スクール・問題集。D-30-01、D-30-04、D-33-08）。

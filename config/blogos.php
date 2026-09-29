@@ -54,6 +54,8 @@ return [
             'material_review'    => env('BLOGOS_AI_METHOD_MATERIAL_REVIEW', 'manual'),
             // 図の作成（D-32）
             'image_design'       => env('BLOGOS_AI_METHOD_IMAGE_DESIGN', 'manual'),
+            // 記事の企画（D-40）。Web検索を使えるAPI実行を標準にする
+            'topic_planning'     => env('BLOGOS_AI_METHOD_TOPIC_PLANNING', 'api'),
         ],
 
         // 手動実行で記録する、利用しているサービスとモデルの候補（画面で選ぶか、直接入力する。D-07-07）
@@ -81,6 +83,7 @@ return [
                 'material_discovery' => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_DISCOVERY', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_DISCOVERY', 'medium')],
                 'material_review'    => ['model' => env('BLOGOS_AI_MODEL_MATERIAL_REVIEW', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_MATERIAL_REVIEW', 'medium')],
                 'image_design'       => ['model' => env('BLOGOS_AI_MODEL_IMAGE_DESIGN', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_IMAGE_DESIGN', 'medium')],
+                'topic_planning'     => ['model' => env('BLOGOS_AI_MODEL_TOPIC_PLANNING', 'gpt-6-luna'), 'effort' => env('BLOGOS_AI_EFFORT_TOPIC_PLANNING', 'medium')],
             ],
 
             // 画面で選べるモデルと、1Mトークンあたりの料金（米ドル。標準の処理。2026-09-28 に公式のモデルのページで確認）。

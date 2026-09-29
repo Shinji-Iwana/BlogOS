@@ -33,6 +33,7 @@ use App\Services\Articles\DraftService;
 use App\Services\Images\ImageAiResultService;
 use App\Services\Materials\MaterialAiResultService;
 use App\Services\Push\PushException;
+use App\Services\Topics\TopicPlanningResultService;
 use App\Services\Quality\EvaluationService;
 use Illuminate\Support\Facades\DB;
 
@@ -113,6 +114,15 @@ class AiRunService
             }
         } else {
             $image = null;
+        }
+
+        // 記事の企画（D-40）：カテゴリが対象（記事・編集案は対象にしない）
+        if ($mode === AiMode::TopicPlanning) {
+            $article = null;
+            $draft = null;
+            if (blank($parameters['カテゴリの値'] ?? null)) {
+                throw new AiException('企画するカテゴリを指定してください。');
+            }
         }
 
         // 管理情報の案は、WordPressにある記事が対象（編集案の内容ではなく、記事の内容から作る。D-27）
@@ -378,6 +388,8 @@ class AiRunService
             AiMode::MaterialReview    => $this->materialResults->saveReview($generation),
             // 図の作成（D-32）
             AiMode::ImageDesign       => $this->imageResults->saveDesign($generation),
+            // 記事の企画（D-40）：人が確認する案として保存する
+            AiMode::TopicPlanning     => app(TopicPlanningResultService::class)->save($generation),
             // SEO分析・構成作成は、出力を記録するだけ（段階0：分析・提案）
             default                  => null,
         };

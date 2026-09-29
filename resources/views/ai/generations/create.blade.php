@@ -73,7 +73,7 @@
                             <select name="category_id">
                                 <option value="">（指定しない）</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" @selected((string) old('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" @selected((string) old('category_id', request('category_id')) === (string) $category->id)>{{ $category->name }}</option>
                                 @endforeach
                             </select>
                         </label>
@@ -85,7 +85,7 @@
                         <select name="article_type">
                             <option value="">（指定しない）</option>
                             @foreach ($articleTypes['types'] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('article_type') === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('article_type', request('article_type')) === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -93,7 +93,7 @@
                         <select name="article_subtype">
                             <option value="">（指定しない）</option>
                             @foreach ($articleTypes['subtypes'] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('article_subtype') === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('article_subtype', request('article_subtype')) === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -101,12 +101,12 @@
             @endif
 
             @if (! in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::ManagementSuggestion], true))
-                <p><label>メインキーワード<br><input type="text" name="main_keyword" value="{{ old('main_keyword') }}" style="width:100%; max-width:400px;"></label></p>
-                <p><label>サブキーワード（1行に1つ）<br><textarea name="sub_keywords" rows="2" style="width:100%; max-width:600px;">{{ old('sub_keywords') }}</textarea></label></p>
-                <p><label>検索意図<br><textarea name="search_intent" rows="2" style="width:100%; max-width:600px;">{{ old('search_intent') }}</textarea></label></p>
+                <p><label>メインキーワード<br><input type="text" name="main_keyword" value="{{ old('main_keyword', request('main_keyword')) }}" style="width:100%; max-width:400px;"></label></p>
+                <p><label>サブキーワード（1行に1つ）<br><textarea name="sub_keywords" rows="2" style="width:100%; max-width:600px;">{{ old('sub_keywords', request('sub_keywords')) }}</textarea></label></p>
+                <p><label>検索意図<br><textarea name="search_intent" rows="2" style="width:100%; max-width:600px;">{{ old('search_intent', request('search_intent')) }}</textarea></label></p>
                 <p>
                     <label>補足：実体験・検証の結果・伝えたいこと・競合記事の情報など<br>
-                        <textarea name="notes" rows="6" style="width:100%; max-width:800px;">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="6" style="width:100%; max-width:800px;">{{ old('notes', request('notes')) }}</textarea>
                     </label><br>
                     <span style="color:#666;">AIは、ここに書かれた実体験・検証の結果だけを使います（経験していないことを事実として書かせないため。D-14-10）。</span>
                 </p>

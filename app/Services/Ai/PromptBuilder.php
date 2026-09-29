@@ -19,6 +19,7 @@ use App\Models\Image;
 use App\Services\Images\ImagePromptValues;
 use App\Services\Materials\MaterialMatcher;
 use App\Services\Materials\MaterialPromptValues;
+use App\Services\Topics\TopicPlanningPromptValues;
 use App\Services\Quality\QualityStandard;
 use App\Services\Quality\QualityStandardLoader;
 use App\Support\QualityProfiles;
@@ -44,7 +45,7 @@ class PromptBuilder
     /**
      * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
      */
-    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値'];
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値'];
 
     public function __construct(
         protected QualityStandardLoader $loader,
@@ -55,6 +56,7 @@ class PromptBuilder
         protected MaterialPromptValues $materialValues,
         protected ImagePromptValues $imageValues,
         protected MaterialMatcher $materialMatcher,
+        protected TopicPlanningPromptValues $topicValues,
     ) {
     }
 
@@ -100,6 +102,11 @@ class PromptBuilder
                 'article_type' => $parameters['記事種類の値'] ?? null,
             ]));
             $values['image_list'] = $this->imageList($blog, $draft, (string) $values['article_content']);
+        }
+
+        // 記事の企画（D-40）
+        if ($mode === AiMode::TopicPlanning) {
+            $values = $this->topicValues->values($blog, $parameters, $webSearch) + $values;
         }
 
         // 図の作成（D-32）
