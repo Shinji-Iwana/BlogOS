@@ -1,222 +1,80 @@
 # BlogOS 現在の実装状況
 
-**調査日:** 2026-09-26
-**調査対象:** コミット `e1c5142`（作業ツリーに未コミットの変更なし）
-**基準とした設計:** 設計書 v2.0.0（docs/ 7ファイル、CLAUDE.md）、品質基準 1.0.0（resources/quality/）、決定記録 D-01〜D-15
+**最終更新日:** 2026-09-29
+**基準とした設計:** 設計書 v2.0.0（docs/、CLAUDE.md）、品質基準 共通 1.3.0・si-note 1.4.0（resources/quality/）、決定記録 D-01〜D-42
+**最初の調査:** 2026-09-26、コミット `e1c5142`（その時点の問題の一覧 P0〜P6 と領域ごとの状況は、Git の履歴にある本書の旧版を参照）
 
 ## 1. 本書について
 
 本書は、現在の実装の状態を記録する。理想の設計を定義するものではなく、設計書を書き換える根拠として使ってはならない（`CLAUDE.md` 6-3）。
 
-### 1-1. 調査の方法
-
-* ソースコード（app/、database/、routes/、resources/views/、config/、tests/、bootstrap/）を読んで確認した。
-* DBは、読み取りだけのコマンド（`php artisan migrate:status`、`php artisan db:show --counts`）で確認した。
-* **画面の表示やコマンドの実行による動作確認は行っていない。** 「バグ」は、コードの静的な確認で実行時にエラーになると判断したものである。
-
-### 1-2. 分類
-
-`CLAUDE.md` 6-2 の分類を使う：一致／不足（未実装）／相違／バグ／過剰（不要・重複）／設計上の懸念／要確認
+* 2〜4章は、2026-09-29 時点の状態に書き直した。最初の調査（2026-09-26）で見つけた問題 P0〜P6 は、段階0〜1ですべて解消した（5章）。
+* 機能ごとの仕様と決定の理由は、`BLOGOS_DECISIONS.md` の各項目にある。本書は、何ができていて、何が残っているかだけを扱う。
+* 分類は `CLAUDE.md` 6-2 に従う：一致／不足（未実装）／相違／バグ／過剰（不要・重複）／設計上の懸念／要確認
 
 ---
 
-## 2. 最初に対応が必要な問題
+## 2. 残っている問題・確認事項
 
-セキュリティ → データ整合性 → 重大なバグ、の順に並べる。
-
-| # | 分類 | 内容 | 場所 |
+| # | 分類 | 内容 | 対応 |
 | --- | --- | --- | --- |
-| P0 | **セキュリティ** | `users` に、Laravelの初期状態のSeederで作られた「Test User」（`test@example.com`、パスワードはFactoryの既定値）が存在する。**誰でも推測できる認証情報でログインできる**。本番環境で同じSeederを実行すると、同じアカウントが作られる | [DatabaseSeeder.php](../database/seeders/DatabaseSeeder.php)、[UserFactory.php:31](../database/factories/UserFactory.php#L31) |
-| P1 | **セキュリティ** | 管理者のログインパスワードが、平文のままSeederに書かれ、**Gitの履歴に含まれている**（コミット `5f812bf` 以降）。**リポジトリは公開（Public）であるため、このパスワードは漏えいしたものとして扱う** | [AdminUserSeeder.php:17](../database/seeders/AdminUserSeeder.php#L17) |
-| P2 | **バグ（重大）** | `BlogRepository` に存在しないメソッド `getSelectedOrFirst()`・`selectBlog()` を呼んでいる。この処理は、ログイン後のすべての画面に適用されるMiddlewareの中にあるため、**ログイン後のすべての画面がエラーになる**と判断される | [ShareCurrentBlog.php:24](../app/Http/Middleware/ShareCurrentBlog.php#L24)、[DashboardController.php:26-29](../app/Http/Controllers/DashboardController.php#L26-L29)、[SettingsController.php:16](../app/Http/Controllers/SettingsController.php#L16) |
-| P3 | **バグ（重大）** | ブログ以外のWordPress APIのServiceが、`new WordPressApiClient($blogId, $blogRepository)` で呼び出している。しかし、`WordPressApiClient` は `Blog` を1つ受け取る形で定義されている。そのため、**ブログ詳細以外のAPI確認画面はすべてエラーになる** | [CategoryService.php:15-18](../app/Services/WordPress/CategoryService.php#L15-L18) ほか8つのService |
-| P4 | **バグ** | `BlogRepository::diff()` が、DTOに存在しないキー（`gmtOffset`、`timezoneString`）を参照している。**毎日のブログ情報の更新処理**と、**既に登録済みのブログの再登録**がエラーになる | [BlogRepository.php:18-19](../app/Repositories/BlogRepository.php#L18-L19) |
-| P5 | **バグ** | 画面の中で、定義されていないルート名が11か所で使われている。該当する画面を表示するとエラーになる（ブログ一覧・ブログ詳細も含む） | 3-5 参照 |
-| P6 | **バグ** | URLが `/api/` で始まるAPI確認画面（HTMLの画面）で、エラーがJSONで返される設定になっている | [bootstrap/app.php:18-19](../bootstrap/app.php#L18-L19) |
-
-**P0・P1 について**：`CLAUDE.md` 13章に従い、実装に進む前に報告した（2026-09-26）。
-
-必要な対応：
-1. 管理者のログインパスワードを変更する（同じパスワードを他のサービスで使っている場合は、そちらも変更する）。
-2. Seederから平文のパスワードを除く（例：環境変数から読む）。
-3. Test User を削除し、`DatabaseSeeder` から Test User の作成を除く。
-4. Gitの履歴からの削除は任意とする。公開済みのため、履歴を書き換えても、既に複製・キャッシュされた内容は消せない。パスワードの変更を主な対策とする。
-
-Gitの履歴を確認した結果、`.env`・Googleの鍵ファイル・トークンのファイルは、コミットされたことがない。
+| 1 | セキュリティ | 管理者のログインパスワードが、公開リポジトリの Git の履歴に残っている（最初の調査の P1。Seeder からは除いた） | パスワードの変更は、利用者の判断で当面行わない（D-17-01）。本番の稼働の前に、変更するかをあらためて判断する |
+| 2 | 要確認 | 本番（XServer）の設定：`.env`（`APP_DEBUG=false` など）、Google の OAuth のリダイレクト URI、cron（`schedule:run`・`queue:work`）、`queue:work` の `--max-time` の値 | `BLOGOS_DEPLOYMENT.md` の手順で、稼働の開始のときに利用者が行う |
+| 3 | 要確認 | 本番でしか確かめていないもの：cron での定期実行と Queue の処理、本番の DB での Migration（2026-09-26 以降の全件） | 同上 |
+| 4 | 不足 | ironman テーマ（BlogOS の管理画面）の作り込み。今の画面は、最低限の見た目（blank）で使っている | 本番の稼働の開始の後に行う（2026-09-29 利用者の判断） |
+| 5 | 不足 | 収益（A8.net・もしも・Udemy）の確認 | 公開の API がなく、CSV の読み込みになる。成果が出るまで作らない（2026-09-29 利用者の判断） |
+| 6 | 不足 | 外部サイトへのリンク切れの確認 | 教材のリンクは毎週確認している（D-33-09）。それ以外は、必要になったら作る（D-42-02） |
+| 7 | 相違 | `html-rules.md` 6章の「テーマの作業」の記載が、テーマの修正（Theme-SI-Note 1.1.0。2026-09-29 に si-note で確認済み）の前のまま | 次に品質基準を変えるときに、あわせて直す |
+| 8 | 要確認 | WordPress の管理者の旧アプリケーションパスワード（`.env` の `WP_APP_USER`・`WP_APP_PASSWORD`）は、段階2から使っていない | 本番の `.env` から削除する（`BLOGOS_DEPLOYMENT.md`） |
 
 ---
 
 ## 3. 領域ごとの状況
 
-### 3-1. ログイン・認証
+「実データ」は、ローカルの開発環境から、実際の si-note（WordPress）・Google・OpenAI に接続して確かめたかを示す。
 
-| 項目 | 分類 | 状況 |
+| 領域 | 状態 | 主な機能 | 実データ | 決定 |
+| --- | --- | --- | --- | --- |
+| ログイン・認証 | 一致 | ログイン必須、利用者は Seeder で1人、試行回数の制限、ログイン履歴 | 確認済み | D-03・D-17 |
+| ブログ管理 | 一致 | ブログの登録（API Discovery・認証の確認）、ブログごとの認証情報（暗号化）、選択中のブログ、アーカイブ | 確認済み | D-02・D-09・D-13・D-18 |
+| WordPress との同期 | 一致 | 毎日3:00と「今すぐ同期」、2段階の差分判定、削除の検知と安全策、同期の記録・問題の記録、履歴 | 確認済み（投稿194・固定ページ14 ほか） | D-04・D-19 |
+| 編集案・反映 | 一致 | 編集案、差分、プレビュー（WordPress 側の拡張で、保存せずに表示）、反映直前の競合確認、反映記録と回復、カテゴリ・タグ・メディアの更新 | 確認済み（テスト投稿の作成〜完全削除） | D-01・D-20・D-28・D-29 |
+| 記事の管理情報 | 一致 | 記事種類・キーワード・検索意図・記事同士の関係、AI による管理情報の案 | 確認済み | D-08・D-27 |
+| 内部リンク | 一致 | 本文からの抽出と照合、公開された記事へのリンクの切り替え、ブログ全体の確認（リンク切れ・古い URL・孤立記事）と機械的な修正 | 確認済み（509件） | D-39・D-42 |
+| Google 連携 | 一致 | OAuth、GA4・Search Console・AdSense の毎日の取得と記事への対応付け、分析の画面、インデックスの登録状態（URL 検査） | 確認済み | D-21・D-37 |
+| 品質基準・評価 | 一致 | 品質基準のファイルの読み込み（共通・ブログ別）、点数の計算、人による評価と確定 | 確認済み | D-06・D-22 |
+| BlogOS の AI 機能 | 一致 | SEO 分析・構成作成・品質診断・記事改修・新規記事作成。手動実行と API 実行（OpenAI）、まとめて実行、自動の再評価、費用の目安・料金表の照合・残高の見込み | 確認済み（API 実行を含む） | D-07・D-22〜D-27・D-31 |
+| HTML のルールと仕上げ | 一致 | `html-rules.md`（si-note）、目印（`[[記事:ID]]`・`[[教材:ID]]`・`[[画像:ID]]`）の置き換え、広告・PR の表示の挿入、タイトル・メタディスクリプションの確認 | 確認済み | D-33〜D-36 |
+| 教材・アフィリエイト | 一致 | 教材の登録・AI による調査と候補探し・記事との照合と見直し、提携先（プログラム）の状態、毎週のリンクの確認 | 確認済み（教材の多くは、情報の調査が未実施） | D-30・D-33 |
+| 画像 | 一致 | 図解（AI が SVG）、イラスト・アイキャッチ（画像モデル）、スクリーンショット、WordPress のメディアへの登録、カテゴリごとのアイキャッチ | 確認済み | D-32 |
+| 記事の企画・カテゴリの立ち上げ | 一致 | 子カテゴリのまだ書いていない内容・足りない子カテゴリの企画、子カテゴリの記事10件・子ロードマップ・親ロードマップの作成と、人の承認による公開 | 企画まで確認。公開は未実施（実際の記事・カテゴリができるため） | D-40・D-41 |
+| WordPress の管理 | 一致 | WordPress 本体・プラグイン・テーマの更新の毎日の確認、公開停止のプラグインの検知 | 確認済み | D-38 |
+| 画面 | 一致（見た目は最低限） | テーマの切り替え（blank／ironman）。今は blank で使う | — | D-16 |
+| 本番（XServer） | 要確認 | 配置済み。2026-09-26 以降の Migration・cron・Queue は未実施 | — | D-17-05 |
+
+**テスト**：MySQL のテスト専用 DB（`blogos_testing`）で 229件が成功（2026-09-29）。WordPress・Google・OpenAI への通信は、テストでは置き換えて確かめている。
+
+**定期実行**（日本時間。`routes/console.php`）：
+
+| 時刻 | コマンド | 内容 |
 | --- | --- | --- |
-| ログイン必須 | 一致 | ログイン画面以外のルートに `auth` を適用している（`/up` のヘルスチェックを除く） |
-| 利用者の登録 | 一致 | Seederで1人を登録し、新規登録画面はない（D-03-01） |
-| パスワードの扱い | セキュリティ | P1 |
-| ログインの試行回数の制限 | 一致 | 5回失敗で1分間停止。止めた試行も記録（2026-09-26 対応。D-17-06） |
-| `users` テーブルの件数 | セキュリティ | 2件。1件は管理者、もう1件は `DatabaseSeeder` が作成した Test User（P0） |
-
-### 3-2. ブログ管理・選択中ブログ
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| `blogs.home` の一意制約 | 一致 | UNIQUE（D-13-01） |
-| `blogs.is_selected` | 一致 | あり（D-02-05） |
-| `blogs` の列 | 相違 | `name`・`description`・`url`・`gmt_offset`・`timezone`（WordPressの設定）を `blogs` に持っている。設計では `blog_settings` に分ける（D-10-01） |
-| `blogs.last_synced_at` | 相違 | 設計では持たない（D-04-04） |
-| `display_name`・`quality_profile`・`archived_at` | 不足 | ない |
-| 選択中ブログの取得 | バグ | P2 |
-| 選択の自動設定 | 設計上の懸念 | `findBySelected()` は、選択中のブログがないと最初のブログを自動で選択し、DBを書き換える。画面を表示するだけでDBが更新される |
-| ブログ切り替え | 不足 | `blog_id` の検証がない（存在しないIDは例外になる）。更新画面でのブログIDの照合がない（D-02-05） |
-| ブログ登録の確認 | 不足 | 入力URLの `/wp-json` を1回取得するだけ。HTMLからのAPI Discovery、認証の確認、`home` の正規化、WordPress側の拡張の判定がない（WORDPRESS_API 29章） |
-| ブログ登録の保存 | 設計上の懸念 | 保存時に、ブラウザから送られた値（サイト名・`home` 等）をそのまま保存している。APIから取得し直していない |
-| 認証情報の登録 | 不足 | ブログごとの認証情報の入力・保存がない（D-03-02） |
-| アーカイブ・完全削除 | 不足 | ない（D-09-06） |
-
-### 3-3. WordPress API Client・認証情報
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 接続先 | 一致 | `blogs.home` を基準にしている（D-13-01） |
-| timeout | 一致 | 10秒を設定している |
-| 認証情報 | 相違 | `config/services.php` の `wp`（.env の `WP_APP_USER`・`WP_APP_PASSWORD`）を、**すべてのブログに共通で**使っている。設計はブログごとに暗号化してDBへ保存（D-03-02） |
-| Clientの呼び出し | バグ | P3 |
-| エラーの扱い | 相違 | 通信エラー・HTTPエラーを `null` にして返し、エラーの内容（ステータス・応答本文）が失われる。ログも出していない（DEVELOPMENT_RULES 12章、D-10-03） |
-| まとめての作成・更新・削除 | 設計上の懸念 | 途中で失敗すると `[]` を返し、既に成功した分が分からなくなる（`createCategories` 等） |
-| WordPressへの書き込み | 相違 | 各Serviceに作成・更新・削除のメソッドがあり、反映記録・競合確認を通さずに直接送信する作りになっている（現在、画面からは呼ばれていない）（D-01-09） |
-| リトライ | 不足 | ない（WORDPRESS_API 27章） |
-| 置き場所 | 相違 | `app/Services/WordPress/`。設計は `app/Clients/WordPress/`（D-11-03） |
-| サイト内検索 | 相違・過剰 | `SiteSearchController` が `https://si-note.com` を直接書き込み、Controllerから直接APIを呼んでいる。Search APIは将来の候補（D-10-05） |
-
-### 3-4. DTO
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 応答の保持 | 一致 | APIの応答を配列のまま保持している（WORDPRESS_API 3-2） |
-| 名前・置き場所 | 一致 | `app/DTO/WordPress/*ApiDto` |
-| 必須フィールドの確認 | 一致 | `REQUIRED_FIELDS` で確認している |
-
-### 3-5. 画面・ルート
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 定義されていないルート名 | バグ | P5。`blog-detail`・`blog-list`（ブログ一覧・詳細）、`blog-info`・`blog-info.show`（投稿のAPI確認画面）、`page-info`・`page-info.show`（固定ページのAPI確認画面）、`analytics-info`・`analytics-catalog`、`site-search`、`adsense-info`（AdSenseの認証後）、`register`（welcome画面） |
-| API確認画面のエラー | バグ | P6 |
-| ルート名の規則 | 相違 | `database-blog-list` のようなハイフン区切り。設計は `database.blogs.index` のようなドット区切り（D-11-04） |
-| Controllerの作り | 相違 | 画面ごと（`XxxListController`、`XxxDetailController`）。設計はリソースごと（D-11-04） |
-| API確認画面の名前空間 | 相違 | `Controllers\Api`。設計は `Controllers\WordPressApi`（`Api` はBlogOS自身のJSON用）（D-11-02） |
-| DB確認画面の名前空間 | 一致 | `Controllers\Database` |
-| Viewのディレクトリ | 相違 | `api/`。設計は `wordpress-api/`（D-11-02） |
-| URLのブログID | 相違 | カテゴリ・投稿者の画面で `{blogId}` をURLに含めている。設計は選択中ブログを使う（D-02-05） |
-| HTMLの直接出力 | 設計上の懸念 | 固定ページのAPI確認画面で、WordPressの本文を `{!! !!}` で出力している（[page-list.blade.php:63,78](../resources/views/api/page-list.blade.php#L63)）（DEVELOPMENT_RULES 13-3） |
-| CSRF | 一致 | POSTのフォームには `@csrf` があり、fetchでもトークンを送っている |
-| 空のファイル | 過剰 | 0バイトのControllerが28個ある（`Controllers/Database` の Post・Page・Media・Status・Type・Taxonomy・Tag・Author の List／Detail／Register／HistoryDetail など） |
-| ルートに接続されていないController | 過剰 | 中身のあるControllerのうち、`Api` の Author・Media・Status・Tag・Taxonomy・Type の Detail など16個が、どのルートからも使われていない |
-| 存在しないクラスの `use` | 過剰 | `routes/web.php` で、存在しないController（例：`Database\CategoryDetailController`、`Database\TagRegisterController`）を読み込んでいる（ルートでは使っていないため、エラーにはならない） |
-| テーマ切り替え | 一致 | `config/blogos.php` の `theme`（blank／ironman）で画面の見た目を切り替える機能。残す方針が決まり、設計書に追加した（D-16-01） |
-| レスポンシブ対応 | 要確認 | 未確認 |
-
-### 3-6. DB・Migration・Model
-
-**DBの状態**（ローカル、MySQL 8.0.46）：BlogOSのテーブルは `blogs`・`blog_histories`・`categories`・`category_histories` だけで、どれも0件。
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| テーブル | 不足 | 設計のテーブルの大部分がない（`blog_credentials`、`blog_settings`、`posts`、`pages`、`tags`、`authors`、`media`、statuses・types・taxonomies、カスタム投稿タイプ、中間テーブル、`internal_links`、`article_*`、`ai_generations`、`sync_*`、`wordpress_push_operations`、`google_*` と、それらの履歴） |
-| テーブルのないModel | 過剰・相違 | `Post`・`Page`・`Tag`・`Author`・`Media`・`Status`・`Type`・`Taxonomy`、中間テーブルとそれらの履歴のModelがあるが、Migrationもテーブルもない |
-| Modelの列 | 相違 | 例：`Post` は `post_id`・`status_id`・`type_id`・`title`・`content`（1列）。設計は `wordpress_id`、`status`（文字列）、`title_raw`／`title_rendered` 等（D-02-02、D-05-06、D-05-07） |
-| WordPress IDの列名 | 相違 | `categories.category_id` にWordPressのカテゴリIDを入れている。一方、`category_histories.category_id` は内部IDを指しており、**同じ列名で意味が違う**。設計は `wordpress_id`（D-02-02） |
-| 親カテゴリ | 相違 | `categories.parent` にWordPress IDだけを持つ。設計は `parent_id`（内部ID）と `wordpress_parent_id`（D-02-03） |
-| Categoryの `fillable` | バグ | Modelの `fillable` は `parent_id` で、Repositoryは `parent` で保存している。**親カテゴリが保存されない**。テーブルにない列（`taxonomy`、`last_synced_at`）も含まれている（[Category.php:16](../app/Models/Category.php#L16)、[CategoryRepository.php:67](../app/Repositories/CategoryRepository.php#L67)） |
-| 共通の列 | 不足 | `synced_at`・`wordpress_modified_gmt`・`wordpress_deleted_at` がない（DATABASE 3-6） |
-| 外部キーの削除時の動作 | 相違 | `blog_histories`・`category_histories` はブログへの外部キーに CASCADE がない。設計はブログに属するテーブルを CASCADE（D-09-07） |
-| 履歴の値の型 | 相違 | `old_value`／`new_value` がTEXT。設計はLONGTEXT（全文を保存するため） |
-
-### 3-7. Repository
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| DBアクセスの経由 | 一致（1か所を除く） | Controllerからは、Repositoryを経由している。ただし、`UpdateBlogsFromApi` は `Blog::all()` を直接使っている（D-11-01） |
-| `BlogRepository` | バグ | P2、P4 |
-| `CategoryRepository::diff()` | バグ | DTOのプロパティ（`$data->name` 等）を参照しているが、DTOは配列 `$data->data` しか持たない。呼び出し元がまだないため、現在は表に出ていない |
-| カテゴリの削除 | バグ | 物理削除する。履歴がある場合は、外部キーのためにエラーになる。設計は論理削除（D-09-02） |
-| 遅延読み込みの検出 | 不足 | `Model::preventLazyLoading()` の設定がない（D-11-01） |
-
-### 3-8. 同期
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 毎日の実行 | 一部一致 | `blogs:update-from-api` を毎日03:00に実行するよう登録済み。ただし、対象はブログの基本情報だけで、P4のためエラーになる |
-| 他のリソースの同期 | 不足 | 投稿・固定ページ・カテゴリ等の更新コマンド9個は、**0バイトの空ファイル** |
-| 同期の実行記録・問題の記録 | 不足 | `sync_runs`・`sync_run_resources`・`sync_issues` がない（D-04-01） |
-| 2段階の差分判定・削除の検知 | 不足 | ない（D-04-05、D-09-02） |
-| ロック・Queue・「今すぐ同期」 | 不足 | ない（D-04-07） |
-| 回復処理・反映記録 | 不足 | ない（D-01-09） |
-
-### 3-9. 履歴
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 項目ごとに1行 | 一致 | `field`・`old_value`・`new_value` の構造 |
-| 変更元の値 | 相違 | `'定期自動更新'`・`'手動更新'` などの日本語の自由な文字列。設計はEnumの値（`wp_sync` 等）（D-02-07） |
-| 新規作成の履歴 | 相違 | 新規作成時に、全項目ぶんの履歴を作っている。設計は `__created` の1行（D-13-04） |
-| `change_set_id`・`sync_run_id`・`user_id` 等 | 不足 | ない（DATABASE 8-2） |
-
-### 3-10. 反映・編集案・記事管理
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 編集案・反映記録・競合確認 | 不足 | ない（D-01-06〜D-01-09） |
-| WordPress側の拡張（`_blogos_draft_id`） | 不足 | テーマ側・BlogOS側とも未実装（D-01-12） |
-| 記事の管理情報・キーワード・関係・内部リンク | 不足 | ない（D-08-02〜D-08-04） |
-
-### 3-11. Google連携
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| 実装の状態 | 相違 | GA4・Search Console・AdSense のAPI確認画面がある。ただし、ControllerからGoogleのAPIを直接呼んでいる箇所がある（Search Console）（ARCHITECTURE 19章） |
-| 認証情報 | 相違 | サービスアカウントの鍵とAdSenseのトークンを、ファイル（`storage/app/google/`）で保存している。設計はDBに暗号化して保存（D-03-05）。これらのファイルはGitに含まれていない（一致） |
-| 対象の指定 | 相違 | GA4のプロパティIDなどを .env で1つだけ持つ。ブログごとの対応先がない（D-03-05） |
-| 記事との対応付け | 不足 | ない（D-08-05） |
-| 開発の段階 | 過剰 | 現在の実装は試作とし、分析機能の段階（REQUIREMENTS 11-3）で設計に沿って作り直す。現在のコードはGitの履歴に残っている（D-16-02） |
-
-### 3-12. BlogOSのAI機能・品質評価
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| AI機能・評価 | 不足 | 未実装（開発フェーズの4番目。REQUIREMENTS 11-4） |
-| `blogs.quality_profile` | 不足 | ない |
-
-### 3-13. 設定・テスト・その他
-
-| 項目 | 分類 | 状況 |
-| --- | --- | --- |
-| `.env.example` のDB | 相違 | `DB_CONNECTION=sqlite`。実際の設定と設計はMySQL（D-12-05） |
-| `phpunit.xml` のDB | 相違 | SQLiteのメモリDB。設計はMySQLのテスト専用DB（DEVELOPMENT_RULES 6-3、16-2） |
-| `.env.example` の `APP_DEBUG` | 要確認 | `true`。本番環境（XServer）の `.env` では `false` にする必要がある |
-| テスト | 不足 | Laravelの初期状態のサンプル（ExampleTest）だけ |
-| ログ | 不足 | `Log::` の使用がない。エラーの記録が残らない |
-| `Enums/`・`Jobs/`・`Clients/`・`Ai/` | 不足 | ディレクトリがない（D-11-03） |
-| コメント | 一致 | 日本語で書かれている（D-11-06） |
+| 毎日 3:00 | `blogs:sync` | WordPress との同期（Queue に登録） |
+| 毎日 4:00 | `model:prune` | 保存期間を過ぎた記録の削除 |
+| 毎日 4:30 | `ai:check-prices` | API 実行の料金表の照合 |
+| 毎日 4:45 | `wordpress:check-updates` | WordPress の更新の確認 |
+| 毎日 5:00 | `google:fetch` | Google のデータの取得 |
+| 毎日 5:30 | `google:inspect-index` | インデックスの登録状態 |
+| 毎日 6:00 | `ai:auto-reevaluate` | 自動の再評価（AI の設定で有効にしたブログだけ） |
+| 毎日 6:30 | `materials:check` | 教材の定期チェック（同上） |
+| 月曜 6:45 | `affiliate:check-links` | アフィリエイトのリンクの確認 |
 
 ---
 
 ## 4. まとめ
 
-| 分類 | 主な内容 |
-| --- | --- |
-| 一致 | ログイン必須、`blogs.home` の一意制約、`is_selected`、DTOの作り、CSRF、コメントの言語、DB確認画面の名前空間 |
-| 不足 | 設計のテーブルの大部分、同期の仕組み全体、反映・編集案、記事の管理情報、認証情報の保存、AI・評価、テスト、ログ |
-| 相違 | WordPress認証情報を全ブログ共通で .env に持つ、WordPress IDの列名、`blogs` の列の構成、変更元の値、ルート名・Controllerの作り、Google認証情報のファイル保存 |
-| バグ | P2〜P6（ログイン後の全画面、API確認画面、ブログ情報の更新、ルート名、エラーの形式）、Categoryの保存・差分・削除 |
-| 過剰 | 0バイトのファイル37個（Controller 28・Command 9）、ルートに接続されていないController、テーブルのないModel、存在しないクラスの `use` |
-| 設計上の懸念 | ログインの試行回数の制限なし、ブログ登録でブラウザから送られた値を保存、画面の表示でDBを書き換える、本文のHTML出力、途中失敗時に `[]` を返す |
-| 要確認 | `APP_DEBUG` |
-| セキュリティ | P0（推測できる認証情報の Test User）、P1（公開リポジトリの履歴に管理者の平文パスワード） |
-
-現在の実装は、設計のうち「ログイン」「ブログ登録（一部）」「ブログとカテゴリのテーブル」「WordPress・GoogleのAPI確認画面（試作）」にあたる。コアとなる同期・反映・記事管理はまだない。既存のコードの多くは、設計の命名・構造と異なるため、改修よりも設計に沿った作り直しが適する部分が多い。改修の方針と優先順位は、手順5で決める。
+* 設計書と要件定義書の開発フェーズ（基盤 → コンテンツ管理 → 分析 → 品質評価・AI）は、ローカルですべて実装した。その後、利用者の発案の検討事項（`BLOGOS_IMPLEMENTATION_PLAN.md` 3章）のうち、保留（収益）と対象外（XServer のリンク）以外をすべて実装した。
+* 残りは、本番（XServer）での稼働の開始（`BLOGOS_DEPLOYMENT.md`）と、本番での利用者の作業（教材の一括調査、インデックス未登録の記事・全記事の改修、記事の評価と確認）、その後の ironman テーマの作り込み。
+* WordPress への書き込み（反映・公開・削除）は、すべて人の承認を経る（AI・BlogOS が人の承認なしに WordPress を変えることはない）。
 
 ---
 
@@ -224,6 +82,7 @@ Gitの履歴を確認した結果、`.env`・Googleの鍵ファイル・トー�
 
 | 日付 | 内容 |
 | --- | --- |
+| 2026-09-29 | 2〜4章を今の状態に書き直した（最初の調査の内容は Git の履歴にある旧版を参照）。2026-09-29 までに実装したもの：HTML のルール（`html-rules.md`）の確定と記事改修・新規記事作成への組み込み（目印の置き換え・広告と PR の表示・画像の依頼と図解の自動作成。D-33〜D-35）、提携先（プログラム）の状態と毎週のリンクの確認（D-33-08・09）、タイトル・メタディスクリプションのルールと確認の画面（D-36）、インデックスの登録状態（D-37）、WordPress の更新の確認（D-38）、公開された記事へのリンクの切り替え（D-39）、記事の企画（D-40）、カテゴリの立ち上げ（D-41）、ブログ全体の内部リンクの確認（D-42）。テーマ（Theme-SI-Original・Theme-SI-Note 1.1.0）のパンくず・関連記事・html-rules の部品の見た目・.html の処理を修正し、si-note で確認（利用者）。テスト229件が成功 |
 | 2026-09-28 | 記事で使う画像の機能を実装（決定は D-32）：図解（AI が SVG で作り、画面で直してブラウザで PNG に）、イラスト・アイキャッチ（画像モデル gpt-image-2.5-flare、またはアップロード）、スクリーンショット（アップロード）、AI による形式の選択と「もう一方の形式でも作る」での比較、alt・ファイル名の確認、WordPress のメディアへの登録（si-note でテスト画像の登録と完全削除を確認）、カテゴリごとのアイキャッチ。画像モデルの料金を料金表の照合と残高の見込みに含めた。`images`・`category_eyecatches` を追加。テスト192件が成功 |
 | 2026-09-28 | OpenAI の残高の見込みを追加（決定は D-31-04）：「AIの費用と残高」の画面で、OpenAI の画面で見た残高と課金した額を登録し、その後の費用の目安を引いて見込む。見込みが少なくなったらトップページとAIの各画面で知らせ、足りなくなる見込みならAPI実行を止める。OpenAI の Usage の画面と比べるための日ごと・モデルごとの記録を表示。月の支出の上限は任意にした。`ai_credit_entries` を追加。テスト184件が成功 |
 | 2026-09-28 | API実行の料金表をDB（`ai_prices`）に移し、毎日4:30に OpenAI の公式のページと照合する `ai:check-prices` を追加（決定は D-31-03）：値上がりは自動で反映、値下がりはAIの設定の画面で人が確認、読み取れない場合は今の料金のまま画面で知らせる。実際の公式のページとの照合で、料金表が一致することを確認。テスト180件が成功 |

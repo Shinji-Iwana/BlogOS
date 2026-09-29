@@ -571,7 +571,7 @@ TODOは「何をするか」「なぜ必要か」が分かる内容にする。�
 * 本番環境への変更は、開発環境で検証してから行う。
 * リリース前に、Migration、環境変数、Config、Route、API、DB、テスト、セキュリティを確認する。
 * 本番のMigrationでは、バックアップ、Rollback、停止時間、データ移行、失敗時の復旧を確認する。
-* XServerのcron（`schedule:run`、`queue:work`）の設定を確認する（ARCHITECTURE 28章）。
+* XServerのcron（`schedule:run`、`queue:work`）の設定を確認する（ARCHITECTURE 28章）。配置と稼働の開始の手順は `BLOGOS_DEPLOYMENT.md`。
 * 本番のWordPressへの作成・更新・削除・公開は慎重に扱う。本番の記事にAI処理を適用する場合は、対象記事・変更内容・公開状態を確認する。
 * 重要なデータの変更では、変更前後を比較できるようにし、バックアップと復旧の方法を考慮する。
 * 実験的なコード・プロトタイプを、そのまま本番の実装に持ち込まない。
