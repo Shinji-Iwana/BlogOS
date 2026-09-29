@@ -67,6 +67,9 @@ class ArticlePushService
         if ($draft->target_type === PushResourceType::Post) {
             $values['categories'] = $this->ids($draft->wordpress_category_ids);
             $values['tags'] = $this->ids($draft->wordpress_tag_ids);
+        } elseif ($draft->wordpress_parent_id !== null) {
+            // 固定ページの親のページ（子ロードマップの URL を /親/子.html にするため。D-41）
+            $values['parent'] = (int) $draft->wordpress_parent_id;
         }
 
         $article = $draft->article();
@@ -108,6 +111,8 @@ class ArticlePushService
             $article->loadMissing(['categories', 'tags']);
             $values['categories'] = $this->ids($article->categories->pluck('wordpress_id')->all());
             $values['tags'] = $this->ids($article->tags->pluck('wordpress_id')->all());
+        } else {
+            $values['parent'] = (int) $article->wordpress_parent_id;
         }
 
         return $values;
@@ -315,6 +320,8 @@ class ArticlePushService
         if (array_key_exists('categories', $item)) {
             $values['categories'] = $this->ids($item['categories']);
             $values['tags'] = $this->ids($item['tags'] ?? []);
+        } elseif (array_key_exists('parent', $item)) {
+            $values['parent'] = (int) $item['parent'];
         }
 
         return $values;

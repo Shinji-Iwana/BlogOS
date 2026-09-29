@@ -207,9 +207,11 @@ class FakeWordPress
             $data = $fields;
         }
         if ($id === null) {
-            $newId = max(array_merge([1000], array_column($this->lists['posts'], 'id'), array_column($this->lists['pages'], 'id'), array_column($this->lists['media'], 'id'))) + 1;
+            $newId = max(array_merge([1000], array_column($this->lists['posts'], 'id'), array_column($this->lists['pages'], 'id'), array_column($this->lists['media'], 'id'),
+                array_column($this->lists['categories'], 'id'), array_column($this->lists['tags'], 'id'))) + 1;
             $item = match ($name) {
                 'posts' => self::post($newId, ['status' => 'draft']),
+                'categories', 'tags' => self::term($newId, ['taxonomy' => $name === 'tags' ? 'post_tag' : 'category']),
                 'media' => self::media($newId, ['source_url' => "https://blog.example.test/wp-content/uploads/" . (end($this->uploadedFiles)['filename'] ?? "{$newId}.png")]),
                 default => self::page($newId, ['status' => 'draft']),
             };

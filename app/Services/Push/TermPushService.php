@@ -165,6 +165,42 @@ class TermPushService
     }
 
     /**
+     * カテゴリを作る（カテゴリの立ち上げ。D-41）。同じスラッグのカテゴリが既にあれば、それを返す
+     *
+     * @throws PushException 作れなかった場合（反映記録に残す）
+     */
+    public function createCategory(\App\Models\Blog $blog, string $name, string $slug, ?Category $parent, ?int $userId): Category
+    {
+        if ($blog->isArchived()) {
+            throw new PushException('アーカイブしたブログには反映できません。');
+        }
+        if (($existing = Category::where('blog_id', $blog->id)->existing()->where('slug', $slug)->first()) !== null) {
+            return $existing;
+        }
+
+        $fields = array_filter(['name' => $name, 'slug' => $slug, 'parent' => $parent?->wordpress_id !== null ? (int) $parent->wordpress_id : null], fn ($value) => $value !== null);
+
+        $operation = $this->runner->withBlogLock($blog, function () use ($blog, $fields, $userId) {
+            $operation = $this->operations->create($blog->id, PushResourceType::Category, PushOperationType::Create, [], $fields, null, $userId);
+
+            $client = WordPressApiClient::forBlog($blog);
+            $response = $this->runner->send($operation, fn () => $client->post($this->runner->endpoint(PushResourceType::Category), $fields));
+            if ($response !== null) {
+                $this->runner->receive($operation, $response->json(), $userId);
+            }
+
+            return $operation->fresh();
+        });
+
+        $category = $operation->category_id !== null ? Category::find($operation->category_id) : null;
+        if ($category === null) {
+            throw new PushException("カテゴリ「{$name}」を作れませんでした。反映記録 #{$operation->id} を確認してください。" . ($operation->message ? "（{$operation->message}）" : ''));
+        }
+
+        return $category;
+    }
+
+    /**
      * 完全に削除する。カテゴリ・タグ・メディアにはゴミ箱がないため、常に完全削除になる（WORDPRESS_API 22章）。
      *
      * @throws PushException

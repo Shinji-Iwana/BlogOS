@@ -130,11 +130,13 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/topics', [TopicPlanningController::class, 'store'])->name('topics.store');
         Route::post('/topics/{id}/review', [TopicPlanningController::class, 'review'])->whereNumber('id')->name('topics.review');
         Route::post('/launches', [CategoryLaunchController::class, 'store'])->name('launches.store');
+        Route::post('/launches/parents', [CategoryLaunchController::class, 'storeParent'])->name('launches.parents.store');
         Route::post('/launches/{id}/children', [CategoryLaunchController::class, 'addChildren'])->whereNumber('id')->name('launches.children.store');
         Route::post('/launches/{id}/status', [CategoryLaunchController::class, 'updateStatus'])->whereNumber('id')->name('launches.status');
         Route::post('/launch-children/{id}/plan', [CategoryLaunchController::class, 'plan'])->whereNumber('id')->name('launches.children.plan');
         Route::post('/launch-children/{id}/articles', [CategoryLaunchController::class, 'articles'])->whereNumber('id')->name('launches.children.articles');
         Route::post('/launch-children/{id}/roadmap', [CategoryLaunchController::class, 'roadmap'])->whereNumber('id')->name('launches.children.roadmap');
+        Route::post('/launch-children/{id}/publish', [CategoryLaunchController::class, 'publish'])->whereNumber('id')->name('launches.children.publish');
         Route::post('/drafts/{id}/state', [DraftController::class, 'changeState'])->whereNumber('id')->name('drafts.state');
         Route::post('/drafts/{id}/push', [DraftPushController::class, 'store'])->whereNumber('id')->name('drafts.push.store');
         Route::post('/drafts/{id}/conflict', [DraftConflictController::class, 'resolve'])->whereNumber('id')->name('drafts.conflict.resolve');

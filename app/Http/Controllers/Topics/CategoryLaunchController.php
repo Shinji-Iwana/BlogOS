@@ -13,6 +13,9 @@ use App\Models\CategoryLaunchChild;
 use App\Models\TopicSuggestion;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiException;
+use App\Services\Push\PushException;
+use App\Services\Push\TermPushService;
+use App\Services\Topics\CategoryLaunchPublishService;
 use App\Services\Topics\CategoryLaunchService;
 use App\Support\QualityProfiles;
 use Illuminate\Http\Request;
@@ -68,10 +71,31 @@ class CategoryLaunchController extends Controller
         return redirect()->route('launches.show', ['id' => $launch->id])->with('status', "「{$parent->name}」の立ち上げを始めました。");
     }
 
+    /**
+     * 新しい親カテゴリ（新しい技術）を WordPress に作る。記事がないカテゴリは、WordPress の画面には出ない
+     */
+    public function storeParent(Request $request, TermPushService $terms)
+    {
+        $blog = $this->selectedBlog();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9-]+$/'],
+        ]);
+
+        try {
+            $category = $terms->createCategory($blog, $validated['name'], $validated['slug'], null, $request->user()?->id);
+        } catch (PushException $e) {
+            return back()->withErrors(['parent' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()->route('launches.index', ['parent_id' => $category->id])->with('status', "親カテゴリ「{$category->name}」を WordPress に作りました。");
+    }
+
     public function show(int $id)
     {
         $blog = $this->selectedBlog();
-        $launch = CategoryLaunch::with(['parentCategory', 'children.roadmapDraft:id,title_raw', 'children.category:id,name'])->where('blog_id', $blog->id)->find($id);
+        $launch = CategoryLaunch::with(['parentCategory', 'children.roadmapDraft:id,title_raw,state,page_id,content_raw', 'children.category:id,name',
+            'children.drafts' => fn ($q) => $q->with(['post:id,status', 'page:id,status'])->orderBy('id')])->where('blog_id', $blog->id)->find($id);
         abort_if($launch === null, 404);
 
         return view('launches.show', [
@@ -162,6 +186,28 @@ class CategoryLaunchController extends Controller
         }
 
         return redirect()->route('ai.generations.show', ['id' => $generation->id]);
+    }
+
+    /**
+     * ⑥・⑦ 選んだ記事と子ロードマップを公開する（カテゴリ・親ロードマップのページがなければ作る。人の承認）
+     */
+    public function publish(Request $request, int $id, CategoryLaunchPublishService $publisher)
+    {
+        $child = $this->findChild($id);
+        $validated = $request->validate(['drafts' => ['nullable', 'array'], 'drafts.*' => ['integer'], 'roadmap' => ['nullable', 'boolean']]);
+        if (empty($validated['drafts']) && ! ($validated['roadmap'] ?? false)) {
+            return back()->withErrors(['publish' => '公開する記事か子ロードマップを選んでください。']);
+        }
+
+        try {
+            $result = $publisher->publish($child, array_map('intval', $validated['drafts'] ?? []), (bool) ($validated['roadmap'] ?? false), $request->user()?->id);
+        } catch (PushException $e) {
+            return back()->withErrors(['publish' => $e->getMessage()]);
+        }
+
+        $redirect = back()->with('status', "{$result['published']}件を公開しました。公開した記事どうしのリンクは、「リンクの切り替え」の画面でまとめて反映できます。");
+
+        return $result['errors'] === [] ? $redirect : $redirect->withErrors(['publish' => implode("\n", $result['errors'])]);
     }
 
     /**

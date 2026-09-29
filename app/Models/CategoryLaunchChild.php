@@ -42,6 +42,14 @@ class CategoryLaunchChild extends Model
     }
 
     /**
+     * この子カテゴリの記事・子ロードマップの編集案
+     */
+    public function drafts(): HasMany
+    {
+        return $this->hasMany(ArticleDraft::class, 'category_launch_child_id');
+    }
+
+    /**
      * WordPress にまだないカテゴリか
      */
     public function isNew(): bool

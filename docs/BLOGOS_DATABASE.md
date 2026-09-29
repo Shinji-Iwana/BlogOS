@@ -734,7 +734,7 @@ WordPress 本体・プラグイン・テーマのバージョン（D-38）。ブ
 
 ## 9-9-8. category_launches / category_launch_children
 
-カテゴリの立ち上げ（D-41）。`category_launches`：`blog_id`、`parent_category_id`、`status`（`active` / `completed` / `cancelled`）、`created_by`。`category_launch_children`：`category_launch_id`、`category_id`（既存の子カテゴリ。WordPress にまだない子カテゴリは null）、`topic_suggestion_id`（採用した子カテゴリの案）、`name`・`slug`・`scope`、`roadmap_draft_id`（子ロードマップの編集案）。あわせて `topic_suggestions` に `launch_child_id`（立ち上げの子カテゴリの記事の案）・`article_draft_id`（この案から作った編集案）・`article_generation_id`（作成中の AI 実行）、`article_drafts` に `category_launch_child_id`（公開のときにカテゴリ・親のページを設定するため）を加えた。
+カテゴリの立ち上げ（D-41）。`category_launches`：`blog_id`、`parent_category_id`、`status`（`active` / `completed` / `cancelled`）、`created_by`。`category_launch_children`：`category_launch_id`、`category_id`（既存の子カテゴリ。WordPress にまだない子カテゴリは null）、`topic_suggestion_id`（採用した子カテゴリの案）、`name`・`slug`・`scope`、`roadmap_draft_id`（子ロードマップの編集案）。あわせて `topic_suggestions` に `launch_child_id`（立ち上げの子カテゴリの記事の案）・`article_draft_id`（この案から作った編集案）・`article_generation_id`（作成中の AI 実行）、`article_drafts` に `category_launch_child_id`（公開のときにカテゴリ・親のページを設定するため）を加えた。(b) で、`article_drafts.wordpress_parent_id`（固定ページの親のページ。WordPress の ID）と `category_launches.parent_roadmap_draft_id`（親ロードマップの編集案）を加えた。
 
 ## 9-10. materials / material_categories
 

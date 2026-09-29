@@ -41,6 +41,20 @@
         </p>
     </form>
 
+    <details>
+        <summary>新しい技術（親カテゴリ）を始める</summary>
+        <form method="POST" action="{{ route('launches.parents.store') }}" onsubmit="return confirm('この親カテゴリを WordPress に作りますか？');">
+            @csrf
+            @include('partials.selected-blog-field')
+            <p>
+                名前 <input type="text" name="name" value="{{ old('name') }}" style="width:200px;" placeholder="例：Go">
+                スラッグ <input type="text" name="slug" value="{{ old('slug') }}" style="width:120px;" placeholder="例：go">
+                <button type="submit">WordPress に作る</button>
+            </p>
+            <p style="color:#666;">記事がまだないカテゴリは、WordPress の画面には表示されません。親ロードマップの固定ページは、子ロードマップを公開するときに下書きとして作ります。</p>
+        </form>
+    </details>
+
     @if ($parent)
         <form method="POST" action="{{ route('launches.store') }}">
             @csrf
