@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Services\Ai\AiPriceCheckService;
 use Illuminate\Console\Command;
 
@@ -17,7 +18,7 @@ class CheckAiPrices extends Command
 
     protected $description = 'API実行の料金表を、OpenAIの公式のページと照合する（値上がりは自動で反映、値下がりは人が確認）';
 
-    public function handle(AiPriceCheckService $service): int
+    public function handle(AiPriceCheckService $service, ScheduledTaskService $recorder): int
     {
         $result = $service->check((bool) $this->option('dry-run'));
 
@@ -26,6 +27,7 @@ class CheckAiPrices extends Command
         }
 
         $summary = "値上がり（自動で反映）{$result['applied']}件・値下がり（確認待ち）{$result['pending']}件";
+        $recorder->report(changed: $result['applied'] + $result['pending']);
         if ($result['status'] === 'failed') {
             $this->error("照合できなかった料金があります。{$summary}");
 

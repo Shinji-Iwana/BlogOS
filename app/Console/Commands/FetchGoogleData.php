@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Enums\GoogleService;
 use App\Enums\SyncTrigger;
 use App\Jobs\GoogleFetchJob;
@@ -27,8 +28,9 @@ class FetchGoogleData extends Command
 
     protected $description = 'Googleのデータ（GA4・Search Console・AdSense）を取得する';
 
-    public function handle(BlogRepository $blogRepository, GoogleFetchService $service): int
+    public function handle(BlogRepository $blogRepository, GoogleFetchService $service, ScheduledTaskService $recorder): int
     {
+        $count = 0;
         $ids = array_map('intval', (array) $this->option('blog'));
         $services = $this->option('service') === [] ? null : array_map(fn ($value) => GoogleService::from($value), (array) $this->option('service'));
         $from = $this->option('from') ? Carbon::parse($this->option('from')) : null;
@@ -40,7 +42,10 @@ class FetchGoogleData extends Command
                 continue;
             }
 
+            $count++;
             if (! $immediate) {
+                // 定期実行の記録（D-44）は、Queue の取得が終わったときに閉じる
+                $recorder->addPendingJob();
                 GoogleFetchJob::dispatch($blog->id, SyncTrigger::Scheduled);
                 $this->info("[取得を登録しました] {$blog->home}");
 
@@ -51,6 +56,7 @@ class FetchGoogleData extends Command
                 $this->info("[{$name}] {$result['status']->label()}：{$result['rows']}行" . ($result['message'] ? "（{$result['message']}）" : ''));
             }
         }
+        $recorder->report(blogs: $count);
 
         return self::SUCCESS;
     }

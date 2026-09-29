@@ -55,6 +55,16 @@
         </p>
     @endif
 
+    {{-- 定期実行（D-44） --}}
+    @if (($scheduleNotice['stopped'] ?? false) || ! empty($scheduleNotice['failed']))
+        <p style="color:#b00;">
+            定期実行：
+            @if ($scheduleNotice['stopped'])26時間以上、定期実行が動いていません（サーバーの cron を確認してください）。@endif
+            @if (! empty($scheduleNotice['failed']))前回が失敗した定期実行があります（{{ implode('、', $scheduleNotice['failed']) }}）。@endif
+            <a href="{{ route('scheduled-tasks.index') }}">定期実行を確認する</a>
+        </p>
+    @endif
+
     {{-- 内部リンクの確認（D-42） --}}
     @if (($brokenLinks ?? 0) > 0)
         <p style="color:#b00;">
@@ -116,7 +126,7 @@
     @endif
 
     @if ($selectedBlog)
-        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('wordpress-updates.index') }}">WordPress の更新</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('links.check') }}">内部リンクの確認</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
+        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('wordpress-updates.index') }}">WordPress の更新</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('links.check') }}">内部リンクの確認</a>・<a href="{{ route('scheduled-tasks.index') }}">定期実行</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
     @endif
 
 @else

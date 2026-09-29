@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Repositories\BlogAiSettingRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Materials\MaterialCheckService;
@@ -21,7 +22,7 @@ class CheckMaterials extends Command
 
     protected $description = '前回の調査から期間が過ぎた教材を、AIで調べ直す（AIの設定で有効にしたブログだけ）';
 
-    public function handle(BlogRepository $blogs, BlogAiSettingRepository $settings, MaterialCheckService $service): int
+    public function handle(BlogRepository $blogs, BlogAiSettingRepository $settings, MaterialCheckService $service, ScheduledTaskService $recorder): int
     {
         $ids = array_map('intval', (array) $this->option('blog'));
 
@@ -47,6 +48,7 @@ class CheckMaterials extends Command
             foreach ($result['errors'] as $error) {
                 $this->error("  {$error}");
             }
+            $recorder->report(processed: $result['started'], errors: count($result['errors']), blogs: 1);
         }
 
         return self::SUCCESS;

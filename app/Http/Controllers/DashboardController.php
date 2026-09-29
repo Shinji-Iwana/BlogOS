@@ -9,7 +9,9 @@ use App\Models\AffiliateProgram;
 use App\Models\ArticleDraft;
 use App\Services\Articles\InternalLinkChecker;
 use App\Services\Articles\LinkSwitchService;
+use App\Models\ScheduledTaskRun;
 use App\Models\WordPressComponent;
+use App\Support\ScheduledTasks;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Sync\SyncStatusService;
@@ -50,6 +52,8 @@ class DashboardController extends Controller
             // 公開された記事へのリンクに切り替える編集案（D-39）
             'linkSwitchDrafts' => $selectedBlog ? ArticleDraft::where('blog_id', $selectedBlog->id)->where('auto_reason', LinkSwitchService::REASON)
                 ->whereIn('state', [DraftState::Editing->value, DraftState::Review->value])->count() : 0,
+            // 定期実行（D-44）：前回が失敗した定期実行と、定期実行が長く動いていないこと（cron の停止の疑い）
+            'scheduleNotice' => $this->scheduleNotice(),
             // 内部リンクのリンク切れ（D-42）
             'brokenLinks' => $selectedBlog ? app(InternalLinkChecker::class)->counts($selectedBlog)['broken'] : 0,
             // WordPress の更新・公開停止のプラグイン（D-38）
@@ -62,5 +66,24 @@ class DashboardController extends Controller
                 ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])
                 ->where('check_result', AffiliateLinkCheckResult::Suspect)->count() : 0,
         ]);
+    }
+
+    /**
+     * @return array{failed: list<string>, stopped: bool}
+     */
+    protected function scheduleNotice(): array
+    {
+        $failed = [];
+        foreach (array_keys(ScheduledTasks::TASKS) as $key) {
+            $last = ScheduledTaskRun::where('task_key', $key)->latest('started_at')->latest('id')->first();
+            if ($last !== null && ($last->status === 'failed' || $last->isStale())) {
+                $failed[] = $last->label();
+            }
+        }
+
+        // 一度でも定期実行が動いた後に、26時間以上動いていなければ、cron が止まっている疑い
+        $lastScheduled = ScheduledTaskRun::where('trigger', 'scheduled')->max('started_at');
+
+        return ['failed' => $failed, 'stopped' => $lastScheduled !== null && now()->subHours(26)->gt($lastScheduled)];
     }
 }

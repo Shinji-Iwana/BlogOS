@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Enums\SyncTrigger;
 use App\Jobs\SyncBlogJob;
 use App\Repositories\BlogRepository;
@@ -19,9 +20,10 @@ class SyncBlogs extends Command
 
     protected $description = 'WordPressと同期する（アーカイブしていないブログが対象）';
 
-    public function handle(BlogRepository $blogRepository, SyncDispatcher $dispatcher): int
+    public function handle(BlogRepository $blogRepository, SyncDispatcher $dispatcher, ScheduledTaskService $recorder): int
     {
         $ids = array_map('intval', (array) $this->option('blog'));
+        $count = 0;
 
         foreach ($blogRepository->getActive() as $blog) {
             if ($ids !== [] && ! in_array($blog->id, $ids, true)) {
@@ -32,10 +34,14 @@ class SyncBlogs extends Command
                 dispatch_sync(new SyncBlogJob($blog->id, SyncTrigger::Manual, null, (bool) $this->option('full')));
                 $this->info("[同期しました] {$blog->home}");
             } else {
+                // 定期実行の記録（D-44）は、Queue の同期が終わったときに閉じる
+                $recorder->addPendingJob();
                 $dispatcher->dispatch($blog->id, SyncTrigger::Scheduled);
                 $this->info("[同期を登録しました] {$blog->home}");
             }
+            $count++;
         }
+        $recorder->report(blogs: $count);
 
         return self::SUCCESS;
     }

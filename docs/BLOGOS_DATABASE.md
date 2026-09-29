@@ -838,6 +838,12 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 
 * `sent` / `unknown` / `wp_succeeded` の記録がある編集案は、再反映できない。
 
+## 10-5. scheduled_task_settings / scheduled_task_runs
+
+定期実行（D-44）。`scheduled_task_settings`：画面「定期実行」で変えた設定。`task_key`（`App\Support\ScheduledTasks` のキー。UNIQUE）、`frequency`（`daily` / `weekly`）、`weekday`（0=日曜〜6=土曜）、`time`（日本時間の HH:MM）、`enabled`、`updated_by`。行がない定期実行は、`ScheduledTasks` の既定で動く。
+
+`scheduled_task_runs`：実行の記録。`task_key`、`trigger`（`scheduled` / `manual`）、`status`（`running` / `succeeded` / `failed`）、`scheduled_for`（定期実行の予定の時刻。開始の遅れを見る）、`started_at`・`finished_at`・`duration_seconds`（Queue に登録した処理は、その処理が終わった時点が終了）、`processed_count`・`changed_count`・`error_count`・`blog_count`（件数の意味は定期実行ごとに `ScheduledTasks` の `counts`）、`pending_jobs`（終わるのを待っている処理の数。コマンド自身を含む）、`message`（出力の最後の行）・`output`（コマンドと Queue の処理の出力。最後の8,000文字）・`error`、`peak_memory_mb`、`requested_by`。INDEX：(`task_key`, `started_at`)、`started_at`。
+
 ---
 
 # 11. 主キー・外部キー・UNIQUE・INDEX
@@ -985,6 +991,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `wordpress_push_operations` | 完了から1年。未完了（`completed` 以外）のものは削除しない |
 | `ai_generations` | 採用されたもの（反映された編集案にひも付くもの）は無期限。それ以外は1年（D-07-04） |
 | `login_histories` | 1年（D-17-03） |
+| `scheduled_task_runs` | 1年（D-44） |
 | 履歴テーブル | 未決定（16章） |
 | 評価結果 | 未決定（16章） |
 

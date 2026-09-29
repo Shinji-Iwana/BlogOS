@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Clients\Google\GoogleApiException;
 use App\Repositories\BlogRepository;
 use App\Services\Google\GoogleIndexInspectionService;
@@ -21,7 +22,7 @@ class InspectGoogleIndex extends Command
 
     protected $description = 'Search Console の URL 検査で、記事のインデックスの登録状態を調べる';
 
-    public function handle(BlogRepository $blogs, GoogleIndexInspectionService $service): int
+    public function handle(BlogRepository $blogs, GoogleIndexInspectionService $service, ScheduledTaskService $recorder): int
     {
         $ids = array_map('intval', (array) $this->option('blog'));
 
@@ -34,12 +35,14 @@ class InspectGoogleIndex extends Command
                 $result = $service->inspect($blog, $this->option('limit') !== null ? (int) $this->option('limit') : null, (bool) $this->option('all'), 300);
             } catch (GoogleApiException $e) {
                 $this->error("{$blog->display_name}（#{$blog->id}）：{$e->getMessage()}");
+                $recorder->report(errors: 1, blogs: 1);
 
                 continue;
             }
 
             $this->info("{$blog->display_name}（#{$blog->id}）：{$result['inspected']}件を調べました（失敗 {$result['errors']}件・残り {$result['remaining']}件）"
                 . ($result['stopped'] ? "。途中で止めました：{$result['stopped']}" : ''));
+            $recorder->report(processed: $result['inspected'], errors: $result['errors'], blogs: 1);
         }
 
         return self::SUCCESS;

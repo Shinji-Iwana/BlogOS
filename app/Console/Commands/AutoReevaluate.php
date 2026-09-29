@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Schedule\ScheduledTaskService;
 use App\Enums\AiBatchTarget;
 use App\Enums\AiMode;
 use App\Repositories\BlogAiSettingRepository;
@@ -25,7 +26,7 @@ class AutoReevaluate extends Command
 
     protected $description = '再評価の条件に当てはまる記事を、自動で品質診断する（AIの設定で有効にしたブログだけ）';
 
-    public function handle(BlogRepository $blogs, BlogAiSettingRepository $settings, AutoReevaluationService $service, AiBatchService $batchService): int
+    public function handle(BlogRepository $blogs, BlogAiSettingRepository $settings, AutoReevaluationService $service, AiBatchService $batchService, ScheduledTaskService $recorder): int
     {
         $ids = array_map('intval', (array) $this->option('blog'));
 
@@ -51,11 +52,13 @@ class AutoReevaluate extends Command
                 $batch = $service->run($blog);
             } catch (AiException $e) {
                 $this->error("{$label}：{$e->getMessage()}");
+                $recorder->report(errors: 1, blogs: 1);
 
                 continue;
             }
 
             $this->info($batch !== null ? "{$label}：{$batch->total_count}件を登録しました（まとめて実行 #{$batch->id}）。" : "{$label}：実行しませんでした（無効・対象なし・今日の上限）。");
+            $recorder->report(processed: (int) ($batch?->total_count ?? 0), blogs: 1);
         }
 
         return self::SUCCESS;

@@ -13,6 +13,7 @@ use App\Http\Controllers\Articles\ArticleManagementController;
 use App\Http\Controllers\Articles\ManagementSuggestionController;
 use App\Http\Controllers\Articles\ArticleTitleController;
 use App\Http\Controllers\Articles\InternalLinkCheckController;
+use App\Http\Controllers\ScheduledTaskController;
 use App\Http\Controllers\Articles\ArticleTrashController;
 use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
@@ -80,6 +81,11 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::post('/blog-switch', [BlogSwitchController::class, 'switch'])->name('blog-switch');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+
+    // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
+    Route::get('/scheduled-tasks', [ScheduledTaskController::class, 'index'])->name('scheduled-tasks.index');
+    Route::put('/scheduled-tasks/{key}', [ScheduledTaskController::class, 'update'])->where('key', '[a-z:-]+')->name('scheduled-tasks.update');
+    Route::post('/scheduled-tasks/{key}/run', [ScheduledTaskController::class, 'run'])->where('key', '[a-z:-]+')->name('scheduled-tasks.run');
 
     // ブログの登録（WORDPRESS_API 29章）
     Route::get('/blogs/create', [BlogRegistrationController::class, 'create'])->name('blogs.create');
