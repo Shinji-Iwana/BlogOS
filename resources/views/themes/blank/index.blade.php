@@ -89,7 +89,7 @@
     @endif
 
     @if ($selectedBlog)
-        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
+        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
     @endif
 
 @else

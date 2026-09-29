@@ -112,6 +112,10 @@ class PagesSmokeTest extends TestCase
             'material suggestions'    => ['materials.suggestions.index'],
             'material reviews'        => ['materials.reviews.index'],
             'affiliate programs'      => ['materials.programs.index'],
+            'article titles'          => ['articles.titles'],
+            'google index status'     => ['google.index-status'],
+            'batch revision all'      => ['ai.batches.create', ['mode' => 'revision', 'target' => 'all']],
+            'batch revision not indexed' => ['ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']],
             'question bank create'    => ['materials.create', ['kind' => 'question_bank']],
             'ai settings'             => ['ai.settings.edit'],
         ];

@@ -7,6 +7,7 @@ use App\Enums\KeywordType;
 use App\Enums\RevisionScope;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\GoogleIndexStatus;
 use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
@@ -207,6 +208,13 @@ class PromptBuilder
             $lines[] = "- この記事へのリンク：{$inbound->count()}件"
                 . ($inbound->isNotEmpty() ? '（' . $inbound->take(10)->map(fn ($l) => ($l->sourcePost ?? $l->sourcePage)?->title_raw)->filter()->implode('、') . '）' : '');
             $lines[] = '- この記事からの内部リンク：' . $this->articles->outboundLinks($article)->count() . '件';
+
+            // Google のインデックスの登録状態（D-37）。登録されていない記事は、分類ごとの改修の方針を伝える
+            $index = GoogleIndexStatus::where($article instanceof Post ? 'post_id' : 'page_id', $article->id)->first();
+            if ($index?->category !== null) {
+                $lines[] = '- Google のインデックス：' . $index->category->label() . ($index->last_crawl_at ? '（最後に Google が読んだ日：' . $index->last_crawl_at->format('Y-m-d') . '）' : '')
+                    . ($index->category->advice() !== '' ? '。改修の方針：' . $index->category->advice() : '');
+            }
 
             // Search Console の検索クエリ（直近90日）
             $to = Carbon::parse(Carbon::now(config('blogos.display_timezone'))->subDay()->toDateString());

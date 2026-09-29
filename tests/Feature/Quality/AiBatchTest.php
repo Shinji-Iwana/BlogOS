@@ -324,9 +324,9 @@ class AiBatchTest extends TestCase
         $this->assertSame('改修した記事', $draft->title_raw);
         $this->assertSame(AiBatchStatus::Completed, AiBatch::sole()->status);
 
-        // 改修は、評価の結果をもとにする（全ての記事は選べない）
+        // 改修で選べない対象（まだ評価していない記事）は選べない。全ての記事・インデックス未登録の記事は選べる（D-37）
         $this->post(route('ai.batches.store'), $this->selected([
-            'mode' => 'revision', 'target' => 'all', 'model' => 'gpt-6-luna', 'reasoning_effort' => 'medium',
+            'mode' => 'revision', 'target' => 'unevaluated', 'model' => 'gpt-6-luna', 'reasoning_effort' => 'medium',
         ]))->assertSessionHasErrors('ai');
     }
 

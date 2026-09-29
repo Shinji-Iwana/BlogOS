@@ -135,7 +135,20 @@
         @include('partials.selected-blog-field')
 
         <fieldset @disabled(! $editable) style="border:none; padding:0;">
-            <p><label>タイトル<br><input type="text" name="title_raw" value="{{ old('title_raw', $draft->title_raw) }}" style="width:100%; max-width:800px;"></label></p>
+            <p>
+                <label>タイトル<br><input type="text" name="title_raw" value="{{ old('title_raw', $draft->title_raw) }}" style="width:100%; max-width:800px;" oninput="document.getElementById('title-count').textContent = this.value.length"></label><br>
+                <span style="color:#666;"><span id="title-count">{{ mb_strlen((string) old('title_raw', $draft->title_raw)) }}</span>文字（先頭{{ config('blogos.title_checks.title_key_chars') }}文字にメインキーワード、全体{{ config('blogos.title_checks.title_max_chars') }}文字程度まで）</span>
+            </p>
+            @if ($titleIssues !== [])
+                <div style="color:#b60; max-width:800px;">
+                    タイトル・メタディスクリプションの確認（保存した内容で確認します）：
+                    <ul style="margin-top:0;">
+                        @foreach ($titleIssues as $issue)
+                            <li>{{ $issue }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <p><label>スラッグ<br><input type="text" name="slug" value="{{ old('slug', \App\Support\Slug::display($draft->slug)) }}" style="width:100%; max-width:400px;"></label></p>
             <p>
                 <label>ステータス（反映後の状態）

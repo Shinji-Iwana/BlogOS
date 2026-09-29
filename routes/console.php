@@ -17,6 +17,9 @@ Schedule::command('blogs:sync')->dailyAt('03:00')->timezone(config('blogos.displ
 // 毎日のGoogleのデータの取得（D-21-07）。WordPressとの同期の後に行う
 Schedule::command('google:fetch')->dailyAt('05:00')->timezone(config('blogos.display_timezone'));
 
+// 記事のインデックスの登録状態（Search Console の URL 検査。D-37）
+Schedule::command('google:inspect-index')->dailyAt('05:30')->timezone(config('blogos.display_timezone'));
+
 // API実行の料金表を、OpenAIの公式のページと照合する（値上がりは自動で反映、値下がりは人が確認。D-31-03）
 Schedule::command('ai:check-prices')->dailyAt('04:30')->timezone(config('blogos.display_timezone'));
 

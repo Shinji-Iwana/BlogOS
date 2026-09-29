@@ -219,8 +219,23 @@ return [
     | 品質基準のブログ別の定義（html-rules.md）ごとに持つ。定義のないブログには入れない。
     |
     */
+    /*
+    | タイトル・メタディスクリプションの確認（共通基準 writing.md 3-1・3-2。D-36）
+    */
+    'title_checks' => [
+        // 検索結果で切れずに表示される先頭の文字数（この中にメインキーワードを入れる）と、タイトルの全体の目安
+        'title_key_chars' => 28,
+        'title_max_chars' => 40,
+        // メタディスクリプションの文字数と、スマホで見える先頭の文字数
+        'meta_min_chars'  => 80,
+        'meta_max_chars'  => 120,
+        'meta_key_chars'  => 50,
+    ],
+
     'article_html' => [
         'si-note' => [
+            // タイトルの書き出しの【…】は使わず、【〈技術〉入門】を最後に置く（article-types.md 1-2）
+            'title_prefix_bracket' => false,
             // WP QUADS に登録した AdSense の広告ユニット（html-rules.md 4章）
             'ads' => [
                 'top'     => 1, // rectangle-top：導入文の後
@@ -258,6 +273,13 @@ return [
 
         // 初めて取得するときに、何か月前から取得するか（Search Consoleは約16か月前までしか取得できない）
         'initial_months' => 16,
+
+        // インデックスの登録状態の確認（Search Console の URL 検査 API。D-37）。1日の上限は、Search Console の上限（2,000件）より小さくする
+        'index_inspection' => [
+            'daily_limit'              => (int) env('BLOGOS_INDEX_INSPECTION_DAILY_LIMIT', 300),
+            'recheck_days_indexed'     => 30,
+            'recheck_days_not_indexed' => 7,
+        ],
     ],
 
     /*

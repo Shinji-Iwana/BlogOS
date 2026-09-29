@@ -9,6 +9,7 @@ use App\Enums\AiBatchTrigger;
 use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
 use App\Enums\AiMode;
+use App\Enums\GoogleIndexCategory;
 use App\Enums\ReevaluationReason;
 use App\Enums\RevisionScope;
 use App\Jobs\RunAiBatchItemJob;
@@ -17,6 +18,7 @@ use App\Models\AiBatchItem;
 use App\Models\AiGeneration;
 use App\Models\ArticleEvaluation;
 use App\Models\Blog;
+use App\Models\GoogleIndexStatus;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\AiBatchRepository;
@@ -98,10 +100,21 @@ class AiBatchService
         };
         $withMaterials = $mode === AiMode::MaterialReview ? $this->materialArticles($blog, $target === AiBatchTarget::MaterialsNeedReview) : ['posts' => [], 'pages' => []];
 
-        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending, $withMaterials) {
+        // Google のインデックスに登録されていない記事（D-37）。まだ調べていない記事は含めない
+        $notIndexed = $target === AiBatchTarget::NotIndexed
+            ? GoogleIndexStatus::where('blog_id', $blog->id)->whereNotNull('category')->where('category', '!=', GoogleIndexCategory::Indexed->value)->get(['post_id', 'page_id'])
+                ->reduce(function ($carry, $status) {
+                    $carry[$status->post_id ? 'posts' : 'pages'][$status->post_id ?? $status->page_id] = true;
+
+                    return $carry;
+                }, ['posts' => [], 'pages' => []])
+            : ['posts' => [], 'pages' => []];
+
+        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending, $withMaterials, $notIndexed) {
             $key = $row['article'] instanceof Post ? 'posts' : 'pages';
 
             return match ($target) {
+                AiBatchTarget::NotIndexed  => isset($notIndexed[$key][$row['article']->id]),
                 AiBatchTarget::Unevaluated => $row['evaluation'] === null,
                 AiBatchTarget::BelowScore  => $row['evaluation']?->score !== null && $row['evaluation']->score < (float) $belowScore,
                 AiBatchTarget::Unmanaged   => ! isset($managed[$key][$row['article']->id]),

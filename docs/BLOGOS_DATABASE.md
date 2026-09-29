@@ -720,6 +720,10 @@ OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`
 * `images.article_draft_id`：画像を依頼した編集案（AIの改修案・新規記事の「画像の依頼」から作った画像。D-34-03）。`article_drafts.finish_notes`：BlogOS の仕上げ（目印の置き換え・広告の挿入など）で人に伝えること（文字列の配列。JSON。D-34-02）。
 * `ai_generations.image_id`：図の作成・画像の生成の対象の画像。`ai_prices` の `image_input`・`image_cached_input`：画像モデルの画像の入力の料金（`input`・`cached_input` は文章の入力、`output` は画像の出力）。
 
+## 9-9-5. google_index_statuses
+
+記事ごとのインデックスの登録状態（Search Console の URL 検査 API。D-37）。記事ごとに最新の1行。`blog_id`、`post_id` / `page_id`（ちょうど一方。それぞれ一意）、`url`、`category`（`App\Enums\GoogleIndexCategory`：`indexed` / `crawled`：クロール済み - インデックス未登録 / `discovered`：検出 - インデックス未登録 / `unknown` / `duplicate` / `excluded` / `other`）、Search Console の値（`coverage_state`（英語の原文）・`verdict`・`indexing_state`・`robots_txt_state`・`page_fetch_state`・`last_crawl_at`・`google_canonical`・`user_canonical`）、`error`（調べられなかった理由）、`inspected_at`、`previous_category`・`category_changed_at`（分類が変わったとき。改修の効果を追うため）。
+
 ## 9-10. materials / material_categories
 
 収益用の教材（書籍・Udemy・スクール・問題集。D-30-01、D-30-04、D-33-08）。

@@ -34,6 +34,9 @@ enum AiBatchTarget: string
     // 登録済みの教材を紹介している全ての記事（D-30）
     case WithMaterials = 'with_materials';
 
+    // Google のインデックスに登録されていない記事（D-37）
+    case NotIndexed = 'not_indexed';
+
     public function label(): string
     {
         return match ($this) {
@@ -46,6 +49,7 @@ enum AiBatchTarget: string
             self::Unmanaged         => '管理情報（記事種類・メインキーワード）が未登録の記事',
             self::MaterialsNeedReview => '紹介している教材の見直しが必要な記事',
             self::WithMaterials     => '登録済みの教材を紹介している記事',
+            self::NotIndexed        => 'Google のインデックスに登録されていない記事',
         };
     }
 
@@ -59,7 +63,8 @@ enum AiBatchTarget: string
         return match ($mode) {
             AiMode::QualityDiagnosis => [self::All, self::Unevaluated, self::NeedsReevaluation, self::BelowScore],
             // 改修は、評価の結果をもとにする（評価していない記事は対象にしない）
-            AiMode::Revision         => [self::BelowScore],
+            // 全記事の改修（評価していない記事は、品質基準の全体を見て改修する）と、インデックス未登録の記事の改修（D-37）
+            AiMode::Revision         => [self::BelowScore, self::NotIndexed, self::All],
             AiMode::ManagementSuggestion => [self::Unmanaged, self::All],
             AiMode::MaterialReview   => [self::MaterialsNeedReview, self::WithMaterials],
             default                  => [],

@@ -8,12 +8,19 @@ use App\Enums\RevisionScope;
 use App\Enums\SyncIssueType;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
+use App\Enums\KeywordType;
+use App\Models\AiGeneration;
+use App\Models\ArticleDraft;
 use App\Models\Image;
+use App\Models\Page;
+use App\Models\Post;
 use App\Repositories\ArticleDraftRepository;
+use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Services\Articles\ArticleHtmlFinisher;
+use App\Services\Articles\ArticleTitleChecker;
 use App\Services\Articles\DraftService;
 use App\Support\ArticlePlaceholders;
 use App\Services\Push\PushException;
@@ -115,7 +122,21 @@ class DraftController extends Controller
             // AIが依頼した画像と、本文に残っている目印（D-34）
             'draftImages'    => Image::with('media:id,wordpress_id')->where('article_draft_id', $draft->id)->orderBy('id')->get(),
             'placeholders'   => ArticlePlaceholders::remaining($draft->content_raw),
+            // タイトル・メタディスクリプションの確認（D-36）
+            'titleIssues'    => app(ArticleTitleChecker::class)->check($blog, $draft->title_raw, $draft->meta_description, $this->mainKeyword($draft, $article), $article),
         ]);
+    }
+
+    /**
+     * メインキーワード：記事の管理情報、新規記事は AI 実行で人が入力したもの
+     */
+    protected function mainKeyword(ArticleDraft $draft, Post|Page|null $article): ?string
+    {
+        if ($article !== null) {
+            return app(ArticleManagementRepository::class)->keywordsFor($article)->firstWhere('keyword_type', KeywordType::Main)?->keyword;
+        }
+
+        return $draft->ai_generation_id ? (AiGeneration::find($draft->ai_generation_id)?->parameters['メインキーワード'] ?? null) : null;
     }
 
     /**

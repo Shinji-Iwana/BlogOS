@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
 use App\Http\Controllers\Articles\ArticleController;
 use App\Http\Controllers\Articles\ArticleManagementController;
 use App\Http\Controllers\Articles\ManagementSuggestionController;
+use App\Http\Controllers\Articles\ArticleTitleController;
 use App\Http\Controllers\Articles\ArticleTrashController;
 use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistory
 use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController;
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
 use App\Http\Controllers\Google\GoogleOAuthController;
+use App\Http\Controllers\Google\GoogleIndexController;
 use App\Http\Controllers\Google\GoogleSettingsController;
 use App\Http\Controllers\Images\EyecatchController;
 use App\Http\Controllers\Images\ImageController;
@@ -89,6 +91,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // 記事（業務画面。ARCHITECTURE 17章）。{type} は posts / pages
     // AIが作った記事の管理情報の案の確認（D-27）
     Route::get('/articles/management-suggestions', [ManagementSuggestionController::class, 'index'])->name('management-suggestions.index');
+    Route::get('/articles/titles', [ArticleTitleController::class, 'index'])->name('articles.titles');
     Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
     Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
     Route::get('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.confirm');
@@ -243,6 +246,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     // Google連携（D-21-01、D-21-07）と分析
     Route::get('/google', [GoogleSettingsController::class, 'index'])->name('google.settings');
+    Route::get('/google/index-status', [GoogleIndexController::class, 'index'])->name('google.index-status');
     Route::get('/google/oauth/redirect', [GoogleOAuthController::class, 'redirect'])->name('google.oauth.redirect');
     Route::get('/google/oauth/callback', [GoogleOAuthController::class, 'callback'])->name('google.oauth.callback');
     // 試作のときに Google Cloud に登録したリダイレクトURIのまま使えるようにする
@@ -253,5 +257,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
         Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
         Route::post('/google/fetch', [GoogleSettingsController::class, 'fetch'])->name('google.fetch');
+        Route::post('/google/index-status', [GoogleIndexController::class, 'run'])->name('google.index-status.run');
     });
 });
