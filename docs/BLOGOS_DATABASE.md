@@ -724,6 +724,10 @@ OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`
 
 記事ごとのインデックスの登録状態（Search Console の URL 検査 API。D-37）。記事ごとに最新の1行。`blog_id`、`post_id` / `page_id`（ちょうど一方。それぞれ一意）、`url`、`category`（`App\Enums\GoogleIndexCategory`：`indexed` / `crawled`：クロール済み - インデックス未登録 / `discovered`：検出 - インデックス未登録 / `unknown` / `duplicate` / `excluded` / `other`）、Search Console の値（`coverage_state`（英語の原文）・`verdict`・`indexing_state`・`robots_txt_state`・`page_fetch_state`・`last_crawl_at`・`google_canonical`・`user_canonical`）、`error`（調べられなかった理由）、`inspected_at`、`previous_category`・`category_changed_at`（分類が変わったとき。改修の効果を追うため）。
 
+## 9-9-6. wordpress_components
+
+WordPress 本体・プラグイン・テーマのバージョン（D-38）。ブログごとの最新の状態（`blog_id`・`type`・`slug` で一意。削除されたものは消す）。`type`（`core` / `plugin` / `theme`）、`slug`（プラグインは「フォルダ/ファイル」、テーマはフォルダ名、本体は `wordpress`）、`name`、`status`（`active` / `inactive`）、`installed_version`、WordPress.org の情報（`wporg_state`：`available` / `closed`：公開停止 / `not_found`、`latest_version`、`requires_php`、`requires_wp`、`wporg_note`：公開停止の日付・理由）、`update_available`、`checked_at`。
+
 ## 9-10. materials / material_categories
 
 収益用の教材（書籍・Udemy・スクール・問題集。D-30-01、D-30-04、D-33-08）。

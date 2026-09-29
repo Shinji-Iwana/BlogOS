@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AffiliateLinkCheckResult;
 use App\Enums\AffiliateProgramStatus;
 use App\Models\AffiliateProgram;
+use App\Models\WordPressComponent;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Sync\SyncStatusService;
@@ -42,6 +43,11 @@ class DashboardController extends Controller
                 'failed'  => $latestCheck !== null && ! $latestCheck->succeeded(),
                 'applied' => $this->priceRepository->appliedSince(now()->subDays(7)),
             ],
+            // WordPress の更新・公開停止のプラグイン（D-38）
+            'wordpressNotice' => $selectedBlog ? [
+                'updates' => WordPressComponent::where('blog_id', $selectedBlog->id)->where('update_available', true)->count(),
+                'closed'  => WordPressComponent::where('blog_id', $selectedBlog->id)->where('wporg_state', 'closed')->count(),
+            ] : ['updates' => 0, 'closed' => 0],
             // アフィリエイトのリンクの確認で、提携終了の疑いがあるプログラムの数（D-33-09）
             'affiliateSuspects' => $selectedBlog ? AffiliateProgram::where('blog_id', $selectedBlog->id)
                 ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])

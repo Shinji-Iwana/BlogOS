@@ -41,6 +41,7 @@ use App\Http\Controllers\Materials\MaterialSuggestionController;
 use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\Quality\EvaluationController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\WordPressUpdateController;
 use App\Http\Controllers\Terms\TermController;
 use App\Http\Controllers\Sync\SyncIssueController;
 use App\Http\Controllers\Sync\SyncRunController;
@@ -247,6 +248,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // Google連携（D-21-01、D-21-07）と分析
     Route::get('/google', [GoogleSettingsController::class, 'index'])->name('google.settings');
     Route::get('/google/index-status', [GoogleIndexController::class, 'index'])->name('google.index-status');
+    Route::get('/wordpress-updates', [WordPressUpdateController::class, 'index'])->name('wordpress-updates.index');
     Route::get('/google/oauth/redirect', [GoogleOAuthController::class, 'redirect'])->name('google.oauth.redirect');
     Route::get('/google/oauth/callback', [GoogleOAuthController::class, 'callback'])->name('google.oauth.callback');
     // 試作のときに Google Cloud に登録したリダイレクトURIのまま使えるようにする
@@ -258,5 +260,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
         Route::post('/google/fetch', [GoogleSettingsController::class, 'fetch'])->name('google.fetch');
         Route::post('/google/index-status', [GoogleIndexController::class, 'run'])->name('google.index-status.run');
+        Route::post('/wordpress-updates', [WordPressUpdateController::class, 'check'])->name('wordpress-updates.check');
     });
 });

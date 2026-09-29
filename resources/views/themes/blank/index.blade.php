@@ -47,6 +47,15 @@
         </p>
     @endif
 
+    {{-- WordPress の更新（D-38） --}}
+    @if (($wordpressNotice['updates'] ?? 0) > 0 || ($wordpressNotice['closed'] ?? 0) > 0)
+        <p style="color:#b00;">
+            WordPress：@if ($wordpressNotice['updates'])更新が{{ $wordpressNotice['updates'] }}件あります。@endif
+            @if ($wordpressNotice['closed'])公開停止になったプラグインが{{ $wordpressNotice['closed'] }}件あります。@endif
+            <a href="{{ route('wordpress-updates.index') }}">WordPress の更新を確認する</a>
+        </p>
+    @endif
+
     {{-- アフィリエイトのリンクの確認（D-33-09） --}}
     @if (($affiliateSuspects ?? 0) > 0)
         <p style="color:#b00;">
@@ -89,7 +98,7 @@
     @endif
 
     @if ($selectedBlog)
-        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
+        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('wordpress-updates.index') }}">WordPress の更新</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
     @endif
 
 @else
