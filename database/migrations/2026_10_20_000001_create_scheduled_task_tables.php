@@ -13,6 +13,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // XServer の MySQL で、2つ目のテーブルの作成に失敗して途中で止まった場合に、やり直せるようにする（2026-09-30）
+        if (! Schema::hasTable('scheduled_task_settings')) {
+            $this->createSettings();
+        }
+
+        $this->createRuns();
+    }
+
+    protected function createSettings(): void
+    {
         Schema::create('scheduled_task_settings', function (Blueprint $table) {
             $table->id();
             // App\Support\ScheduledTasks のキー（例：blogs:sync）
@@ -27,7 +37,10 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
+    }
 
+    protected function createRuns(): void
+    {
         Schema::create('scheduled_task_runs', function (Blueprint $table) {
             $table->id();
             $table->string('task_key', 50);
@@ -37,7 +50,8 @@ return new class extends Migration
             $table->string('status', 20);
             // 定期実行の予定の時刻（開始の遅れを見るため。手動は null）
             $table->timestamp('scheduled_for')->nullable();
-            $table->timestamp('started_at');
+            // 値は必ず入れるが、XServer の MySQL は初期値のない NOT NULL の timestamp を作れないため、null を許す（ほかの記録のテーブルと同じ）
+            $table->timestamp('started_at')->nullable();
             // Queue に登録した処理（同期・Google の取得）は、その処理がすべて終わったとき
             $table->timestamp('finished_at')->nullable();
             $table->unsignedInteger('duration_seconds')->nullable();
