@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Clients\OpenAi\OpenAiClient;
 use App\Repositories\AiGenerationRepository;
 use App\Services\Images\ImageGenerationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,7 +25,8 @@ class GenerateImageJob implements ShouldQueue
     public function __construct(
         public readonly int $generationId,
     ) {
-        $this->timeout = (int) config('blogos.ai.api.timeout') + 120;
+        // 1分あたりの上限で待って送り直す時間（OpenAiClient::MAX_RATE_LIMIT_WAIT）も足す
+        $this->timeout = (int) config('blogos.ai.api.timeout') + 120 + OpenAiClient::MAX_RATE_LIMIT_WAIT;
     }
 
     public function handle(AiGenerationRepository $generations, ImageGenerationService $service): void

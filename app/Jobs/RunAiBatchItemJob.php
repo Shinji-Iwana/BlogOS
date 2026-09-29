@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Clients\OpenAi\OpenAiClient;
 use App\Repositories\AiBatchRepository;
 use App\Services\Ai\AiBatchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,7 +24,8 @@ class RunAiBatchItemJob implements ShouldQueue
         public readonly int $itemId,
     ) {
         // 応答を待つ時間に、指示文の作成・取り込みの分を足す
-        $this->timeout = (int) config('blogos.ai.api.timeout') + 120;
+        // 1分あたりの上限で待って送り直す時間（OpenAiClient::MAX_RATE_LIMIT_WAIT）も足す
+        $this->timeout = (int) config('blogos.ai.api.timeout') + 120 + OpenAiClient::MAX_RATE_LIMIT_WAIT;
     }
 
     public function handle(AiBatchRepository $batches, AiBatchService $service): void

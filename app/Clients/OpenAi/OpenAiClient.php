@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 
 /**
  * OpenAI API（Responses API）の呼び出し（D-24）。
@@ -15,6 +16,11 @@ use Illuminate\Support\Facades\Log;
  */
 class OpenAiClient
 {
+    /**
+     * 1分あたりの上限に達したときに、送り直すために待つ時間の合計の上限（秒）。Job の時間切れは、この分を足して決める
+     */
+    public const MAX_RATE_LIMIT_WAIT = 180;
+
     public function __construct(
         protected string $apiKey,
         protected string $baseUrl = 'https://api.openai.com/v1',
@@ -135,14 +141,27 @@ class OpenAiClient
     protected function post(string $path, array $body): array
     {
         $url = rtrim($this->baseUrl, '/') . $path;
+        $waited = 0;
 
-        try {
-            /** @var Response $response */
-            $response = Http::timeout($this->timeout)->withToken($this->apiKey)->acceptJson()->post($url, $body);
-        } catch (ConnectionException $e) {
-            Log::warning('OpenAI APIへの接続に失敗しました。', ['url' => $url, 'message' => $e->getMessage()]);
+        while (true) {
+            try {
+                /** @var Response $response */
+                $response = Http::timeout($this->timeout)->withToken($this->apiKey)->acceptJson()->post($url, $body);
+            } catch (ConnectionException $e) {
+                Log::warning('OpenAI APIへの接続に失敗しました。', ['url' => $url, 'message' => $e->getMessage()]);
 
-            throw new OpenAiException("OpenAIに接続できませんでした（応答の待ち時間の超過を含む）：{$e->getMessage()}");
+                throw new OpenAiException("OpenAIに接続できませんでした（応答の待ち時間の超過を含む）：{$e->getMessage()}");
+            }
+
+            // 1分あたりの上限（回数・トークン数）は、案内された時間だけ待って送り直す（断られたリクエストに料金はかからない。D-43）。
+            // クレジットの不足（insufficient_quota も 429）は、待っても直らないため送り直さない
+            $wait = $this->rateLimitWait($response);
+            if ($wait === null || $waited + $wait > self::MAX_RATE_LIMIT_WAIT) {
+                break;
+            }
+            Log::info('OpenAI APIの1分あたりの上限に達したため、待ってから送り直します。', ['url' => $url, 'wait' => $wait]);
+            Sleep::for($wait)->seconds();
+            $waited += $wait;
         }
 
         if ($response->failed()) {
@@ -161,6 +180,27 @@ class OpenAiClient
         }
 
         return $data;
+    }
+
+    /**
+     * 1分あたりの上限に達した場合の、送り直すまでの秒数（上限のエラーでなければ null）
+     *
+     * Retry-After の見出し、なければメッセージの「try again in 9.353s」（ms・分の形も）を使う。読み取れなければ 20秒
+     */
+    protected function rateLimitWait(Response $response): ?int
+    {
+        if ($response->status() !== 429 || $response->json('error.code') === 'insufficient_quota') {
+            return null;
+        }
+
+        $seconds = null;
+        if (is_numeric($response->header('Retry-After'))) {
+            $seconds = (float) $response->header('Retry-After');
+        } elseif (preg_match('/try again in\s+(?:(\d+)m(?!s))?(?:([\d.]+)s)?(?:([\d.]+)ms)?/i', (string) $response->json('error.message'), $m) && ($m[0] ?? '') !== '') {
+            $seconds = (float) ($m[1] ?? 0) * 60 + (float) ($m[2] ?? 0) + (float) ($m[3] ?? 0) / 1000;
+        }
+
+        return max(1, (int) ceil(($seconds ?? 20) + 1));
     }
 
     /**

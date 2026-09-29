@@ -187,7 +187,8 @@ class AiApiTest extends TestCase
         // 出力の上限で打ち切られた（料金はかかる）
         Http::fake(['api.openai.com/v1/responses' => Http::sequence()
             ->push($this->response('途中まで', 'incomplete', ['incomplete_details' => ['reason' => 'max_output_tokens']]))
-            ->push(['error' => ['message' => 'Rate limit reached', 'code' => 'rate_limit_exceeded']], 429)
+            // 待ち時間が長すぎる 429 は、送り直さずに失敗にする（短いものは待って送り直す。D-43）
+            ->push(['error' => ['message' => 'Rate limit reached. Please try again in 5m0s.', 'code' => 'rate_limit_exceeded']], 429)
             ->push($this->response($this->diagnosisOutput())),
         ]);
 

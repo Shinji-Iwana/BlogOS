@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Clients\OpenAi\OpenAiClient;
 use App\Repositories\AiGenerationRepository;
 use App\Services\Ai\AiRunService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +26,8 @@ class RunAiApiJob implements ShouldQueue
         public readonly int $generationId,
     ) {
         // 応答を待つ時間に、前後の処理の分を足す
-        $this->timeout = (int) config('blogos.ai.api.timeout') + 120;
+        // 1分あたりの上限で待って送り直す時間（OpenAiClient::MAX_RATE_LIMIT_WAIT）も足す
+        $this->timeout = (int) config('blogos.ai.api.timeout') + 120 + OpenAiClient::MAX_RATE_LIMIT_WAIT;
     }
 
     public function handle(AiGenerationRepository $generations, AiRunService $service): void

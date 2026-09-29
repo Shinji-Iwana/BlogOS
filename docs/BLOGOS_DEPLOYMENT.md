@@ -36,6 +36,7 @@ git pull
 <PHP> <composer のパス> install --no-dev --optimize-autoloader
 ```
 
+* XServer の SSH の `php`・`composer` は、古い PHP（5.4）と Composer 1 になる。PHP は `/usr/bin/php8.4`（または `php8.3`）を明示し、Composer 2 は `~/bin/composer` に入れて `/usr/bin/php8.4 ~/bin/composer` で使う（SSH の作業では、`~/.bashrc` に `alias php='/usr/bin/php8.4'`・`alias composer='/usr/bin/php8.4 ~/bin/composer'` を加えると楽）。cron では alias が効かないため、必ずフルパスで書く。
 * 画面の CSS は `public/themes/` にあり、Vite のビルドは要らない。
 * `storage/` と `bootstrap/cache/` に書き込めることを確かめる。`storage/app/private/`（画像のファイル）は、Git の管理外。配置で消さない。
 
@@ -84,24 +85,29 @@ git pull
 
 OAuth クライアントの「承認済みのリダイレクト URI」に、`https://<本番のドメイン>/google/oauth/callback` を加える（ローカルの URI は、ローカルでも使うなら残す）。
 
+* `.env` の `GOOGLE_OAUTH_REDIRECT_URI` と、1文字も違わないこと（`https`・末尾の `/` なし）。`.env` を変えたら `config:cache` をやり直す。
+* OAuth 同意画面の公開ステータスが「テスト」のままだと、Google の決まりで、接続（更新トークン）が7日で切れる。毎日の自動の取得を続けるには「本番環境」にする（自分のアカウントだけで使うため、Google の審査は受けずに使える。接続のときに「確認されていないアプリ」の警告が出たら、「詳細」から進む）。
+
 ---
 
 ## 5. cron（XServer のサーバーパネル）
 
-共用サーバーでは処理を常駐できないため、cron で起動する（ARCHITECTURE 28章）。
+共用サーバーでは処理を常駐できないため、cron で起動する（ARCHITECTURE 28章）。XServer のサーバーパネルの「Cron設定」で、次の2つを登録する（分・時間・日・月・曜日はすべて `*`）。
 
 ```cron
 # 定期実行（毎分）
-* * * * * cd <BlogOS のフォルダ> && <PHP> artisan schedule:run >> /dev/null 2>&1
-# Queue の処理（毎分。たまった処理を片付けたら終わる）
-* * * * * cd <BlogOS のフォルダ> && <PHP> artisan queue:work --stop-when-empty --max-time=3300 >> /dev/null 2>&1
+/usr/bin/php8.4 <BlogOS のフォルダ>/artisan schedule:run >> /dev/null 2>&1
+# Queue の処理（毎分起動。すでに動いていれば何もしない。たまった処理を片付けたら終わる）
+/usr/bin/flock -n <BlogOS のフォルダ>/storage/framework/queue-worker.lock /usr/bin/php8.4 <BlogOS のフォルダ>/artisan queue:work --stop-when-empty --max-time=3300 >> /dev/null 2>&1
 ```
 
-* `--max-time` は、1つの起動が処理を続ける上限の秒数。AI の API 実行は1件で数分かかることがあるため、長めにする（処理中の Job は、上限を過ぎても最後まで行う）。XServer の cron の実行時間の上限を確かめて決める。
-* 処理がたまっていると、毎分の起動で処理する流れが並ぶ（同じ Job を二重に処理することはない）。
-* `<PHP>` は、XServer の PHP 8.3 以上のコマンド（ローカルは 8.4。例：`/usr/bin/php8.4`）。
+* cron では、SSH の `alias` や `PATH` の設定は効かない。PHP・artisan は、必ずフルパスで書く（例：`<BlogOS のフォルダ>` は `/home/<アカウント名>/BlogOS`）。
+* Queue の処理は、`flock` で同時に1つだけ動かす。AI のまとめて実行は1記事ずつ順に処理する設計のため（D-25）。共用サーバーで、処理が何本も同時に動くのも防ぐ。
+* `--max-time` は、1つの起動が処理を続ける上限の秒数。上限を過ぎると、処理中の Job を終えてから止まり、次の分の起動が続きを処理する。
+* エラーは `storage/logs/laravel.log` に記録される（cron の出力は捨てる）。
+* cron が動いているかは、画面の「今すぐ同期」を押して、数分以内に同期が終わるかで確かめられる（Queue の処理の確認）。定期実行は、翌日の 3:00 の同期の記録で確かめる。
 
-**配置のたびに** `<PHP> artisan queue:restart` を実行する（古いコードのまま動いている処理を、次の Job から新しいコードにする）。
+**配置のたびに** `/usr/bin/php8.4 artisan queue:restart` を実行する（動いている処理を、次の Job から新しいコードにする）。
 
 ---
 
