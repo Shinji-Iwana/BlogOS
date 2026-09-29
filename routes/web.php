@@ -17,6 +17,7 @@ use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
 use App\Http\Controllers\Articles\DraftPreviewController;
 use App\Http\Controllers\Articles\DraftPushController;
+use App\Http\Controllers\Articles\LinkSwitchController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Blogs\BlogCredentialController;
 use App\Http\Controllers\Blogs\BlogRegistrationController;
@@ -99,6 +100,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     // 編集案と反映（ARCHITECTURE 13-5・17-5）
     Route::get('/drafts', [DraftController::class, 'index'])->name('drafts.index');
+    Route::get('/drafts/link-switch', [LinkSwitchController::class, 'index'])->name('drafts.link-switch');
     Route::get('/drafts/{id}/edit', [DraftController::class, 'edit'])->whereNumber('id')->name('drafts.edit');
     // 編集案のプレビュー（変更前と編集案の比較。D-28）
     Route::get('/drafts/{id}/preview', [DraftPreviewController::class, 'show'])->whereNumber('id')->name('drafts.preview');
@@ -118,6 +120,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/drafts', [DraftController::class, 'store'])->name('drafts.store');
         Route::put('/drafts/{id}', [DraftController::class, 'update'])->whereNumber('id')->name('drafts.update');
         Route::post('/drafts/{id}/finish', [DraftController::class, 'finish'])->whereNumber('id')->name('drafts.finish');
+        Route::post('/drafts/link-switch', [LinkSwitchController::class, 'create'])->name('drafts.link-switch.create');
+        Route::post('/drafts/link-switch/push', [LinkSwitchController::class, 'push'])->name('drafts.link-switch.push');
         Route::post('/drafts/{id}/state', [DraftController::class, 'changeState'])->whereNumber('id')->name('drafts.state');
         Route::post('/drafts/{id}/push', [DraftPushController::class, 'store'])->whereNumber('id')->name('drafts.push.store');
         Route::post('/drafts/{id}/conflict', [DraftConflictController::class, 'resolve'])->whereNumber('id')->name('drafts.conflict.resolve');

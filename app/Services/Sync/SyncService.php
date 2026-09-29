@@ -14,6 +14,7 @@ use App\Repositories\SyncIssueRepository;
 use App\Repositories\SyncRunRepository;
 use App\Services\Blogs\BlogInspectionException;
 use App\Services\Articles\ContentExtractionService;
+use App\Services\Articles\LinkSwitchService;
 use App\Services\Push\PushRecoveryService;
 use App\Services\Blogs\BlogSettingsSyncService;
 use App\Services\Sync\Resources\AbstractResourceSyncer;
@@ -77,6 +78,7 @@ class SyncService
         protected SyncIssueRepository $issues,
         protected BlogSettingsSyncService $settingsSync,
         protected ContentExtractionService $extraction,
+        protected LinkSwitchService $linkSwitch,
     ) {
     }
 
@@ -150,6 +152,13 @@ class SyncService
             $this->extraction->resolve($blog->id);
         } catch (Throwable $e) {
             Log::error('同期：内部リンク・本文中のメディアの照合に失敗しました。', ['blog_id' => $blog->id, 'message' => $e->getMessage()]);
+        }
+
+        // 公開された記事を、タイトルだけで載せている記事に、リンクに切り替える編集案を作る（D-39）
+        try {
+            $this->linkSwitch->createDrafts($blog, $userId);
+        } catch (Throwable $e) {
+            Log::error('同期：リンクの切り替えの編集案を作れませんでした。', ['blog_id' => $blog->id, 'message' => $e->getMessage()]);
         }
 
         $status = match (true) {

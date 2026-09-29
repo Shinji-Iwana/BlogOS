@@ -47,6 +47,14 @@
         </p>
     @endif
 
+    {{-- 公開された記事へのリンクの切り替え（D-39） --}}
+    @if (($linkSwitchDrafts ?? 0) > 0)
+        <p style="color:#b60;">
+            公開された記事へのリンクに切り替えられる記事が{{ $linkSwitchDrafts }}件あります。
+            <a href="{{ route('drafts.link-switch') }}">確認して反映する</a>
+        </p>
+    @endif
+
     {{-- WordPress の更新（D-38） --}}
     @if (($wordpressNotice['updates'] ?? 0) > 0 || ($wordpressNotice['closed'] ?? 0) > 0)
         <p style="color:#b00;">

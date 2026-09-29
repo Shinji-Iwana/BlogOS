@@ -717,7 +717,7 @@ OpenAI の残高の記録（全ブログ共通。D-31-04）。`type`（`balance`
 
 * `images`：`blog_id`、`kind`（`diagram` / `illustration` / `eyecatch` / `screenshot`）、`status`（`draft`：案 / `ready`：確認済み）、`source`（`ai_svg` / `ai_image` / `upload`）、`title`・`description`（依頼の内容）・`alt`・`caption`・`filename`（WordPress に登録するファイル名。拡張子なし）、`svg_source`（図解の元の SVG。安全な形にして保存）・`image_prompt`（画像モデルへの指示文）・`ai_note`（AI が形式を選んだ理由）、ファイル（`path`：storage の local ディスクの中のパス、`mime_type`・`width`・`height`・`file_size`）、`variant_of_image_id`（別の形式で作った比較の元）、`media_id`（WordPress に登録したメディア）、`created_by`。
 * `category_eyecatches`：`blog_id`・`category_id`（一意）・`media_id`・`updated_by`。子のカテゴリに設定がなければ、親のカテゴリの設定を使う。
-* `images.article_draft_id`：画像を依頼した編集案（AIの改修案・新規記事の「画像の依頼」から作った画像。D-34-03）。`article_drafts.finish_notes`：BlogOS の仕上げ（目印の置き換え・広告の挿入など）で人に伝えること（文字列の配列。JSON。D-34-02）。
+* `images.article_draft_id`：画像を依頼した編集案（AIの改修案・新規記事の「画像の依頼」から作った画像。D-34-03）。`article_drafts.finish_notes`：BlogOS の仕上げ（目印の置き換え・広告の挿入など）で人に伝えること（文字列の配列。JSON。D-34-02）。`article_drafts.auto_reason`：BlogOS が自動で作った編集案の理由（`link_switch`：公開された記事へのリンクに切り替える。D-39-02）。
 * `ai_generations.image_id`：図の作成・画像の生成の対象の画像。`ai_prices` の `image_input`・`image_cached_input`：画像モデルの画像の入力の料金（`input`・`cached_input` は文章の入力、`output` は画像の出力）。
 
 ## 9-9-5. google_index_statuses

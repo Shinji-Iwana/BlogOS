@@ -2,7 +2,9 @@
 
 namespace App\Services\Articles;
 
+use App\Enums\DraftState;
 use App\Enums\MaterialKind;
+use App\Models\ArticleDraft;
 use App\Models\Blog;
 use App\Models\Image;
 use App\Models\Material;
@@ -43,6 +45,7 @@ class ArticleHtmlFinisher
         $content = str_replace("\r\n", "\n", $content);
         // 前の仕上げで、公開していなかったためタイトルだけにした記事は、目印に戻して置き換え直す（公開されていればリンクになる）
         $content = preg_replace('/<!-- blogos:記事:(\d+) -->.*?<!-- \/blogos -->/su', '[[記事:$1]]', $content) ?? $content;
+        $content = preg_replace('/<!-- blogos:下書き:(\d+) -->.*?<!-- \/blogos -->/su', '[[記事:下書き$1]]', $content) ?? $content;
         $content = $this->removeOldMarkup($content, $notes);
         $content = $this->replacePlaceholders($blog, $content, $notes);
 
@@ -309,6 +312,23 @@ class ArticleHtmlFinisher
      */
     protected function articleLink(Blog $blog, string $id, array &$notes): ?string
     {
+        // まだ WordPress にない新規記事の編集案（[[記事:下書き123]]。D-39）。反映済みなら、その記事として扱う
+        if (preg_match('/^下書き(\d+)$/u', $id, $m)) {
+            $draft = ArticleDraft::with(['post:id,wordpress_id', 'page:id,wordpress_id'])->where('blog_id', $blog->id)->find((int) $m[1]);
+            if ($draft === null || $draft->state === DraftState::Discarded) {
+                $notes[] = "ない・破棄した編集案の目印です：[[記事:{$id}]]";
+
+                return null;
+            }
+            $published = $draft->post ?? $draft->page;
+            if ($published === null) {
+                $notes[] = "まだ公開していない新しい記事は、タイトルだけにしました：「{$draft->title_raw}」（公開されると、BlogOS がリンクに切り替える編集案を作ります）";
+
+                return "<!-- blogos:下書き:{$m[1]} -->" . htmlspecialchars((string) $draft->title_raw, ENT_QUOTES) . '<!-- /blogos -->';
+            }
+            $id = (string) $published->wordpress_id;
+        }
+
         $article = null;
         if (ctype_digit($id)) {
             foreach ([Post::class, Page::class] as $modelClass) {

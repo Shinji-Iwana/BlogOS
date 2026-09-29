@@ -8,6 +8,7 @@ use App\Enums\ChangeSource;
 use App\Enums\DraftState;
 use App\Enums\PushOperationType;
 use App\Enums\PushResourceType;
+use App\Enums\PushState;
 use App\Enums\SyncIssueType;
 use App\Models\ArticleDraft;
 use App\Models\Page;
@@ -17,6 +18,7 @@ use App\Repositories\ArticleDraftRepository;
 use App\Repositories\BlogCredentialRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Repositories\WordPressPushOperationRepository;
+use App\Services\Articles\LinkSwitchService;
 use App\Services\Sync\SyncContext;
 use App\Support\ArticlePlaceholders;
 use App\Support\Slug;
@@ -158,7 +160,18 @@ class ArticlePushService
             throw new PushException('WordPressの現在の内容から変わっている項目がありません。');
         }
 
-        return $this->runner->withBlogLock($draft->blog, fn () => $this->executePush($draft, $payload, $userId));
+        $operation = $this->runner->withBlogLock($draft->blog, fn () => $this->executePush($draft, $payload, $userId));
+
+        // 反映で公開された記事を、タイトルだけで載せている記事に、リンクに切り替える編集案を作る（D-39）
+        if ($operation->fresh()?->state === PushState::Completed && ($payload['status'] ?? $draft->status) === 'publish') {
+            try {
+                app(LinkSwitchService::class)->createDrafts($draft->blog, $userId);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('反映：リンクの切り替えの編集案を作れませんでした。', ['blog_id' => $draft->blog_id, 'message' => $e->getMessage()]);
+            }
+        }
+
+        return $operation;
     }
 
     protected function executePush(ArticleDraft $draft, array $payload, ?int $userId): WordPressPushOperation

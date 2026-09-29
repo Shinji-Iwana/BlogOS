@@ -292,6 +292,13 @@ class PromptBuilder
     {
         $lines = $this->articles->publishedList($blog->id)->map(fn ($a) => "- [[記事:{$a->wordpress_id}]] {$a->title_raw}：{$a->link}")->all();
 
+        // まだ WordPress にない新しい記事（作業中の編集案）。公開されるまでは、本文ではタイトルだけになる（D-39）
+        foreach (ArticleDraft::where('blog_id', $blog->id)->whereNull('post_id')->whereNull('page_id')->active()->orderBy('id')->get(['id', 'title_raw']) as $draft) {
+            if (filled($draft->title_raw)) {
+                $lines[] = "- [[記事:下書き{$draft->id}]] {$draft->title_raw}：（まだ公開していない新しい記事）";
+            }
+        }
+
         return $lines === [] ? '（なし）' : implode("\n", $lines);
     }
 

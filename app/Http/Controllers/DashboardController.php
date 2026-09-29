@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\AffiliateLinkCheckResult;
 use App\Enums\AffiliateProgramStatus;
+use App\Enums\DraftState;
 use App\Models\AffiliateProgram;
+use App\Models\ArticleDraft;
+use App\Services\Articles\LinkSwitchService;
 use App\Models\WordPressComponent;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
@@ -43,6 +46,9 @@ class DashboardController extends Controller
                 'failed'  => $latestCheck !== null && ! $latestCheck->succeeded(),
                 'applied' => $this->priceRepository->appliedSince(now()->subDays(7)),
             ],
+            // 公開された記事へのリンクに切り替える編集案（D-39）
+            'linkSwitchDrafts' => $selectedBlog ? ArticleDraft::where('blog_id', $selectedBlog->id)->where('auto_reason', LinkSwitchService::REASON)
+                ->whereIn('state', [DraftState::Editing->value, DraftState::Review->value])->count() : 0,
             // WordPress の更新・公開停止のプラグイン（D-38）
             'wordpressNotice' => $selectedBlog ? [
                 'updates' => WordPressComponent::where('blog_id', $selectedBlog->id)->where('update_available', true)->count(),

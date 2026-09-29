@@ -115,6 +115,7 @@ class PagesSmokeTest extends TestCase
             'article titles'          => ['articles.titles'],
             'google index status'     => ['google.index-status'],
             'wordpress updates'       => ['wordpress-updates.index'],
+            'link switch'             => ['drafts.link-switch'],
             'batch revision all'      => ['ai.batches.create', ['mode' => 'revision', 'target' => 'all']],
             'batch revision not indexed' => ['ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']],
             'question bank create'    => ['materials.create', ['kind' => 'question_bank']],

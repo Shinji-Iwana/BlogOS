@@ -39,7 +39,7 @@ BlogOSのAI機能が、AIへの指示文を作るときに使うテンプレー�
 | `revision_scope` | 改修範囲とその説明 |
 | `shortfalls` | 最新の評価で ○ でなかった項目と理由 |
 | `parameters` | 人が画面で入力した情報（キーワード・補足・実体験など） |
-| `article_list` | ブログの公開済みの記事の一覧（目印 `[[記事:WordPress の ID]]`・タイトル・URL。内部リンクの候補。D-34） |
+| `article_list` | ブログの公開済みの記事の一覧（目印 `[[記事:WordPress の ID]]`・タイトル・URL。内部リンクの候補。D-34）と、まだ WordPress にない新規記事の編集案（目印 `[[記事:下書き番号]]`。D-39） |
 | `research_method` | 教材の調べ方（Web検索を使えるか） |
 | `material_info` | 調べる教材の登録済みの情報と、紹介リンクの遷移先 |
 | `material_sources` | 確認できた情報（書籍は楽天ブックスAPIの検索結果） |
