@@ -36,6 +36,34 @@ class AiOutputParserTest extends TestCase
         $this->assertSame("製品体系が古い。 修正が必要。\n\n改善点：\n- 最優先：公式情報に合わせる。", $result['summary']);
     }
 
+    public function test_extra_closing_brace_after_the_json_is_tolerated(): void
+    {
+        // 本番の教材の調査で返ってきた形（余分な「,」と、全体を閉じた後の余分な「}」。文字列の中の「}」は数えない）
+        $output = <<<'TEXT'
+            ```json
+            {
+              "material": {
+                "name": "Java言語プログラミングレッスン 第3版（下）",
+                "summary": "オブジェクト指向の基本を解説します（{ } を含む説明）。",
+                "availability": "販売店で確認してください。",
+              },
+              "newer": [],
+              "sources": ["https://www.sbcr.jp/product/4797371260/"],
+              "reason": "出版社のページで確認しました。"
+              }
+            }
+            ```
+            TEXT;
+
+        $result = (new AiOutputParser())->materialResearch($output);
+
+        $this->assertSame('Java言語プログラミングレッスン 第3版（下）', $result['material']['name']);
+        $this->assertSame('オブジェクト指向の基本を解説します（{ } を含む説明）。', $result['material']['summary']);
+        $this->assertSame('販売店で確認してください。', $result['availability']);
+        $this->assertSame(['https://www.sbcr.jp/product/4797371260/'], $result['sources']);
+        $this->assertSame('出版社のページで確認しました。', $result['reason']);
+    }
+
     public function test_trailing_commas_in_json_are_tolerated(): void
     {
         // AIがよくする書き間違い：閉じかっこの直前の余分な「,」。文字列の中の「,}」は変えない

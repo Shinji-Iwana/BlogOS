@@ -467,8 +467,51 @@ class AiOutputParser
 
         // 文字列の中の「,」は変えないよう、文字列とそれ以外に分けて直す
         $fixed = preg_replace_callback('/"(?:[^"\\\\]|\\\\.)*"|[^"]+/s', fn ($m) => $m[0][0] === '"' ? $m[0] : preg_replace('/,(\s*[}\]])/', '$1', $m[0]), $json);
+        $data = $fixed !== null ? json_decode($fixed, true) : null;
+        if ($data !== null || $fixed === null) {
+            return $data;
+        }
 
-        return $fixed !== null ? json_decode($fixed, true) : null;
+        // 最後に余分な「}」「]」がある（全体を閉じた後に、もう一度閉じている）場合は、最初の値が閉じたところまでを読む
+        $balanced = $this->firstBalancedValue($fixed);
+
+        return $balanced !== null && $balanced !== trim($fixed) ? json_decode($balanced, true) : null;
+    }
+
+    /**
+     * 先頭の { または [ から、対応する閉じ括弧までの部分（文字列の中の括弧は数えない）。閉じていなければ null
+     */
+    protected function firstBalancedValue(string $json): ?string
+    {
+        $json = trim($json);
+        if ($json === '' || ! in_array($json[0], ['{', '['], true)) {
+            return null;
+        }
+
+        $depth = 0;
+        $inString = false;
+        $length = strlen($json);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $json[$i];
+            if ($inString) {
+                if ($char === '\\') {
+                    $i++;
+                } elseif ($char === '"') {
+                    $inString = false;
+                }
+
+                continue;
+            }
+            if ($char === '"') {
+                $inString = true;
+            } elseif ($char === '{' || $char === '[') {
+                $depth++;
+            } elseif (($char === '}' || $char === ']') && --$depth === 0) {
+                return substr($json, 0, $i + 1);
+            }
+        }
+
+        return null;
     }
 
     protected function outermostObject(string $text): ?string
