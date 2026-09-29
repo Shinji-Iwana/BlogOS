@@ -165,7 +165,7 @@ class AiAndEvaluationTest extends TestCase
         // メタディスクリプションが未設定であることを、AIに伝える
         $this->assertStringContainsString('メタディスクリプション：未設定', $generation->input);
         $this->assertStringContainsString('=== メタディスクリプション ===', $generation->input);
-        $this->assertSame('1.2.5', $generation->template_version);
+        $this->assertSame('1.2.6', $generation->template_version);
 
         $aiContent = "<p>行1</p>\n<p>行2（改善）</p>\n<p>行3</p>\n<p>行4</p>";
         $output = "=== タイトル ===\nPHP入門【改訂】\n=== メタディスクリプション ===\nPHPの基本を、初心者向けに例を使って解説します。\n=== 抜粋 ===\n\n=== 本文 ===\n```html\n{$aiContent}\n```\n=== 変更点 ===\n- 行2を改善\n=== 自己評価 ===\nなし\n=== 確認が必要な点 ===\nなし";

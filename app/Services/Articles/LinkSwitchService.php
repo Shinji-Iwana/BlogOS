@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
  *
  * 仕上げで、公開していない記事へのリンクはタイトルだけにし、見えない目印（<!-- blogos:記事:ID --> / <!-- blogos:下書き:ID -->）を残している。
  * 同期・反映の後に、その記事が公開されたかを調べ、目印を持つ記事ごとに、リンクに切り替える編集案を作る（AIは使わない）。
+ * 同じ編集案で、機械的に直せる内部リンク（古い URL・カテゴリの一覧 → ロードマップ。InternalLinkChecker。D-42）も直す。
  * WordPress への反映は、人が確認して行う（BlogOS が人の承認なしに WordPress を変えないため）。作業中の編集案がある記事には作らない。
  */
 class LinkSwitchService
@@ -27,28 +28,40 @@ class LinkSwitchService
         protected ArticleDraftRepository $drafts,
         protected DraftService $draftService,
         protected ArticleHtmlFinisher $finisher,
+        protected InternalLinkChecker $links,
     ) {
     }
 
     /**
-     * リンクに切り替えられる記事（公開された記事を、タイトルだけで載せている記事）
+     * リンクに切り替えられる記事（公開された記事を、タイトルだけで載せている記事）と、
+     * 機械的に直せる内部リンク（古い URL・カテゴリの一覧 → ロードマップ。D-42）がある記事
      *
-     * @return list<array{article: Post|Page, titles: list<string>, active_draft: ArticleDraft|null}>
+     * @return list<array{article: Post|Page, titles: list<string>, fixes: list<string>, active_draft: ArticleDraft|null}>
      */
     public function pending(Blog $blog): array
     {
+        $this->links->forget($blog->id);
         $rows = [];
         foreach ([Post::class, Page::class] as $modelClass) {
             $articles = $modelClass::where('blog_id', $blog->id)->existing()->where('content_raw', 'like', '%<!-- blogos:%')->get();
             foreach ($articles as $article) {
                 $titles = $this->publishedTargets($blog, (string) $article->content_raw);
                 if ($titles !== []) {
-                    $rows[] = ['article' => $article, 'titles' => $titles, 'active_draft' => $this->drafts->activeFor($article)];
+                    $rows[$modelClass . ':' . $article->id] = ['article' => $article, 'titles' => $titles, 'fixes' => []];
                 }
             }
         }
 
-        return $rows;
+        foreach ($this->links->check($blog)['links'] as $issue) {
+            if ($issue['fix'] === null) {
+                continue;
+            }
+            $key = $issue['source']::class . ':' . $issue['source']->id;
+            $rows[$key] ??= ['article' => $issue['source']::find($issue['source']->id), 'titles' => [], 'fixes' => []];
+            $rows[$key]['fixes'][] = "{$issue['link']->target_url} → {$issue['fix']}";
+        }
+
+        return array_values(array_map(fn ($row) => $row + ['active_draft' => $this->drafts->activeFor($row['article'])], $rows));
     }
 
     /**
@@ -76,11 +89,21 @@ class LinkSwitchService
                 continue;
             }
 
-            $finished = $this->finisher->finish($blog, (string) $draft->content_raw);
-            $this->drafts->update($draft, ['content_raw' => $finished['content']], ChangeSource::System, $userId);
+            // 目印の切り替えは仕上げで行う。機械的なリンクの修正だけの記事は、仕上げ（広告の挿入など）を通さない
+            $content = (string) $draft->content_raw;
+            $notes = array_map(fn ($title) => "公開された記事「{$title}」へのリンクに切り替えました。", $row['titles']);
+            if ($row['titles'] !== []) {
+                $content = $this->finisher->finish($blog, $content)['content'];
+            }
+            if ($row['fixes'] !== []) {
+                $fixed = $this->links->fixContent($row['article'], $content);
+                $content = $fixed['content'];
+                $notes = array_merge($notes, array_map(fn ($note) => "内部リンクを直しました（{$note}）。", $fixed['notes']));
+            }
+            $this->drafts->update($draft, ['content_raw' => $content], ChangeSource::System, $userId);
             $draft->forceFill([
                 'auto_reason'  => self::REASON,
-                'finish_notes' => array_map(fn ($title) => "公開された記事「{$title}」へのリンクに切り替えました。", $row['titles']),
+                'finish_notes' => $notes,
             ])->save();
             $created++;
         }

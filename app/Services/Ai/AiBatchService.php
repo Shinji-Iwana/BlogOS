@@ -27,6 +27,7 @@ use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleManagementSuggestionRepository;
 use App\Repositories\MaterialRepository;
+use App\Services\Articles\InternalLinkChecker;
 use App\Services\Quality\ReevaluationDetector;
 
 /**
@@ -53,6 +54,7 @@ class AiBatchService
         protected ArticleEvaluationRepository $evaluations,
         protected ArticleManagementSuggestionRepository $suggestions,
         protected MaterialRepository $materials,
+        protected InternalLinkChecker $links,
     ) {
     }
 
@@ -110,11 +112,22 @@ class AiBatchService
                 }, ['posts' => [], 'pages' => []])
             : ['posts' => [], 'pages' => []];
 
-        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending, $withMaterials, $notIndexed) {
+        // 内部リンクが切れている記事（D-42）
+        $brokenLinks = ['posts' => [], 'pages' => []];
+        if ($target === AiBatchTarget::BrokenLinks) {
+            foreach ($this->links->check($blog)['links'] as $issue) {
+                if ($issue['kind'] === 'broken') {
+                    $brokenLinks[$issue['source'] instanceof Post ? 'posts' : 'pages'][$issue['source']->id] = true;
+                }
+            }
+        }
+
+        $rows = array_filter($rows, function ($row) use ($target, $belowScore, $managed, $pending, $withMaterials, $notIndexed, $brokenLinks) {
             $key = $row['article'] instanceof Post ? 'posts' : 'pages';
 
             return match ($target) {
                 AiBatchTarget::NotIndexed  => isset($notIndexed[$key][$row['article']->id]),
+                AiBatchTarget::BrokenLinks => isset($brokenLinks[$key][$row['article']->id]),
                 AiBatchTarget::Unevaluated => $row['evaluation'] === null,
                 AiBatchTarget::BelowScore  => $row['evaluation']?->score !== null && $row['evaluation']->score < (float) $belowScore,
                 AiBatchTarget::Unmanaged   => ! isset($managed[$key][$row['article']->id]),

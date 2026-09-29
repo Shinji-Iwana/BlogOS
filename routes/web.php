@@ -12,6 +12,7 @@ use App\Http\Controllers\Articles\ArticleController;
 use App\Http\Controllers\Articles\ArticleManagementController;
 use App\Http\Controllers\Articles\ManagementSuggestionController;
 use App\Http\Controllers\Articles\ArticleTitleController;
+use App\Http\Controllers\Articles\InternalLinkCheckController;
 use App\Http\Controllers\Articles\ArticleTrashController;
 use App\Http\Controllers\Articles\DraftConflictController;
 use App\Http\Controllers\Articles\DraftController;
@@ -96,6 +97,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // AIが作った記事の管理情報の案の確認（D-27）
     Route::get('/articles/management-suggestions', [ManagementSuggestionController::class, 'index'])->name('management-suggestions.index');
     Route::get('/articles/titles', [ArticleTitleController::class, 'index'])->name('articles.titles');
+    Route::get('/links/check', [InternalLinkCheckController::class, 'index'])->name('links.check');
     Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
     Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
     Route::get('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.confirm');

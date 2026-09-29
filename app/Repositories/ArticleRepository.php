@@ -86,8 +86,8 @@ class ArticleRepository
      */
     public function publishedList(int $blogId, int $limit = 500): Collection
     {
-        return Post::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderByDesc('wordpress_date_gmt')->limit($limit)->get(['wordpress_id', 'title_raw', 'link'])
-            ->concat(Page::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderBy('menu_order')->limit($limit)->get(['wordpress_id', 'title_raw', 'link']));
+        return Post::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderByDesc('wordpress_date_gmt')->limit($limit)->get(['id', 'wordpress_id', 'title_raw', 'link'])
+            ->concat(Page::where('blog_id', $blogId)->existing()->where('status', 'publish')->orderBy('menu_order')->limit($limit)->get(['id', 'wordpress_id', 'title_raw', 'link']));
     }
 
     /**

@@ -50,8 +50,16 @@
     {{-- 公開された記事へのリンクの切り替え（D-39） --}}
     @if (($linkSwitchDrafts ?? 0) > 0)
         <p style="color:#b60;">
-            公開された記事へのリンクに切り替えられる記事が{{ $linkSwitchDrafts }}件あります。
+            リンクの切り替え・修正の編集案が{{ $linkSwitchDrafts }}件あります（公開された記事へのリンク、古い URL など）。
             <a href="{{ route('drafts.link-switch') }}">確認して反映する</a>
+        </p>
+    @endif
+
+    {{-- 内部リンクの確認（D-42） --}}
+    @if (($brokenLinks ?? 0) > 0)
+        <p style="color:#b00;">
+            内部リンク：リンク切れが{{ $brokenLinks }}件あります。
+            <a href="{{ route('links.check') }}#broken">内部リンクを確認する</a>
         </p>
     @endif
 
@@ -108,7 +116,7 @@
     @endif
 
     @if ($selectedBlog)
-        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('wordpress-updates.index') }}">WordPress の更新</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
+        <p><a href="{{ route('analytics.index') }}">分析（GA4・Search Console・AdSense）</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('wordpress-updates.index') }}">WordPress の更新</a>・<a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>・<a href="{{ route('links.check') }}">内部リンクの確認</a>・<a href="{{ route('google.settings') }}">Google連携の設定</a></p>
     @endif
 
 @else

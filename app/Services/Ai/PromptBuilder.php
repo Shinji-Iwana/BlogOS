@@ -16,6 +16,7 @@ use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
 use App\Models\Image;
+use App\Services\Articles\InternalLinkChecker;
 use App\Services\Images\ImagePromptValues;
 use App\Services\Materials\MaterialMatcher;
 use App\Services\Materials\MaterialPromptValues;
@@ -57,6 +58,7 @@ class PromptBuilder
         protected ImagePromptValues $imageValues,
         protected MaterialMatcher $materialMatcher,
         protected TopicPlanningPromptValues $topicValues,
+        protected InternalLinkChecker $links,
     ) {
     }
 
@@ -85,6 +87,8 @@ class PromptBuilder
             'shortfalls'       => $this->shortfalls($article, $draft, $standard),
             'parameters'       => $this->parameters($parameters),
             'article_list'     => $this->articleList($blog),
+            // この記事の内部リンクの問題（D-42）
+            'link_issues'      => $article !== null ? $this->links->describeFor($article) : '（なし）',
             'article_type_options' => $this->articleTypeOptions($blog),
         ];
 
@@ -297,7 +301,10 @@ class PromptBuilder
      */
     protected function articleList(Blog $blog): string
     {
-        $lines = $this->articles->publishedList($blog->id)->map(fn ($a) => "- [[記事:{$a->wordpress_id}]] {$a->title_raw}：{$a->link}")->all();
+        // どこからもリンクされていない・ロードマップに載っていない記事には印を付け、関連記事・次に読む記事で優先させる（D-42）
+        $orphans = $this->links->orphanIds($blog);
+        $lines = $this->articles->publishedList($blog->id)->map(fn ($a) => "- [[記事:{$a->wordpress_id}]] {$a->title_raw}：{$a->link}"
+            . (isset($orphans[$a instanceof Post ? 'posts' : 'pages'][$a->id]) ? '（リンクが少ない記事）' : ''))->all();
 
         // まだ WordPress にない新しい記事（作業中の編集案）。公開されるまでは、本文ではタイトルだけになる（D-39）
         foreach (ArticleDraft::where('blog_id', $blog->id)->whereNull('post_id')->whereNull('page_id')->active()->orderBy('id')->get(['id', 'title_raw']) as $draft) {

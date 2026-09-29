@@ -1,5 +1,5 @@
 {{--
-    公開された記事へのリンクの切り替え（D-39）
+    公開された記事へのリンクの切り替え（D-39）と、機械的に直せる内部リンクの修正（D-42）
 --}}
 
 @extends('layouts.app')
@@ -14,6 +14,7 @@
 
     <p style="color:#666;">
         公開していない記事へのリンクは、タイトルだけにしています。その記事が公開されると、BlogOS が同期・反映の後に、リンクに切り替える編集案を自動で作ります（AIは使いません）。
+        同じ編集案で、古い URL へのリンクと、ロードマップのページがあるカテゴリの一覧へのリンクも直します（<a href="{{ route('links.check') }}">内部リンクの確認</a>）。
         内容を確認してから、チェックしてまとめて反映してください（1回に20件まで）。
     </p>
 
@@ -30,7 +31,7 @@
             @csrf
             @include('partials.selected-blog-field')
             <table border="1" cellpadding="4" cellspacing="0">
-                <thead><tr><th><input type="checkbox" checked onclick="document.querySelectorAll('.switch-check').forEach(c => c.checked = this.checked)"></th><th>記事</th><th>切り替えるリンク</th><th></th></tr></thead>
+                <thead><tr><th><input type="checkbox" checked onclick="document.querySelectorAll('.switch-check').forEach(c => c.checked = this.checked)"></th><th>記事</th><th>切り替える・直すリンク</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($drafts as $draft)
                         <tr>
@@ -57,11 +58,11 @@
 
     @if ($skipped !== [])
         <h2>作業中の編集案があるため、作っていない記事</h2>
-        <p style="color:#666;">作業中の編集案で「目印を置き換え直す」を押すと、リンクに切り替わります。</p>
+        <p style="color:#666;">作業中の編集案で「目印を置き換え直す」を押すと、リンクに切り替わります。直すリンク（古い URL など）は、編集案の本文で直してください。</p>
         <ul>
             @foreach ($skipped as $row)
                 <li>
-                    {{ $row['article']->title_raw }}（{{ implode('、', $row['titles']) }}）
+                    {{ $row['article']->title_raw }}（{{ implode('、', array_merge($row['titles'], $row['fixes'])) }}）
                     ・<a href="{{ route('drafts.edit', ['id' => $row['active_draft']->id]) }}">編集案 #{{ $row['active_draft']->id }}</a>
                 </li>
             @endforeach

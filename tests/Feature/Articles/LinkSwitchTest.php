@@ -80,7 +80,7 @@ class LinkSwitchTest extends TestCase
             ->assertSee('公開された記事「記事50」へのリンクに切り替えました。')
             ->assertSee('作業中の編集案があるため、作っていない記事')
             ->assertSee("編集案 #{$busyDraft->id}");
-        $this->get(route('home'))->assertOk()->assertSee('公開された記事へのリンクに切り替えられる記事が1件あります');
+        $this->get(route('home'))->assertOk()->assertSee('リンクの切り替え・修正の編集案が1件あります');
 
         // 同じ記事に二重に作らない
         $this->assertSame(0, $service->createDrafts($this->blog));
