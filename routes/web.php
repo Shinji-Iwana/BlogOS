@@ -42,6 +42,7 @@ use App\Http\Controllers\Materials\MaterialSuggestionController;
 use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\Quality\EvaluationController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\Topics\CategoryLaunchController;
 use App\Http\Controllers\Topics\TopicPlanningController;
 use App\Http\Controllers\WordPressUpdateController;
 use App\Http\Controllers\Terms\TermController;
@@ -103,6 +104,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/drafts', [DraftController::class, 'index'])->name('drafts.index');
     Route::get('/drafts/link-switch', [LinkSwitchController::class, 'index'])->name('drafts.link-switch');
     Route::get('/topics', [TopicPlanningController::class, 'index'])->name('topics.index');
+    Route::get('/launches', [CategoryLaunchController::class, 'index'])->name('launches.index');
+    Route::get('/launches/{id}', [CategoryLaunchController::class, 'show'])->whereNumber('id')->name('launches.show');
     Route::get('/drafts/{id}/edit', [DraftController::class, 'edit'])->whereNumber('id')->name('drafts.edit');
     // 編集案のプレビュー（変更前と編集案の比較。D-28）
     Route::get('/drafts/{id}/preview', [DraftPreviewController::class, 'show'])->whereNumber('id')->name('drafts.preview');
@@ -126,6 +129,12 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/drafts/link-switch/push', [LinkSwitchController::class, 'push'])->name('drafts.link-switch.push');
         Route::post('/topics', [TopicPlanningController::class, 'store'])->name('topics.store');
         Route::post('/topics/{id}/review', [TopicPlanningController::class, 'review'])->whereNumber('id')->name('topics.review');
+        Route::post('/launches', [CategoryLaunchController::class, 'store'])->name('launches.store');
+        Route::post('/launches/{id}/children', [CategoryLaunchController::class, 'addChildren'])->whereNumber('id')->name('launches.children.store');
+        Route::post('/launches/{id}/status', [CategoryLaunchController::class, 'updateStatus'])->whereNumber('id')->name('launches.status');
+        Route::post('/launch-children/{id}/plan', [CategoryLaunchController::class, 'plan'])->whereNumber('id')->name('launches.children.plan');
+        Route::post('/launch-children/{id}/articles', [CategoryLaunchController::class, 'articles'])->whereNumber('id')->name('launches.children.articles');
+        Route::post('/launch-children/{id}/roadmap', [CategoryLaunchController::class, 'roadmap'])->whereNumber('id')->name('launches.children.roadmap');
         Route::post('/drafts/{id}/state', [DraftController::class, 'changeState'])->whereNumber('id')->name('drafts.state');
         Route::post('/drafts/{id}/push', [DraftPushController::class, 'store'])->whereNumber('id')->name('drafts.push.store');
         Route::post('/drafts/{id}/conflict', [DraftConflictController::class, 'resolve'])->whereNumber('id')->name('drafts.conflict.resolve');

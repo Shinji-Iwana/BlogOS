@@ -48,4 +48,25 @@ class TopicSuggestion extends Model
     {
         return $this->belongsTo(AiGeneration::class, 'ai_generation_id');
     }
+
+    /**
+     * 立ち上げる子カテゴリ（D-41）
+     */
+    public function launchChild(): BelongsTo
+    {
+        return $this->belongsTo(CategoryLaunchChild::class, 'launch_child_id');
+    }
+
+    /**
+     * この案から作った記事の編集案と、作成中の AI 実行（D-41）
+     */
+    public function articleDraft(): BelongsTo
+    {
+        return $this->belongsTo(ArticleDraft::class, 'article_draft_id');
+    }
+
+    public function articleGeneration(): BelongsTo
+    {
+        return $this->belongsTo(AiGeneration::class, 'article_generation_id');
+    }
 }

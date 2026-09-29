@@ -117,6 +117,7 @@ class PagesSmokeTest extends TestCase
             'wordpress updates'       => ['wordpress-updates.index'],
             'link switch'             => ['drafts.link-switch'],
             'topic planning'          => ['topics.index'],
+            'category launches'       => ['launches.index'],
             'batch revision all'      => ['ai.batches.create', ['mode' => 'revision', 'target' => 'all']],
             'batch revision not indexed' => ['ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']],
             'question bank create'    => ['materials.create', ['kind' => 'question_bank']],

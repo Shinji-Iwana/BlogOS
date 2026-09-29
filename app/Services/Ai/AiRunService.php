@@ -15,7 +15,9 @@ use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
 use App\Models\Category;
+use App\Models\CategoryLaunchChild;
 use App\Models\Image;
+use App\Models\TopicSuggestion;
 use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
@@ -516,6 +518,23 @@ class AiRunService
             'wordpress_category_ids'      => $category !== null ? [(int) $category->wordpress_id] : null,
             'wordpress_featured_media_id' => $eyecatch !== null ? (int) $eyecatch->wordpress_id : null,
         ], fn ($value) => $value !== null), $generation, $userId);
+
+        // カテゴリの立ち上げ（D-41）：記事の案・子ロードマップと、作った編集案を結び付ける
+        $parameters = (array) $generation->parameters;
+        if (ctype_digit((string) ($parameters['記事の企画の値'] ?? ''))) {
+            $suggestion = TopicSuggestion::where('blog_id', $blog->id)->find((int) $parameters['記事の企画の値']);
+            $suggestion?->update(['article_draft_id' => $draft->id]);
+            if ($suggestion?->launch_child_id !== null) {
+                $draft->forceFill(['category_launch_child_id' => $suggestion->launch_child_id])->save();
+            }
+        }
+        if (($parameters['記事種類の値'] ?? null) === 'child_roadmap' && ctype_digit((string) ($parameters['立ち上げの子の値'] ?? ''))) {
+            $child = CategoryLaunchChild::find((int) $parameters['立ち上げの子の値']);
+            if ($child !== null) {
+                $child->update(['roadmap_draft_id' => $draft->id]);
+                $draft->forceFill(['category_launch_child_id' => $child->id])->save();
+            }
+        }
     }
 
     protected function executor(AiExecutionMethod $method): AiExecutor

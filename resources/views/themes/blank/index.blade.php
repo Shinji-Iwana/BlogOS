@@ -86,6 +86,7 @@
             ・<a href="{{ route('ai.generations.index') }}">AI実行記録</a>
             ・<a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
             ・<a href="{{ route('topics.index') }}">記事の企画</a>
+            ・<a href="{{ route('launches.index') }}">カテゴリの立ち上げ</a>
             ・<a href="{{ route('ai.batches.index') }}">AIのまとめて実行</a>
             ・<a href="{{ route('ai.settings.edit') }}">AIの設定</a>
             ・<a href="{{ route('ai.credits.index') }}">AIの費用と残高</a>

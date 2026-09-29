@@ -1,6 +1,6 @@
 # 記事の企画
 
-**テンプレートバージョン:** 1.0.0
+**テンプレートバージョン:** 1.0.1
 **品質基準のファイル:** {profile}/profile.md, {profile}/article-types.md, {profile}/site-design.md
 
 ## 指示文
@@ -10,6 +10,10 @@
 # 企画すること
 
 {{planning_target}}
+
+# 人が提供した情報
+
+{{parameters}}
 
 # 守ること
 

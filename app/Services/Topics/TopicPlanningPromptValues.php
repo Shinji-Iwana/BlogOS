@@ -7,6 +7,7 @@ use App\Models\ArticleDraft;
 use App\Models\ArticleKeyword;
 use App\Models\Blog;
 use App\Models\Category;
+use App\Models\CategoryLaunchChild;
 use App\Models\Page;
 use App\Models\Post;
 use Illuminate\Support\Carbon;
@@ -38,8 +39,15 @@ class TopicPlanningPromptValues
         $scopeIds = $this->descendants($all, $root->id);
         $posts = $this->postsIn($blog, $scopeIds);
 
+        // カテゴリの立ち上げの、WordPress にまだない子カテゴリ（D-41）。カテゴリの値は親カテゴリ
+        $launchChild = ctype_digit((string) ($parameters['立ち上げの子の値'] ?? '')) ? CategoryLaunchChild::find((int) $parameters['立ち上げの子の値']) : null;
+        $target = $launchChild !== null && $launchChild->isNew()
+            ? "- 企画すること：新しい子カテゴリの、最初に書く記事\n- 親カテゴリ：{$category->name}\n- 新しい子カテゴリ：{$launchChild->name}（スラッグ：{$launchChild->slug}）"
+                . ($launchChild->scope ? "\n- 範囲：{$launchChild->scope}" : '') . "\n- このカテゴリの記事の数：0件（まだ WordPress にカテゴリもありません）"
+            : $this->target($unit, $category, $all, $posts);
+
         return [
-            'planning_target'   => $this->target($unit, $category, $all, $posts),
+            'planning_target'   => $target,
             'category_tree'     => $this->tree($all, $root->id, $posts),
             'category_articles' => $this->articleList($all, $scopeIds, $posts, $category->id),
             'roadmap_info'      => $this->roadmap($blog, $category),

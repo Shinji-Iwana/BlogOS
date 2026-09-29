@@ -8,6 +8,7 @@ use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\ArticleKeyword;
 use App\Models\Category;
+use App\Models\CategoryLaunchChild;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\TopicSuggestion;
@@ -25,6 +26,11 @@ class TopicPlanningResultService
      * @var array{keywords: array<string, string>, titles: array<string, string>}|null 重複の確認に使う、既存の記事のキーワードとタイトル（正規化した値 => 元の値）
      */
     protected ?array $existing = null;
+
+    /**
+     * 記事の案を結び付ける、立ち上げの子カテゴリ（D-41）
+     */
+    protected ?int $launchChildId = null;
 
     public function __construct(
         protected AiOutputParser $parser,
@@ -49,14 +55,19 @@ class TopicPlanningResultService
             throw new AiException('出力に案がありませんでした（' . ($unit === 'category' ? 'categories' : 'articles') . ' が空です）。');
         }
 
-        // 同じカテゴリ・同じ種類の確認待ちの案は、新しい案に置き換える
-        TopicSuggestion::where('blog_id', $generation->blog_id)->where('category_id', $category->id)->where('type', $unit)
-            ->whereNull('parent_suggestion_id')->where('status', SuggestionStatus::Pending)->update(['status' => SuggestionStatus::Superseded->value]);
+        // カテゴリの立ち上げの子カテゴリの記事の案（D-41）。案は子カテゴリに結び付ける
+        $launchChild = ctype_digit((string) ($parameters['立ち上げの子の値'] ?? '')) ? CategoryLaunchChild::find((int) $parameters['立ち上げの子の値']) : null;
+        $this->launchChildId = $launchChild?->id;
+
+        // 同じカテゴリ（立ち上げの子カテゴリ）・同じ種類の確認待ちの案は、新しい案に置き換える
+        TopicSuggestion::where('blog_id', $generation->blog_id)->where('type', $unit)->whereNull('parent_suggestion_id')->where('status', SuggestionStatus::Pending)
+            ->when($launchChild !== null, fn ($q) => $q->where('launch_child_id', $launchChild->id), fn ($q) => $q->where('category_id', $category->id)->whereNull('launch_child_id'))
+            ->update(['status' => SuggestionStatus::Superseded->value]);
 
         $this->existing = null;
         foreach ($items as $item) {
             if ($unit === 'article') {
-                $this->createArticle($generation, $category->id, null, $item);
+                $this->createArticle($generation, $launchChild?->category_id ?? $category->id, null, $item);
 
                 continue;
             }
@@ -94,6 +105,7 @@ class TopicPlanningResultService
             'type'                 => 'article',
             'category_id'          => $categoryId,
             'parent_suggestion_id' => $parentId,
+            'launch_child_id'      => $parentId === null ? $this->launchChildId : null,
             'title'                => $item['title'],
             'main_keyword'         => $item['main_keyword'],
             'sub_keywords'         => $item['sub_keywords'],

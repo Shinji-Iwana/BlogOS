@@ -45,7 +45,7 @@ class PromptBuilder
     /**
      * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
      */
-    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値'];
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値', '記事の企画の値', '立ち上げの子の値'];
 
     public function __construct(
         protected QualityStandardLoader $loader,
