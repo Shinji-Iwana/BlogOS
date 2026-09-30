@@ -20,6 +20,7 @@ use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\SyncIssueRepository;
 use App\Services\Articles\ArticleHtmlFinisher;
+use App\Services\Articles\ArticleImageRequestService;
 use App\Services\Articles\ArticleTitleChecker;
 use App\Services\Articles\DraftService;
 use App\Support\ArticlePlaceholders;
@@ -142,13 +143,14 @@ class DraftController extends Controller
     /**
      * 本文を仕上げ直す：目印を置き換え直し、広告・広告を含むことの表示を入れ直す（D-34）。画像を WordPress に登録した後などに使う
      */
-    public function finish(Request $request, int $id, ArticleHtmlFinisher $finisher)
+    public function finish(Request $request, int $id, ArticleHtmlFinisher $finisher, ArticleImageRequestService $imageRequests)
     {
         $blog = $this->selectedBlog();
         $draft = $this->drafts->findForBlog($blog->id, $id);
         abort_if($draft === null, 404);
 
-        $finished = $finisher->finish($blog, (string) $draft->content_raw);
+        // 付け替えられずに残った [[画像:新規N]] を、この編集案の画像と結び付け直してから仕上げる（D-34-06）
+        $finished = $finisher->finish($blog, $imageRequests->repairMarkers($draft, (string) $draft->content_raw)['content']);
 
         try {
             $changed = $this->draftService->update($draft, ['content_raw' => $finished['content']], $request->user()?->id);

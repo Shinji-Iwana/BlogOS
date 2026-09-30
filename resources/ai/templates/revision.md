@@ -1,6 +1,6 @@
 # 記事改修
 
-**テンプレートバージョン:** 1.2.6
+**テンプレートバージョン:** 1.2.7
 **品質基準のファイル:** common/principles.md, common/writing.md, common/ai-and-operation.md, {profile}/profile.md, {profile}/article-types.md, {profile}/tech-content.md, {profile}/html-rules.md
 
 ## 指示文
@@ -52,10 +52,11 @@
 （改修後の本文の全文）
 === 画像の依頼 ===
 （新しく必要な画像。次の形の JSON の配列。なければ []）
+（"key" は、本文に書いた目印の「新規1」の部分だけを書く。本文の [[画像:新規1]] と同じ番号にする）
 ```json
 [
   {
-    "key": "新規1（本文の [[画像:新規1]] と同じ）",
+    "key": "新規1",
     "kind": "diagram / illustration / screenshot",
     "title": "画像の名前（短く）",
     "description": "何をどう描くか（図解は、要素・流れ・関係を具体的に。スクリーンショットは、撮る画面と操作の手順）",

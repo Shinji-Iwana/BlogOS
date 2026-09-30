@@ -430,7 +430,7 @@ class AiOutputParser
                 continue;
             }
             $requests[] = [
-                'key'                 => mb_substr(preg_replace('/^\[\[画像:|\]\]$/u', '', $key), 0, 30),
+                'key'                 => self::imageKey($key),
                 'kind'                => $kind,
                 'title'               => mb_substr($title, 0, 255),
                 'description'         => trim((string) ($item['description'] ?? '')),
@@ -458,6 +458,23 @@ class AiOutputParser
     /**
      * JSONを読み取る。AIがよくする小さな書き間違い（閉じかっこの直前の余分な「,」）は、直してから読み取る
      */
+    /**
+     * 画像の依頼の key を、本文の目印の形（新規1）にする。AI が例の説明文ごと書いた場合（「新規1（本文の [[画像:新規1]] と同じ）」）や、
+     * 数字だけ（「1」）の場合も、本文の [[画像:新規1]] と結び付くようにする（D-34-06）
+     */
+    public static function imageKey(string $key): string
+    {
+        $key = trim($key);
+        if (preg_match('/新規\s*(\d+)/u', $key, $m)) {
+            return "新規{$m[1]}";
+        }
+        if (preg_match('/^\d+$/', $key)) {
+            return "新規{$key}";
+        }
+
+        return mb_substr(preg_replace('/^\[\[画像:|\]\]$/u', '', $key), 0, 30);
+    }
+
     protected function decode(string $json): mixed
     {
         $data = json_decode($json, true);
