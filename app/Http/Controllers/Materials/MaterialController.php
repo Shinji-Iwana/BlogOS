@@ -13,6 +13,7 @@ use App\Models\Material;
 use App\Repositories\MaterialRepository;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Materials\AffiliateProgramService;
+use App\Services\Materials\MaterialCoverageService;
 use App\Services\Materials\MaterialLinkService;
 use App\Services\Materials\MaterialService;
 use App\Support\AffiliateLink;
@@ -37,11 +38,18 @@ class MaterialController extends Controller
     ) {
     }
 
-    public function index(Request $request)
+    public function index(Request $request, MaterialCoverageService $coverage)
     {
         $blog = $this->selectedBlog();
         $kind = MaterialKind::tryFrom((string) $request->query('kind'));
-        $materials = $this->materials->listForBlog($blog->id)->filter(fn (Material $material) => $kind === null || $material->kind === $kind);
+        $categories = $this->categories($blog);
+        $category = $categories->firstWhere('id', (int) $request->query('category'));
+        $all = $this->materials->listForBlog($blog->id);
+
+        // カテゴリで絞り込むときは、親カテゴリに登録した教材も出す（記事で候補になる範囲と同じ。D-45）
+        $scope = $category !== null ? $coverage->withAncestors((int) $category->id, $categories) : null;
+        $materials = $all->filter(fn (Material $material) => ($kind === null || $material->kind === $kind)
+            && ($scope === null || $material->categories->pluck('id')->map(fn ($id) => (int) $id)->intersect($scope)->isNotEmpty()));
 
         // 見直しが必要な記事の数（教材ごと）
         $needsReview = [];
@@ -59,7 +67,12 @@ class MaterialController extends Controller
             'programProblems'  => $materials->mapWithKeys(fn (Material $material) => [$material->id => $this->programs->problems($material)])->filter()->all(),
             'pendingSuggestions' => $this->materials->countPendingSuggestions($blog->id),
             'api'              => $this->apiSummary(),
-            'categories'       => $this->categories($blog),
+            'categories'       => $categories,
+            // カテゴリで絞り込み・カテゴリごとのそろい具合（D-45）
+            'category'         => $category,
+            'coverage'         => $coverage->coverage($blog->id, $all, $categories),
+            'usability'        => $materials->mapWithKeys(fn (Material $material) => [$material->id => $coverage->problems($material)])->all(),
+            'ancestorIds'      => $scope !== null ? array_values(array_diff($scope, [(int) $category->id])) : [],
         ]);
     }
 
