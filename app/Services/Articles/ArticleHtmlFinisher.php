@@ -31,6 +31,7 @@ class ArticleHtmlFinisher
 
     public function __construct(
         protected AffiliateProgramService $programs,
+        protected ArticleLinkTextUpdater $linkTexts,
     ) {
     }
 
@@ -48,6 +49,10 @@ class ArticleHtmlFinisher
         $content = preg_replace('/<!-- blogos:下書き:(\d+) -->.*?<!-- \/blogos -->/su', '[[記事:下書き$1]]', $content) ?? $content;
         $content = $this->removeOldMarkup($content, $notes);
         $content = $this->replacePlaceholders($blog, $content, $notes);
+        // タイトルが変わった記事へのリンクの文字を、今のタイトルにする（D-46）
+        $refreshed = $this->linkTexts->refresh($blog, $content);
+        $content = $refreshed['content'];
+        array_push($notes, ...$refreshed['notes']);
 
         if (is_array($settings)) {
             $content = $this->normalizeSections($content, $notes);

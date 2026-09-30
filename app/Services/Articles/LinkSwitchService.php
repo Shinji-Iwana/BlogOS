@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\Log;
  *
  * 仕上げで、公開していない記事へのリンクはタイトルだけにし、見えない目印（<!-- blogos:記事:ID --> / <!-- blogos:下書き:ID -->）を残している。
  * 同期・反映の後に、その記事が公開されたかを調べ、目印を持つ記事ごとに、リンクに切り替える編集案を作る（AIは使わない）。
- * 同じ編集案で、機械的に直せる内部リンク（古い URL・カテゴリの一覧 → ロードマップ。InternalLinkChecker。D-42）も直す。
+ * 同じ編集案で、機械的に直せる内部リンク（古い URL・カテゴリの一覧 → ロードマップ。InternalLinkChecker。D-42）と、
+ * タイトルが変わった記事へのリンクの文字（ArticleLinkTextUpdater。D-46）も直す。作業中の編集案のリンクの文字は、その場で直す。
  * WordPress への反映は、人が確認して行う（BlogOS が人の承認なしに WordPress を変えないため）。作業中の編集案がある記事には作らない。
  */
 class LinkSwitchService
@@ -29,6 +30,7 @@ class LinkSwitchService
         protected DraftService $draftService,
         protected ArticleHtmlFinisher $finisher,
         protected InternalLinkChecker $links,
+        protected ArticleLinkTextUpdater $linkTexts,
     ) {
     }
 
@@ -61,7 +63,44 @@ class LinkSwitchService
             $rows[$key]['fixes'][] = "{$issue['link']->target_url} → {$issue['fix']}";
         }
 
-        return array_values(array_map(fn ($row) => $row + ['active_draft' => $this->drafts->activeFor($row['article'])], $rows));
+        // タイトルが変わった記事へのリンクの文字が、以前のタイトルのままの記事（D-46）
+        foreach ($this->linkTexts->staleArticles($blog) as $stale) {
+            $key = $stale['article']::class . ':' . $stale['article']->id;
+            $rows[$key] ??= ['article' => $stale['article'], 'titles' => [], 'fixes' => []];
+            $rows[$key]['retitles'] = $stale['titles'];
+        }
+
+        return array_values(array_map(fn ($row) => $row + ['retitles' => [], 'active_draft' => $this->drafts->activeFor($row['article'])], $rows));
+    }
+
+    /**
+     * 作業中の編集案のリンクの文字を、タイトルが変わった記事の今のタイトルに直す（D-46。WordPress は変えない）。
+     * 反映の結果待ちの編集案は変えない
+     *
+     * @return int 直した編集案の数
+     */
+    public function refreshActiveDrafts(Blog $blog, ?int $userId = null): int
+    {
+        $this->linkTexts->forget($blog->id);
+        if ($this->linkTexts->renamed($blog->id) === []) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach (ArticleDraft::where('blog_id', $blog->id)->active()->where('content_raw', 'like', '%<a %')->orderBy('id')->get() as $draft) {
+            if ($draft->isLocked()) {
+                continue;
+            }
+            $refreshed = $this->linkTexts->refresh($blog, (string) $draft->content_raw);
+            if ($refreshed['content'] === (string) $draft->content_raw) {
+                continue;
+            }
+            $this->drafts->update($draft, ['content_raw' => $refreshed['content']], ChangeSource::System, $userId);
+            $draft->forceFill(['finish_notes' => array_values(array_unique(array_merge((array) $draft->finish_notes, $refreshed['notes'])))])->save();
+            $count++;
+        }
+
+        return $count;
     }
 
     /**
@@ -74,6 +113,9 @@ class LinkSwitchService
         if ($blog->isArchived()) {
             return 0;
         }
+
+        // 作業中の編集案は、その場で直す（公開中の記事は、下で編集案を作って人が反映する）
+        $this->refreshActiveDrafts($blog, $userId);
 
         $created = 0;
         foreach ($this->pending($blog) as $row) {
@@ -93,7 +135,13 @@ class LinkSwitchService
             $content = (string) $draft->content_raw;
             $notes = array_map(fn ($title) => "公開された記事「{$title}」へのリンクに切り替えました。", $row['titles']);
             if ($row['titles'] !== []) {
-                $content = $this->finisher->finish($blog, $content)['content'];
+                $finished = $this->finisher->finish($blog, $content);
+                $content = $finished['content'];
+                $notes = array_merge($notes, array_values(array_filter($finished['notes'], fn ($note) => str_starts_with($note, 'タイトルが変わった記事へのリンクの文字'))));
+            } elseif ($row['retitles'] !== []) {
+                $refreshed = $this->linkTexts->refresh($blog, $content);
+                $content = $refreshed['content'];
+                $notes = array_merge($notes, $refreshed['notes']);
             }
             if ($row['fixes'] !== []) {
                 $fixed = $this->links->fixContent($row['article'], $content);

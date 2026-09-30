@@ -31,7 +31,9 @@ class LinkSwitchController extends Controller
             'blog'    => $blog,
             'drafts'  => $this->drafts($blog->id)->load(['post:id,title_raw', 'page:id,title_raw']),
             // 作業中の編集案があるため、作っていない記事
-            'skipped' => array_values(array_filter($service->pending($blog), fn ($row) => $row['active_draft'] !== null && $row['active_draft']->auto_reason !== LinkSwitchService::REASON)),
+            // リンクの文字の直し（D-46）は、作業中の編集案をその場で直すため、ここには出さない
+            'skipped' => array_values(array_filter($service->pending($blog), fn ($row) => $row['active_draft'] !== null && $row['active_draft']->auto_reason !== LinkSwitchService::REASON
+                && ($row['titles'] !== [] || $row['fixes'] !== []))),
         ]);
     }
 
