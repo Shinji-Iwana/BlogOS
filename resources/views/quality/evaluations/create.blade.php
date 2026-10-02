@@ -66,7 +66,8 @@
                     @foreach ($items as $key => $item)
                         <tr>
                             <td><code>{{ $key }}</code></td>
-                            <td>{{ $item['label'] }}@if (! $item['ai'])（判定者：人）@endif</td>
+                            <td>{{ $item['label'] }}@if ($item['required'] ?? false)<strong>（★必須）</strong>@endif @if (! $item['ai'])（判定者：人）@endif
+                                @if ($item['criteria'] ?? null)<br><span style="color:#666; font-size:90%;">{{ $item['criteria'] }}</span>@endif</td>
                             <td>{{ $item['points'] }}</td>
                             <td style="white-space:nowrap;">
                                 @foreach ($judgmentOptions as $option)

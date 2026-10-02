@@ -38,6 +38,7 @@ class EvaluationController extends Controller
 
         $standard = $this->evaluationService->standardFor($blog);
         $articleType = $this->evaluationService->articleTypeFor($article);
+        $articleSubtype = $this->evaluationService->articleSubtypeFor($article);
 
         // 元にする評価（AIの評価など）の判定を初期値にする
         $base = $request->filled('from') ? $this->evaluations->findForBlog($blog->id, (int) $request->query('from')) : null;
@@ -48,7 +49,8 @@ class EvaluationController extends Controller
             'draft'       => $draft,
             'standard'    => $standard,
             'articleType' => $articleType,
-            'applicable'  => $standard->applicableItems($articleType),
+            'applicable'  => $standard->applicableItems($articleType, $articleSubtype),
+            'form'        => $standard->formFor($articleType, $articleSubtype),
             'base'        => $base?->details->keyBy('item_key'),
             'baseSummary' => $base?->summary,
         ]);
@@ -102,7 +104,7 @@ class EvaluationController extends Controller
         return view('quality.evaluations.show', [
             'evaluation' => $evaluation,
             'standard'   => $standard,
-            'verdict'    => ScoreCalculator::verdict($evaluation->score, $evaluation->required_conditions_passed),
+            'verdict'    => ScoreCalculator::verdict($evaluation->score, $evaluation->required_conditions_passed, (array) $evaluation->type_failures),
             'target'     => $this->targetKey($evaluation->post ?? $evaluation->page, $evaluation->draft),
             // 評価後に品質基準が変わった場合は、表示の点数と現在の基準での点数が違うことがある
             'versionChanged' => $evaluation->quality_common_version !== $standard->commonVersion

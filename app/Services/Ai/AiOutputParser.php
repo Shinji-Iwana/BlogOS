@@ -15,7 +15,7 @@ class AiOutputParser
     /**
      * 品質診断の出力（```json のコードブロック）
      *
-     * @return array{judgments: array<string, Judgment>, comments: array<string, string>, summary: string|null}
+     * @return array{judgments: array<string, Judgment>, comments: array<string, string>, findings: array<string, array{location: string|null, problem: string|null, fix: string|null}>, summary: string|null}
      *
      * @throws AiException
      */
@@ -31,6 +31,7 @@ class AiOutputParser
 
         $judgments = [];
         $comments = [];
+        $findings = [];
         foreach (['required', 'items'] as $group) {
             foreach ((array) ($data[$group] ?? []) as $key => $value) {
                 $judgment = Judgment::fromSymbol(is_array($value) ? ($value['judgment'] ?? null) : (string) $value);
@@ -40,6 +41,14 @@ class AiOutputParser
                 $judgments[(string) $key] = $judgment;
                 if (is_array($value) && filled($value['comment'] ?? null)) {
                     $comments[(string) $key] = (string) $value['comment'];
+                }
+                // 指摘：どこが・何が足りないか・どう直すか（品質基準 2.0.0。D-47）
+                if (is_array($value) && (filled($value['location'] ?? null) || filled($value['problem'] ?? null) || filled($value['fix'] ?? null))) {
+                    $findings[(string) $key] = [
+                        'location' => $this->text($value['location'] ?? null),
+                        'problem'  => $this->text($value['problem'] ?? null),
+                        'fix'      => $this->text($value['fix'] ?? null),
+                    ];
                 }
             }
         }
@@ -54,7 +63,7 @@ class AiOutputParser
             $summary .= "\n\n改善点：\n- " . implode("\n- ", $improvements);
         }
 
-        return ['judgments' => $judgments, 'comments' => $comments, 'summary' => trim($summary) ?: null];
+        return ['judgments' => $judgments, 'comments' => $comments, 'findings' => $findings, 'summary' => trim($summary) ?: null];
     }
 
     /**

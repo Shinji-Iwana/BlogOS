@@ -46,7 +46,7 @@ class PromptBuilder
     /**
      * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
      */
-    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値', '記事の企画の値', '立ち上げの子の値'];
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値', '記事の企画の値', '立ち上げの子の値', '細分類の値'];
 
     public function __construct(
         protected QualityStandardLoader $loader,
@@ -72,7 +72,10 @@ class PromptBuilder
     {
         $template = AiTemplate::load($mode);
         $standard = $this->loader->load($blog->quality_profile);
-        $articleType = ($article ? $this->managements->findFor($article)?->article_type : null) ?? ($parameters['記事種類の値'] ?? null);
+        $management = $article ? $this->managements->findFor($article) : null;
+        $articleType = $management?->article_type ?? ($parameters['記事種類の値'] ?? null);
+        // 集客記事の細分類（記事の型の採点項目を決める。D-47）
+        $articleSubtype = $management?->article_subtype ?? ($parameters['細分類の値'] ?? null);
 
         $values = [
             'blog_name'        => $blog->display_name,
@@ -80,7 +83,7 @@ class PromptBuilder
             'quality_versions' => "共通基準 {$standard->commonVersion}" . ($standard->profile ? "、{$standard->profile} {$standard->profileVersion}" : ''),
             'quality_files'    => $this->qualityFiles($template, $standard),
             'required_table'   => $this->requiredTable($standard),
-            'scoring_table'    => $this->scoringTable($standard, $articleType),
+            'scoring_table'    => $this->scoringTable($standard, $articleType, $articleSubtype),
             'article_info'     => $this->articleInfo($blog, $article, $draft),
             'article_content'  => (string) ($draft?->content_raw ?? $article?->content_raw ?? ''),
             'revision_scope'   => self::SCOPE_RULES[($scope ?? RevisionScope::Minor)->value],
@@ -154,11 +157,20 @@ class PromptBuilder
         return implode("\n", $lines);
     }
 
-    protected function scoringTable(QualityStandard $standard, ?string $articleType): string
+    /**
+     * 採点の対象の項目と、判定の基準（品質基準 2.0.0。記事の型の項目を含む。D-47）
+     */
+    protected function scoringTable(QualityStandard $standard, ?string $articleType, ?string $articleSubtype = null): string
     {
-        $lines = ['| キー | 分類 | 評価項目 | 配点 | 判定者 |', '| --- | --- | --- | --- | --- |'];
-        foreach ($standard->applicableItems($articleType) as $key => $item) {
-            $lines[] = "| {$key} | {$item['category']} | {$item['label']} | {$item['points']} | " . ($item['ai'] ? 'AI・人' : '人') . ' |';
+        $form = $standard->formFor($articleType, $articleSubtype);
+        $lines = [$form !== null
+            ? "記事の型：{$form}（② 記事の型は、この型の項目で採点する。★ は必須で、× なら点数に関係なく公開不可）"
+            : '記事の型：未登録（記事種類・細分類が決まらないため、② 記事の型の項目は採点しない）', ''];
+        $lines[] = '| キー | 分類 | 評価項目 | 配点 | 判定者 | 判定の基準（○／△。どちらでもなければ ×） |';
+        $lines[] = '| --- | --- | --- | --- | --- | --- |';
+        foreach ($standard->applicableItems($articleType, $articleSubtype) as $key => $item) {
+            $lines[] = "| {$key} | {$item['category']} | {$item['label']}" . (($item['required'] ?? false) ? '（★必須）' : '') . " | {$item['points']} | "
+                . ($item['ai'] ? 'AI・人' : '人') . ' | ' . ($item['criteria'] ?? '') . ' |';
         }
 
         $excluded = $standard->excludedItems($articleType);
@@ -254,8 +266,14 @@ class PromptBuilder
             if ($detail->judgment->value === 'good') {
                 continue;
             }
-            $label = $standard->items[$detail->item_key]['label'] ?? $standard->required[$detail->item_key]['label'] ?? '';
+            $label = $standard->allItems()[$detail->item_key]['label'] ?? $standard->required[$detail->item_key]['label'] ?? '';
             $lines[] = "- {$detail->item_key}（{$label}）：{$detail->judgment->label()}" . ($detail->comment ? " — {$detail->comment}" : '');
+            // 指摘（どこが・何が足りないか・どう直すか。D-47）
+            foreach (['location' => 'どこが', 'problem' => '何が足りないか', 'fix' => 'どう直すか'] as $field => $name) {
+                if (filled($detail->{$field})) {
+                    $lines[] = "  - {$name}：{$detail->{$field}}";
+                }
+            }
         }
 
         return count($lines) === 1 ? $lines[0] . "\n- 不足点はありません" : implode("\n", $lines);

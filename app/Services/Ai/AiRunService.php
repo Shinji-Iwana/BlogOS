@@ -127,6 +127,12 @@ class AiRunService
             }
         }
 
+        // まだ WordPress にない新規記事の編集案の品質診断は、管理情報がないため、編集案を作ったときの記事種類・細分類で採点する（D-47）
+        if ($mode === AiMode::QualityDiagnosis && $article === null && $draft?->ai_generation_id !== null) {
+            $origin = (array) AiGeneration::find($draft->ai_generation_id)?->parameters;
+            $parameters += array_filter(['記事種類の値' => $origin['記事種類の値'] ?? null, '細分類の値' => $origin['細分類の値'] ?? null]);
+        }
+
         // 管理情報の案は、WordPressにある記事が対象（編集案の内容ではなく、記事の内容から作る。D-27）
         if ($mode === AiMode::ManagementSuggestion) {
             if ($article === null) {
@@ -402,7 +408,9 @@ class AiRunService
         $parsed = $this->parser->diagnosis((string) $generation->output);
         $target = $generation->draft ?? $generation->post ?? $generation->page;
 
-        $this->evaluationService->save($blog, $target, EvaluatorType::Ai, $parsed['judgments'], $parsed['comments'], $parsed['summary'], $generation->id, $userId);
+        $parameters = (array) $generation->parameters;
+        $this->evaluationService->save($blog, $target, EvaluatorType::Ai, $parsed['judgments'], $parsed['comments'], $parsed['summary'], $generation->id, $userId,
+            articleType: $parameters['記事種類の値'] ?? null, findings: $parsed['findings'], articleSubtype: $parameters['細分類の値'] ?? null);
     }
 
     protected function saveRevision(AiGeneration $generation, ?int $userId): void

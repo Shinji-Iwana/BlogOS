@@ -86,14 +86,14 @@ class AiAndEvaluationTest extends TestCase
         $evaluation = ArticleEvaluation::sole();
         $this->assertSame(EvaluatorType::Human, $evaluation->evaluator_type);
         $this->assertTrue($evaluation->is_confirmed);
-        $this->assertSame(97.5, $evaluation->score);
+        $this->assertSame(97.6, $evaluation->score);
         $this->assertTrue($evaluation->required_conditions_passed);
-        $this->assertSame('1.3.0', $evaluation->quality_common_version);
+        $this->assertSame('2.0.0', $evaluation->quality_common_version);
         $this->assertSame('si-note', $evaluation->quality_profile);
-        $this->assertSame(2.5, $evaluation->details()->where('item_key', 'intent.main')->value('points'));
+        $this->assertSame(2.0, $evaluation->details()->where('item_key', 'intent.main')->value('points'));
 
         $this->get(route('evaluations.show', ['id' => $evaluation->id]))->assertOk()->assertSee('公開可');
-        $this->get(route('articles.show', ['type' => 'posts', 'id' => $this->post->id]))->assertOk()->assertSee('97.5点');
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $this->post->id]))->assertOk()->assertSee('97.6点');
     }
 
     public function test_ai_diagnosis_manual_flow(): void
@@ -104,7 +104,7 @@ class AiAndEvaluationTest extends TestCase
         $generation = AiGeneration::sole();
         $this->assertSame(AiGenerationStatus::WaitingOutput, $generation->status);
         $this->assertSame('quality_diagnosis', $generation->template_key);
-        $this->assertSame('1.0.1', $generation->template_version);
+        $this->assertSame('2.0.0', $generation->template_version);
 
         // 指示文：記事・採点表・品質基準を含み、認証情報を含まない
         $this->assertStringContainsString('PHP入門', $generation->input);

@@ -627,6 +627,9 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `is_confirmed` | 人が確定した評価か |
 | `confirmed_by` / `confirmed_at` | 確定した利用者と日時 |
 | `article_type` | 評価に使った記事種類（記事種類ごとの対象外の項目を決めるため） |
+| `article_subtype` | 評価に使った細分類（集客記事の記事の型の項目を決めるため。D-47） |
+| `type_failures` | 記事の型の必須（★）の項目で × のもの（JSON。1つでもあれば公開不可。D-47） |
+| `axis_scores` | 観点ごとの適合度（JSON。観点のキー => %。合否には使わない。D-47） |
 | `summary` | 総評（AIの総評と改善点、人のメモ） |
 | `created_by` | 評価を保存した利用者 |
 
@@ -641,7 +644,8 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `item_key` | 評価項目（品質基準で定義したキー。D-06-08） |
 | `judgment` | ○ / △ / × / 要人間確認（値は `good` / `partial` / `bad` / `needs_human`） |
 | `points` / `max_points` | 得点（△は配点の50%。切り上げない。D-06-03）と配点。必須条件は NULL |
-| `comment` | 理由・改善点 |
+| `comment` | 判定の理由 |
+| `location` / `problem` / `fix` | 指摘：どこが・何が足りないか・どう直すか（○ でない項目。D-47） |
 
 ---
 

@@ -43,6 +43,14 @@ class EvaluationService
     }
 
     /**
+     * 評価の対象の細分類（集客記事の記事の型を決める。D-47）
+     */
+    public function articleSubtypeFor(Post|Page|null $article, ?string $fallback = null): ?string
+    {
+        return $article !== null ? ($this->managements->findFor($article)?->article_subtype ?? $fallback) : $fallback;
+    }
+
+    /**
      * 評価を保存する。
      *
      * AIの評価では、判定者が「人」の項目を必ず「要人間確認」にし、AIの点数に含めない（D-07-03）。
@@ -51,6 +59,7 @@ class EvaluationService
      * @param Post|Page|ArticleDraft $target 評価した記事、または編集案
      * @param array<string, Judgment> $judgments
      * @param array<string, string|null> $comments
+     * @param array<string, array{location?: string|null, problem?: string|null, fix?: string|null}> $findings ○でない項目の指摘（D-47）
      *
      * @throws EvaluationException 確定できない場合
      */
@@ -65,15 +74,18 @@ class EvaluationService
         ?int $userId,
         bool $confirm = false,
         ?string $articleType = null,
+        array $findings = [],
+        ?string $articleSubtype = null,
     ): ArticleEvaluation {
         $standard = $this->standardFor($blog);
 
         $draft = $target instanceof ArticleDraft ? $target : null;
         $article = $draft ? $draft->article() : $target;
         $articleType ??= $this->articleTypeFor($article);
+        $articleSubtype ??= $this->articleSubtypeFor($article);
 
         if ($evaluator === EvaluatorType::Ai) {
-            foreach ($standard->items as $key => $item) {
+            foreach ($standard->allItems() as $key => $item) {
                 if (! $item['ai']) {
                     $judgments[$key] = Judgment::NeedsHuman;
                 }
@@ -86,17 +98,17 @@ class EvaluationService
             }
         }
 
-        $known = array_merge(array_keys($standard->items), array_keys($standard->required));
+        $known = array_merge(array_keys($standard->allItems()), array_keys($standard->required));
         $judgments = array_intersect_key($judgments, array_flip($known));
 
-        $result = $this->calculator->calculate($standard, $articleType, $judgments);
+        $result = $this->calculator->calculate($standard, $articleType, $judgments, $articleSubtype);
 
         if ($confirm && ($evaluator !== EvaluatorType::Human || $result['unjudged'] !== [] || $result['needs_human'] !== [])) {
             throw new EvaluationException('人が全ての項目と必須条件を ○・△・× で判定した評価だけを確定できます。');
         }
 
         $details = [];
-        $applicable = $standard->applicableItems($articleType);
+        $applicable = $standard->applicableItems($articleType, $articleSubtype);
         foreach ($judgments as $key => $judgment) {
             $item = $applicable[$key] ?? null;
             if ($item === null && ! isset($standard->required[$key])) {
@@ -114,6 +126,10 @@ class EvaluationService
                 },
                 'max_points' => $item['points'] ?? null,
                 'comment'    => filled($comments[$key] ?? null) ? mb_substr((string) $comments[$key], 0, 5000) : null,
+                // 指摘（○でない項目。D-47）
+                'location'   => $judgment !== Judgment::Good && filled($findings[$key]['location'] ?? null) ? mb_substr((string) $findings[$key]['location'], 0, 2000) : null,
+                'problem'    => $judgment !== Judgment::Good && filled($findings[$key]['problem'] ?? null) ? mb_substr((string) $findings[$key]['problem'], 0, 3000) : null,
+                'fix'        => $judgment !== Judgment::Good && filled($findings[$key]['fix'] ?? null) ? mb_substr((string) $findings[$key]['fix'], 0, 3000) : null,
             ];
         }
 
@@ -127,11 +143,14 @@ class EvaluationService
             'evaluator_type'                   => $evaluator,
             'ai_generation_id'                 => $aiGenerationId,
             'article_type'                     => $articleType,
+            'article_subtype'                  => $articleSubtype,
             'quality_common_version'           => $standard->commonVersion,
             'quality_profile'                  => $standard->profile,
             'quality_profile_version'          => $standard->profileVersion,
             'required_conditions_passed'       => $result['required_passed'],
+            'type_failures'                    => $result['type_failures'] !== [] ? $result['type_failures'] : null,
             'score'                            => $result['score'],
+            'axis_scores'                      => array_filter($result['axes'], fn ($value) => $value !== null) ?: null,
             'summary'                          => $summary,
             'is_confirmed'                     => $confirm,
             'confirmed_by'                     => $confirm ? $userId : null,

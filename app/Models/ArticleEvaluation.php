@@ -26,7 +26,9 @@ class ArticleEvaluation extends Model
             'evaluator_type'                   => EvaluatorType::class,
             'evaluated_wordpress_modified_gmt' => 'datetime',
             'required_conditions_passed'       => 'boolean',
+            'type_failures'                    => 'array',
             'score'                            => 'float',
+            'axis_scores'                      => 'array',
             'is_confirmed'                     => 'boolean',
             'confirmed_at'                     => 'datetime',
         ];

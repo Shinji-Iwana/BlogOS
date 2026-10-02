@@ -123,6 +123,7 @@ class CategoryLaunchService
                     '記事種類'       => $suggestion->article_type ? ($types['types'][$suggestion->article_type] ?? $suggestion->article_type) : null,
                     '記事種類の値'   => $suggestion->article_type,
                     '細分類'         => $suggestion->article_subtype ? ($types['subtypes'][$suggestion->article_subtype] ?? $suggestion->article_subtype) : null,
+                    '細分類の値'     => $suggestion->article_subtype,
                     'メインキーワード' => $suggestion->main_keyword,
                     'サブキーワード' => implode("\n", (array) $suggestion->sub_keywords),
                     '検索意図'       => $suggestion->search_intent,

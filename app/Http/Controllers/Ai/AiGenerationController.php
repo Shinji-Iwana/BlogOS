@@ -115,6 +115,7 @@ class AiGenerationController extends Controller
             '記事種類'                           => isset($validated['article_type']) ? ($types['types'][$validated['article_type']] ?? $validated['article_type']) : null,
             '記事種類の値'                       => $validated['article_type'] ?? null,
             '細分類'                             => isset($validated['article_subtype']) ? ($types['subtypes'][$validated['article_subtype']] ?? $validated['article_subtype']) : null,
+            '細分類の値'                         => $validated['article_subtype'] ?? null,
             'メインキーワード'                   => $validated['main_keyword'] ?? null,
             'サブキーワード'                     => $validated['sub_keywords'] ?? null,
             '検索意図'                           => $validated['search_intent'] ?? null,
