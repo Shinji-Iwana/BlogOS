@@ -15,7 +15,7 @@ class AiOutputParser
     /**
      * 品質診断の出力（```json のコードブロック）
      *
-     * @return array{judgments: array<string, Judgment>, comments: array<string, string>, findings: array<string, array{location: string|null, problem: string|null, fix: string|null}>, summary: string|null}
+     * @return array{judgments: array<string, Judgment>, comments: array<string, string>, findings: array<string, array{location: string|null, problem: string|null, fix: string|null}>, findings_check: array<int, array{status: string, note: string|null}>, summary: string|null}
      *
      * @throws AiException
      */
@@ -63,7 +63,16 @@ class AiOutputParser
             $summary .= "\n\n改善点：\n- " . implode("\n- ", $improvements);
         }
 
-        return ['judgments' => $judgments, 'comments' => $comments, 'findings' => $findings, 'summary' => trim($summary) ?: null];
+        // 前回の改修の指摘の確認（編集案の診断。D-47）：番号 => 解消・一部解消・未解消
+        $checks = [];
+        foreach ((array) ($data['findings_check'] ?? []) as $number => $value) {
+            $status = self::checkStatus(is_array($value) ? (string) ($value['status'] ?? '') : (string) $value);
+            if (ctype_digit((string) $number) && $status !== null) {
+                $checks[(int) $number] = ['status' => $status, 'note' => is_array($value) ? $this->text($value['comment'] ?? null) : null];
+            }
+        }
+
+        return ['judgments' => $judgments, 'comments' => $comments, 'findings' => $findings, 'findings_check' => $checks, 'summary' => trim($summary) ?: null];
     }
 
     /**
@@ -467,6 +476,50 @@ class AiOutputParser
     /**
      * JSONを読み取る。AIがよくする小さな書き間違い（閉じかっこの直前の余分な「,」）は、直してから読み取る
      */
+    /**
+     * 記事改修の「=== 指摘への対応 ===」の節（JSON の配列。D-47）。読み取れなければ空
+     *
+     * @return array<int, array{status: string, note: string|null}> 番号 => 対応（fixed / partial / not_fixed）
+     */
+    public function findingResponses(?string $section): array
+    {
+        $section = trim((string) $section);
+        $json = preg_match('/```(?:json)?\s*(.*?)```/su', $section, $m) ? $m[1] : $section;
+        $start = strpos($json, '[');
+        $end = strrpos($json, ']');
+        $data = $start !== false && $end !== false && $end > $start ? $this->decode(substr($json, $start, $end - $start + 1)) : null;
+
+        $responses = [];
+        foreach (is_array($data) ? $data : [] as $item) {
+            $number = is_array($item) ? (int) preg_replace('/\D/', '', (string) ($item['no'] ?? '')) : 0;
+            $status = (string) ($item['status'] ?? '');
+            $status = match (true) {
+                str_contains($status, '直さなかった') || str_contains($status, 'not')      => 'not_fixed',
+                str_contains($status, '一部') || str_contains($status, 'partial')        => 'partial',
+                str_contains($status, '直した') || str_contains($status, 'fixed')        => 'fixed',
+                default                                                                  => null,
+            };
+            if ($number > 0 && $status !== null) {
+                $responses[$number] = ['status' => $status, 'note' => $this->text($item['detail'] ?? null)];
+            }
+        }
+
+        return $responses;
+    }
+
+    /**
+     * 改修後の確認の判定（解消・一部解消・未解消）
+     */
+    public static function checkStatus(string $value): ?string
+    {
+        return match (true) {
+            str_contains($value, '未解消') || str_contains($value, 'unresolved') => 'unresolved',
+            str_contains($value, '一部') || str_contains($value, 'partial')     => 'partial',
+            str_contains($value, '解消') || str_contains($value, 'resolved')   => 'resolved',
+            default                                                            => null,
+        };
+    }
+
     /**
      * 画像の依頼の key を、本文の目印の形（新規1）にする。AI が例の説明文ごと書いた場合（「新規1（本文の [[画像:新規1]] と同じ）」）や、
      * 数字だけ（「1」）の場合も、本文の [[画像:新規1]] と結び付くようにする（D-34-06）

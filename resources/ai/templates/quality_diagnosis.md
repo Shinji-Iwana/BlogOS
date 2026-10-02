@@ -1,6 +1,6 @@
 # 品質診断
 
-**テンプレートバージョン:** 2.0.0
+**テンプレートバージョン:** 2.1.0
 **品質基準のファイル:** common/principles.md, common/scoring.md, {profile}/profile.md, {profile}/article-types.md
 
 ## 指示文
@@ -35,10 +35,19 @@ judgment は "○"、"△"、"×"、"要人間確認" のいずれかです（�
     "intent.main": {"judgment": "○", "comment": "判定の理由"},
     "type.do_result": {"judgment": "×", "comment": "判定の理由", "location": "見出し「〇〇」のコードの後", "problem": "コードの実行結果がない", "fix": "コードの直後に、実行結果（出力・画面）を「実行結果」として示す"}
   },
+  "findings_check": {
+    "1": {"status": "解消", "comment": "確かめた結果（どこで確かめたか）"}
+  },
   "summary": "総評（200〜400字）",
   "improvements": ["優先度の高い順の改善点"]
 }
 ```
+
+# 前回の改修で直した指摘（確かめる）
+
+次の指摘は、前回の記事改修で直そうとしたものです。対象の記事で、指摘ごとに「どう直すか」の状態になっているかを確かめ、findings_check に番号ごとに「解消」「一部解消」「未解消」のいずれかと、確かめた結果を書いてください。「（なし）」の場合は findings_check を {} にしてください。
+
+{{previous_findings}}
 
 # 必須条件
 

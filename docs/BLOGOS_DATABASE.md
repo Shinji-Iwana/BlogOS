@@ -647,6 +647,10 @@ BlogOS上の編集案（D-01-06〜D-01-08、D-08-06）。
 | `comment` | 判定の理由 |
 | `location` / `problem` / `fix` | 指摘：どこが・何が足りないか・どう直すか（○ でない項目。D-47） |
 
+## 9-5-1. revision_findings
+
+記事改修で直すべき指摘と、その対応・改修後の確認（D-47-04）。`ai_generation_id`（記事改修の実行）、`article_draft_id`（できた編集案）、`source_evaluation_id`（元にした評価）、`number`（指摘の番号。実行ごとに UNIQUE）、`item_key`・`judgment`（改修前の判定）、`location`・`problem`・`fix`（指摘の写し）、`response_status`（`fixed` / `partial` / `not_fixed`）・`response_note`（改修での対応）、`check_status`（`resolved` / `partial` / `unresolved`）・`check_note`・`check_evaluation_id`（改修後の確認と、その評価）。
+
 ---
 
 ## 9-6. ai_generations

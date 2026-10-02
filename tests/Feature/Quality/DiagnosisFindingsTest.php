@@ -66,7 +66,7 @@ class DiagnosisFindingsTest extends TestCase
 
         // 記事改修の指示文に、指摘が入る
         $prompt = app(PromptBuilder::class)->build(AiMode::Revision, $blog, $post, null, [], null)['prompt'];
-        $this->assertStringContainsString('- type.do_result（実行結果）：×', $prompt);
+        $this->assertStringContainsString('：type.do_result（実行結果）：×', $prompt);
         $this->assertStringContainsString('  - どう直すか：コードの直後に、空欄で送信したときの表示を実行結果として示す', $prompt);
     }
 }

@@ -59,6 +59,72 @@
         </p>
     @endif
 
+    {{-- 指摘 → 改修での対応 → 改修後の確認（D-47） --}}
+    @if ($revisionFindings->isNotEmpty())
+        @php
+            $allItems = $qualityStandard->allItems();
+            $before = $revisionFindings->first()->sourceEvaluation;
+            $after = $revisionFindings->pluck('checkEvaluation')->filter()->sortByDesc('id')->first();
+            $checked = $revisionFindings->whereNotNull('check_status');
+        @endphp
+        <h2>指摘と対応</h2>
+        <p style="color:#666;">
+            記事改修に渡した指摘（番号付き）と、改修での対応、改修後の品質診断での確認です。
+            @if ($checked->isEmpty() && $editable)
+                改修の結果は、<a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => 'drafts:' . $draft->id]) }}">AIで品質診断する</a>と確かめられます（指摘ごとに、解消したかを判定します）。
+            @endif
+        </p>
+        @if ($before || $after)
+            <table border="1" cellpadding="4" cellspacing="0" style="margin-bottom:8px;">
+                <thead><tr><th></th><th>点数</th>@foreach ($qualityStandard->axes as $axis)<th>{{ $axis['label'] }}</th>@endforeach</tr></thead>
+                <tbody>
+                    @foreach (['改修前' => $before, '改修後' => $after] as $name => $evaluation)
+                        <tr>
+                            <th style="text-align:left;">{{ $name }}</th>
+                            <td>@if ($evaluation)<a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>@else - @endif</td>
+                            @foreach (array_keys($qualityStandard->axes) as $axisKey)
+                                <td>{{ isset($evaluation?->axis_scores[$axisKey]) ? number_format((float) $evaluation->axis_scores[$axisKey], 1) . '%' : '-' }}</td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+        <p>
+            解消 {{ $revisionFindings->where('check_status', 'resolved')->count() }}件・一部解消 {{ $revisionFindings->where('check_status', 'partial')->count() }}件・未解消 {{ $revisionFindings->where('check_status', 'unresolved')->count() }}件
+            ・未確認 {{ $revisionFindings->whereNull('check_status')->count() }}件（全 {{ $revisionFindings->count() }}件）
+        </p>
+        <div style="overflow-x:auto;">
+            <table border="1" cellpadding="4" cellspacing="0" style="font-size:90%;">
+                <thead><tr><th>番号</th><th>項目（改修前）</th><th>指摘</th><th>改修での対応</th><th>改修後</th></tr></thead>
+                <tbody>
+                    @foreach ($revisionFindings as $finding)
+                        <tr @if ($finding->check_status === 'unresolved') style="background:#fde2e2;" @elseif ($finding->check_status === 'partial') style="background:#fff8c5;" @endif>
+                            <td>{{ $finding->number }}</td>
+                            <td style="max-width:220px;">{{ $allItems[$finding->item_key]['label'] ?? $qualityStandard->required[$finding->item_key]['label'] ?? $finding->item_key }}（{{ $finding->judgment->label() }}）</td>
+                            <td style="max-width:360px;">
+                                @if ($finding->location)<strong>どこが：</strong>{{ $finding->location }}<br>@endif
+                                @if ($finding->problem)<strong>何が足りないか：</strong>{{ $finding->problem }}<br>@endif
+                                @if ($finding->fix)<strong>どう直すか：</strong>{{ $finding->fix }}@endif
+                            </td>
+                            <td style="max-width:300px;">
+                                {{ \App\Models\RevisionFinding::RESPONSES[$finding->response_status] ?? '（回答なし）' }}
+                                @if ($finding->response_note)<br><span style="color:#666;">{{ $finding->response_note }}</span>@endif
+                            </td>
+                            <td style="max-width:300px;">
+                                {{ \App\Models\RevisionFinding::CHECKS[$finding->check_status] ?? '未確認' }}
+                                @if ($finding->check_note)<br><span style="color:#666;">{{ $finding->check_note }}</span>@endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @if ($revisionFindings->whereIn('check_status', ['unresolved', 'partial'])->isNotEmpty() && $editable)
+            <p>未解消・一部解消の指摘は、<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">もう一度AIで改修案を作る</a>と、改修後の評価の指摘として引き継がれます。</p>
+        @endif
+    @endif
+
     {{-- BlogOS の仕上げ：目印・画像の依頼・広告（D-34） --}}
     @if ($placeholders !== [] || $draftImages->isNotEmpty() || $draft->finish_notes)
         <fieldset style="max-width:1000px;">

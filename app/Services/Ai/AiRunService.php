@@ -37,6 +37,7 @@ use App\Services\Materials\MaterialAiResultService;
 use App\Services\Push\PushException;
 use App\Services\Topics\TopicPlanningResultService;
 use App\Services\Quality\EvaluationService;
+use App\Services\Quality\RevisionFindingService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -188,6 +189,11 @@ class AiRunService
             'status'                  => AiGenerationStatus::Running,
             'requested_by'            => $userId,
         ]);
+
+        // 記事改修：渡した指摘（番号付き）を記録する（対応・改修後の確認とつなぐ。D-47）
+        if ($mode === AiMode::Revision) {
+            app(RevisionFindingService::class)->record($generation, $article, $draft);
+        }
 
         // まとめて実行では、記事ごとのJobの中で、その場でAPIを呼ぶ（Jobを重ねない。D-25）
         if ($method === AiExecutionMethod::Api && $runApiNow) {
@@ -409,8 +415,13 @@ class AiRunService
         $target = $generation->draft ?? $generation->post ?? $generation->page;
 
         $parameters = (array) $generation->parameters;
-        $this->evaluationService->save($blog, $target, EvaluatorType::Ai, $parsed['judgments'], $parsed['comments'], $parsed['summary'], $generation->id, $userId,
+        $evaluation = $this->evaluationService->save($blog, $target, EvaluatorType::Ai, $parsed['judgments'], $parsed['comments'], $parsed['summary'], $generation->id, $userId,
             articleType: $parameters['記事種類の値'] ?? null, findings: $parsed['findings'], articleSubtype: $parameters['細分類の値'] ?? null);
+
+        // 編集案の診断では、前回の改修の指摘が解消したかを記録する（D-47）
+        if ($target instanceof ArticleDraft) {
+            app(RevisionFindingService::class)->applyChecks($target, $evaluation, $parsed['findings_check']);
+        }
     }
 
     protected function saveRevision(AiGeneration $generation, ?int $userId): void
@@ -422,6 +433,9 @@ class AiRunService
             $article = $generation->post ?? $generation->page ?? throw new AiException('対象の記事が見つかりません。');
             $draft = $this->draftService->createFromArticle($article, $generation->revision_scope, $userId, $generation->id);
         }
+
+        // 指摘ごとの対応（D-47）
+        app(RevisionFindingService::class)->applyResponses($generation, $draft, $this->parser->findingResponses($sections['指摘への対応'] ?? null));
 
         $this->applyArticleOutput($draft, $sections, [
             'title_raw'        => $sections['タイトル'],

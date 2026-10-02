@@ -23,6 +23,7 @@ use App\Services\Materials\MaterialPromptValues;
 use App\Services\Topics\TopicPlanningPromptValues;
 use App\Services\Quality\QualityStandard;
 use App\Services\Quality\QualityStandardLoader;
+use App\Services\Quality\RevisionFindingService;
 use App\Support\QualityProfiles;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -59,6 +60,7 @@ class PromptBuilder
         protected MaterialMatcher $materialMatcher,
         protected TopicPlanningPromptValues $topicValues,
         protected InternalLinkChecker $links,
+        protected RevisionFindingService $findings,
     ) {
     }
 
@@ -87,7 +89,10 @@ class PromptBuilder
             'article_info'     => $this->articleInfo($blog, $article, $draft),
             'article_content'  => (string) ($draft?->content_raw ?? $article?->content_raw ?? ''),
             'revision_scope'   => self::SCOPE_RULES[($scope ?? RevisionScope::Minor)->value],
-            'shortfalls'       => $this->shortfalls($article, $draft, $standard),
+            // 指摘（番号付き。記事改修で直すべきこと。D-47）
+            'shortfalls'       => $this->findings->describe($article, $draft, $standard),
+            // 編集案の品質診断で確かめる、前回の改修の指摘（D-47）
+            'previous_findings' => $mode === AiMode::QualityDiagnosis ? $this->findings->checkList($draft) : '（なし）',
             'parameters'       => $this->parameters($parameters),
             'article_list'     => $this->articleList($blog),
             // この記事の内部リンクの問題（D-42）
@@ -251,32 +256,6 @@ class PromptBuilder
         }
 
         return implode("\n", $lines);
-    }
-
-    protected function shortfalls(Post|Page|null $article, ?ArticleDraft $draft, QualityStandard $standard): string
-    {
-        $evaluation = $this->evaluations->latestFor($article, $draft) ?? ($article ? $this->evaluations->latestFor($article, null) : null);
-
-        if ($evaluation === null) {
-            return '（評価がありません。品質基準の全体を見て改善してください）';
-        }
-
-        $lines = ["（{$evaluation->created_at?->format('Y-m-d')} の" . $evaluation->evaluator_type->label() . 'の評価：' . ($evaluation->score ?? '-') . '点）'];
-        foreach ($evaluation->details as $detail) {
-            if ($detail->judgment->value === 'good') {
-                continue;
-            }
-            $label = $standard->allItems()[$detail->item_key]['label'] ?? $standard->required[$detail->item_key]['label'] ?? '';
-            $lines[] = "- {$detail->item_key}（{$label}）：{$detail->judgment->label()}" . ($detail->comment ? " — {$detail->comment}" : '');
-            // 指摘（どこが・何が足りないか・どう直すか。D-47）
-            foreach (['location' => 'どこが', 'problem' => '何が足りないか', 'fix' => 'どう直すか'] as $field => $name) {
-                if (filled($detail->{$field})) {
-                    $lines[] = "  - {$name}：{$detail->{$field}}";
-                }
-            }
-        }
-
-        return count($lines) === 1 ? $lines[0] . "\n- 不足点はありません" : implode("\n", $lines);
     }
 
     protected function parameters(array $parameters): string

@@ -116,6 +116,9 @@ class DraftController extends Controller
             'histories'      => $this->drafts->histories($draft),
             'conflicts'      => $this->issues->countUnresolvedForDraft($draft->id, SyncIssueType::Conflict),
             'evaluations'    => $this->evaluations->forDraft($draft),
+            // 指摘 → 改修での対応 → 改修後の確認（D-47）
+            'revisionFindings' => app(\App\Services\Quality\RevisionFindingService::class)->latestFor($draft),
+            'qualityStandard'  => app(\App\Services\Quality\QualityStandardLoader::class)->load($blog->quality_profile),
             'categories'     => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'categories') : collect(),
             'tags'           => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'tags') : collect(),
             'statuses'       => self::STATUSES,
