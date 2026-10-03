@@ -1,0 +1,118 @@
+/* ==========================================================
+   components/form.css
+   ----------------------------------------------------------
+   入力欄とボタン。
+   ・入力欄：暗い下地に HUD の線。選ぶと光る。
+   ・ボタン：スーツの赤と金。
+   ========================================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="search"],
+input:not([type]),
+select,
+textarea {
+    padding: 5px 8px;
+    font: inherit;
+    color: var(--im-text);
+    background: var(--im-bg-input);
+    border: 1px solid var(--im-line);
+    border-radius: 2px;
+    transition: border-color var(--im-ease), box-shadow var(--im-ease);
+}
+
+textarea {
+    line-height: 1.6;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--im-cyan);
+    box-shadow: var(--im-glow);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    opacity: 0.5;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--im-text-faint);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--im-cyan);
+}
+
+input[type="file"] {
+    color: var(--im-text-muted);
+}
+
+fieldset {
+    border: 1px solid var(--im-line);
+    border-radius: 2px;
+}
+
+legend {
+    padding: 0 6px;
+    font-family: var(--im-font-hud);
+    color: var(--im-cyan);
+}
+
+
+/* ==========================================================
+   ボタン（スーツの赤と金）
+   ----------------------------------------------------------
+   ヘッダーのボタン（blog-switch-button）は header.css で HUD の札にする。
+   ========================================================== */
+
+button:not(.blog-switch-button),
+input[type="submit"],
+input[type="button"],
+input[type="file"]::file-selector-button {
+    padding: 5px 16px;
+    font-family: var(--im-font-hud);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--im-gold-text);
+    background: linear-gradient(180deg, var(--im-red-mid), var(--im-red-deep));
+    border: 1px solid var(--im-gold-deep);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: box-shadow var(--im-ease), border-color var(--im-ease), filter var(--im-ease);
+}
+
+button:not(.blog-switch-button):hover,
+button:not(.blog-switch-button):focus-visible,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    outline: none;
+    border-color: var(--im-gold);
+    box-shadow: var(--im-glow-gold);
+    filter: brightness(1.15);
+}
+
+button:not(.blog-switch-button):active,
+input[type="submit"]:active {
+    filter: brightness(0.9);
+}
+
+button:disabled,
+input[type="submit"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: none;
+}

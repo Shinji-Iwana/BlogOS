@@ -1,0 +1,85 @@
+/* ==========================================================
+   components/box.css
+   ----------------------------------------------------------
+   箱・折りたたみ・コード・点数の棒・差分
+   （public/css/blogos.css の同じ class を上書きする）。
+   ========================================================== */
+
+/* 枠線のある箱 */
+.bordered {
+    border-color: var(--im-line);
+}
+
+/* 白い下地（画像・WordPress のプレビュー）は、中身が見えるよう白いままにする */
+.bg-surface {
+    background: #f4f8fa;
+}
+
+/* 薄い下地（画像の置き場所） */
+.bg-subtle {
+    background: rgba(102, 217, 255, 0.05);
+}
+
+/* コード・JSON */
+pre,
+.code-block {
+    color: var(--im-text);
+    background: var(--im-bg-code);
+}
+
+pre.bordered,
+pre.code-block {
+    border: 1px solid var(--im-line);
+}
+
+.mono {
+    font-family: var(--im-font-mono);
+}
+
+
+/* ==========================================================
+   折りたたみ（details）
+   ========================================================== */
+
+details {
+    margin: 8px 0;
+    padding: 6px 12px;
+    background: var(--im-bg-panel);
+    border: 1px solid var(--im-line);
+    border-radius: 2px;
+}
+
+details[open] {
+    border-color: var(--im-line-strong);
+}
+
+summary {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--im-cyan);
+    cursor: pointer;
+}
+
+summary:hover {
+    color: var(--im-cyan-bright);
+}
+
+
+/* ==========================================================
+   点数の棒（評価の観点）
+   ========================================================== */
+
+.bar-track { background: rgba(255, 255, 255, 0.08); }
+.bar-good { background: var(--im-cyan); box-shadow: 0 0 6px var(--im-cyan-glow); }
+.bar-mid { background: var(--im-gold); }
+.bar-bad { background: var(--im-red); }
+
+
+/* ==========================================================
+   行ごとの差分
+   ========================================================== */
+
+.diff-added { background: rgba(95, 240, 181, 0.14); }
+.diff-removed { background: rgba(255, 90, 82, 0.16); }
+.diff-skip { color: var(--im-text-faint); }

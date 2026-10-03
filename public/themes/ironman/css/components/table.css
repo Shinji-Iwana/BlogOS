@@ -1,0 +1,52 @@
+/* ==========================================================
+   components/table.css
+   ----------------------------------------------------------
+   一覧の表（table.data）と、行の強調（row-*）。
+   ========================================================== */
+
+table.data {
+    border: 1px solid var(--im-line);
+    border-collapse: collapse;
+    background: var(--im-bg-panel);
+}
+
+table.data > * > tr > th,
+table.data > * > tr > td,
+table.data > tr > th,
+table.data > tr > td {
+    padding: 6px 10px;
+    border: 1px solid var(--im-line-faint);
+}
+
+/* 見出しの行 */
+table.data > * > tr > th,
+table.data > tr > th {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--im-cyan-bright);
+    background: rgba(102, 217, 255, 0.08);
+    border-bottom: 1px solid var(--im-line-strong);
+}
+
+/* マウスを乗せた行 */
+table.data > tbody > tr:hover > td,
+table.data > tr:hover > td {
+    background: rgba(102, 217, 255, 0.05);
+}
+
+table.data.data-compact > * > tr > th,
+table.data.data-compact > * > tr > td {
+    padding: 3px 6px;
+}
+
+
+/* ==========================================================
+   行の強調
+   ========================================================== */
+
+.row-current { background: rgba(102, 217, 255, 0.13); }
+.row-attention { background: rgba(242, 194, 91, 0.12); }
+.row-danger { background: rgba(255, 90, 82, 0.18); }
+.row-error { background: rgba(255, 90, 82, 0.10); }
+.row-group { background: rgba(255, 255, 255, 0.04); }

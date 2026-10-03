@@ -1,0 +1,21 @@
+/* ==========================================================
+   accessibility.css
+   ----------------------------------------------------------
+   OS の「視差効果を減らす」「アニメーションを減らす」を選んでいる場合は、
+   アークリアクターを含むすべての動きを止める（D-49-04）。
+
+   style.css の最後に読み込み、他の Animation より優先する。
+   ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+
+}

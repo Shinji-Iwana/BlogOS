@@ -2,16 +2,12 @@
    base.css
    ----------------------------------------------------------
    役割：
-   ・ブラウザ標準スタイルの初期化
-   ・共通ボックスモデル設定
-   ・全ページ共通の基本設定
+   ・ブラウザ標準の見た目の初期化
+   ・文字・リンク・見出しなど、全画面の基本の見た目
 
-   ※レイアウト・背景・装飾は管理しない
+   ※背景は background.css、本文の配置は layout.css、
+     部品（表・入力・箱・ヘッダー）は components/ で管理する
    ========================================================== */
-
-/* ========================================
-   Box Model
-======================================== */
 
 *,
 *::before,
@@ -19,25 +15,115 @@
     box-sizing: border-box;
 }
 
+html {
+    color-scheme: dark;
+    scrollbar-color: var(--im-line-strong) var(--im-bg);
+}
 
-/* ========================================
-   HTML / BODY
-======================================== */
-
-html,
 body {
-    width: 100%;
-    height: 100%;
     margin: 0;
-    padding: 0;
+    font-family: var(--im-font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--im-text);
+}
+
+::selection {
+    background: rgba(102, 217, 255, 0.35);
+    color: #fff;
 }
 
 
 /* ========================================
-   Body Base
+   リンク
 ======================================== */
 
-body {
-    font-family: sans-serif;
-    color: #66d9ff;
+a {
+    color: var(--im-cyan);
+    text-decoration-color: rgba(102, 217, 255, 0.35);
+    text-underline-offset: 3px;
+    transition: color var(--im-ease), text-shadow var(--im-ease);
+}
+
+a:hover,
+a:focus-visible {
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+    text-decoration-color: var(--im-cyan-bright);
+}
+
+
+/* ========================================
+   見出し
+======================================== */
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--im-cyan-bright);
+    line-height: 1.4;
+}
+
+h1 {
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    font-size: 26px;
+    text-shadow: var(--im-glow-text);
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg, var(--im-cyan) 0%, var(--im-line) 40%, transparent 100%) 1;
+}
+
+h2 {
+    margin: 32px 0 12px;
+    padding-left: 12px;
+    font-size: 20px;
+    border-left: 3px solid var(--im-cyan);
+}
+
+h3 {
+    margin: 24px 0 8px;
+    font-size: 17px;
+    color: var(--im-cyan);
+}
+
+h4 {
+    font-size: 15px;
+    color: var(--im-cyan);
+}
+
+
+/* ========================================
+   その他の文字
+======================================== */
+
+strong {
+    color: #fff;
+}
+
+/* リンク・意味のある色の中の太字は、その色のままにする */
+a strong,
+[class*="text-"] strong {
+    color: inherit;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--im-line);
+}
+
+small {
+    color: var(--im-text-muted);
+}
+
+code {
+    font-family: var(--im-font-mono);
+    color: var(--im-cyan-bright);
+}
+
+img {
+    max-width: 100%;
 }

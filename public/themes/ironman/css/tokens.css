@@ -1,0 +1,63 @@
+/* ==========================================================
+   tokens.css
+   ----------------------------------------------------------
+   ironman テーマの色・文字・光の決まり（CSS の変数）。
+
+   ■ 色の考え方（D-49-04）
+   ・基本は、暗い背景に HUD の青白い光（cyan）。
+   ・スーツの赤と金は、ボタン・注意・要対応だけに使う。
+
+   他の CSS では色を直接書かず、ここの変数を使う。
+   ========================================================== */
+
+:root {
+
+    /* 背景 */
+    --im-bg: #03070c;
+    --im-bg-panel: rgba(8, 22, 36, 0.78);
+    --im-bg-panel-solid: #08162a;
+    --im-bg-input: #040e18;
+    --im-bg-code: #020910;
+
+    /* HUD の線 */
+    --im-line: rgba(102, 217, 255, 0.22);
+    --im-line-strong: rgba(102, 217, 255, 0.55);
+    --im-line-faint: rgba(102, 217, 255, 0.10);
+
+    /* HUD の光（cyan） */
+    --im-cyan: #66d9ff;
+    --im-cyan-bright: #c4f2ff;
+    --im-cyan-glow: rgba(102, 217, 255, 0.45);
+
+    /* 文字 */
+    --im-text: #d2e7f1;
+    --im-text-muted: #8aa7b8;
+    --im-text-dim: #6f8b9b;
+    --im-text-faint: #557080;
+
+    /* スーツの赤と金（ボタン・注意・要対応） */
+    --im-red: #ff5a52;
+    --im-red-deep: #8f1015;
+    --im-red-mid: #b3171d;
+    --im-gold: #f2c25b;
+    --im-gold-deep: #a97c22;
+    --im-gold-text: #ffe8b5;
+
+    /* 成功 */
+    --im-ok: #5ff0b5;
+
+    /* 書体（Google Fonts。style.css で読み込む） */
+    --im-font-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    --im-font-hud: "Rajdhani", "Noto Sans JP", "Meiryo", sans-serif;
+    --im-font-logo: "Orbitron", "Rajdhani", sans-serif;
+    --im-font-mono: "Consolas", "Menlo", monospace;
+
+    /* 光 */
+    --im-glow: 0 0 10px var(--im-cyan-glow);
+    --im-glow-text: 0 0 8px rgba(102, 217, 255, 0.6);
+    --im-glow-gold: 0 0 10px rgba(242, 194, 91, 0.45);
+
+    /* 動き（大きな動きはトップページのアークリアクターだけ） */
+    --im-ease: 160ms ease;
+
+}

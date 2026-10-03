@@ -139,33 +139,6 @@
    ======================================== */
 
 
-/* Rotation */
-
-@keyframes rotate-clockwise {
-
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-
-}
-
-@keyframes rotate-counter-clockwise {
-
-    from {
-        transform: rotate(360deg);
-    }
-
-    to {
-        transform: rotate(0deg);
-    }
-
-}
-
-
 /* ========================================
    Pulse Animation
    ------------------------------------------------
@@ -240,26 +213,6 @@
    ・装飾エフェクト
 
    ======================================== */
-
-
-/* Fade */
-
-@keyframes fade-in-out {
-
-    0%,
-    100% {
-
-        opacity: 1;
-
-    }
-
-    50% {
-
-        opacity: 0.3;
-
-    }
-
-}
 
 
 /* ========================================
@@ -338,26 +291,6 @@
    ・インジケーター
 
    ======================================== */
-
-
-/* Scale */
-
-@keyframes scale-up-down {
-
-    0%,
-    100% {
-
-        transform: scale(1);
-
-    }
-
-    50% {
-
-        transform: scale(1.05);
-
-    }
-
-}
 
 
 /* ========================================

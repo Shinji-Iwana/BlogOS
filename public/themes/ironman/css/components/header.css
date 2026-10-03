@@ -1,0 +1,117 @@
+/* ==========================================================
+   components/header.css
+   ----------------------------------------------------------
+   共通のヘッダー（layouts/header）を、画面上部の HUD のバーにする。
+   ブログ切替のポップアップも、ここで管理する。
+   ========================================================== */
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 10px 32px;
+    background: linear-gradient(180deg, rgba(6, 18, 30, 0.96), rgba(4, 12, 22, 0.9));
+    border-bottom: 1px solid var(--im-line-strong);
+    box-shadow: 0 2px 18px rgba(102, 217, 255, 0.12);
+    backdrop-filter: blur(6px);
+}
+
+/* バーの下の光の線 */
+.site-header::after {
+    content: "";
+    position: absolute;
+    left: 32px;
+    right: 32px;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--im-cyan), transparent);
+    opacity: 0.8;
+}
+
+.site-header-left {
+    gap: 16px;
+}
+
+/* BlogOS の文字 */
+.site-title {
+    font-family: var(--im-font-logo);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+}
+
+.site-title:hover {
+    color: #fff;
+}
+
+/* 設定・ブログ名のボタン（HUD の札） */
+.site-settings-link,
+.blog-switch-button {
+    padding: 4px 14px;
+    font-family: var(--im-font-hud);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--im-cyan);
+    background: rgba(102, 217, 255, 0.06);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    text-decoration: none;
+    transition: background var(--im-ease), box-shadow var(--im-ease), color var(--im-ease);
+}
+
+.site-settings-link:hover,
+.blog-switch-button:hover,
+.blog-switch-button:focus-visible {
+    color: var(--im-cyan-bright);
+    background: rgba(102, 217, 255, 0.14);
+    box-shadow: var(--im-glow);
+    text-shadow: none;
+}
+
+@media (max-width: 768px) {
+
+    .site-header {
+        padding: 8px 16px;
+    }
+
+    .site-header::after {
+        left: 16px;
+        right: 16px;
+    }
+
+}
+
+
+/* ==========================================================
+   ブログ切替のポップアップ
+   ========================================================== */
+
+.blog-switch-modal {
+    background: rgba(0, 4, 10, 0.72);
+}
+
+.blog-switch-dialog {
+    background: var(--im-bg-panel-solid);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    box-shadow: 0 0 32px rgba(102, 217, 255, 0.2);
+}
+
+.blog-switch-dialog h2 {
+    margin-top: 0;
+}
+
+.blog-switch-option {
+    border-color: var(--im-line);
+    border-radius: 2px;
+    transition: background var(--im-ease), border-color var(--im-ease);
+}
+
+.blog-switch-option:hover,
+.blog-switch-option:has(input:checked) {
+    background: rgba(102, 217, 255, 0.08);
+    border-color: var(--im-line-strong);
+}

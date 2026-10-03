@@ -1,0 +1,42 @@
+/* ==========================================================
+   components/text.css
+   ----------------------------------------------------------
+   意味ごとの文字の色（public/css/blogos.css の text-* を上書きする）。
+   エラー・要対応は赤、注意は金、成功は緑。
+   ========================================================== */
+
+.text-muted { color: var(--im-text-muted); }
+.text-dim { color: var(--im-text-dim); }
+.text-faint { color: var(--im-text-faint); }
+
+.text-error { color: var(--im-red); }
+.text-warn { color: var(--im-gold); }
+.text-ok { color: var(--im-ok); }
+
+/* お知らせの文（段落そのものが要対応・注意のとき）は、左に印を付けて目立たせる */
+p.text-error,
+p.text-warn,
+p.text-ok,
+div.text-error {
+    padding: 6px 12px;
+    border-left: 3px solid currentColor;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+p.text-error,
+div.text-error {
+    background: rgba(255, 90, 82, 0.07);
+}
+
+p.text-warn {
+    background: rgba(242, 194, 91, 0.06);
+}
+
+p.text-ok {
+    background: rgba(95, 240, 181, 0.06);
+}
+
+/* 印の中の段落は、印を重ねない */
+div.text-error p {
+    margin: 2px 0;
+}

@@ -2,18 +2,23 @@
    background.css
    ----------------------------------------------------------
    役割：
-   ・アプリケーション全体の背景管理
-   ・画面全体の背景色のみ管理
+   ・画面全体の背景（暗い背景、上からの青い光、HUD の格子）
 
-   ※アークリアクター固有の背景は
-     reactor/background.css で管理する
+   ※アークリアクター固有の背景は reactor/background.css で管理する
    ========================================================== */
 
+body {
+    background-color: var(--im-bg);
+    background-image:
+        /* 画面の上からの青い光 */
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(40, 140, 200, 0.22), transparent 70%),
+        /* HUD の格子 */
+        repeating-linear-gradient(0deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px);
+    background-attachment: fixed;
+}
 
-/* ========================================
-   Page Background
-======================================== */
-
+/* アークリアクターの部分は、画面の背景をそのまま見せる */
 .reactor-bg {
-    background-color: #000;
+    background-color: transparent;
 }
