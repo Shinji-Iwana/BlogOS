@@ -43,7 +43,7 @@
     <p>{{ $articles->total() }}件（WordPress側で完全に削除されたものを除く）</p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr>
                     <th>タイトル</th>

@@ -29,7 +29,7 @@
         ・<label><input type="checkbox" id="sync-scroll" checked> 左右のスクロールを連動する</label>
     </p>
 
-    <p style="color:#666;">
+    <p class="text-muted">
         保存済みの編集案を表示しています（編集画面で直した場合は、保存してから開き直してください）。
         スクリプトを止めて表示しているため、広告・コードのコピーのボタン・メニューの開閉など、スクリプトで動く部分は表示されません。リンクは新しいタブで開きます。
         @if ($draft->isNewArticle())
@@ -41,7 +41,7 @@
         @foreach (['before' => '変更前（WordPressの今の記事）', 'after' => '編集案'] as $side => $label)
             <div style="flex:1; min-width:0;">
                 <p><strong>{{ $label }}</strong></p>
-                <div class="preview-box" data-width="{{ $width }}" style="border:1px solid #ccc; height:80vh; overflow:hidden; position:relative; background:#fff;">
+                <div class="preview-box bordered bg-surface" data-width="{{ $width }}" style="height:80vh; overflow:hidden; position:relative;">
                     <iframe
                         class="preview-frame"
                         src="{{ $frame($side) }}"

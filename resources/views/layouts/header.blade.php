@@ -17,13 +17,7 @@
      ============================================================== --}}
 
 <header
-    style="
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 20px;
-        border-bottom: 1px solid #ccc;
-    "
+    class="site-header"
 >
 
     {{-- ==========================================================
@@ -33,21 +27,13 @@
          ========================================================== --}}
 
     <div
-        style="
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        "
+        class="site-header-left"
     >
 
         {{-- BlogOSタイトル --}}
         <a
             href="{{ route('home') }}"
-            style="
-                text-decoration: none;
-                font-size: 20px;
-                font-weight: bold;
-            "
+            class="site-title"
         >
             BlogOS
         </a>
@@ -61,13 +47,7 @@
 
         <a
             href="{{ route('settings') }}"
-            style="
-                display: inline-block;
-                padding: 6px 12px;
-                border: 1px solid #999;
-                border-radius: 4px;
-                text-decoration: none;
-            "
+            class="site-settings-link"
         >
             設定
         </a>
@@ -87,13 +67,7 @@
         <button
             type="button"
             id="blog-switch-open"
-            style="
-                padding: 6px 12px;
-                border: 1px solid #999;
-                border-radius: 4px;
-                background: #fff;
-                cursor: pointer;
-            "
+            class="blog-switch-button"
         >
             {{ $selectedBlog?->display_name ?? '（ブログを選択）' }}
         </button>
@@ -123,13 +97,7 @@
 
     <div
         id="blog-switch-modal"
-        style="
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-        "
+        class="blog-switch-modal"
     >
 
         {{-- ======================================================
@@ -137,19 +105,7 @@
              ====================================================== --}}
 
         <div
-            style="
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 500px;
-                max-width: calc(100% - 40px);
-                max-height: calc(100% - 40px);
-                overflow-y: auto;
-                padding: 20px;
-                background: #fff;
-                border-radius: 6px;
-            "
+            class="blog-switch-dialog"
         >
 
             <h2>
@@ -171,14 +127,7 @@
                 @foreach ($blogs as $blog)
 
                     <label
-                        style="
-                            display: block;
-                            padding: 10px;
-                            margin-bottom: 8px;
-                            border: 1px solid #ddd;
-                            border-radius: 4px;
-                            cursor: pointer;
-                        "
+                        class="blog-switch-option"
                     >
 
                         <input
@@ -210,12 +159,7 @@
                      ================================================== --}}
 
                 <div
-                    style="
-                        display: flex;
-                        justify-content: flex-end;
-                        gap: 10px;
-                        margin-top: 20px;
-                    "
+                    class="blog-switch-actions"
                 >
 
                     {{-- ブログ切替 --}}

@@ -15,5 +15,5 @@
 ## 作り込みで決めること
 
 * 全画面の枠（`layouts/app.blade.php`・ヘッダー）を ironman 用に上書きするか、CSS だけで変えるか。
-* 共通の画面の `style="…"`（直接の色・枠線の指定）を、テーマの CSS で変えられるようにする範囲。
+* 共通の画面の見た目は、`public/css/blogos.css` の class（`text-error`・`table.data` など）を、ironman の CSS で上書きして変える（T1 で class に置き換え済み）。
 * 一覧・表・入力の部品（表、ボタン、お知らせ）の見た目。

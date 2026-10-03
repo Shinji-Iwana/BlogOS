@@ -18,11 +18,11 @@
     <p>新しい順、最大200件</p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>#</th><th>対象</th><th>操作</th><th>状態</th><th>承認</th><th>日時</th><th>メッセージ</th></tr></thead>
             <tbody>
                 @forelse ($operations as $operation)
-                    <tr @if (in_array($operation->state, \App\Enums\PushState::locking(), true)) style="background:#ffebe9;" @endif>
+                    <tr @if (in_array($operation->state, \App\Enums\PushState::locking(), true)) class="row-error" @endif>
                         <td><a href="{{ route('push-operations.show', ['id' => $operation->id]) }}">{{ $operation->id }}</a></td>
                         <td>{{ $operation->resource_type->label() }}：{{ $operation->targetLabel() }}</td>
                         <td>{{ $operation->operation->label() }}</td>

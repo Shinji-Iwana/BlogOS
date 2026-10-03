@@ -12,7 +12,7 @@
     $changedCount = collect($latestRun['resources'] ?? [])->sum(fn ($r) => $r['created'] + $r['updated'] + $r['deleted']);
 @endphp
 
-<section style="border:1px solid #ccc; padding:10px; margin:10px 0;">
+<section class="bordered" style="padding:10px; margin:10px 0;">
 
     <h2 style="margin-top:0;">同期</h2>
 
@@ -34,7 +34,7 @@
                     @if ($latestRun['status'] === 'succeeded')
                         {{ $latestRun['status_label'] }}
                     @else
-                        <strong style="color:#b00;">{{ $latestRun['status_label'] }}</strong>
+                        <strong class="text-error">{{ $latestRun['status_label'] }}</strong>
                     @endif
                     ・変更：{{ $changedCount }}件
                 @endif
@@ -44,7 +44,7 @@
     <p>
         未解決の問題：
         @if ($syncStatus['unresolved_issue_count'] > 0)
-            <a href="{{ route('sync.issues.index') }}"><strong style="color:#b00;">{{ $syncStatus['unresolved_issue_count'] }}件</strong></a>
+            <a href="{{ route('sync.issues.index') }}"><strong class="text-error">{{ $syncStatus['unresolved_issue_count'] }}件</strong></a>
         @else
             なし（<a href="{{ route('sync.issues.index', ['resolved' => 1]) }}">解決済みを見る</a>）
         @endif
@@ -52,7 +52,7 @@
     </p>
 
     @error('sync')
-        <p style="color:#b00;">{{ $message }}</p>
+        <p class="text-error">{{ $message }}</p>
     @enderror
 
     <form method="POST" action="{{ route('sync.runs.store') }}">

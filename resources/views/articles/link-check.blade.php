@@ -12,7 +12,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         同期で本文から取り出した内部リンクを確かめます（WordPress・外部のサイトにはアクセスしません。同期のたびに最新になります）。
         古い URL と、ロードマップのページがあるカテゴリの一覧へのリンクは、BlogOS が「リンクの切り替え」の編集案で直します（人が確認して反映）。
         リンク切れは、記事改修で AI に直させます（記事改修の指示文に、この記事のリンクの問題が入ります）。
@@ -36,7 +36,7 @@
         @if ($rows->isEmpty())
             <p>ありません。</p>
         @else
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>リンク元の記事</th><th>リンクの文字</th><th>URL</th><th>内容</th></tr></thead>
                 <tbody>
                     @foreach ($rows as $row)
@@ -64,7 +64,7 @@
                     @foreach ($rows as $row)
                         <li>
                             <a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw ?: '（タイトルなし）' }}</a>
-                            <span style="color:#666;">— {{ $row['reason'] }}</span>
+                            <span class="text-muted">— {{ $row['reason'] }}</span>
                         </li>
                     @endforeach
                 </ul>

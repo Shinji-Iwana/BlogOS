@@ -13,7 +13,7 @@
     <p>表示件数：{{ $runs->count() }}件（新しい順、最大100件）</p>
 
     @forelse ($runs as $run)
-        <section style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <section class="bordered" style="padding:10px; margin-bottom:10px;">
             <p style="margin-top:0;">
                 <strong>#{{ $run->id }}</strong>
                 ・{{ $run->trigger->label() }}
@@ -25,7 +25,7 @@
             </p>
 
             <div style="overflow-x:auto;">
-                <table border="1" cellpadding="4" cellspacing="0">
+                <table class="data">
                     <thead>
                         <tr>
                             <th>対象</th>

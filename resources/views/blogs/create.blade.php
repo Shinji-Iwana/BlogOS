@@ -14,7 +14,7 @@
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @if ($errors->any())
-        <div style="color:#b00;">
+        <div class="text-error">
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach

@@ -26,7 +26,7 @@
 
     @unless ($isNew)
         @if ($material->successors->isNotEmpty())
-            <p style="color:#b60;">新しい版が登録されています：
+            <p class="text-warn">新しい版が登録されています：
                 @foreach ($material->successors as $next)<a href="{{ route('materials.edit', ['id' => $next->id]) }}">{{ $next->name }}</a> @endforeach
             </p>
         @endif
@@ -34,7 +34,7 @@
         {{-- AIでの調査 --}}
         <fieldset style="max-width:900px;">
             <legend>AIで調べる（記事に合う教材を選ぶための情報・新しい版の確認）</legend>
-            <p style="color:#666;">
+            <p class="text-muted">
                 結果は案として保存し、「教材の案の確認」で、写す項目を選んでから教材に写します（教材はすぐには変わりません）。
                 最後に調べた日：{{ $material->researched_at ? \App\Support\DisplayTime::format($material->researched_at) : '未調査' }}。
                 @if ($material->kind === \App\Enums\MaterialKind::Book)
@@ -61,7 +61,7 @@
         @include('partials.selected-blog-field')
 
         <h2>基本</h2>
-        <table border="1" cellpadding="4" cellspacing="0" style="max-width:900px;">
+        <table class="data" style="max-width:900px;">
             <tr>
                 <th style="text-align:left;">種類</th>
                 <td>
@@ -78,7 +78,7 @@
                             <option value="{{ $option->value }}" @selected(old('status', $material->status?->value) === $option->value)>{{ $option->label() }}</option>
                         @endforeach
                     </select>
-                    <span style="color:#666;">「使わない」にすると、この教材を使っている記事が見直しの対象になります。</span>
+                    <span class="text-muted">「使わない」にすると、この教材を使っている記事が見直しの対象になります。</span>
                 </td>
             </tr>
             <tr><th style="text-align:left;">名前</th><td><input type="text" name="name" value="{{ old('name', $material->name) }}" style="width:100%;" required></td></tr>
@@ -98,21 +98,21 @@
                 <th style="text-align:left;">同じ教材の別のリンク</th>
                 <td>
                     <textarea name="extra_urls" rows="2" style="width:100%;">{{ old('extra_urls', $lines($material->extra_urls)) }}</textarea><br>
-                    <span style="color:#666;">記事で使われている古いリンクなど（1行に1つ）。記事との照合だけに使います。</span>
+                    <span class="text-muted">記事で使われている古いリンクなど（1行に1つ）。記事との照合だけに使います。</span>
                 </td>
             </tr>
             <tr data-kind="book" @style(['display:none' => $kindValue !== 'book'])>
                 <th style="text-align:left;">Amazonの商品ページ</th>
                 <td>
                     <input type="text" name="amazon_product_url" value="{{ old('amazon_product_url', $material->amazon_product_url) }}" style="width:100%;" placeholder="https://www.amazon.co.jp/dp/…"><br>
-                    <span style="color:#666;">空なら、Amazonのリンク（もしも）の遷移先から補います。</span>
+                    <span class="text-muted">空なら、Amazonのリンク（もしも）の遷移先から補います。</span>
                 </td>
             </tr>
             <tr data-kind="book" @style(['display:none' => $kindValue !== 'book'])>
                 <th style="text-align:left;">楽天の商品ページ</th>
                 <td>
                     <input type="text" name="rakuten_product_url" value="{{ old('rakuten_product_url', $material->rakuten_product_url) }}" style="width:100%;" placeholder="https://books.rakuten.co.jp/rb/…/"><br>
-                    <span style="color:#666;">空なら、楽天のリンク（もしも）の遷移先から補います。</span>
+                    <span class="text-muted">空なら、楽天のリンク（もしも）の遷移先から補います。</span>
                 </td>
             </tr>
             <tr>
@@ -122,20 +122,20 @@
                 </th>
                 <td>
                     <input type="text" name="product_url" value="{{ old('product_url', $material->product_url) }}" style="width:100%;"><br>
-                    <span style="color:#666;">アフィリエイトではないURL（Udemyの講座ページ・スクールの公式サイト・書籍の出版社のページ。書籍は任意）。AIの調査と定期チェックに使います。</span>
+                    <span class="text-muted">アフィリエイトではないURL（Udemyの講座ページ・スクールの公式サイト・書籍の出版社のページ。書籍は任意）。AIの調査と定期チェックに使います。</span>
                 </td>
             </tr>
         </table>
 
         <h2>出版の情報</h2>
-        <table border="1" cellpadding="4" cellspacing="0" style="max-width:900px;">
+        <table class="data" style="max-width:900px;">
             <tr><th style="text-align:left;">著者・講師・運営</th><td><input type="text" name="creator" value="{{ old('creator', $material->creator) }}" style="width:100%;"></td></tr>
             <tr><th style="text-align:left;">出版社・提供元</th><td><input type="text" name="publisher" value="{{ old('publisher', $material->publisher) }}" style="width:100%;"></td></tr>
             <tr><th style="text-align:left;">版</th><td><input type="text" name="edition" value="{{ old('edition', $material->edition) }}" style="width:160px;" placeholder="第2版"></td></tr>
             <tr><th style="text-align:left;">出版日（Udemyは最終更新日）</th><td><input type="date" name="published_on" value="{{ old('published_on', $material->published_on?->format('Y-m-d')) }}"></td></tr>
             <tr data-kind="book" @style(['display:none' => $kindValue !== 'book'])>
                 <th style="text-align:left;">ISBN</th>
-                <td><input type="text" name="isbn" value="{{ old('isbn', $material->isbn) }}" style="width:160px;"> <span style="color:#666;">空なら、AmazonのリンクのASINから補います。{{ $material->asin ? "（ASIN：{$material->asin}）" : '' }}</span></td>
+                <td><input type="text" name="isbn" value="{{ old('isbn', $material->isbn) }}" style="width:160px;"> <span class="text-muted">空なら、AmazonのリンクのASINから補います。{{ $material->asin ? "（ASIN：{$material->asin}）" : '' }}</span></td>
             </tr>
             <tr>
                 <th style="text-align:left;">前の版</th>
@@ -146,14 +146,14 @@
                             <option value="{{ $option->id }}" @selected((int) old('previous_material_id', $material->previous_material_id) === $option->id)>{{ $option->kind->label() }}：{{ $option->name }}</option>
                         @endforeach
                     </select>
-                    <span style="color:#666;">新しい版を登録すると、前の版を使っている記事が見直しの対象になります。</span>
+                    <span class="text-muted">新しい版を登録すると、前の版を使っている記事が見直しの対象になります。</span>
                 </td>
             </tr>
         </table>
 
         <h2>記事に合う教材を選ぶための情報</h2>
-        <p style="color:#666;">AIで調べた結果を「教材の案の確認」から写せます。リストは1行に1つです。</p>
-        <table border="1" cellpadding="4" cellspacing="0" style="max-width:900px;">
+        <p class="text-muted">AIで調べた結果を「教材の案の確認」から写せます。リストは1行に1つです。</p>
+        <table class="data" style="max-width:900px;">
             <tr>
                 <th style="text-align:left; vertical-align:top;">カテゴリ</th>
                 <td>
@@ -162,10 +162,10 @@
                             <option value="{{ $category->id }}" @selected(in_array($category->id, array_map('intval', (array) $selectedCategories), true))>{{ str_repeat('　', (int) ($category->depth ?? 0)) }}{{ $category->name }}</option>
                         @endforeach
                     </select><br>
-                    <span style="color:#666;">Ctrlキーを押しながらクリックで、複数選べます。親のカテゴリを選ぶと、子のカテゴリの記事にも合う候補になります。</span>
+                    <span class="text-muted">Ctrlキーを押しながらクリックで、複数選べます。親のカテゴリを選ぶと、子のカテゴリの記事にも合う候補になります。</span>
                 </td>
             </tr>
-            <tr><th style="text-align:left; vertical-align:top;">分野の語句</th><td><textarea name="topics" rows="3" style="width:100%;" placeholder="JavaScript&#10;DOM&#10;イベント">{{ old('topics', $lines($material->topics)) }}</textarea><br><span style="color:#666;">記事のタイトル・キーワードに含まれていれば、候補にします。</span></td></tr>
+            <tr><th style="text-align:left; vertical-align:top;">分野の語句</th><td><textarea name="topics" rows="3" style="width:100%;" placeholder="JavaScript&#10;DOM&#10;イベント">{{ old('topics', $lines($material->topics)) }}</textarea><br><span class="text-muted">記事のタイトル・キーワードに含まれていれば、候補にします。</span></td></tr>
             <tr><th style="text-align:left; vertical-align:top;">対象のバージョン</th><td><textarea name="target_versions" rows="2" style="width:100%;" placeholder="JavaScript ES2022">{{ old('target_versions', $lines($material->target_versions)) }}</textarea></td></tr>
             <tr>
                 <th style="text-align:left;">対象のレベル</th>
@@ -215,7 +215,7 @@
                         <li>
                             <a href="{{ route('articles.show', ['type' => $record->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw }}</a>
                             （{{ $record->source->label() }}）
-                            @if ($reason = $record->reviewReason())<span style="color:#b60;">見直し：{{ $reason }}</span>@endif
+                            @if ($reason = $record->reviewReason())<span class="text-warn">見直し：{{ $reason }}</span>@endif
                         </li>
                     @endif
                 @endforeach
@@ -227,7 +227,7 @@
             @method('DELETE')
             @include('partials.selected-blog-field')
             <button type="submit">この教材を削除する</button>
-            <span style="color:#666;">（記事で使っている教材は削除できません）</span>
+            <span class="text-muted">（記事で使っている教材は削除できません）</span>
         </form>
     @endunless
 

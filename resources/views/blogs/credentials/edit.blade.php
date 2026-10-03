@@ -15,11 +15,11 @@
     <p>対象のブログ：{{ $blog->display_name }}（{{ $blog->home }}）</p>
 
     @if (session('status'))
-        <p style="color:#070;">{{ session('status') }}</p>
+        <p class="text-ok">{{ session('status') }}</p>
     @endif
 
     @if ($errors->any())
-        <div style="color:#b00;">
+        <div class="text-error">
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach

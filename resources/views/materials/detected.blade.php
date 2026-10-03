@@ -12,7 +12,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         記事の本文にある、アフィリエイトのサービス（もしも・楽天アフィリエイト・Udemyの紹介リンク・Amazonの紹介リンク）を経由するリンクを、教材ごとにまとめました。
         別のサイトへの普通のリンクは対象にしていません。同じ見出しの下にある Amazon と楽天のリンクは、同じ書籍としてまとめています。
         名前・種類を確かめて（必要なら直して）、登録する教材をチェックしてください。登録した後に、各教材の「AIで調べる」で、記事に合う教材を選ぶための情報を調べます。
@@ -33,11 +33,11 @@
             </p>
 
             <div style="overflow-x:auto;">
-                <table border="1" cellpadding="4" cellspacing="0">
+                <table class="data">
                     <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('.detected-check:not(:disabled)').forEach(c => c.checked = this.checked)" checked></th><th>種類</th><th>名前</th><th>リンク</th><th>使っている記事</th></tr></thead>
                     <tbody>
                         @foreach ($detected as $index => $item)
-                            <tr @style(['color:#888' => $item['material'] !== null])>
+                            <tr @class(['text-dim' => $item['material'] !== null])>
                                 <td><input type="checkbox" class="detected-check" name="selected[]" value="{{ $index }}" @checked($item['material'] === null) @disabled($item['material'] !== null)></td>
                                 <td>
                                     <select name="items[{{ $index }}][kind]" @disabled($item['material'] !== null)>
@@ -52,7 +52,7 @@
                                     @else
                                         <input type="text" name="items[{{ $index }}][name]" value="{{ $item['name'] }}" style="width:320px;">
                                         @if (count($item['names']) > 1)
-                                            <br><span style="color:#666;">記事での表記：{{ implode('／', array_keys($item['names'])) }}</span>
+                                            <br><span class="text-muted">記事での表記：{{ implode('／', array_keys($item['names'])) }}</span>
                                         @endif
                                     @endif
                                 </td>
@@ -60,7 +60,7 @@
                                     @foreach (['Amazon' => $item['amazon_url'], '楽天' => $item['rakuten_url'], 'リンク' => $item['affiliate_url']] as $label => $url)
                                         @if ($url)<div>{{ $label }}：{{ \App\Support\AffiliateLink::innerUrl($url) !== $url ? \App\Support\AffiliateLink::innerUrl($url) . '（もしも経由）' : $url }}</div>@endif
                                     @endforeach
-                                    @if ($item['extra_urls'])<div style="color:#666;">ほかに {{ count($item['extra_urls']) }}件の別のリンク</div>@endif
+                                    @if ($item['extra_urls'])<div class="text-muted">ほかに {{ count($item['extra_urls']) }}件の別のリンク</div>@endif
                                 </td>
                                 <td>
                                     <details>

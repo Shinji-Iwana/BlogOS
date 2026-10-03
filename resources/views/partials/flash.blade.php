@@ -1,10 +1,10 @@
 {{-- 処理結果のメッセージと入力エラー --}}
 @if (session('status'))
-    <p style="color:#070;">{{ session('status') }}</p>
+    <p class="text-ok">{{ session('status') }}</p>
 @endif
 
 @if ($errors->any())
-    <div style="color:#b00;">
+    <div class="text-error">
         @foreach ($errors->all() as $error)
             <p>{{ $error }}</p>
         @endforeach

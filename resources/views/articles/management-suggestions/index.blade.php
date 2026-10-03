@@ -15,7 +15,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         AIが作った記事種類・キーワード・検索意図の案です。必要なら直してから、チェックした案を登録してください（登録するまで、記事の管理情報は変わりません）。
         上の段が今の登録内容、入力欄がAIの案です。サブキーワード・副の検索意図は1行に1つです。
     </p>
@@ -34,7 +34,7 @@
             </p>
 
             <div style="overflow-x:auto;">
-                <table border="1" cellpadding="4" cellspacing="0">
+                <table class="data">
                     <thead><tr><th></th><th>記事</th><th>記事種類・細分類</th><th>メインキーワード</th><th>サブキーワード</th><th>主の検索意図</th><th>副の検索意図</th><th>対象のバージョン</th><th>AIの理由</th></tr></thead>
                     <tbody>
                         @foreach ($rows as $row)
@@ -52,12 +52,12 @@
                                         <a href="{{ route('articles.show', ['type' => $s->post_id ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a>
                                     @else - @endif
                                 </td>
-                                <td style="color:#666;">今：{{ $types['types'][$m?->article_type] ?? $m?->article_type ?? '未設定' }}{{ $m?->article_subtype ? '（' . ($types['subtypes'][$m->article_subtype] ?? $m->article_subtype) . '）' : '' }}</td>
-                                <td style="color:#666;">今：{{ $main ?? '未設定' }}</td>
-                                <td style="color:#666;">今：{{ $subs ?: '未設定' }}</td>
-                                <td style="color:#666;">今：{{ $m?->main_search_intent ?: '未設定' }}</td>
-                                <td style="color:#666;">今：{{ $m?->sub_search_intents ? implode('／', $m->sub_search_intents) : '未設定' }}</td>
-                                <td style="color:#666;">今：{{ $m?->target_versions ?: '未設定' }}</td>
+                                <td class="text-muted">今：{{ $types['types'][$m?->article_type] ?? $m?->article_type ?? '未設定' }}{{ $m?->article_subtype ? '（' . ($types['subtypes'][$m->article_subtype] ?? $m->article_subtype) . '）' : '' }}</td>
+                                <td class="text-muted">今：{{ $main ?? '未設定' }}</td>
+                                <td class="text-muted">今：{{ $subs ?: '未設定' }}</td>
+                                <td class="text-muted">今：{{ $m?->main_search_intent ?: '未設定' }}</td>
+                                <td class="text-muted">今：{{ $m?->sub_search_intents ? implode('／', $m->sub_search_intents) : '未設定' }}</td>
+                                <td class="text-muted">今：{{ $m?->target_versions ?: '未設定' }}</td>
                                 <td rowspan="2" style="max-width:260px;">{{ $s->reason }}</td>
                             </tr>
                             <tr>

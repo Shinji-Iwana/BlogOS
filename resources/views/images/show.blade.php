@@ -23,17 +23,17 @@
 
     <p>
         種類：{{ $image->kind->label() }}
-        ・状態：<strong @style(['color:#070' => $image->isReady()])>{{ $image->status->label() }}</strong>
+        ・状態：<strong @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</strong>
         @if ($image->source)・作り方：{{ $image->source->label() }}@endif
         @if ($image->width)・大きさ：{{ $image->width }}×{{ $image->height }}（{{ number_format((int) $image->file_size / 1024) }}KB）@endif
-        @if ($image->media)・<span style="color:#070;">WordPress に登録済み（メディア ID {{ $image->media->wordpress_id }}）</span>@endif
+        @if ($image->media)・<span class="text-ok">WordPress に登録済み（メディア ID {{ $image->media->wordpress_id }}）</span>@endif
     </p>
-    @if ($image->description)<p style="color:#666; white-space:pre-wrap;">依頼：{{ $image->description }}</p>@endif
-    @if ($image->ai_note)<p style="color:#666; white-space:pre-wrap;">AI：{{ $image->ai_note }}</p>@endif
+    @if ($image->description)<p class="text-muted" style="white-space:pre-wrap;">依頼：{{ $image->description }}</p>@endif
+    @if ($image->ai_note)<p class="text-muted" style="white-space:pre-wrap;">AI：{{ $image->ai_note }}</p>@endif
 
     @if ($running)
         <meta http-equiv="refresh" content="10">
-        <p style="color:#b60;">AI が作っています（<a href="{{ route('ai.generations.show', ['id' => $running->id]) }}">{{ $running->purpose->label() }} #{{ $running->id }}</a>）。この画面は10秒ごとに更新されます。</p>
+        <p class="text-warn">AI が作っています（<a href="{{ route('ai.generations.show', ['id' => $running->id]) }}">{{ $running->purpose->label() }} #{{ $running->id }}</a>）。この画面は10秒ごとに更新されます。</p>
     @endif
 
     {{-- 画像 --}}
@@ -41,12 +41,12 @@
         <div>
             <h2>画像</h2>
             @if ($image->hasFile())
-                <img src="{{ route('images.file', ['id' => $image->id]) }}?v={{ $image->updated_at?->timestamp }}" alt="{{ $image->alt }}" style="max-width:640px; width:100%; border:1px solid #ccc;">
+                <img src="{{ route('images.file', ['id' => $image->id]) }}?v={{ $image->updated_at?->timestamp }}" alt="{{ $image->alt }}" class="bordered" style="max-width:640px; width:100%;">
             @elseif (filled($image->svg_source))
-                <p style="color:#b60;">SVG のプレビューです。まだ PNG にしていません。</p>
-                <img id="svg-saved-preview" src="data:image/svg+xml;base64,{{ base64_encode($image->svg_source) }}" alt="{{ $image->alt }}" style="max-width:640px; width:100%; border:1px solid #ccc; background:#fff;">
+                <p class="text-warn">SVG のプレビューです。まだ PNG にしていません。</p>
+                <img id="svg-saved-preview" src="data:image/svg+xml;base64,{{ base64_encode($image->svg_source) }}" alt="{{ $image->alt }}" class="bordered bg-surface" style="max-width:640px; width:100%;">
             @else
-                <p style="color:#666;">画像はまだありません。</p>
+                <p class="text-muted">画像はまだありません。</p>
             @endif
         </div>
 
@@ -57,14 +57,14 @@
                 <h2>比べる：{{ $other->kind->label() }}</h2>
                 <a href="{{ route('images.show', ['id' => $other->id]) }}">
                     @if ($other->hasFile())
-                        <img src="{{ route('images.file', ['id' => $other->id]) }}?v={{ $other->updated_at?->timestamp }}" alt="{{ $other->alt }}" style="max-width:480px; width:100%; border:1px solid #ccc;">
+                        <img src="{{ route('images.file', ['id' => $other->id]) }}?v={{ $other->updated_at?->timestamp }}" alt="{{ $other->alt }}" class="bordered" style="max-width:480px; width:100%;">
                     @elseif (filled($other->svg_source))
-                        <img src="data:image/svg+xml;base64,{{ base64_encode($other->svg_source) }}" alt="{{ $other->alt }}" style="max-width:480px; width:100%; border:1px solid #ccc; background:#fff;">
+                        <img src="data:image/svg+xml;base64,{{ base64_encode($other->svg_source) }}" alt="{{ $other->alt }}" class="bordered bg-surface" style="max-width:480px; width:100%;">
                     @else
                         <span>{{ $other->title }}（まだ画像がありません）</span>
                     @endif
                 </a>
-                <p style="color:#666;">使わない方は、その画像の画面から削除してください。</p>
+                <p class="text-muted">使わない方は、その画像の画面から削除してください。</p>
             </div>
         @endforeach
     </div>
@@ -72,13 +72,13 @@
     {{-- 図解：SVG の編集と、PNG への変換 --}}
     @if ($isDiagram && filled($image->svg_source) && ! $image->media_id)
         <h2>SVG を PNG にする</h2>
-        <p style="color:#666;">
+        <p class="text-muted">
             この画面（ブラウザ）で、SVG を{{ config('blogos.ai.image.png_scale') }}倍の大きさの PNG にして保存します（あなたのPCの日本語のフォントで描くため、文字化けしません）。
             SVG を直したら、もう一度 PNG にしてください。
         </p>
         <p>
             <button type="button" id="svg-to-png">PNG にして保存する</button>
-            <span id="png-status" style="color:#666;"></span>
+            <span id="png-status" class="text-muted"></span>
         </p>
         <textarea id="svg-saved" hidden>{{ $image->svg_source }}</textarea>
 
@@ -89,13 +89,13 @@
                 @method('PUT')
                 @include('partials.selected-blog-field')
                 <div style="display:flex; flex-wrap:wrap; gap:12px;">
-                    <textarea name="svg" id="svg-edit" rows="24" style="width:100%; max-width:640px; font-family:monospace; font-size:12px;">{{ old('svg', $image->svg_source) }}</textarea>
+                    <textarea name="svg" id="svg-edit" rows="24" class="mono" style="width:100%; max-width:640px; font-size:12px;">{{ old('svg', $image->svg_source) }}</textarea>
                     <div>
-                        <p style="color:#666; margin:0;">直している SVG のプレビュー（保存前）</p>
-                        <img id="svg-edit-preview" alt="" style="max-width:480px; width:100%; border:1px solid #ccc; background:#fff;">
+                        <p class="text-muted" style="margin:0;">直している SVG のプレビュー（保存前）</p>
+                        <img id="svg-edit-preview" alt="" class="bordered bg-surface" style="max-width:480px; width:100%;">
                     </div>
                 </div>
-                <p style="color:#666;">スクリプト・外部の読み込み・HTML の埋め込みは、保存するときに取り除きます。</p>
+                <p class="text-muted">スクリプト・外部の読み込み・HTML の埋め込みは、保存するときに取り除きます。</p>
                 <button type="submit">SVG を保存する</button>
             </form>
         </details>
@@ -154,7 +154,7 @@
         @csrf
         @method('PUT')
         @include('partials.selected-blog-field')
-        <table border="1" cellpadding="4" cellspacing="0" style="max-width:900px;">
+        <table class="data" style="max-width:900px;">
             <tr><th style="text-align:left;">名前</th><td><input type="text" name="title" value="{{ old('title', $image->title) }}" style="width:100%;" required></td></tr>
             <tr>
                 <th style="text-align:left;">種類</th>
@@ -172,7 +172,7 @@
                 <th style="text-align:left;">ファイル名（必須）</th>
                 <td>
                     <input type="text" name="filename" value="{{ old('filename', $image->filename) }}" style="width:300px;" placeholder="js-event-flow">
-                    <span style="color:#666;">英小文字・数字・ハイフン（内容が分かる名前）。WordPress に登録するときのファイル名になります。</span>
+                    <span class="text-muted">英小文字・数字・ハイフン（内容が分かる名前）。WordPress に登録するときのファイル名になります。</span>
                 </td>
             </tr>
         </table>
@@ -184,7 +184,7 @@
     @if (! $image->isReady())
         @php $missing = $image->missingForReady(); @endphp
         @if ($missing !== [])
-            <p style="color:#b60;">確認済みにするには：{{ implode('／', $missing) }}</p>
+            <p class="text-warn">確認済みにするには：{{ implode('／', $missing) }}</p>
         @endif
         <form method="POST" action="{{ route('images.ready', ['id' => $image->id]) }}" style="display:inline;">
             @csrf
@@ -197,7 +197,7 @@
             @include('partials.selected-blog-field')
             <button type="submit">WordPress のメディアに登録する</button>
         </form>
-        <span style="color:#666;">登録すると、記事で使えるようになります（記事への組み込みは、記事の改修・作成で行います）。</span>
+        <span class="text-muted">登録すると、記事で使えるようになります（記事への組み込みは、記事の改修・作成で行います）。</span>
     @else
         <p>WordPress のメディア：<a href="{{ $image->media->source_url }}" target="_blank" rel="noopener noreferrer">{{ $image->media->source_url }}</a>（<a href="{{ route('database.wordpress-records.show', ['table' => 'media', 'id' => $image->media->id]) }}">DB確認</a>）</p>
     @endif
@@ -208,7 +208,7 @@
         <form method="POST" action="{{ route('images.redesign', ['id' => $image->id]) }}">
             @csrf
             @include('partials.selected-blog-field')
-            <p style="color:#666;">「依頼の内容」をもとに、SVG の図を作ります。</p>
+            <p class="text-muted">「依頼の内容」をもとに、SVG の図を作ります。</p>
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'redesign'])
             <button type="submit">図を作る</button>
         </form>
@@ -236,11 +236,11 @@
                             モデル：{{ $api['imageModel'] }}
                             @if ($imageCost !== null)・1枚の最大の目安：約 ${{ number_format($imageCost, 3) }}（{{ $api['quality'] }}）@endif
                         </p>
-                        <p style="color:#666;">@include('partials.ai-cost-line')</p>
+                        <p class="text-muted">@include('partials.ai-cost-line')</p>
                         <button type="submit">{{ $image->hasFile() ? '作り直す' : '画像を作る' }}</button>
                     </form>
                 @else
-                    <p style="color:#b00;">APIキーが設定されていないため、画像モデルは使えません。下の指示文で ChatGPT 等で作った画像をアップロードしてください。</p>
+                    <p class="text-error">APIキーが設定されていないため、画像モデルは使えません。下の指示文で ChatGPT 等で作った画像をアップロードしてください。</p>
                     @if ($image->image_prompt)<pre style="white-space:pre-wrap;">{{ $image->image_prompt }}</pre>@endif
                 @endif
             </fieldset>
@@ -250,7 +250,7 @@
             @include('partials.selected-blog-field')
             <input type="file" name="file" accept="image/png,image/jpeg,image/webp" data-resize="replace-note" required>
             <button type="submit">アップロードして差し替える</button>
-            <span id="replace-note" style="color:#666;"></span>
+            <span id="replace-note" class="text-muted"></span>
         </form>
     @endif
 
@@ -261,10 +261,10 @@
             @csrf
             @include('partials.selected-blog-field')
             @if ($isDiagram)
-                <p style="color:#666;">同じ内容をイラストで作ります（画像モデル。API実行・料金がかかります）。指示文：{{ $image->image_prompt ?: '（なし）' }}</p>
+                <p class="text-muted">同じ内容をイラストで作ります（画像モデル。API実行・料金がかかります）。指示文：{{ $image->image_prompt ?: '（なし）' }}</p>
                 <button type="submit" @disabled(! $api['configured'] || blank($image->image_prompt))>イラストでも作る</button>
             @else
-                <p style="color:#666;">同じ内容を SVG の図で作ります（文章のモデル）。</p>
+                <p class="text-muted">同じ内容を SVG の図で作ります（文章のモデル）。</p>
                 @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'variant'])
                 <button type="submit">SVG の図でも作る</button>
             @endif
@@ -279,7 +279,7 @@
                 <li>
                     <a href="{{ route('ai.generations.show', ['id' => $generation->id]) }}">#{{ $generation->id }} {{ $generation->purpose->label() }}</a>
                     （{{ $generation->status->label() }}{{ $generation->estimated_cost !== null ? '・$' . number_format($generation->estimated_cost, 4) : '' }}・{{ \App\Support\DisplayTime::format($generation->created_at) }}）
-                    @if ($generation->error)<span style="color:#b00;">{{ $generation->error }}</span>@endif
+                    @if ($generation->error)<span class="text-error">{{ $generation->error }}</span>@endif
                 </li>
             @endforeach
         </ul>

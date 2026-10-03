@@ -19,10 +19,10 @@
     @include('partials.flash')
 
     @if ($article->wordpress_deleted_at)
-        <p style="color:#b00;"><strong>WordPress側で完全に削除されています。</strong></p>
+        <p class="text-error"><strong>WordPress側で完全に削除されています。</strong></p>
     @endif
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr><th style="text-align:left;">種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
         <tr><th style="text-align:left;">ステータス</th><td>{{ $article->status }}</td></tr>
         <tr><th style="text-align:left;">スラッグ</th><td title="{{ $article->slug }}">{{ \App\Support\Slug::display($article->slug) }}</td></tr>
@@ -35,7 +35,7 @@
             @if ($article->meta_description_raw !== null)
                 {{ $article->meta_description_raw }}（{{ mb_strlen($article->meta_description_raw) }}文字）
             @elseif ($article->meta_description_rendered !== null)
-                <strong style="color:#b00;">未設定</strong>（AIOSEOが本文の冒頭から自動で作る説明：{{ \Illuminate\Support\Str::limit($article->meta_description_rendered, 160) }}）
+                <strong class="text-error">未設定</strong>（AIOSEOが本文の冒頭から自動で作る説明：{{ \Illuminate\Support\Str::limit($article->meta_description_rendered, 160) }}）
             @else
                 取得していません（AIOSEOが無効か、まだ同期していません）
             @endif
@@ -66,7 +66,7 @@
             @if ($article->status !== 'trash')
                 <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id]) }}">ゴミ箱へ移動する</a> ・
             @endif
-            <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id, 'force' => 1]) }}" style="color:#b00;">完全に削除する</a>
+            <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id, 'force' => 1]) }}" class="text-error">完全に削除する</a>
         </p>
     @endif
 
@@ -94,7 +94,7 @@
         ・<a href="{{ route('ai.generations.create', ['mode' => 'management_suggestion', 'target' => $targetKey]) }}">AIで管理情報の案を作る</a>
     </p>
     @if ($evaluations->isNotEmpty())
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>#</th><th>日時</th><th>主体</th><th>対象</th><th>点数</th><th>必須条件</th><th>確定</th></tr></thead>
             <tbody>
                 @foreach ($evaluations as $evaluation)
@@ -126,7 +126,7 @@
         $sc = $google['search_console']; $scPrev = $googlePrevious['search_console'];
         $ad = $google['adsense']; $adPrev = $googlePrevious['adsense'];
     @endphp
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr><th style="text-align:left;">表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}（{{ number_format((int) $gaPrev->views) }}）</td></tr>
         <tr><th style="text-align:left;">セッション</th><td>{{ number_format((int) $ga->sessions) }}（{{ number_format((int) $gaPrev->sessions) }}）</td></tr>
         <tr><th style="text-align:left;">検索のクリック・表示回数</th><td>{{ number_format((int) $sc->clicks) }}・{{ number_format((int) $sc->impressions) }}（{{ number_format((int) $scPrev->clicks) }}・{{ number_format((int) $scPrev->impressions) }}）</td></tr>
@@ -156,7 +156,7 @@
         </p>
     @endif
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>検索クエリ</th><th>クリック</th><th>表示回数</th><th>平均掲載順位</th></tr></thead>
             <tbody>
                 @forelse ($google['queries'] as $query)
@@ -220,7 +220,7 @@
         </p>
         <p>
             <label>対象のバージョン（任意。例：JavaScript ES2022、Laravel 11）<br><input type="text" name="target_versions" value="{{ old('target_versions', $management?->target_versions) }}" maxlength="1000" style="width:100%; max-width:700px;"></label><br>
-            <span style="color:#666;">記事が扱う言語・フレームワーク・試験などのバージョン。教材のバージョンと比べて、紹介する教材を判断するのに使います。</span>
+            <span class="text-muted">記事が扱う言語・フレームワーク・試験などのバージョン。教材のバージョンと比べて、紹介する教材を判断するのに使います。</span>
         </p>
         <p>
             <label>メインキーワード<br><input type="text" name="main_keyword" value="{{ old('main_keyword', $keywords->firstWhere('keyword_type', \App\Enums\KeywordType::Main)?->keyword) }}" maxlength="191" style="width:100%; max-width:400px;"></label>
@@ -243,7 +243,7 @@
             @foreach ($articleMaterials as $record)
                 <li>
                     {{ $record->material->kind->label() }}：<a href="{{ route('materials.edit', ['id' => $record->material_id]) }}">{{ $record->material->name }}</a>
-                    @if ($reason = $record->reviewReason())<span style="color:#b60;">見直し：{{ $reason }}</span>@endif
+                    @if ($reason = $record->reviewReason())<span class="text-warn">見直し：{{ $reason }}</span>@endif
                 </li>
             @endforeach
         </ul>
@@ -268,7 +268,7 @@
 
     {{-- 記事同士の関係（D-08-04） --}}
     <h2>記事同士の関係</h2>
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <thead><tr><th>関係</th><th>記事</th><th>並び順</th><th>本文からのリンク</th><th></th></tr></thead>
         <tbody>
             @php
@@ -290,7 +290,7 @@
                         @if (in_array($relation->related_post_id, $linkedPostIds, true) || in_array($relation->related_page_id, $linkedPageIds, true))
                             あり
                         @else
-                            <strong style="color:#b00;">なし</strong>
+                            <strong class="text-error">なし</strong>
                         @endif
                     </td>
                     <td>
@@ -348,7 +348,7 @@
                 @if ($link->targetPost || $link->targetPage)
                     <a href="{{ route('articles.show', ['type' => $link->targetPost ? 'posts' : 'pages', 'id' => ($link->targetPost ?? $link->targetPage)->id]) }}">{{ ($link->targetPost ?? $link->targetPage)->title_raw }}</a>
                 @else
-                    <span style="color:#b00;">{{ $link->target_url }}（記事が見つかりません）</span>
+                    <span class="text-error">{{ $link->target_url }}（記事が見つかりません）</span>
                 @endif
             </li>
         @empty
@@ -396,7 +396,7 @@
     {{-- 管理情報の変更履歴 --}}
     <h2>管理情報の変更履歴</h2>
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
             <tbody>
                 @forelse ($histories as $history)

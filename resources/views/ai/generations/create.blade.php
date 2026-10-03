@@ -32,7 +32,7 @@
         @endforeach
     </p>
 
-    <p style="color:#666;">
+    <p class="text-muted">
         @switch ($mode)
             @case (\App\Enums\AiMode::QualityDiagnosis) 品質基準に沿って採点します。結果はAIの評価（参考値）として保存し、人が見直して確定します。 @break
             @case (\App\Enums\AiMode::Revision) 改修案を作り、編集案に取り込みます（作業中の編集案があれば、その編集案を改修します）。 @break
@@ -44,7 +44,7 @@
     </p>
 
     @if (in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::Revision, \App\Enums\AiMode::SeoAnalysis, \App\Enums\AiMode::ManagementSuggestion], true) && $target === null)
-        <p style="color:#b00;">このモードは、記事または編集案の画面から実行してください。</p>
+        <p class="text-error">このモードは、記事または編集案の画面から実行してください。</p>
     @else
         <form method="POST" action="{{ route('ai.generations.store') }}">
             @csrf
@@ -77,7 +77,7 @@
                                 @endforeach
                             </select>
                         </label>
-                        <span style="color:#666;">（紹介する教材の候補と、アイキャッチ（カテゴリに登録したもの）に使います）</span>
+                        <span class="text-muted">（紹介する教材の候補と、アイキャッチ（カテゴリに登録したもの）に使います）</span>
                     </p>
                 @endif
                 <p>
@@ -108,7 +108,7 @@
                     <label>補足：実体験・検証の結果・伝えたいこと・競合記事の情報など<br>
                         <textarea name="notes" rows="6" style="width:100%; max-width:800px;">{{ old('notes', request('notes')) }}</textarea>
                     </label><br>
-                    <span style="color:#666;">AIは、ここに書かれた実体験・検証の結果だけを使います（経験していないことを事実として書かせないため。D-14-10）。</span>
+                    <span class="text-muted">AIは、ここに書かれた実体験・検証の結果だけを使います（経験していないことを事実として書かせないため。D-14-10）。</span>
                 </p>
             @endif
 
@@ -124,7 +124,7 @@
                     <label><input type="radio" name="execution_method" value="manual" @checked($selectedMethod === 'manual')> 手動実行（指示文をChatGPT等に貼り付けて実行し、回答を貼り付けます。追加の料金はかかりません）</label><br>
                     <label><input type="radio" name="execution_method" value="api" @checked($selectedMethod === 'api') @disabled(! $api['configured'])> API実行（BlogOSがOpenAI APIで実行し、結果を取り込みます。料金がかかります）</label>
                     @unless ($api['configured'])
-                        <br><span style="color:#b00;">APIキーが設定されていないため、API実行は選べません（.env の OPENAI_API_KEY）。</span>
+                        <br><span class="text-error">APIキーが設定されていないため、API実行は選べません（.env の OPENAI_API_KEY）。</span>
                     @endunless
                 </p>
                 @if ($api['configured'])
@@ -144,7 +144,7 @@
                             </select>
                         </label>
                     </p>
-                    <p style="color:#666;">
+                    <p class="text-muted">
                         このモードの標準：{{ $api['defaults']['model'] }}・{{ $api['defaults']['effort'] }}。
                         @include('partials.ai-cost-line')。
                         1回の出力（推論を含む）の上限：{{ number_format($api['maxOutput']) }}トークン。<br>

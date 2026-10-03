@@ -15,7 +15,7 @@
     <p>対象：<strong>{{ $article->title_raw ?: '（タイトルなし）' }}</strong>（{{ $article->status }}、スラッグ：{{ \App\Support\Slug::display($article->slug) }}）</p>
 
     @if ($force)
-        <p style="color:#b00;"><strong>WordPressから完全に削除します。ゴミ箱には残らず、元に戻せません。</strong>BlogOSの管理情報・評価・履歴は残ります。</p>
+        <p class="text-error"><strong>WordPressから完全に削除します。ゴミ箱には残らず、元に戻せません。</strong>BlogOSの管理情報・評価・履歴は残ります。</p>
     @else
         <p>WordPressのゴミ箱へ移動します。WordPressの管理画面から元に戻せます。</p>
     @endif

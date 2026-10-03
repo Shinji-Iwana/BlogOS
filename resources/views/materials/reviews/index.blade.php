@@ -15,7 +15,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         教材を「使わない」にした・新しい版を登録した・教材の情報を更新した・記事が更新された記事は、紹介している教材が今のままでよいか見直します。
         AIの見直しの結果を確認したら「確認した」を押してください。教材の差し替え・削除は、記事の改修で行います（記事は自動では変わりません）。
     </p>
@@ -37,13 +37,13 @@
                         <strong>{{ ['keep' => 'このまま', 'replace' => '差し替え', 'remove' => '外す'][$item['judgment']] ?? $item['judgment'] }}</strong>：
                         {{ $materialNames[$item['material_id']] ?? "#{$item['material_id']}" }}
                         @if ($item['replace_with']) → {{ $materialNames[$item['replace_with']] ?? "#{$item['replace_with']}" }}@endif
-                        @if ($item['reason'])<br><span style="color:#666;">{{ $item['reason'] }}</span>@endif
+                        @if ($item['reason'])<br><span class="text-muted">{{ $item['reason'] }}</span>@endif
                     </li>
                 @endforeach
                 @foreach ((array) ($review->result['additions'] ?? []) as $item)
                     <li>
                         <strong>追加</strong>：{{ $materialNames[$item['material_id']] ?? "#{$item['material_id']}" }}
-                        @if ($item['reason'])<br><span style="color:#666;">{{ $item['reason'] }}</span>@endif
+                        @if ($item['reason'])<br><span class="text-muted">{{ $item['reason'] }}</span>@endif
                     </li>
                 @endforeach
                 @if (empty($review->result['current']) && empty($review->result['additions']))
@@ -80,7 +80,7 @@
         </form>
 
         <div style="overflow-x:auto; margin-top:8px;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>記事</th><th>教材と理由</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($articles as $key => $row)
@@ -89,12 +89,12 @@
                             <td><a href="{{ route('articles.show', ['type' => $type, 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
                             <td>
                                 @foreach ($row['items'] as $item)
-                                    <div>{{ $item['material']?->name }}：<span style="color:#b60;">{{ $item['reason'] }}</span></div>
+                                    <div>{{ $item['material']?->name }}：<span class="text-warn">{{ $item['reason'] }}</span></div>
                                 @endforeach
                             </td>
                             <td style="white-space:nowrap;">
                                 @if (isset($pending[$type][$row['article']->id]))
-                                    <span style="color:#666;">確認待ちの結果あり</span><br>
+                                    <span class="text-muted">確認待ちの結果あり</span><br>
                                 @endif
                                 <button type="button" onclick="document.getElementById('review-target').value = '{{ $key }}'; document.getElementById('review-run-form').submit();">AIで見直す</button>
                                 <form method="POST" action="{{ route('materials.reviews.mark') }}" style="display:inline;">

@@ -24,7 +24,7 @@
     @include('partials.flash')
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr><th>#</th><th>タイトル</th><th>対象</th><th>状態</th><th>改修範囲</th><th>作成元</th><th>更新</th></tr>
             </thead>

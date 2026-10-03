@@ -14,7 +14,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         新しい記事には、記事のカテゴリ（なければ親のカテゴリ）のアイキャッチを設定します（記事の作成への組み込みは、HTMLのルールと一緒に行います）。
         選べるのは、WordPress のメディアにある画像です。新しい技術のカテゴリで画像が必要なときは、<a href="{{ route('images.index', ['kind' => 'eyecatch']) }}">画像</a>の画面でアイキャッチを作り（画像モデル、またはアップロード）、WordPress に登録してから、ここで選んでください。
         「今の記事で多い画像」は、そのカテゴリの記事で、いちばん多く使われているアイキャッチです。
@@ -26,7 +26,7 @@
         @include('partials.selected-blog-field')
 
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>カテゴリ</th><th>記事数</th><th>今の記事で多い画像</th><th>アイキャッチ</th></tr></thead>
                 <tbody>
                     @foreach ($categories as $category)

@@ -12,7 +12,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         親カテゴリの下に子カテゴリを立ち上げ、①親カテゴリ → ②子カテゴリ → ③記事の企画（子カテゴリごとに10件） → ④記事の編集案 → ⑤子ロードマップの編集案、の順に進めます。
         各段階で、人が確認してから次へ進みます。公開（カテゴリの作成・まとめて公開）と親ロードマップは、次の段階で追加します。
     </p>
@@ -51,7 +51,7 @@
                 スラッグ <input type="text" name="slug" value="{{ old('slug') }}" style="width:120px;" placeholder="例：go">
                 <button type="submit">WordPress に作る</button>
             </p>
-            <p style="color:#666;">記事がまだないカテゴリは、WordPress の画面には表示されません。親ロードマップの固定ページは、子ロードマップを公開するときに下書きとして作ります。</p>
+            <p class="text-muted">記事がまだないカテゴリは、WordPress の画面には表示されません。親ロードマップの固定ページは、子ロードマップを公開するときに下書きとして作ります。</p>
         </form>
     </details>
 

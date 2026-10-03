@@ -39,7 +39,7 @@
         <input type="hidden" name="target" value="{{ $target }}">
 
         <h2>必須条件（1つでも × なら公開不可）</h2>
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>キー</th><th>条件</th><th>判定</th><th>理由・メモ</th></tr></thead>
             <tbody>
                 @foreach ($standard->required as $key => $condition)
@@ -60,14 +60,14 @@
         <h2>採点項目（○：配点どおり、△：50%、×：0点）</h2>
         @foreach (collect($applicable)->groupBy('category', true) as $category => $items)
             <h3>{{ $category }}</h3>
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>キー</th><th>評価項目</th><th>配点</th><th>判定</th><th>理由・改善点</th></tr></thead>
                 <tbody>
                     @foreach ($items as $key => $item)
                         <tr>
                             <td><code>{{ $key }}</code></td>
                             <td>{{ $item['label'] }}@if ($item['required'] ?? false)<strong>（★必須）</strong>@endif @if (! $item['ai'])（判定者：人）@endif
-                                @if ($item['criteria'] ?? null)<br><span style="color:#666; font-size:90%;">{{ $item['criteria'] }}</span>@endif</td>
+                                @if ($item['criteria'] ?? null)<br><span class="text-muted" style="font-size:90%;">{{ $item['criteria'] }}</span>@endif</td>
                             <td>{{ $item['points'] }}</td>
                             <td style="white-space:nowrap;">
                                 @foreach ($judgmentOptions as $option)
@@ -82,7 +82,7 @@
         @endforeach
 
         @if ($standard->excludedItems($articleType) !== [])
-            <p style="color:#666;">この記事種類で対象外の項目：{{ implode('、', $standard->excludedItems($articleType)) }}</p>
+            <p class="text-muted">この記事種類で対象外の項目：{{ implode('、', $standard->excludedItems($articleType)) }}</p>
         @endif
 
         <h2>総評</h2>

@@ -13,6 +13,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>BlogOS</title>
 
+        {{-- 共通の画面の見た目（public/css/blogos.css）。テーマのCSSより先に読み込み、テーマで上書きする。 --}}
+        <link
+            rel="stylesheet"
+            href="{{ asset('css/blogos.css') }}?v={{ @filemtime(public_path('css/blogos.css')) }}"
+        >
+
         {{-- 選んだテーマのCSSを読み込む（public/themes/{テーマ名}/css/style.css）。 --}}
         <link
             rel="stylesheet"

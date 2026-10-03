@@ -10,7 +10,7 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ route('analytics.index') }}">分析</a></p>
 
-    <p style="color:#666;">
+    <p class="text-muted">
         公開中の記事 {{ count($rows) }}件のうち、ルールに合わない点がある記事は {{ $withIssues }}件です
         （品質基準 writing.md 3-1・3-2、ブログ別の定義のタイトルの型）。
         Search Console の指標は {{ $from->toDateString() }}〜{{ $to->toDateString() }}（90日）です。
@@ -19,7 +19,7 @@
     </p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr><th>タイトル</th><th>文字数</th><th>メインキーワード</th><th>表示回数</th><th>クリック</th><th>クリック率</th><th>平均順位</th><th>取りこぼし</th><th>ルールに合わない点</th></tr>
             </thead>
@@ -36,7 +36,7 @@
                         <td>{{ $row['missed'] > 0 ? number_format($row['missed'], 1) : '-' }}</td>
                         <td style="max-width:420px;">
                             @if ($row['issues'] === [])
-                                <span style="color:#070;">なし</span>
+                                <span class="text-ok">なし</span>
                             @else
                                 <ul style="margin:0; padding-left:18px;">
                                     @foreach ($row['issues'] as $issue)

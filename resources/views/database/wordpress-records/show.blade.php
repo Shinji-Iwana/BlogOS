@@ -18,13 +18,13 @@
     </p>
 
     @if ($record->wordpress_deleted_at)
-        <p style="color:#b00;"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>
+        <p class="text-error"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>
     @endif
 
     <h2>列の値</h2>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <tbody>
                 @foreach ($record->getAttributes() as $column => $value)
                     <tr>
@@ -38,7 +38,7 @@
                             @else
                                 {{ $value }}
                                 @if ($column === 'slug' && \App\Support\Slug::display($value) !== $value)
-                                    <br><span style="color:#666;">（読める形：{{ \App\Support\Slug::display($value) }}）</span>
+                                    <br><span class="text-muted">（読める形：{{ \App\Support\Slug::display($value) }}）</span>
                                 @endif
                             @endif
                         </td>
@@ -71,7 +71,7 @@
     <h2>変更履歴（新しい順、最大500件）</h2>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr>
                     <th>日時</th>

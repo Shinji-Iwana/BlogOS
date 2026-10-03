@@ -1,0 +1,200 @@
+/* ==========================================================
+   blogos.css
+   ----------------------------------------------------------
+   どのテーマでも最初に読み込む、共通の画面の見た目（D-49・T1）。
+
+   ・共通の画面（resources/views/）で使う class の、装飾のない見た目を決める。
+     blank テーマの見た目は、このファイルだけで決まる。
+   ・テーマの CSS（public/themes/{テーマ名}/css/style.css）は、このファイルの後に読み込み、
+     同じ class の見た目を上書きする。
+   ・画面ごとの配置（幅・余白・文字の寄せ）は、各画面の style="…" に残している。
+     色・背景・枠線のように、テーマで変えたい見た目だけをここに置く。
+   ========================================================== */
+
+
+/* ==========================================================
+   文字の色（意味ごと）
+   ========================================================== */
+
+/* 補足・説明 */
+.text-muted { color: #666; }
+
+/* 目立たなくした行（登録済みの候補 など） */
+.text-dim { color: #888; }
+
+/* さらに目立たない補足（画像なし など） */
+.text-faint { color: #999; }
+
+/* エラー・要対応 */
+.text-error { color: #b00; }
+
+/* 注意 */
+.text-warn { color: #b60; }
+
+/* 成功・完了 */
+.text-ok { color: #070; }
+
+
+/* ==========================================================
+   表の行の強調（意味ごと）
+   ========================================================== */
+
+/* 選択中の行 */
+.row-current { background: #eef5ff; }
+
+/* 確認が必要な行（違いがある・基準に届かない など） */
+.row-attention { background: #fff8c5; }
+
+/* 問題が残っている行 */
+.row-danger { background: #fde2e2; }
+
+/* 処理中で触れない行 */
+.row-error { background: #ffebe9; }
+
+/* まとまりの見出しの行（記事の企画のカテゴリの案） */
+.row-group { background: #f7f7f7; }
+
+
+/* ==========================================================
+   箱・背景
+   ========================================================== */
+
+/* 枠線のある箱 */
+.bordered { border: 1px solid #ccc; }
+
+/* 白い下地（画像・プレビュー） */
+.bg-surface { background: #fff; }
+
+/* 薄い下地（画像の置き場所） */
+.bg-subtle { background: #f5f5f5; }
+
+/* コード・JSON の表示 */
+.code-block { background: #f6f6f6; }
+
+/* 等幅の文字（HTML・JSON の入力） */
+.mono { font-family: monospace; }
+
+
+/* ==========================================================
+   表（一覧）
+   ----------------------------------------------------------
+   以前の <table border="1" cellpadding="4" cellspacing="0"> と同じ見た目（枠線の色は文字の色）。
+   ========================================================== */
+
+table.data {
+    border: 1px outset;
+    border-spacing: 0;
+}
+
+table.data > * > tr > th,
+table.data > * > tr > td,
+table.data > tr > th,
+table.data > tr > td {
+    border: 1px inset;
+    padding: 4px;
+}
+
+/* 余白の狭い表 */
+table.data.data-compact > * > tr > th,
+table.data.data-compact > * > tr > td {
+    padding: 3px;
+}
+
+
+/* ==========================================================
+   点数の棒（評価の観点）
+   ========================================================== */
+
+.bar-track { background: #eee; }
+.bar-good { background: #4a90e2; }
+.bar-mid { background: #e8a33d; }
+.bar-bad { background: #d9534f; }
+
+
+/* ==========================================================
+   行ごとの差分（partials/line-diff）
+   ========================================================== */
+
+.diff-added { background: #e6ffec; }
+.diff-removed { background: #ffebe9; }
+.diff-skip { color: #888; }
+
+
+/* ==========================================================
+   共通のヘッダー（layouts/header）
+   ========================================================== */
+
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.site-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.site-title {
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.site-settings-link {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.blog-switch-button {
+    padding: 6px 12px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* ブログ切替ポップアップ（開く・閉じるは header の JavaScript が style.display で切り替える） */
+.blog-switch-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+.blog-switch-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    max-width: calc(100% - 40px);
+    max-height: calc(100% - 40px);
+    overflow-y: auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 6px;
+}
+
+.blog-switch-option {
+    display: block;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.blog-switch-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}

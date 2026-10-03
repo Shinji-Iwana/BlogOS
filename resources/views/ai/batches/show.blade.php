@@ -24,7 +24,7 @@
 
     @include('partials.flash')
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr><th style="text-align:left;">きっかけ</th><td>{{ $batch->trigger->label() }}{{ $batch->requester ? '（' . $batch->requester->name . '）' : '' }}</td></tr>
         <tr><th style="text-align:left;">対象</th><td>{{ $batch->target->label() }}@if (isset($batch->target_parameters['below_score']))（{{ $batch->target_parameters['below_score'] }}点未満）@endif @if (isset($batch->target_parameters['revision_scope']))・改修範囲 {{ \App\Services\Ai\AutoReevaluationService::scopeOptions()[$batch->target_parameters['revision_scope']] ?? $batch->target_parameters['revision_scope'] }}@endif</td></tr>
         <tr><th style="text-align:left;">モデル・推論の深さ</th><td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td></tr>
@@ -48,12 +48,12 @@
             @endforeach
         </td></tr>
         <tr><th style="text-align:left;">費用の目安</th><td>${{ number_format($progress['cost'], 4) }}</td></tr>
-        @if ($batch->stop_reason)<tr><th style="text-align:left;">止めた理由</th><td style="color:#b00;">{{ $batch->stop_reason }}</td></tr>@endif
+        @if ($batch->stop_reason)<tr><th style="text-align:left;">止めた理由</th><td class="text-error">{{ $batch->stop_reason }}</td></tr>@endif
         <tr><th style="text-align:left;">日時</th><td>{{ \App\Support\DisplayTime::format($batch->created_at) }}〜{{ \App\Support\DisplayTime::format($batch->completed_at) }}</td></tr>
     </table>
 
     @if ($running)
-        <p style="color:#666;">この画面は15秒ごとに更新されます。進まない場合は、Queueの処理が動いているか確認してください（ローカルでは <code>php artisan queue:work</code>）。</p>
+        <p class="text-muted">この画面は15秒ごとに更新されます。進まない場合は、Queueの処理が動いているか確認してください（ローカルでは <code>php artisan queue:work</code>）。</p>
         <form method="POST" action="{{ route('ai.batches.cancel', ['id' => $batch->id]) }}" onsubmit="return confirm('残りの記事を実行せずに取り消しますか？');">
             @csrf
             @include('partials.selected-blog-field')
@@ -63,7 +63,7 @@
 
     <h2>記事ごとの結果</h2>
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             @php $isRevision = $batch->purpose === \App\Enums\AiMode::Revision; @endphp
             <thead><tr><th>記事</th>@if ($batch->trigger === \App\Enums\AiBatchTrigger::Auto && ! $isRevision)<th>理由</th>@endif<th>状態</th>@if ($isRevision)<th>改修範囲</th><th>点数（改修前→編集案）</th>@endif<th>結果</th><th>費用の目安</th><th>メッセージ</th></tr></thead>
             <tbody>

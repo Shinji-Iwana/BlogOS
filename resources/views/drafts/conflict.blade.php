@@ -20,7 +20,7 @@
     </p>
 
     <h2>項目の違い（WordPressの最新 → 編集案）</h2>
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <thead><tr><th>項目</th><th>WordPressの最新</th><th>編集案</th></tr></thead>
         <tbody>
             @foreach (['title', 'slug', 'status', 'excerpt', 'meta_description', 'featured_media', 'categories', 'tags'] as $field)
@@ -33,7 +33,7 @@
                         [$left, $right] = [\App\Support\Slug::display($left), \App\Support\Slug::display($right)];
                     }
                 @endphp
-                <tr @if ($left !== $right) style="background:#fff8c5;" @endif>
+                <tr @if ($left !== $right) class="row-attention" @endif>
                     <td>{{ $field }}</td>
                     <td>{{ is_array($left) ? implode(', ', $left) : \Illuminate\Support\Str::limit((string) $left, 200) }}</td>
                     <td>{{ is_array($right) ? implode(', ', $right) : \Illuminate\Support\Str::limit((string) $right, 200) }}</td>
@@ -67,7 +67,7 @@
         @csrf
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="overwrite">
-        <label><input type="checkbox" name="confirmed" value="1"> <strong style="color:#b00;">WordPress側で行われた変更は失われます</strong></label>
+        <label><input type="checkbox" name="confirmed" value="1"> <strong class="text-error">WordPress側で行われた変更は失われます</strong></label>
         <button type="submit">編集案で上書きする（反映の確認へ進む）</button>
     </form>
 

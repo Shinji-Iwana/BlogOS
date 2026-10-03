@@ -28,7 +28,7 @@
         @endforeach
     </p>
 
-    <p style="color:#666;">
+    <p class="text-muted">
         選んだ記事に、1記事ずつAPI実行します（Queueの処理で順に動きます。ローカルでは <code>php artisan queue:work</code>）。
         結果は記事ごとのAI実行記録に残ります。
         @if ($mode === \App\Enums\AiMode::Revision)
@@ -43,7 +43,7 @@
     </p>
 
     @unless ($api['configured'])
-        <p style="color:#b00;">APIキーが設定されていないため、まとめて実行はできません（.env の OPENAI_API_KEY）。</p>
+        <p class="text-error">APIキーが設定されていないため、まとめて実行はできません（.env の OPENAI_API_KEY）。</p>
     @endunless
 
     {{-- 1. 条件を選んで、対象を確認する --}}
@@ -138,7 +138,7 @@
                             </select>
                         </label>
                     </p>
-                    <p style="color:#666;">
+                    <p class="text-muted">
                         作業中の編集案がある記事は、人の作業を上書きしないため改修しません。作った編集案は、人が確認してから反映します。
                         費用の上限や取り消しで診断が途中で止まった場合は、編集案を作りません。
                     </p>
@@ -160,7 +160,7 @@
     @endif
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>記事</th><th>最新の評価</th><th>評価日</th>@if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<th>理由</th>@endif</tr></thead>
             <tbody>
                 @forelse ($targets as $row)
@@ -168,7 +168,7 @@
                         <td><a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
                         <td>{{ $row['evaluation']?->score !== null ? number_format($row['evaluation']->score, 1) . '点' : '-' }}</td>
                         <td>{{ $row['evaluation'] ? \App\Support\DisplayTime::format($row['evaluation']->created_at) : '-' }}</td>
-                        @if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<td>{{ $row['reason']?->label() }}@if (! empty($row['priority_notes']))<br><span style="color:#b00; font-size:90%;">優先：{{ implode('・', $row['priority_notes']) }}</span>@endif</td>@endif
+                        @if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<td>{{ $row['reason']?->label() }}@if (! empty($row['priority_notes']))<br><span class="text-error" style="font-size:90%;">優先：{{ implode('・', $row['priority_notes']) }}</span>@endif</td>@endif
                     </tr>
                 @empty
                     <tr><td colspan="4">対象の記事はありません（実行中・待機中の記事は除いています）。</td></tr>

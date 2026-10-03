@@ -290,6 +290,7 @@ Presentation Layerは、利用者へ情報を表示し、利用者からの操�
 
 * 選べるテーマは `config/themes.php` に登録し、使うテーマは画面「設定」で選ぶ（`system_settings` の `theme`。選んでいなければ `blank`＝装飾なし。D-49）。
 * `resources/views/` の画面を共通の画面とし、テーマの View（`resources/views/themes/{テーマ名}/`）に同じ名前の View があれば、そのテーマのときだけそちらを使う。CSS・JavaScript は `public/themes/{テーマ名}/` に置く（`resources/views/themes/README.md`）。
+* 共通の画面の見た目（色・背景・枠線）は、意味ごとの class で書き、共通の CSS `public/css/blogos.css` で決める。テーマの CSS は、その後に読み込んで上書きする。画面に `style="…"` で書くのは、幅・余白・寄せなどの配置だけにする（D-49-04）。
 * テーマは見た目だけを担当し、表示するデータ・業務処理・ルートはテーマによって変えない。どのテーマでも同じControllerが同じデータを渡す。
 * 当面は `blank` で機能を作り、システムの構築後に見た目を整える。
 

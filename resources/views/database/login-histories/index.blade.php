@@ -19,7 +19,7 @@
     <p>表示件数：{{ $histories->count() }}件（新しい順、最大200件）</p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr>
                     <th>日時</th>

@@ -21,11 +21,11 @@
     </p>
 
     @if (session('status'))
-        <p style="color:#070;">{{ session('status') }}</p>
+        <p class="text-ok">{{ session('status') }}</p>
     @endif
 
     @if ($errors->any())
-        <div style="color:#b00;">
+        <div class="text-error">
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach
@@ -35,7 +35,7 @@
     <p>{{ $showResolved ? '解決済み' : '未解決' }}：{{ $issues->count() }}件</p>
 
     @forelse ($issues as $issue)
-        <section style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <section class="bordered" style="padding:10px; margin-bottom:10px;">
             <p style="margin-top:0;">
                 <strong>{{ $issue->issue_type->label() }}</strong>
                 ・対象：{{ $issue->resource_type ?? '-' }}
@@ -50,7 +50,7 @@
                 @endif
             </p>
             <p>{{ $issue->message }}</p>
-            <p style="color:#666;">
+            <p class="text-muted">
                 最初の検出：{{ \App\Support\DisplayTime::format($issue->first_detected_at) }} ・最後の検出：{{ \App\Support\DisplayTime::format($issue->last_detected_at) }}
                 @if ($issue->error_status)
                     ・HTTP {{ $issue->error_status }}

@@ -17,7 +17,7 @@
     @include('partials.flash')
 
     @if ($record->wordpress_deleted_at)
-        <p style="color:#b00;">WordPress側で既に削除されています。</p>
+        <p class="text-error">WordPress側で既に削除されています。</p>
     @else
         <h2>情報を更新する</h2>
         <form method="POST" action="{{ route('terms.update', ['type' => $type, 'id' => $record->id]) }}">
@@ -51,7 +51,7 @@
         </form>
 
         <h2>完全に削除する</h2>
-        <p style="color:#b00;">
+        <p class="text-error">
             WordPressから完全に削除します（ゴミ箱はなく、元に戻せません）。
             関連している投稿：{{ $linkedPostCount }}件
             @if ($type === 'categories')（WordPressは、関連していた投稿のカテゴリを付け替えます）@endif

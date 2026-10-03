@@ -13,7 +13,7 @@
     @include('partials.flash')
     @include('partials.ai-credit-notice')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         子カテゴリごとに、③記事の企画（{{ $perChild }}件。Web検索ありで約 $0.05） → 案を採用 → ④記事の編集案をまとめて作る（API。1件約 $0.012 と図解） → 編集案を確認 → ⑤子ロードマップの編集案 → ⑥・⑦公開、の順に進め、すべての子カテゴリがそろったら ⑧親ロードマップを作ります。
         まだ公開していない記事へのリンクは、タイトルだけになります（公開されると、BlogOS がリンクに切り替える編集案を作ります）。
     </p>
@@ -25,7 +25,7 @@
                 <strong>{{ $child->name }}</strong>（{{ $child->slug }}）
                 {{ $child->isNew() ? '・新しい子カテゴリ（WordPress にはまだない）' : '・既存の子カテゴリ' }}
             </legend>
-            @if ($child->scope)<p style="color:#666; margin-top:0;">{{ $child->scope }}</p>@endif
+            @if ($child->scope)<p class="text-muted" style="margin-top:0;">{{ $child->scope }}</p>@endif
             <p><strong>{{ $p['step'] }}</strong>（確認待ちの案 {{ $p['pending'] }}件・採用 {{ $p['accepted'] }}件・作成中 {{ $p['running'] }}件・編集案 {{ $p['drafts'] }}件）</p>
 
             {{-- ③ 記事の企画 --}}
@@ -40,15 +40,15 @@
             </details>
 
             @if ($items->isNotEmpty())
-                <table border="1" cellpadding="4" cellspacing="0" style="margin-top:8px;">
+                <table class="data" style="margin-top:8px;">
                     <thead><tr><th>記事の案</th><th>ステップ・優先度</th><th>状態</th><th></th></tr></thead>
                     <tbody>
                         @foreach ($items as $item)
                             <tr>
                                 <td style="max-width:440px;">
                                     {{ $item->title }}
-                                    <br><span style="color:#666;">キーワード：{{ $item->main_keyword ?? '-' }}@if ($item->article_type)・{{ $types['types'][$item->article_type] ?? $item->article_type }}@endif</span>
-                                    @if ($item->duplicate_note)<br><span style="color:#b00;">重複の可能性：{{ $item->duplicate_note }}</span>@endif
+                                    <br><span class="text-muted">キーワード：{{ $item->main_keyword ?? '-' }}@if ($item->article_type)・{{ $types['types'][$item->article_type] ?? $item->article_type }}@endif</span>
+                                    @if ($item->duplicate_note)<br><span class="text-error">重複の可能性：{{ $item->duplicate_note }}</span>@endif
                                 </td>
                                 <td>{{ $item->roadmap_step }}<br>{{ \App\Models\TopicSuggestion::PRIORITIES[$item->priority] ?? '' }}</td>
                                 <td>
@@ -120,14 +120,14 @@
                                     ✓ {{ $draft->title_raw }}（{{ $draft->state->label() }}）
                                 @endif
                                 ・<a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
-                                @if ($draft->state->isActive() && $remaining !== [])<span style="color:#b00;">（目印が残っているため公開できません：{{ implode('、', $remaining) }}）</span>@endif
+                                @if ($draft->state->isActive() && $remaining !== [])<span class="text-error">（目印が残っているため公開できません：{{ implode('、', $remaining) }}）</span>@endif
                             </li>
                         @endforeach
                         @if ($roadmap && $roadmap->state->isActive())
                             <li><label><input type="checkbox" name="roadmap" value="1" checked> 子ロードマップ「{{ $roadmap->title_raw }}」（記事の後に公開し、公開した記事をリンクにします）</label></li>
                         @endif
                     </ul>
-                    <p style="color:#666;">
+                    <p class="text-muted">
                         @if ($child->isNew())子カテゴリ「{{ $child->name }}」（{{ $child->slug }}）を WordPress に作ります。@endif
                         子ロードマップを公開するときに、親ロードマップのページがなければ、WordPress の下書き（非公開）として先に作ります（URL を /{{ $launch->parentCategory?->slug }}/{{ $child->slug }}.html にするため）。
                     </p>
@@ -154,13 +154,13 @@
         @endif
     </p>
     @if (! $roadmapsReady)
-        <p style="color:#666;">すべての子カテゴリの子ロードマップの編集案ができると、親ロードマップを作れます。</p>
+        <p class="text-muted">すべての子カテゴリの子ロードマップの編集案ができると、親ロードマップを作れます。</p>
     @else
         <form method="POST" action="{{ route('launches.parent-roadmap', ['id' => $launch->id]) }}"
               onsubmit="return confirm('親ロードマップの編集案を作りますか？（API実行・料金がかかります{{ $parentPage ? '' : '。親ロードマップのページを WordPress の下書きとして先に作ります' }}）');">
             @csrf
             @include('partials.selected-blog-field')
-            <p style="color:#666; margin-bottom:0;">
+            <p class="text-muted" style="margin-bottom:0;">
                 {{ $parentPage && $parentPage->status === 'publish'
                     ? '公開中の親ロードマップに、新しい子ロードマップを加える改修（構成の見直し）をします。'
                     : '「準備中」のページの中身を、親ロードマップとして初めから作ります（全面改修）。' }}
@@ -177,7 +177,7 @@
             @csrf
             @include('partials.selected-blog-field')
             @if ($parentRemaining !== [])
-                <p style="color:#b00;">目印が残っているため公開できません：{{ implode('、', $parentRemaining) }}</p>
+                <p class="text-error">目印が残っているため公開できません：{{ implode('、', $parentRemaining) }}</p>
             @endif
             <button type="submit" @disabled($parentRemaining !== [])>親ロードマップ「{{ $parentDraft->title_raw }}」を公開する</button>
         </form>

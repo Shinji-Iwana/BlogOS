@@ -15,7 +15,7 @@
 
     @include('partials.flash')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         AIが調べた結果です。教材の情報の案は、写す項目を選んでから教材に写します。新しい教材の候補は、アフィリエイトのリンクを付けて登録します。
         登録するまで、教材は変わりません。
     </p>
@@ -28,7 +28,7 @@
             @continue($rows->isEmpty())
             <h2>{{ $type->label() }}：{{ $rows->count() }}件</h2>
             <div style="overflow-x:auto;">
-                <table border="1" cellpadding="4" cellspacing="0">
+                <table class="data">
                     <thead><tr><th>種類</th><th>名前</th><th>版・出版日</th><th>AIの理由</th><th>作った日時</th><th></th></tr></thead>
                     <tbody>
                         @foreach ($rows as $suggestion)
@@ -37,10 +37,10 @@
                                 <td>
                                     {{ $suggestion->name }}
                                     @if ($suggestion->material && $type === \App\Enums\MaterialSuggestionType::Research)
-                                        <br><span style="color:#666;">教材：<a href="{{ route('materials.edit', ['id' => $suggestion->material->id]) }}">{{ $suggestion->material->name }}</a></span>
+                                        <br><span class="text-muted">教材：<a href="{{ route('materials.edit', ['id' => $suggestion->material->id]) }}">{{ $suggestion->material->name }}</a></span>
                                     @endif
                                     @if ($suggestion->relatedMaterial)
-                                        <br><span style="color:#b60;">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継</span>
+                                        <br><span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継</span>
                                     @endif
                                 </td>
                                 <td>{{ $suggestion->data['edition'] ?? '' }} {{ $suggestion->data['published_on'] ?? '' }}</td>

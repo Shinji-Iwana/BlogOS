@@ -27,7 +27,7 @@
     @include('partials.flash')
 
     <p>種類：{{ $suggestion->kind->label() }}
-        @if ($suggestion->relatedMaterial)・<span style="color:#b60;">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継（登録すると、前の版として関連づけます）</span>@endif
+        @if ($suggestion->relatedMaterial)・<span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継（登録すると、前の版として関連づけます）</span>@endif
     </p>
     @if ($suggestion->reason)
         <p style="white-space:pre-wrap; max-width:900px;"><strong>AIの理由：</strong>{{ $suggestion->reason }}</p>
@@ -35,7 +35,7 @@
     @if (! empty($data['sources']))
         <p><strong>根拠のURL：</strong>@foreach ($data['sources'] as $url)<br><a href="{{ $url }}" target="_blank" rel="noopener noreferrer">{{ $url }}</a>@endforeach</p>
     @endif
-    <p style="color:#666;">AIの調べた内容は、間違っていることがあります。根拠のURLや販売サイトで確かめてから登録してください。</p>
+    <p class="text-muted">AIの調べた内容は、間違っていることがあります。根拠のURLや販売サイトで確かめてから登録してください。</p>
 
     <form method="POST" action="{{ $isResearch ? route('materials.suggestions.apply', ['id' => $suggestion->id]) : route('materials.suggestions.register', ['id' => $suggestion->id]) }}">
         @csrf
@@ -43,8 +43,8 @@
 
         @unless ($isResearch)
             <h2>アフィリエイトのリンク</h2>
-            <p style="color:#666;">もしも・Udemyの管理画面でリンクを作って貼り付けてください（URL、または &lt;a href="…"&gt; を含むHTML）。</p>
-            <table border="1" cellpadding="4" cellspacing="0" style="max-width:900px;">
+            <p class="text-muted">もしも・Udemyの管理画面でリンクを作って貼り付けてください（URL、または &lt;a href="…"&gt; を含むHTML）。</p>
+            <table class="data" style="max-width:900px;">
                 @if ($suggestion->kind === \App\Enums\MaterialKind::Book)
                     <tr><th style="text-align:left;">Amazonのリンク（もしも）</th><td><textarea name="amazon_url" rows="2" style="width:600px;">{{ old('amazon_url') }}</textarea></td></tr>
                     <tr><th style="text-align:left;">楽天のリンク（もしも）</th><td><textarea name="rakuten_url" rows="2" style="width:600px;">{{ old('rakuten_url') }}</textarea></td></tr>
@@ -56,7 +56,7 @@
 
         <h2>{{ $isResearch ? '写す項目を選ぶ' : '教材の情報' }}</h2>
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead>
                     <tr>
                         @if ($isResearch)<th><input type="checkbox" onclick="document.querySelectorAll('.apply-check').forEach(c => c.checked = this.checked)"></th>@endif
@@ -79,7 +79,7 @@
                         <tr>
                             @if ($isResearch)<td><input type="checkbox" class="apply-check" name="apply[]" value="{{ $field }}" @checked(in_array($field, (array) old('apply', $checked ? [$field] : []), true))></td>@endif
                             <th style="text-align:left; vertical-align:top;">{{ $label }}</th>
-                            @if ($isResearch)<td style="max-width:320px; white-space:pre-wrap; color:#666; vertical-align:top;">{{ $current }}</td>@endif
+                            @if ($isResearch)<td class="text-muted" style="max-width:320px; white-space:pre-wrap; vertical-align:top;">{{ $current }}</td>@endif
                             <td style="vertical-align:top;">
                                 @switch ($field)
                                     @case ('category_ids')

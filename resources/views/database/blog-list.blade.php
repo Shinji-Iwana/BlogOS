@@ -15,7 +15,7 @@
     <p>登録件数：{{ $total }}件</p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr>
                     <th>ID</th>

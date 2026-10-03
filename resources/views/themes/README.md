@@ -26,7 +26,8 @@ resources/views/                         共通の画面（どのテーマでも
    ├─ （共通の画面と同じ名前の View）    例：dashboard/index.blade.php、layouts/app.blade.php
    └─ components/                        テーマだけの部品（例：ironman のアークリアクター）
 
-public/themes/{テーマ名}/                テーマの CSS・JavaScript・画像（全画面で読み込む）
+public/css/blogos.css                    共通の画面の見た目（どのテーマでも最初に読み込む。blank はこれだけ）
+public/themes/{テーマ名}/                テーマの CSS・JavaScript・画像（全画面で、blogos.css の後に読み込む）
 ├─ css/style.css                         入口（ここから他の CSS を読み込む）
 ├─ js/script.js                          入口（ここから他の JS を読み込む）
 └─ images/
@@ -40,6 +41,17 @@ public/themes/{テーマ名}/                テーマの CSS・JavaScript・画
 * なければ、共通の画面をそのまま使う。`blank` は何も上書きしない。
 * テーマだけの部品は、`themes.{テーマ名}.components.xxx` のように、テーマ名を含めて読み込む（他のテーマの部品と名前がぶつからないようにする）。
 * 上書きした View は、共通の画面の変更（お知らせの追加など）が自動では入らない。中身は共通の部品（例：`dashboard.content`）を `@include` して、並べ方・飾りだけを変える。
+
+## 共通の画面の見た目の書き方
+
+* 色・背景・枠線は `style="…"` に書かず、`public/css/blogos.css` の意味ごとの class を使う（テーマの CSS で変えられるようにするため。直接の指定はテーマの CSS より優先される）。
+  * 文字：`text-muted`（補足）・`text-dim`・`text-faint`・`text-error`（エラー・要対応）・`text-warn`（注意）・`text-ok`（成功）
+  * 表の行：`row-current`（選択中）・`row-attention`（確認が必要）・`row-danger`（問題が残っている）・`row-error`・`row-group`
+  * 箱：`bordered`・`bg-surface`・`bg-subtle`・`code-block`・`mono`
+  * 表：`<table class="data">`（余白の狭い表は `data data-compact`）
+  * 点数の棒：`bar-track`・`bar-good`・`bar-mid`・`bar-bad`、差分：`diff-added`・`diff-removed`・`diff-skip`
+* 幅・余白・文字の寄せなど、その画面だけの配置は `style="…"` に書いてよい。
+* 新しい意味の見た目が必要になったら、`blogos.css` に class を加え、各テーマの CSS でも見た目を決める。
 
 ## テーマを追加する手順
 

@@ -16,7 +16,7 @@
     @include('partials.flash')
     @include('partials.ai-credit-notice')
 
-    <p style="color:#666;">
+    <p class="text-muted">
         図解は AI が SVG で作り、画面で確かめて PNG にします。例え話・概念のイメージなど、イラストの方が伝わる場合は、AI がイラストを選び、画像モデルで作ります（もう一方の形式でも作って比べられます）。
         スクリーンショット・実行結果は、実際の画面を撮ってアップロードしてください。確認済みにした画像を、WordPress のメディアに登録して記事で使います。
     </p>
@@ -52,7 +52,7 @@
                 <p><label>補足（任意）<br><textarea name="notes" rows="2" style="width:100%;">{{ old('notes') }}</textarea></label></p>
                 @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'design'])
                 @if ($api['configured'])
-                    <p style="color:#666;">AI がイラストを選んだ場合、API実行なら続けて画像モデル（{{ $api['imageModel'] }}・{{ $api['quality'] }}）で作ります（1枚あたり数セント〜）。@include('partials.ai-cost-line')</p>
+                    <p class="text-muted">AI がイラストを選んだ場合、API実行なら続けて画像モデル（{{ $api['imageModel'] }}・{{ $api['quality'] }}）で作ります（1枚あたり数セント〜）。@include('partials.ai-cost-line')</p>
                 @endif
                 <button type="submit">図を作る</button>
             </form>
@@ -73,8 +73,8 @@
                 <p><label>説明（任意）<br><textarea name="description" rows="2" style="width:100%;"></textarea></label></p>
                 <p>
                     <input type="file" name="file" accept="image/png,image/jpeg,image/webp" data-resize="upload-note" required><br>
-                    <span id="upload-note" style="color:#666;"></span>
-                    <span style="color:#666;">PNG・JPEG・WebP（{{ number_format(config('blogos.ai.image.max_upload_kb') / 1024) }}MB まで）。横幅が{{ config('blogos.ai.image.max_width') }}px を超える画像は、送る前に縮めます。</span>
+                    <span id="upload-note" class="text-muted"></span>
+                    <span class="text-muted">PNG・JPEG・WebP（{{ number_format(config('blogos.ai.image.max_upload_kb') / 1024) }}MB まで）。横幅が{{ config('blogos.ai.image.max_width') }}px を超える画像は、送る前に縮めます。</span>
                 </p>
                 <button type="submit">アップロードする</button>
             </form>
@@ -87,21 +87,21 @@
     @else
         <div style="display:flex; flex-wrap:wrap; gap:12px;">
             @foreach ($images as $image)
-                <div style="width:220px; border:1px solid #ccc; padding:6px;">
+                <div class="bordered" style="width:220px; padding:6px;">
                     <a href="{{ route('images.show', ['id' => $image->id]) }}">
                         @if ($image->hasFile())
-                            <img src="{{ route('images.file', ['id' => $image->id]) }}?v={{ $image->updated_at?->timestamp }}" alt="{{ $image->alt }}" style="width:100%; height:130px; object-fit:contain; background:#f5f5f5;" loading="lazy">
+                            <img src="{{ route('images.file', ['id' => $image->id]) }}?v={{ $image->updated_at?->timestamp }}" alt="{{ $image->alt }}" class="bg-subtle" style="width:100%; height:130px; object-fit:contain;" loading="lazy">
                         @elseif (filled($image->svg_source))
-                            <img src="data:image/svg+xml;base64,{{ base64_encode($image->svg_source) }}" alt="{{ $image->alt }}" style="width:100%; height:130px; object-fit:contain; background:#f5f5f5;">
+                            <img src="data:image/svg+xml;base64,{{ base64_encode($image->svg_source) }}" alt="{{ $image->alt }}" class="bg-subtle" style="width:100%; height:130px; object-fit:contain;">
                         @else
-                            <div style="height:130px; background:#f5f5f5; display:flex; align-items:center; justify-content:center; color:#999;">画像なし</div>
+                            <div class="bg-subtle text-faint" style="height:130px; display:flex; align-items:center; justify-content:center;">画像なし</div>
                         @endif
                     </a>
                     <div style="font-size:13px;">
                         <a href="{{ route('images.show', ['id' => $image->id]) }}">{{ $image->title }}</a><br>
-                        {{ $image->kind->label() }}・<span @style(['color:#070' => $image->isReady()])>{{ $image->status->label() }}</span>
-                        @if ($image->media_id)・<span style="color:#070;">WordPress 登録済み</span>@endif
-                        @if ($image->variantOf)<br><span style="color:#666;">「{{ $image->variantOf->title }}」の別の形式</span>@endif
+                        {{ $image->kind->label() }}・<span @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</span>
+                        @if ($image->media_id)・<span class="text-ok">WordPress 登録済み</span>@endif
+                        @if ($image->variantOf)<br><span class="text-muted">「{{ $image->variantOf->title }}」の別の形式</span>@endif
                     </div>
                 </div>
             @endforeach

@@ -13,7 +13,7 @@
         ・<a href="{{ route('database.sync-runs.index') }}">同期の記録</a>
     </p>
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <thead>
             <tr>
                 <th>データ</th>

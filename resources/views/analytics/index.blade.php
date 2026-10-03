@@ -28,7 +28,7 @@
     </p>
 
     <h2>ブログ全体</h2>
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr>
             <th style="text-align:left;">GA4</th>
             <td>
@@ -80,7 +80,7 @@
     </p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>記事</th><th>表示回数</th><th>クリック</th><th>検索での表示回数</th><th>CTR</th><th>平均掲載順位</th><th>収益</th></tr></thead>
             <tbody>
                 @forelse ($articles as $row)

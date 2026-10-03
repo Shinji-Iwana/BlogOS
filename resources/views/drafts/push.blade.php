@@ -24,14 +24,14 @@
     </p>
 
     @if ($locked)
-        <p style="color:#b00;">結果が確定していない反映記録があるため、反映できません。</p>
+        <p class="text-error">結果が確定していない反映記録があるため、反映できません。</p>
     @elseif (! $draft->state->isActive())
-        <p style="color:#b00;">この編集案は{{ $draft->state->label() }}のため、反映できません。</p>
+        <p class="text-error">この編集案は{{ $draft->state->label() }}のため、反映できません。</p>
     @elseif ($payload === [])
         <p>WordPressの現在の内容から変わっている項目がありません。</p>
     @else
         <h2>送る項目</h2>
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>項目</th><th>現在</th><th>反映後</th></tr></thead>
             <tbody>
                 @foreach ($payload as $field => $value)
@@ -55,7 +55,7 @@
             @include('partials.selected-blog-field')
 
             @if ($willBePublic)
-                <p style="color:#b00;"><label><input type="checkbox" name="confirmed_public" value="1"> <strong>反映すると、記事が公開された状態になります（読者に見えます）。確認しました。</strong></label></p>
+                <p class="text-error"><label><input type="checkbox" name="confirmed_public" value="1"> <strong>反映すると、記事が公開された状態になります（読者に見えます）。確認しました。</strong></label></p>
             @endif
 
             <p><label><input type="checkbox" name="approved" value="1"> 上の内容をWordPressへ反映することを承認します</label></p>

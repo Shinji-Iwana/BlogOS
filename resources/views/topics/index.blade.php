@@ -34,11 +34,11 @@
                 @foreach ($units as $value => $label)
                     <label><input type="radio" name="unit" value="{{ $value }}" @checked(old('unit', 'articles') === $value)> {{ $label }}</label><br>
                 @endforeach
-                <span style="color:#666;">子カテゴリの記事の案は子カテゴリを、足りない子カテゴリの案は親カテゴリを選んでください。</span>
+                <span class="text-muted">子カテゴリの記事の案は子カテゴリを、足りない子カテゴリの案は親カテゴリを選んでください。</span>
             </p>
             <p><label>補足（重点を置きたい内容・対象の読者など）<br><textarea name="notes" rows="2" style="width:100%;">{{ old('notes') }}</textarea></label></p>
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.topic_planning', 'api'), 'webSearch' => true, 'prefix' => 'topic'])
-            <p style="color:#666;">Web検索ありの API 実行で、1回あたり約 $0.05 です。結果は下の「確認待ちの案」に届きます。</p>
+            <p class="text-muted">Web検索ありの API 実行で、1回あたり約 $0.05 です。結果は下の「確認待ちの案」に届きます。</p>
             <p><button type="submit">企画する</button></p>
         </form>
     </fieldset>
@@ -48,7 +48,7 @@
         <p>ありません。</p>
     @else
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>カテゴリ</th><th>案</th><th>優先度</th><th>理由・重複</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($pending as $suggestion)
@@ -78,7 +78,7 @@
 
     <h2>AIを使わない手がかり</h2>
     <h3>記事の少ないカテゴリ（2件以下）</h3>
-    <p style="color:#666;">記事が1〜2件だけのカテゴリは、評価が低くなりやすいため、記事を増やすか、まとめて公開する計画を立ててください。</p>
+    <p class="text-muted">記事が1〜2件だけのカテゴリは、評価が低くなりやすいため、記事を増やすか、まとめて公開する計画を立ててください。</p>
     <ul>
         @foreach ($thin as $category)
             <li>{{ $categories->firstWhere('id', $category->parent_id)?->name ? $categories->firstWhere('id', $category->parent_id)->name . ' ＞ ' : '' }}{{ $category->name }}：{{ $counts[$category->id] ?? 0 }}記事
@@ -90,7 +90,7 @@
     @if ($queries->isEmpty())
         <p>ありません。</p>
     @else
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>検索語句</th><th>表示回数</th><th>クリック</th><th>平均順位</th><th>表示された記事</th></tr></thead>
             <tbody>
                 @foreach ($queries as $query)

@@ -16,7 +16,7 @@
     <section>
         <h2>BlogOS側の情報（blog_histories）：{{ $histories->count() }}件</h2>
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead>
                     <tr>
                         <th>変更日時</th><th>ブログ</th><th>項目</th><th>変更前</th><th>変更後</th>
@@ -46,7 +46,7 @@
     <section>
         <h2>WordPressのサイト設定（blog_setting_histories）：{{ $settingHistories->count() }}件</h2>
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead>
                     <tr>
                         <th>変更日時</th><th>ブログ</th><th>キー</th><th>項目</th><th>変更前</th><th>変更後</th>

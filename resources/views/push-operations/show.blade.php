@@ -27,14 +27,14 @@
     @include('partials.flash')
 
     @if ($operation->state === \App\Enums\PushState::Completed)
-        <p style="color:#070;"><strong>反映が完了しました。</strong>DBはWordPressが返した内容で更新しています。</p>
+        <p class="text-ok"><strong>反映が完了しました。</strong>DBはWordPressが返した内容で更新しています。</p>
     @elseif ($operation->state === \App\Enums\PushState::Failed)
-        <p style="color:#b00;"><strong>反映できませんでした。</strong>WordPressは変更されていません。編集案から、やり直せます。</p>
+        <p class="text-error"><strong>反映できませんでした。</strong>WordPressは変更されていません。編集案から、やり直せます。</p>
     @elseif ($operation->state === \App\Enums\PushState::WpSucceeded)
-        <p style="color:#b00;"><strong>WordPressへの反映は成功しましたが、DBの更新が完了していません。</strong>次の同期の最初に、回復処理で完了させます。</p>
+        <p class="text-error"><strong>WordPressへの反映は成功しましたが、DBの更新が完了していません。</strong>次の同期の最初に、回復処理で完了させます。</p>
     @endif
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr><th style="text-align:left;">対象</th><td>{{ $operation->resource_type->label() }}：{{ $operation->targetLabel() }}</td></tr>
         <tr><th style="text-align:left;">操作</th><td>{{ $operation->operation->label() }}</td></tr>
         <tr><th style="text-align:left;">承認</th><td>{{ $operation->approver?->name ?? '-' }}</td></tr>
@@ -63,7 +63,7 @@
 
         @if ($operation->operation === \App\Enums\PushOperationType::Create)
             @if ($candidateError)
-                <p style="color:#b00;">候補を取得できませんでした：{{ $candidateError }}</p>
+                <p class="text-error">候補を取得できませんでした：{{ $candidateError }}</p>
             @endif
 
             <p>送信した時刻の少し前以降に更新された記事（作成されていれば、この中にあります）：</p>

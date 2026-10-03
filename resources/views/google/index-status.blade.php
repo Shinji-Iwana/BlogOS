@@ -17,9 +17,9 @@
     @include('partials.flash')
 
     @unless ($configured)
-        <p style="color:#b00;">Search Console のプロパティが設定されていません。<a href="{{ route('google.settings') }}">Google連携の設定</a>で選んでください。</p>
+        <p class="text-error">Search Console のプロパティが設定されていません。<a href="{{ route('google.settings') }}">Google連携の設定</a>で選んでください。</p>
     @else
-        <p style="color:#666;">
+        <p class="text-muted">
             Search Console の URL 検査で、公開中の記事が Google に登録されているかを調べます（毎日 05:30 に、まだ調べていない記事・反映で変わった記事・前に調べてから日数が過ぎた記事を調べます）。
             今、調べる順番を待っている記事：{{ $due }}件。
         </p>
@@ -37,11 +37,11 @@
             @if ($counts[$option->value] ?? 0)
                 <li>
                     <a href="{{ route('google.index-status', ['category' => $option->value]) }}">{{ $option->label() }}</a>：{{ $counts[$option->value] }}件
-                    @if ($option->advice())<br><span style="color:#666;">{{ $option->advice() }}</span>@endif
+                    @if ($option->advice())<br><span class="text-muted">{{ $option->advice() }}</span>@endif
                 </li>
             @endif
         @endforeach
-        @if ($counts['error'] ?? 0)<li style="color:#b00;">調べられなかった：{{ $counts['error'] }}件</li>@endif
+        @if ($counts['error'] ?? 0)<li class="text-error">調べられなかった：{{ $counts['error'] }}件</li>@endif
     </ul>
 
     <h2>{{ $category ? $category->label() . 'の記事' : '登録済み以外の記事' }}（{{ $statuses->count() }}件）</h2>
@@ -51,7 +51,7 @@
         <p>ありません。</p>
     @else
         <div style="overflow-x:auto;">
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead><tr><th>記事</th><th>分類</th><th>最後に Google が読んだ日時</th><th>調べた日時</th><th>前の分類</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($statuses as $status)
@@ -60,7 +60,7 @@
                             <td style="max-width:420px;"><a href="{{ route('articles.show', ['type' => $status->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw }}</a></td>
                             <td>
                                 {{ $status->category?->label() ?? '調べられなかった' }}
-                                @if ($status->error)<br><span style="color:#b00;">{{ \Illuminate\Support\Str::limit($status->error, 120) }}</span>@endif
+                                @if ($status->error)<br><span class="text-error">{{ \Illuminate\Support\Str::limit($status->error, 120) }}</span>@endif
                             </td>
                             <td>{{ $status->last_crawl_at ? \App\Support\DisplayTime::format($status->last_crawl_at) : '-' }}</td>
                             <td>{{ $status->inspected_at ? \App\Support\DisplayTime::format($status->inspected_at) : '-' }}</td>

@@ -16,7 +16,7 @@
     <p>
         <label><input type="radio" name="execution_method" value="manual" @checked($selectedMethod === 'manual')> 手動実行（指示文をChatGPT等に貼り付けて、回答を貼り付けます）</label><br>
         <label><input type="radio" name="execution_method" value="api" @checked($selectedMethod === 'api') @disabled(! $api['configured'])> API実行（料金がかかります）</label>
-        @unless ($api['configured'])<span style="color:#b00;">（APIキーが設定されていません）</span>@endunless
+        @unless ($api['configured'])<span class="text-error">（APIキーが設定されていません）</span>@endunless
     </p>
 @endunless
 @if ($api['configured'])

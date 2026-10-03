@@ -22,10 +22,10 @@
     <h2>Googleアカウント</h2>
 
     @if (! $configured)
-        <p style="color:#b00;">GoogleのOAuthクライアントが設定されていません（.env の GOOGLE_OAUTH_CLIENT_ID・GOOGLE_OAUTH_CLIENT_SECRET・GOOGLE_OAUTH_REDIRECT_URI）。</p>
+        <p class="text-error">GoogleのOAuthクライアントが設定されていません（.env の GOOGLE_OAUTH_CLIENT_ID・GOOGLE_OAUTH_CLIENT_SECRET・GOOGLE_OAUTH_REDIRECT_URI）。</p>
     @endif
 
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <thead><tr><th>アカウント</th><th>状態</th><th>最後の更新</th><th></th></tr></thead>
         <tbody>
             @forelse ($accounts as $account)
@@ -33,7 +33,7 @@
                     <td>{{ $account->email }}</td>
                     <td>
                         @if ($account->last_error)
-                            <strong style="color:#b00;">{{ $account->last_error }}</strong>
+                            <strong class="text-error">{{ $account->last_error }}</strong>
                         @else
                             接続済み
                         @endif
@@ -75,7 +75,7 @@
             $candidateError = $candidates[$service->value]['error'] ?? null;
         @endphp
 
-        <section style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <section class="bordered" style="padding:10px; margin-bottom:10px;">
             <h3 style="margin-top:0;">{{ $service->label() }}</h3>
 
             <p>
@@ -88,7 +88,7 @@
             </p>
 
             @if ($candidateError)
-                <p style="color:#b00;">候補を取得できませんでした：{{ $candidateError }}（GCPのプロジェクトで、このAPIが有効になっているか確認してください）</p>
+                <p class="text-error">候補を取得できませんでした：{{ $candidateError }}（GCPのプロジェクトで、このAPIが有効になっているか確認してください）</p>
             @endif
 
             @if ($accounts->isNotEmpty())
@@ -142,7 +142,7 @@
 
             @php $run = $latestRuns[$service->value] ?? null; @endphp
             @if ($run)
-                <p style="color:#666;">
+                <p class="text-muted">
                     最後の取得：{{ \App\Support\DisplayTime::format($run->started_at) }}・{{ $run->status->label() }}・{{ $run->date_from?->toDateString() }}〜{{ $run->date_to?->toDateString() }}・{{ $run->row_count }}行
                     @if ($run->message)・{{ $run->message }}@endif
                 </p>
@@ -162,7 +162,7 @@
 
     <h2>取得の記録（新しい順、最大30件）</h2>
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead><tr><th>日時</th><th>サービス</th><th>契機</th><th>結果</th><th>期間</th><th>行数</th><th>メッセージ</th></tr></thead>
             <tbody>
                 @forelse ($recentRuns as $run)

@@ -39,7 +39,7 @@
 
     <section>
         <h2>リクエスト</h2>
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <tr><th>HTTPメソッド</th><td>{{ $result['method'] }}</td></tr>
             <tr><th>URL</th><td style="word-break:break-all;">{{ $result['url'] }}</td></tr>
             <tr><th>クエリ</th><td style="word-break:break-all;">{{ $result['query'] ? http_build_query($result['query']) : '（なし）' }}</td></tr>
@@ -51,9 +51,9 @@
         <h2>レスポンス</h2>
 
         @if ($result['error'])
-            <p style="color:#b00;">{{ $result['error'] }}</p>
+            <p class="text-error">{{ $result['error'] }}</p>
         @else
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <tr><th>HTTPステータス</th><td>{{ $result['status'] }}</td></tr>
                 @foreach (['X-WP-Total', 'X-WP-TotalPages'] as $header)
                     @if (isset($result['headers'][$header]))
@@ -65,7 +65,7 @@
             @if ($rows)
                 <h3>一覧（{{ count($rows) }}件）</h3>
                 <div style="overflow-x:auto;">
-                    <table border="1" cellpadding="4" cellspacing="0">
+                    <table class="data">
                         <thead><tr><th>ID</th><th>slug</th><th>名前・タイトル</th><th>status</th></tr></thead>
                         <tbody>
                             @foreach ($rows as $row)
@@ -89,7 +89,7 @@
             </details>
 
             <h3>レスポンス本文（JSON）</h3>
-            <pre style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; background:#f6f6f6; padding:8px;">{{ $result['body'] !== null ? json_encode($result['body'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
+            <pre class="code-block" style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; padding:8px;">{{ $result['body'] !== null ? json_encode($result['body'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
         @endif
     </section>
 

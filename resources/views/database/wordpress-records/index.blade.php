@@ -18,7 +18,7 @@
     <p>{{ $records->total() }}件</p>
 
     <div style="overflow-x:auto;">
-        <table border="1" cellpadding="4" cellspacing="0">
+        <table class="data">
             <thead>
                 <tr>
                     <th>id</th>
@@ -37,7 +37,7 @@
                         @endforeach
                         <td>
                             @if ($record->wordpress_deleted_at)
-                                <strong style="color:#b00;">{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }}</strong>
+                                <strong class="text-error">{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }}</strong>
                             @endif
                         </td>
                     </tr>

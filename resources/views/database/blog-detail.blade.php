@@ -14,7 +14,7 @@
     <p><a href="{{ route('database-blog-list') }}">ブログ一覧に戻る</a></p>
 
     @if (session('status'))
-        <p style="color:#070;">{{ session('status') }}</p>
+        <p class="text-ok">{{ session('status') }}</p>
     @endif
 
     {{-- 登録直後の確認結果（WORDPRESS_API 29章） --}}
@@ -44,7 +44,7 @@
 
         <section>
             <h2>BlogOS側の情報（blogs）</h2>
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <tr><th>ID</th><td>{{ $blog->id }}</td></tr>
                 <tr><th>表示名</th><td>{{ $blog->display_name }}</td></tr>
                 <tr><th>ホームURL</th><td>{{ $blog->home }}</td></tr>
@@ -59,7 +59,7 @@
         <section>
             <h2>認証情報（blog_credentials）</h2>
             @if ($credential)
-                <table border="1" cellpadding="4" cellspacing="0">
+                <table class="data">
                     <tr><th>方式</th><td>{{ $credential->auth_type }}</td></tr>
                     <tr><th>ユーザー名</th><td>{{ $credential->username }}</td></tr>
                     <tr><th>Application Password</th><td>設定済み（表示しません）</td></tr>
@@ -73,7 +73,7 @@
 
         <section>
             <h2>WordPressのサイト設定（blog_settings）</h2>
-            <table border="1" cellpadding="4" cellspacing="0">
+            <table class="data">
                 <thead>
                     <tr><th>キー</th><th>値</th><th>最終照合日時</th></tr>
                 </thead>

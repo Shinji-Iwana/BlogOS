@@ -23,7 +23,7 @@
     @php $isApi = $generation->execution_method === \App\Enums\AiExecutionMethod::Api; @endphp
 
     @if ($generation->error)
-        <p style="color:#b00;">失敗しました：{{ $generation->error }}@unless ($isApi)（回答を直して、もう一度貼り付けられます）@endunless</p>
+        <p class="text-error">失敗しました：{{ $generation->error }}@unless ($isApi)（回答を直して、もう一度貼り付けられます）@endunless</p>
     @endif
 
     {{-- API実行：実行中は、10秒ごとに画面を読み込み直す --}}
@@ -32,7 +32,7 @@
         <p>
             <strong>OpenAI API で実行中です</strong>（{{ $generation->model }}・推論の深さ {{ $generation->reasoning_effort }}）。数分かかることがあります。この画面は10秒ごとに更新されます。<br>
             @if ($generation->started_at === null)
-                <span style="color:#b00;">まだ処理が始まっていません。Queueの処理が動いているか確認してください（ローカルでは <code>php artisan queue:work</code>）。</span>
+                <span class="text-error">まだ処理が始まっていません。Queueの処理が動いているか確認してください（ローカルでは <code>php artisan queue:work</code>）。</span>
             @else
                 処理の開始：{{ \App\Support\DisplayTime::format($generation->started_at) }}
             @endif
@@ -97,7 +97,7 @@
             <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('prompt').value).then(() => { this.textContent = 'コピーしました'; })">指示文をコピー</button>
             （{{ number_format(mb_strlen($generation->input)) }}文字）
         </p>
-        <textarea id="prompt" rows="12" readonly style="width:100%; font-family:monospace; font-size:12px;">{{ $generation->input }}</textarea>
+        <textarea id="prompt" rows="12" readonly class="mono" style="width:100%; font-size:12px;">{{ $generation->input }}</textarea>
 
         <h2>2. 回答と、使ったモデルを貼り付ける</h2>
         <form method="POST" action="{{ route('ai.generations.submit', ['id' => $generation->id]) }}">
@@ -117,7 +117,7 @@
                 <datalist id="models">@foreach ($manual['models'] as $value)<option value="{{ $value }}">@endforeach</datalist>
                 <datalist id="efforts">@foreach ($manual['efforts'] as $value)<option value="{{ $value }}">@endforeach</datalist>
             </p>
-            <p><textarea name="output" rows="16" style="width:100%; font-family:monospace; font-size:12px;" placeholder="AIの回答を、そのまま貼り付けてください">{{ old('output', $generation->output) }}</textarea></p>
+            <p><textarea name="output" rows="16" class="mono" style="width:100%; font-size:12px;" placeholder="AIの回答を、そのまま貼り付けてください">{{ old('output', $generation->output) }}</textarea></p>
             <button type="submit">回答を取り込む</button>
         </form>
 
@@ -129,7 +129,7 @@
     @endif
 
     <h2>記録</h2>
-    <table border="1" cellpadding="4" cellspacing="0">
+    <table class="data">
         <tr><th style="text-align:left;">実行方式</th><td>{{ $generation->execution_method->label() }}</td></tr>
         <tr><th style="text-align:left;">提供元・利用プラン・モデル・推論の深さ</th><td>{{ $generation->provider ?? '-' }}・{{ $generation->service_plan ?? '-' }}・{{ $generation->model ?? '-' }}・{{ $generation->reasoning_effort ?? '-' }}</td></tr>
         @if ($isApi)
