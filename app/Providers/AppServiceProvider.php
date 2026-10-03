@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
+use App\Services\ThemeService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Pagination\Paginator;
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
                 ...ServeCommand::$passthroughVariables, 'TEMP', 'TMP',
             ]));
         }
+
+        // 画面のテーマ（D-49）。1回のリクエストの中では、選んだテーマを1回だけ読む
+        $this->app->singleton(ThemeService::class);
     }
 
     /**

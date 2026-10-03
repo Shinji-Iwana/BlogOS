@@ -288,8 +288,8 @@ Presentation Layerは、利用者へ情報を表示し、利用者からの操�
 
 画面の見た目は、テーマとして切り替えられるようにする（D-16-01）。
 
-* 使用するテーマは `config/blogos.php` の `theme` で指定する（現在は `blank`＝装飾なし、今後 `ironman` 等を追加）。
-* テーマのViewは `resources/views/themes/{テーマ名}/` に置く。
+* 選べるテーマは `config/themes.php` に登録し、使うテーマは画面「設定」で選ぶ（`system_settings` の `theme`。選んでいなければ `blank`＝装飾なし。D-49）。
+* `resources/views/` の画面を共通の画面とし、テーマの View（`resources/views/themes/{テーマ名}/`）に同じ名前の View があれば、そのテーマのときだけそちらを使う。CSS・JavaScript は `public/themes/{テーマ名}/` に置く（`resources/views/themes/README.md`）。
 * テーマは見た目だけを担当し、表示するデータ・業務処理・ルートはテーマによって変えない。どのテーマでも同じControllerが同じデータを渡す。
 * 当面は `blank` で機能を作り、システムの構築後に見た目を整える。
 
@@ -1177,7 +1177,10 @@ app/
 resources/
 ├─ ai/templates/          AI実行テンプレート
 ├─ quality/               品質基準（共通基準・ブログ別の定義）
-└─ views/themes/          画面のテーマ（6-1）
+└─ views/themes/          画面のテーマ（6-1。共通の画面を上書きする View）
+
+config/themes.php         テーマの登録
+public/themes/            テーマの CSS・JavaScript・画像
 
 必要に応じて Exceptions、Rules、Support などを追加する。機能が存在しない段階から過剰にディレクトリやクラスを作成しない。
 

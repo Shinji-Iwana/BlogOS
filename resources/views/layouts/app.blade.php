@@ -1,27 +1,33 @@
+@php($theme = app(\App\Services\ThemeService::class))
 <!DOCTYPE html>
 <html lang="ja">
     <head>
 
         {{-- ==========================================================
              ページ共通のHTML設定
+             ----------------------------------------------------------
+             テーマに layouts/app.blade.php がある場合は、そちらを使う（D-49）。
              ========================================================== --}}
 
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>BlogOS</title>
 
-        {{-- 現在使用しているテーマのCSSを読み込む。 --}}
+        {{-- 選んだテーマのCSSを読み込む（public/themes/{テーマ名}/css/style.css）。 --}}
         <link
             rel="stylesheet"
-            href="{{ \App\Services\ThemeService::css() }}"
+            href="{{ $theme->css() }}"
         >
 
-        {{-- 現在使用しているテーマのJavaScriptを読み込む。 --}}
+        {{-- 選んだテーマのJavaScriptを読み込む（public/themes/{テーマ名}/js/script.js）。 --}}
         <script
-            src="{{ \App\Services\ThemeService::js() }}"
+            src="{{ $theme->js() }}"
         ></script>
 
     </head>
 
-    <body>
+    {{-- テーマのCSSで、テーマごとの指定に使えるよう、テーマ名を付ける --}}
+    <body class="theme-{{ $theme->current() }}">
 
         {{-- ==========================================================
              BlogOS共通ヘッダー

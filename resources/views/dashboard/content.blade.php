@@ -1,12 +1,10 @@
 {{--
-    トップページ（blankテーマ：装飾なし。D-16-01）
+    トップページの中身（お知らせと各画面への入口。D-16-01・D-49）
 
-    テーマは見た目だけを担当する。表示するデータは DashboardController が渡す。
+    どのテーマでも同じ中身を使う。テーマで並べ方・飾りを変える場合は、
+    resources/views/themes/{テーマ名}/dashboard/index.blade.php から、この部品を読み込む。
+    表示するデータは DashboardController が渡す。
 --}}
-
-@extends('layouts.app')
-
-@section('content')
 
 @if ($errors->any())
     <div style="color:#b00;">
@@ -141,5 +139,3 @@
     @csrf
     <button type="submit">ログアウト</button>
 </form>
-
-@endsection

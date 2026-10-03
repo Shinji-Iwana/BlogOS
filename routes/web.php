@@ -82,6 +82,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::post('/blog-switch', [BlogSwitchController::class, 'switch'])->name('blog-switch');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    // 画面のテーマ（D-49）。BlogOS 全体の設定のため、選択中のブログの照合はしない
+    Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     Route::get('/scheduled-tasks', [ScheduledTaskController::class, 'index'])->name('scheduled-tasks.index');

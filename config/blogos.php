@@ -2,9 +2,6 @@
 
 return [
 
-    'theme'=>'blank',
-    //'theme'=>'ironman',
-
     /*
      * 管理者の認証情報
      *

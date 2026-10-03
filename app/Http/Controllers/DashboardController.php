@@ -15,7 +15,6 @@ use App\Support\ScheduledTasks;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
 use App\Services\Sync\SyncStatusService;
-use App\Services\ThemeService;
 
 class DashboardController extends Controller
 {
@@ -27,7 +26,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * トップページ。見た目は選択中のテーマで表示する（D-16-01）。
+     * トップページ。見た目は選んだテーマで表示する（テーマに dashboard/index があれば、そちら。D-16-01・D-49）。
      *
      * ブログが1件もない場合は、テーマ側でブログ登録へ誘導する。
      * 選択中のブログがない場合は null のまま表示し、画面上部の切り替えから選ばせる（表示のためにDBを書き換えない）。
@@ -40,7 +39,7 @@ class DashboardController extends Controller
         // API実行の料金表のお知らせ（D-31-03）：確認待ちの値下がり、読み取れなかった料金、直近7日の値上がり
         $latestCheck = $this->priceRepository->latestCheck();
 
-        return view(ThemeService::index(), [
+        return view('dashboard.index', [
             'blogs'        => $this->blogRepository->getAll(),
             'selectedBlog' => $selectedBlog,
             'syncStatus'   => $selectedBlog ? $this->syncStatusService->forBlog($selectedBlog) : null,

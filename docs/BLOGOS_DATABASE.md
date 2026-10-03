@@ -852,6 +852,10 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 
 `scheduled_task_runs`：実行の記録。`task_key`、`trigger`（`scheduled` / `manual`）、`status`（`running` / `succeeded` / `failed`）、`scheduled_for`（定期実行の予定の時刻。開始の遅れを見る）、`started_at`・`finished_at`・`duration_seconds`（Queue に登録した処理は、その処理が終わった時点が終了）、`processed_count`・`changed_count`・`error_count`・`blog_count`（件数の意味は定期実行ごとに `ScheduledTasks` の `counts`）、`pending_jobs`（終わるのを待っている処理の数。コマンド自身を含む）、`message`（出力の最後の行）・`output`（コマンドと Queue の処理の出力。最後の8,000文字）・`error`、`peak_memory_mb`、`requested_by`。INDEX：(`task_key`, `started_at`)、`started_at`。
 
+## 10-6. system_settings
+
+BlogOS 全体の設定（ブログごとではない設定。D-49）。`key`（UNIQUE）、`value`、`updated_by`。行がない設定は config の既定で動く。今のキーは `theme`（画面のテーマ。`config/themes.php` の名前）だけ。
+
 ---
 
 # 11. 主キー・外部キー・UNIQUE・INDEX
@@ -1033,7 +1037,7 @@ DB確認画面で、各テーブルの件数・データ量・履歴の増え方
 
 ## 16-5. 設定値の保存先
 
-AIの実行方式（手動／API）の切り替え、費用の上限、受け入れの目安の点数、削除判定の割合などの設定値を、configに置くかDBに置くかは実装時に決定する。
+AIの実行方式（手動／API）の切り替え、費用の上限、受け入れの目安の点数、削除判定の割合などの設定値を、configに置くかDBに置くかは実装時に決定する。ブログごとの設定は `blog_settings`・`blog_ai_settings` など、BlogOS 全体の設定は `system_settings`（10-6）に置く。
 
 ## 16-6. 大量データへの対応
 
