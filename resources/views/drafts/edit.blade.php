@@ -67,7 +67,8 @@
             $after = $revisionFindings->pluck('checkEvaluation')->filter()->sortByDesc('id')->first();
             $checked = $revisionFindings->whereNotNull('check_status');
         @endphp
-        <h2>指摘と対応</h2>
+        <section class="panel">
+        <h2 data-code="FINDINGS">指摘と対応</h2>
         <p class="text-muted">
             記事改修に渡した指摘（番号付き）と、改修での対応、改修後の品質診断での確認です。
             @if ($checked->isEmpty() && $editable)
@@ -123,12 +124,13 @@
         @if ($revisionFindings->whereIn('check_status', ['unresolved', 'partial'])->isNotEmpty() && $editable)
             <p>未解消・一部解消の指摘は、<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">もう一度AIで改修案を作る</a>と、改修後の評価の指摘として引き継がれます。</p>
         @endif
+        </section>
     @endif
 
     {{-- BlogOS の仕上げ：目印・画像の依頼・広告（D-34） --}}
     @if ($placeholders !== [] || $draftImages->isNotEmpty() || $draft->finish_notes)
-        <fieldset style="max-width:1000px;">
-            <legend>画像・目印・BlogOS が入れたもの</legend>
+        <fieldset class="panel" style="max-width:1000px;">
+            <legend data-code="FINISH">画像・目印・BlogOS が入れたもの</legend>
 
             @if ($placeholders !== [])
                 <p class="text-error">
@@ -184,7 +186,7 @@
                 <form method="POST" action="{{ route('drafts.finish', ['id' => $draft->id]) }}">
                     @csrf
                     @include('partials.selected-blog-field')
-                    <button type="submit">目印を置き換え直す</button>
+                    <button type="submit" class="btn-secondary">目印を置き換え直す</button>
                     <span class="text-muted">（登録した画像・公開した記事を反映します。広告と広告を含むことの表示も、決まった位置に入れ直します）</span>
                 </form>
             @endif
@@ -195,7 +197,7 @@
         <p class="text-muted">編集の起点：WordPressの {{ \App\Support\DisplayTime::format($draft->base_wordpress_modified_gmt) }} の版</p>
     @endif
 
-    <form method="POST" action="{{ route('drafts.update', ['id' => $draft->id]) }}">
+    <form method="POST" action="{{ route('drafts.update', ['id' => $draft->id]) }}" class="panel" data-code="EDITOR">
         @csrf
         @method('PUT')
         @include('partials.selected-blog-field')
@@ -269,9 +271,10 @@
     </form>
 
     @if ($editable)
-        <h2>状態と反映</h2>
+        <section class="panel">
+        <h2 data-code="PUBLISH">状態と反映</h2>
         <p>
-            <a href="{{ route('drafts.push.confirm', ['id' => $draft->id]) }}"><strong>反映の確認へ</strong></a>（WordPressに送る内容を確認してから、承認して反映します）
+            <a href="{{ route('drafts.push.confirm', ['id' => $draft->id]) }}" class="button-link"><strong>反映の確認へ</strong></a>（WordPressに送る内容を確認してから、承認して反映します）
         </p>
         <form method="POST" action="{{ route('drafts.state', ['id' => $draft->id]) }}" style="display:inline;">
             @csrf
@@ -281,18 +284,20 @@
                 <button type="submit">確認待ちにする</button>
             @else
                 <input type="hidden" name="state" value="editing">
-                <button type="submit">作業中に戻す</button>
+                <button type="submit" class="btn-secondary">作業中に戻す</button>
             @endif
         </form>
         <form method="POST" action="{{ route('drafts.state', ['id' => $draft->id]) }}" style="display:inline;" onsubmit="return confirm('この編集案を破棄しますか？（行は残ります）');">
             @csrf
             @include('partials.selected-blog-field')
             <input type="hidden" name="state" value="discarded">
-            <button type="submit">破棄する</button>
+            <button type="submit" class="btn-danger">破棄する</button>
         </form>
+        </section>
     @endif
 
-    <h2>変更履歴</h2>
+    <section class="panel">
+    <h2 data-code="HISTORY">変更履歴</h2>
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>変更元</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
@@ -311,5 +316,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection

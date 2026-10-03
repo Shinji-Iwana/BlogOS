@@ -1,0 +1,175 @@
+/* ==========================================================
+   components/panel.css
+   ----------------------------------------------------------
+   HUD のパネル（D-49-11）。
+
+   ・トップページのパネル（.hud-panel）と、各画面の区切り（.panel）の共通の見た目
+   ・各画面では、<section class="panel">・<fieldset class="panel">・<form class="panel"> で区切る
+     （public/css/blogos.css では何もしないため、blank の見た目は変わらない）
+   ・区切りの見出し（.panel の最初の h2・legend）は、パネルの見出しの行にする。
+     data-code（英字の札。例：EDITOR）があれば、見出しの前に出す
+   ========================================================== */
+
+
+/* ==========================================================
+   HUD のパネル（トップページのパネルと、各画面の .panel で共通）
+   ----------------------------------------------------------
+   背景は状態の色（--hud-accent）をうっすら含んだ色で、細い線の枠。四隅に HUD の角の印を付ける。
+   ========================================================== */
+
+.hud-panel,
+.panel {
+    --hud-accent: var(--im-cyan);
+
+    position: relative;
+    padding: 12px 16px 14px;
+    /* color-mix に対応していないブラウザでは、青の薄い色 */
+    background: rgba(102, 217, 255, 0.05);
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--hud-accent) 11%, transparent) 0%,
+            color-mix(in srgb, var(--hud-accent) 4%, transparent) 100%);
+    box-shadow: inset 0 0 22px color-mix(in srgb, var(--hud-accent) 9%, transparent);
+    color: var(--im-text);
+    border: 1px solid var(--im-line);
+    border-radius: 2px;
+}
+
+/* 四隅の角の印（左上と右下） */
+.hud-panel::before,
+.hud-panel::after,
+.panel::before,
+.panel::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: var(--hud-accent);
+    border-style: solid;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.hud-panel::before,
+.panel::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+}
+
+.hud-panel::after,
+.panel::after {
+    right: -1px;
+    bottom: -1px;
+    border-width: 0 2px 2px 0;
+}
+
+.hud-panel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--im-line-faint);
+}
+
+/* 英字の札（SYNC など） */
+.hud-panel-code {
+    font-family: var(--im-font-logo);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--hud-accent);
+}
+
+.hud-panel-label {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    color: var(--im-text);
+}
+
+/* パネルの中のリンクも、文字の基本の白。マウスを乗せると青白く光る */
+.hud-panel a {
+    color: var(--im-text);
+    text-decoration-color: var(--im-line-strong);
+}
+
+.hud-panel a:hover,
+.hud-panel a:focus-visible {
+    color: var(--im-cyan-bright);
+}
+
+
+
+/* ==========================================================
+   各画面の区切り（.panel）
+   ========================================================== */
+
+.panel {
+    display: block;
+    min-width: 0;
+    margin: 0 0 24px;
+}
+
+/* fieldset の標準の枠・余白を、パネルに合わせる */
+fieldset.panel {
+    padding: 12px 16px 14px;
+    border: 1px solid var(--im-line);
+}
+
+/* 区切りの見出し（パネルの見出しの行） */
+.panel > h2:first-child,
+.panel > legend {
+    margin: 0 0 12px;
+    padding: 0 0 8px;
+    font-size: 18px;
+    border-left: 0;
+    border-bottom: 1px solid var(--im-line-faint);
+    text-shadow: none;
+}
+
+/* legend は枠の線の上に出るため、見出しの行にはせず、枠の中の先頭に置く */
+fieldset.panel > legend {
+    float: left;
+    width: 100%;
+}
+
+fieldset.panel > legend + * {
+    clear: both;
+}
+
+/* 英字の札（data-code） */
+.panel [data-code]::before,
+.panel[data-code]::before {
+    content: attr(data-code);
+}
+
+.panel > h2[data-code]::before,
+.panel > legend[data-code]::before {
+    display: inline-block;
+    margin-right: 12px;
+    font-family: var(--im-font-logo);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--hud-accent);
+    vertical-align: 2px;
+}
+
+/* 見出しのない区切り（form.panel など）は、札をパネルの左上の外に出す */
+.panel[data-code]::before {
+    width: auto;
+    height: auto;
+    top: -9px;
+    left: 18px;
+    padding: 0 8px;
+    border: 0;
+    background: var(--im-bg);
+    font-family: var(--im-font-logo);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 16px;
+    color: var(--hud-accent);
+    opacity: 1;
+}

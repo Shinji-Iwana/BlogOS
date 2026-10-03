@@ -116,3 +116,66 @@ input[type="submit"]:disabled {
     box-shadow: none;
     filter: none;
 }
+
+
+/* ==========================================================
+   ボタンの種類（D-49-11）
+   ----------------------------------------------------------
+   ・何も付けない：主な操作（スーツの赤と金）
+   ・.btn-secondary：補助の操作（HUD の青白い線）
+   ・.btn-danger：取り消せない・壊す操作（赤い線と赤い文字）
+   ・a.button-link：主な操作へのリンクを、ボタンの形で出す
+   public/css/blogos.css では何もしないため、blank の見た目は変わらない。
+   ========================================================== */
+
+button.btn-secondary {
+    color: var(--im-cyan);
+    background: rgba(102, 217, 255, 0.06);
+    border-color: var(--im-line-strong);
+}
+
+button.btn-secondary:hover,
+button.btn-secondary:focus-visible {
+    color: var(--im-cyan-bright);
+    border-color: var(--im-cyan);
+    box-shadow: var(--im-glow);
+    filter: none;
+}
+
+button.btn-danger {
+    color: var(--im-red);
+    background: transparent;
+    border-color: rgba(255, 90, 82, 0.6);
+}
+
+button.btn-danger:hover,
+button.btn-danger:focus-visible {
+    color: #fff;
+    background: rgba(255, 90, 82, 0.18);
+    border-color: var(--im-red);
+    box-shadow: 0 0 10px rgba(255, 90, 82, 0.4);
+    filter: none;
+}
+
+a.button-link {
+    display: inline-block;
+    padding: 5px 16px;
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--im-gold-text);
+    background: linear-gradient(180deg, var(--im-red-mid), var(--im-red-deep));
+    border: 1px solid var(--im-gold-deep);
+    border-radius: 2px;
+    text-decoration: none;
+    transition: box-shadow var(--im-ease), border-color var(--im-ease), filter var(--im-ease);
+}
+
+a.button-link:hover,
+a.button-link:focus-visible {
+    color: var(--im-gold-text);
+    border-color: var(--im-gold);
+    box-shadow: var(--im-glow-gold);
+    text-shadow: none;
+    filter: brightness(1.15);
+}
