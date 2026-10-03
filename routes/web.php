@@ -6,6 +6,7 @@ use App\Http\Controllers\Ai\AiGenerationController;
 use App\Http\Controllers\Ai\AiPriceController;
 use App\Http\Controllers\Ai\AiSettingsController;
 use App\Http\Controllers\Analytics\AnalyticsController;
+use App\Http\Controllers\Analytics\PerformanceController;
 use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
 use App\Http\Controllers\Articles\ArticleController;
@@ -283,6 +284,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // 試作のときに Google Cloud に登録したリダイレクトURIのまま使えるようにする
     Route::get('/adsense/oauth/callback', [GoogleOAuthController::class, 'callback']);
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    // 記事の実績と次にやること（D-47 S4）
+    Route::get('/analytics/performance', [PerformanceController::class, 'index'])->name('analytics.performance');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
