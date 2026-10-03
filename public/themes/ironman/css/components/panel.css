@@ -108,7 +108,7 @@
 .panel {
     display: block;
     min-width: 0;
-    margin: 0 0 24px;
+    margin: 24px 0;
 }
 
 /* fieldset の標準の枠・余白を、パネルに合わせる */

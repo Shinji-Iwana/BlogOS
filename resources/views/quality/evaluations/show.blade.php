@@ -61,12 +61,13 @@
     </table>
 
     @if (! $evaluation->is_confirmed && $target)
-        <p><a href="{{ route('evaluations.create', ['target' => $target, 'from' => $evaluation->id]) }}"><strong>この評価を元に、人が評価・確定する</strong></a></p>
+        <p><a href="{{ route('evaluations.create', ['target' => $target, 'from' => $evaluation->id]) }}" class="button-link"><strong>この評価を元に、人が評価・確定する</strong></a></p>
     @endif
 
     {{-- 観点ごとの適合度（D-47。合否には使わない） --}}
     @if ($evaluation->axis_scores)
-        <h2>観点ごとの適合度</h2>
+        <section class="panel">
+        <h2 data-code="AXES">観点ごとの適合度</h2>
         <p class="text-muted">同じ判定を観点ごとに集計した割合です（合否には使いません）。低い観点と、それを下げている項目を、改善の優先度の目安にしてください。</p>
         <table class="data">
             <thead><tr><th>観点</th><th>適合度</th><th>重要度</th><th>下げている項目</th></tr></thead>
@@ -90,14 +91,18 @@
                 @endforeach
             </tbody>
         </table>
+        </section>
     @endif
 
     @if ($evaluation->summary)
-        <h2>総評</h2>
+        <section class="panel">
+        <h2 data-code="SUMMARY">総評</h2>
         <p style="white-space:pre-wrap;">{{ $evaluation->summary }}</p>
+        </section>
     @endif
 
-    <h2>必須条件</h2>
+    <section class="panel">
+    <h2 data-code="REQUIRED">必須条件</h2>
     <table class="data">
         <thead><tr><th>キー</th><th>条件</th><th>判定</th><th>理由</th></tr></thead>
         <tbody>
@@ -112,8 +117,10 @@
             @endforeach
         </tbody>
     </table>
+    </section>
 
-    <h2>採点項目と指摘</h2>
+    <section class="panel">
+    <h2 data-code="ITEMS">採点項目と指摘</h2>
     <p class="text-muted">○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。記事改修は、この指摘を直すべきこととして受け取ります。</p>
     <div style="overflow-x:auto;">
         <table class="data">
@@ -141,5 +148,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection

@@ -47,7 +47,7 @@
     @endunless
 
     {{-- 1. 条件を選んで、対象を確認する --}}
-    <form method="GET" action="{{ route('ai.batches.create') }}">
+    <form method="GET" action="{{ route('ai.batches.create') }}" class="panel" data-code="CONDITIONS">
         <input type="hidden" name="mode" value="{{ $mode->value }}">
         <p>
             <label>対象
@@ -80,11 +80,12 @@
                 </select>
             </label>
         </p>
-        <button type="submit">対象を確認する</button>
+        <button type="submit" class="btn-secondary">対象を確認する</button>
     </form>
 
     {{-- 2. 対象と費用の目安 --}}
-    <h2>対象：{{ count($targets) }}件</h2>
+    <section class="panel">
+    <h2 data-code="TARGETS">対象：{{ count($targets) }}件</h2>
     <p>
         @if ($averageCost !== null)
             費用の目安：約${{ number_format($averageCost * count($targets), 2) }}（{{ $model }} の過去の{{ $mode->label() }}の平均 ${{ number_format($averageCost, 4) }} × {{ count($targets) }}件）。
@@ -191,5 +192,6 @@
             sync();
         })();
     </script>
+    </section>
 
 @endsection

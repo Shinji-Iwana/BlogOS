@@ -23,7 +23,7 @@
         <button type="submit">新しい{{ $type === 'posts' ? '投稿' : '固定ページ' }}の編集案を作る</button>
     </form>
 
-    <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}">
+    <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}" class="panel" data-code="FILTER">
         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="タイトル・スラッグ">
         <select name="status">
             <option value="">ステータス：すべて</option>
@@ -37,7 +37,7 @@
                 <option value="{{ $workStatus->value }}" @selected(($filters['work_status'] ?? '') === $workStatus->value)>{{ $workStatus->label() }}</option>
             @endforeach
         </select>
-        <button type="submit">絞り込む</button>
+        <button type="submit" class="btn-secondary">絞り込む</button>
     </form>
 
     <p>{{ $articles->total() }}件（WordPress側で完全に削除されたものを除く）</p>

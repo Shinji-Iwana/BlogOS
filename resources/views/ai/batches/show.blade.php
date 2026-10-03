@@ -57,11 +57,12 @@
         <form method="POST" action="{{ route('ai.batches.cancel', ['id' => $batch->id]) }}" onsubmit="return confirm('残りの記事を実行せずに取り消しますか？');">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">取り消す（実行中の記事は最後まで実行します）</button>
+            <button type="submit" class="btn-danger">取り消す（実行中の記事は最後まで実行します）</button>
         </form>
     @endif
 
-    <h2>記事ごとの結果</h2>
+    <section class="panel">
+    <h2 data-code="RESULTS">記事ごとの結果</h2>
     <div style="overflow-x:auto;">
         <table class="data">
             @php $isRevision = $batch->purpose === \App\Enums\AiMode::Revision; @endphp
@@ -112,5 +113,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection

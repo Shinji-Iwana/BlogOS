@@ -38,7 +38,8 @@
         @include('partials.selected-blog-field')
         <input type="hidden" name="target" value="{{ $target }}">
 
-        <h2>必須条件（1つでも × なら公開不可）</h2>
+        <section class="panel">
+        <h2 data-code="REQUIRED">必須条件（1つでも × なら公開不可）</h2>
         <table class="data">
             <thead><tr><th>キー</th><th>条件</th><th>判定</th><th>理由・メモ</th></tr></thead>
             <tbody>
@@ -56,8 +57,10 @@
                 @endforeach
             </tbody>
         </table>
+        </section>
 
-        <h2>採点項目（○：配点どおり、△：50%、×：0点）</h2>
+        <section class="panel">
+        <h2 data-code="ITEMS">採点項目（○：配点どおり、△：50%、×：0点）</h2>
         @foreach (collect($applicable)->groupBy('category', true) as $category => $items)
             <h3>{{ $category }}</h3>
             <table class="data">
@@ -84,14 +87,17 @@
         @if ($standard->excludedItems($articleType) !== [])
             <p class="text-muted">この記事種類で対象外の項目：{{ implode('、', $standard->excludedItems($articleType)) }}</p>
         @endif
+        </section>
 
-        <h2>総評</h2>
+        <section class="panel">
+        <h2 data-code="SUMMARY">総評</h2>
         <textarea name="summary" rows="5" style="width:100%; max-width:800px;">{{ old('summary', $baseSummary) }}</textarea>
 
         <p>
             <label><input type="checkbox" name="confirm" value="1" @checked(old('confirm'))> <strong>この評価を確定する</strong>（全ての項目と必須条件を ○・△・× で判定した場合だけ確定できます。公開の可否は、確定した評価で判断します）</label>
         </p>
         <button type="submit">評価を保存する</button>
+        </section>
     </form>
 
 @endsection

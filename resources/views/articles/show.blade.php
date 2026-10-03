@@ -43,7 +43,8 @@
     </table>
 
     {{-- 編集案と、ゴミ箱・削除 --}}
-    <h2>編集</h2>
+    <section class="panel">
+    <h2 data-code="EDIT">編集</h2>
     @if ($activeDraft)
         <p>作業中の編集案があります：<a href="{{ route('drafts.edit', ['id' => $activeDraft->id]) }}">編集案 #{{ $activeDraft->id }}（{{ $activeDraft->state->label() }}）</a></p>
     @elseif (! $article->wordpress_deleted_at)
@@ -71,7 +72,9 @@
     @endif
 
     {{-- 品質評価とBlogOSのAI機能（D-06-02、D-07-01〜D-07-03） --}}
-    <h2>品質評価</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="QUALITY">品質評価</h2>
     @php
         $targetKey = ($isPost ? 'posts:' : 'pages:') . $article->id;
         $confirmed = $evaluations->firstWhere('is_confirmed', true);
@@ -120,7 +123,9 @@
     @endif
 
     {{-- Googleの指標（保存済みのデータ。D-21-02〜D-21-04） --}}
-    <h2>Googleの指標（{{ $googlePeriod[0]->toDateString() }}〜{{ $googlePeriod[1]->toDateString() }}、括弧内はその前の28日）</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="GOOGLE">Googleの指標（{{ $googlePeriod[0]->toDateString() }}〜{{ $googlePeriod[1]->toDateString() }}、括弧内はその前の28日）</h2>
     @php
         $ga = $google['ga4']; $gaPrev = $googlePrevious['ga4'];
         $sc = $google['search_console']; $scPrev = $googlePrevious['search_console'];
@@ -174,7 +179,9 @@
     </div>
 
     {{-- 管理情報（D-08-02） --}}
-    <h2>管理情報</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="MANAGEMENT">管理情報</h2>
     <form method="POST" action="{{ route('articles.management.update', ['type' => $type, 'id' => $article->id]) }}">
         @csrf
         @method('PUT')
@@ -235,7 +242,9 @@
     </form>
 
     {{-- 記事で使っている教材（D-30） --}}
-    <h2>紹介している教材（{{ $articleMaterials->count() }}件）</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="MATERIALS">紹介している教材（{{ $articleMaterials->count() }}件）</h2>
     @if ($articleMaterials->isEmpty())
         <p>本文に、登録済みの教材のリンクはありません。</p>
     @else
@@ -263,11 +272,13 @@
         AIで教材を見直す：
         <label><input type="radio" name="execution_method" value="manual" checked> 手動実行</label>
         <label><input type="radio" name="execution_method" value="api"> API実行（標準のモデル・料金がかかります）</label>
-        <button type="submit">見直す</button>
+        <button type="submit" class="btn-secondary">見直す</button>
     </form>
 
     {{-- 記事同士の関係（D-08-04） --}}
-    <h2>記事同士の関係</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="RELATIONS">記事同士の関係</h2>
     <table class="data">
         <thead><tr><th>関係</th><th>記事</th><th>並び順</th><th>本文からのリンク</th><th></th></tr></thead>
         <tbody>
@@ -298,7 +309,7 @@
                             @csrf
                             @method('DELETE')
                             @include('partials.selected-blog-field')
-                            <button type="submit">削除</button>
+                            <button type="submit" class="btn-danger">削除</button>
                         </form>
                     </td>
                 </tr>
@@ -315,7 +326,7 @@
             <option value="pages" @selected($relatedType === 'pages')>固定ページ</option>
         </select>
         <input type="text" name="related_q" value="{{ $relatedQuery }}" placeholder="タイトル・スラッグ">
-        <button type="submit">探す</button>
+        <button type="submit" class="btn-secondary">探す</button>
     </form>
 
     @if ($relatedQuery !== '')
@@ -332,7 +343,7 @@
                     @endforeach
                 </select>
                 <input type="number" name="sort_order" value="0" min="0" style="width:60px;">
-                <button type="submit">追加</button>
+                <button type="submit" class="btn-secondary">追加</button>
             </form>
         @empty
             <p>見つかりませんでした。</p>
@@ -340,7 +351,9 @@
     @endif
 
     {{-- 内部リンク（本文から抽出） --}}
-    <h2>この記事からのリンク（{{ $outbound->count() }}件）</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="LINKS OUT">この記事からのリンク（{{ $outbound->count() }}件）</h2>
     <ul>
         @forelse ($outbound as $link)
             <li>
@@ -355,8 +368,10 @@
             <li>ありません。</li>
         @endforelse
     </ul>
+    </section>
 
-    <h2>この記事へのリンク（{{ $inbound->count() }}件）</h2>
+    <section class="panel">
+    <h2 data-code="LINKS IN">この記事へのリンク（{{ $inbound->count() }}件）</h2>
     <ul>
         @forelse ($inbound as $link)
             @php $source = $link->sourcePost ?? $link->sourcePage; @endphp
@@ -370,8 +385,10 @@
             <li>ありません（孤立している記事の可能性があります）。</li>
         @endforelse
     </ul>
+    </section>
 
-    <h2>本文中の画像（{{ $media->count() }}件）</h2>
+    <section class="panel">
+    <h2 data-code="MEDIA">本文中の画像（{{ $media->count() }}件）</h2>
     <ul>
         @forelse ($media as $item)
             <li>{{ $item->source_url }} @if ($item->media)（メディア：{{ $item->media->title_raw }}）@endif</li>
@@ -381,7 +398,9 @@
     </ul>
 
     {{-- 反映記録 --}}
-    <h2>反映記録</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="PUSH LOG">反映記録</h2>
     <ul>
         @forelse ($operations as $operation)
             <li>
@@ -394,7 +413,9 @@
     </ul>
 
     {{-- 管理情報の変更履歴 --}}
-    <h2>管理情報の変更履歴</h2>
+    </section>
+    <section class="panel">
+    <h2 data-code="HISTORY">管理情報の変更履歴</h2>
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
@@ -412,5 +433,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection
