@@ -15,7 +15,7 @@
    03. 背景
    04. 配置
    05. 部品（ヘッダー・文字の色・表・入力とボタン・箱）
-   06. アークリアクター（トップページ。T3 で作り直す）
+   06. アークリアクター（トップページ）
    07. Animation
    08. 動きを減らす設定（最後）
    ========================================================== */
@@ -52,40 +52,18 @@
 
 
 /* ==========================================================
-   06. アークリアクター
-   ----------------------------------------------------------
-   トップページ（themes/ironman/dashboard/index → components/reactor）だけで使う。
-   Layer の重なり順：背景 → 光 → 後ろのリング → 支え → 機械部品
-   → 回転リング → エネルギー → コア → 前面 → HUD → 効果
+   06. アークリアクター（トップページ。SVG は themes/ironman/components/reactor）
    ========================================================== */
 
-@import url("reactor/layers.css");
-@import url("reactor/background.css");
-@import url("reactor/glow.css");
-@import url("reactor/back-ring/back-ring.css");
-@import url("reactor/support.css");
-@import url("reactor/mechanical/mechanical.css");
-@import url("reactor/rings.css");
-@import url("reactor/energy.css");
-@import url("reactor/core.css");
-@import url("reactor/front.css");
-@import url("reactor/hud.css");
-@import url("reactor/effects/effects.css");
+@import url("reactor/reactor.css");
 
 
 /* ==========================================================
    07. Animation
    ========================================================== */
 
-@import url("animation/common.css");
-@import url("animation/core.css");
-@import url("animation/reactor-state.css");
-@import url("animation/energy.css");
-@import url("animation/front.css");
-@import url("animation/hud.css");
+@import url("animation/reactor.css");
 @import url("animation/page.css");
-@import url("animation/mouse.css");
-@import url("animation/effects.css");
 
 
 /* ==========================================================

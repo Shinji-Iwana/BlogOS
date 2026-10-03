@@ -1,0 +1,144 @@
+/* ==========================================================
+   animation/reactor.css
+   ----------------------------------------------------------
+   アークリアクターの動き（D-49-06）。
+
+   ・金属（外枠・ボルト・コイルの枠・内側の輪）は動かさない
+   ・光（コア・三角・中心・コイルの窓・金属に映る光）は、ゆっくり脈打つ（--reactor-pulse）
+   ・コイルの中の電気は、円に沿って流れ、ときどき明滅する（--reactor-flow）
+   ・周りの HUD の円は、ゆっくり回る（--reactor-spin-a・b。逆向きに2つ）
+   ・形 2 のコアの背面のコイルは、逆向き（反時計回り）に回る（--reactor-spin-core）
+   ・速さは reactor/reactor.css の変数で、状態ごとに変える
+   ========================================================== */
+
+@keyframes reactorPulse {
+
+    0%,
+    100% {
+        opacity: 0.72;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+}
+
+/* 線の模様の長さの分だけずらすと、切れ目なく流れ続ける（短い光：16、長い光：48） */
+@keyframes reactorFlow {
+
+    to {
+        stroke-dashoffset: -32;
+    }
+
+}
+
+@keyframes reactorFlowLong {
+
+    to {
+        stroke-dashoffset: -96;
+    }
+
+}
+
+/* 電気の明滅（不規則に見えるよう、段階的に変える） */
+@keyframes reactorFlicker {
+
+    0%, 100% { opacity: 1; }
+    12% { opacity: 0.55; }
+    18% { opacity: 1; }
+    46% { opacity: 0.8; }
+    52% { opacity: 0.4; }
+    56% { opacity: 1; }
+    83% { opacity: 0.7; }
+
+}
+
+@keyframes reactorSpin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+.reactor-halo,
+.reactor-reflect {
+    animation: reactorPulse var(--reactor-pulse) ease-in-out infinite;
+}
+
+/* コア（中心の光とコアの光）：明るさを大きく変え、光が少しふくらむ。速く明るくなり、ゆっくり落ちる */
+@keyframes reactorCorePulse {
+
+    0%,
+    100% {
+        opacity: 0.45;
+        transform: scale(0.9);
+        filter: brightness(0.85);
+    }
+
+    35% {
+        opacity: 1;
+        transform: scale(1.08);
+        filter: brightness(1.6);
+    }
+
+}
+
+.reactor-core-glow,
+.reactor-center {
+    transform-origin: 200px 200px;
+    animation: reactorCorePulse var(--reactor-pulse) ease-in-out infinite;
+}
+
+/* 三角のコア：コアと同じ間合いで、明るさを大きく変える（形は崩さない） */
+@keyframes reactorGlow {
+
+    0%,
+    100% {
+        opacity: 0.7;
+        filter: brightness(0.9);
+    }
+
+    35% {
+        opacity: 1;
+        filter: brightness(1.7);
+    }
+
+}
+
+.reactor-tri {
+    animation: reactorGlow var(--reactor-pulse) ease-in-out infinite;
+}
+
+/* コイルは1つずつずらして脈打つ（ずらす時間は SVG の style="animation-delay"） */
+.reactor-coil-lights use {
+    animation: reactorPulse var(--reactor-pulse) ease-in-out infinite;
+}
+
+.reactor-coil-spark-a use {
+    animation: reactorFlow var(--reactor-flow) linear infinite;
+}
+
+.reactor-coil-spark-b use {
+    animation:
+        reactorFlowLong calc(var(--reactor-flow) * 2.2) linear infinite,
+        reactorFlicker 1.3s steps(1) infinite;
+}
+
+.reactor-hud,
+.reactor-core-coils {
+    transform-origin: 200px 200px;
+}
+
+.reactor-core-coils {
+    animation: reactorSpin var(--reactor-spin-core) linear infinite reverse;
+}
+
+.reactor-hud-a {
+    animation: reactorSpin var(--reactor-spin-a) linear infinite;
+}
+
+.reactor-hud-b {
+    animation: reactorSpin var(--reactor-spin-b) linear infinite reverse;
+}

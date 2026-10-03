@@ -3,8 +3,6 @@
    ----------------------------------------------------------
    役割：
    ・画面全体の背景（暗い背景、上からの青い光、HUD の格子）
-
-   ※アークリアクター固有の背景は reactor/background.css で管理する
    ========================================================== */
 
 body {
@@ -16,9 +14,4 @@ body {
         repeating-linear-gradient(0deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px),
         repeating-linear-gradient(90deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px);
     background-attachment: fixed;
-}
-
-/* アークリアクターの部分は、画面の背景をそのまま見せる */
-.reactor-bg {
-    background-color: transparent;
 }

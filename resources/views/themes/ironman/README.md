@@ -14,16 +14,17 @@
 | 場所 | 内容 |
 | --- | --- |
 | `dashboard/index.blade.php` | トップページ。アークリアクターを加え、中身は共通の `dashboard.content` |
-| `components/reactor.blade.php` | アークリアクター（背景・リング・機械部品・コア・光の層） |
+| `components/reactor.blade.php` | アークリアクター（SVG。鋼の外枠・10個のコイル・三角のコア・HUD の円）。`$reactorState`（normal／warning／critical）と `$reactorBusy` で色と動きが変わる。形は `config/themes.php` の `reactor_variant`（1・2） |
+| `components/reactor-coils.blade.php` | アークリアクターの10個のコイル（外側と、形 2 のコアの背面で使う） |
 | `public/themes/ironman/css/style.css` | 入口。読み込む CSS と順番だけを書く |
 | `css/tokens.css` | 色・書体・光の変数 |
 | `css/base.css`・`background.css`・`layout.css` | 文字・リンク・見出し、画面の背景（HUD の格子）、本文の余白とアークリアクターの領域 |
 | `css/components/` | 部品：`header`（HUD のバー・ブログ切替）、`text`（意味ごとの文字の色・お知らせ）、`table`（表・行の強調）、`form`（入力欄・ボタン）、`box`（箱・折りたたみ・コード・点数の棒・差分） |
-| `css/reactor/` | アークリアクターの層ごとの見た目 |
-| `css/animation/` | 動き（アークリアクターの動き、ページを開いたときの表示） |
+| `css/reactor/reactor.css` | アークリアクターの大きさと、状態ごとの光の色（変数） |
+| `css/animation/` | 動き（`reactor.css`：光の脈打ちと HUD の円の回転、`page.css`：ページを開いたときの表示） |
 | `css/accessibility.css` | 動きを減らす設定への対応（最後に読み込む） |
-| `public/themes/ironman/js/` | `script.js` が入口。`reactor/energy.js` を読み込む |
-| `public/themes/ironman/images/arc-reactor.png` | アークリアクターの完成のイメージ（参考画像。画面では使わない。T3 で使う） |
+| `public/themes/ironman/js/` | `script.js` が入口（今は読み込むものはない） |
+| `public/themes/ironman/images/arc-reactor.png` | アークリアクターの完成のイメージ（参考画像。画面では使わない） |
 
 ## 進み具合
 
@@ -31,6 +32,8 @@
 | --- | --- | --- |
 | T1 | 共通の画面をテーマで変えられる形にする（`blogos.css`） | 完了 |
 | T2 | 全画面の基本の見た目（色・文字・ヘッダー・表・入力・ボタン・箱） | 完了 |
-| T3 | トップページ：アークリアクターの作り直し（機械感・大きさ・後ろの黒い四角）と、状態のパネル | 未着手 |
+| T3-1 | アークリアクターの作り直し（SVG。機械感・大きさ・状態の色） | 完了（見た目の確認待ち） |
+| T3-2 | トップページの並べ方・状態のパネル・入口のパネル | 未着手 |
+| T3-3 | 状態とアークリアクターの色のつなぎ込み | 未着手 |
 | T4 | よく使う画面から順に仕上げ | 未着手 |
 | T5 | スマートフォン・読みやすさ・負荷 | 未着手 |

@@ -2,101 +2,41 @@
  * ==========================================================
  * script.js
  * ----------------------------------------------------------
- * BlogOSテーマ共通JavaScriptエントリーポイント
+ * ironman テーマの JavaScript の入口（ThemeService が、このファイルだけを読み込む）。
  *
- * 【役割】
- * 現在使用しているテーマで必要となるJavaScriptを
- * 一元的に読み込むための入口ファイル。
+ * 各機能の JavaScript は、このファイルから loadScript() で読み込む。
+ * script.js 自身の URL を基準にするため、テーマ名を書かない。
  *
- * 【設計方針】
- * ThemeService.phpからは、このファイルだけを読み込む。
- *
- * 各機能・各アニメーションのJavaScriptは、
- * このファイルから必要に応じて読み込む。
- *
- * 例：
- *   script.js
- *      ├── reactor/energy.js
- *      ├── reactor/xxxxx.js
- *      ├── hud/xxxxx.js
- *      └── ...
- *
+ * 今は読み込むものはない（アークリアクターの動きは CSS だけで作っている。D-49-06）。
  * ==========================================================
  */
 
 (function () {
     'use strict';
 
-
-    /**
-     * ==========================================================
-     * JavaScriptファイル読み込み処理
-     * ----------------------------------------------------------
-     * 指定されたJavaScriptファイルを動的に読み込む。
-     *
-     * @param {string} src 読み込むJavaScriptファイルのパス
-     * ==========================================================
-     */
-    function loadScript(src) {
-        const script = document.createElement('script');
-
-        script.src = src;
-        script.defer = true;
-
-        document.head.appendChild(script);
-    }
-
-
-    /**
-     * ==========================================================
-     * 現在のscript.jsが存在するディレクトリを取得
-     * ----------------------------------------------------------
-     * script.js自身のURLを基準にすることで、
-     * テーマ名をJavaScript側に直接記述しない。
-     *
-     * これにより、
-     *
-     *   /themes/ironman/js/script.js
-     *
-     * から実行された場合は、
-     *
-     *   /themes/ironman/js/
-     *
-     * を基準にできる。
-     *
-     * ==========================================================
-     */
     const currentScript = document.currentScript;
 
     if (!currentScript) {
         return;
     }
 
-
-    const basePath = currentScript.src.substring(
-        0,
-        currentScript.src.lastIndexOf('/') + 1
-    );
-
+    // script.js があるフォルダ（例：/themes/ironman/js/）
+    const basePath = currentScript.src.substring(0, currentScript.src.lastIndexOf('/') + 1);
 
     /**
-     * ==========================================================
-     * Reactor
-     * ----------------------------------------------------------
-     * Arc Reactorで使用するJavaScriptを読み込む。
+     * JavaScript のファイルを読み込む
      *
-     * 現在：
-     *   ・energy.js
-     *
-     * 今後：
-     *   ・追加のReactorアニメーション
-     *   ・パーティクル処理
-     *   ・インタラクション処理
-     *   などをここに追加する。
-     * ==========================================================
+     * @param {string} file basePath からのファイル名（例：'dashboard/panels.js'）
      */
+    function loadScript(file) {
+        const script = document.createElement('script');
 
-    loadScript(basePath + 'reactor/energy.js');
+        script.src = basePath + file;
+        script.defer = true;
 
+        document.head.appendChild(script);
+    }
 
+    // 例：loadScript('dashboard/panels.js');
+    void loadScript;
 })();
