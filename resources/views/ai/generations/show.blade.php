@@ -47,7 +47,7 @@
         <form method="POST" action="{{ route('ai.generations.reprocess', ['id' => $generation->id]) }}" style="margin-bottom:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">保存済みの回答を、もう一度取り込む</button>
+            <button class="btn-secondary" type="submit">保存済みの回答を、もう一度取り込む</button>
             （APIは呼ばないため、料金はかかりません。取り込みの仕組みを直した後などに使います）
         </form>
     @endif
@@ -63,6 +63,7 @@
 
     {{-- 結果 --}}
     @if ($generation->status === \App\Enums\AiGenerationStatus::Succeeded)
+        <section class="panel">
         <h2>結果</h2>
         @foreach ($generation->evaluations as $evaluation)
             <p>
@@ -88,17 +89,21 @@
         @foreach ($generation->createdDrafts as $createdDraft)
             <p>編集案に取り込みました：<a href="{{ route('drafts.edit', ['id' => $createdDraft->id]) }}"><strong>編集案 #{{ $createdDraft->id }}「{{ $createdDraft->title_raw }}」</strong></a>（内容を確認し、必要なら直してから、反映の確認へ進んでください）</p>
         @endforeach
+        </section>
     @endif
 
     {{-- 手動実行：回答の貼り付け --}}
     @if (! $isApi && in_array($generation->status, [\App\Enums\AiGenerationStatus::WaitingOutput, \App\Enums\AiGenerationStatus::Failed], true))
+        <section class="panel">
         <h2>1. 指示文をコピーして、ChatGPT等で実行する</h2>
         <p>
-            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('prompt').value).then(() => { this.textContent = 'コピーしました'; })">指示文をコピー</button>
+            <button class="btn-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('prompt').value).then(() => { this.textContent = 'コピーしました'; })">指示文をコピー</button>
             （{{ number_format(mb_strlen($generation->input)) }}文字）
         </p>
         <textarea id="prompt" rows="12" readonly class="mono" style="width:100%; font-size:12px;">{{ $generation->input }}</textarea>
+        </section>
 
+        <section class="panel">
         <h2>2. 回答と、使ったモデルを貼り付ける</h2>
         <form method="POST" action="{{ route('ai.generations.submit', ['id' => $generation->id]) }}">
             @csrf
@@ -124,10 +129,12 @@
         <form method="POST" action="{{ route('ai.generations.cancel', ['id' => $generation->id]) }}" style="margin-top:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">この実行を取り消す</button>
+            <button class="btn-danger" type="submit">この実行を取り消す</button>
         </form>
+        </section>
     @endif
 
+    <section class="panel">
     <h2>記録</h2>
     <table class="data">
         <tr><th style="text-align:left;">実行方式</th><td>{{ $generation->execution_method->label() }}</td></tr>
@@ -147,6 +154,7 @@
         <tr><th style="text-align:left;">品質基準</th><td>共通基準 {{ $generation->quality_common_version }}{{ $generation->quality_profile ? '、' . $generation->quality_profile . ' ' . $generation->quality_profile_version : '' }}</td></tr>
         @if ($generation->revision_scope)<tr><th style="text-align:left;">改修範囲</th><td>{{ $generation->revision_scope->label() }}</td></tr>@endif
         <tr><th style="text-align:left;">人が提供した情報</th><td style="white-space:pre-wrap;">@foreach ((array) $generation->parameters as $label => $value)@continue(in_array($label, \App\Services\Ai\PromptBuilder::HIDDEN_PARAMETERS, true)){{ $label }}：{{ $value }}
+    </section>
 @endforeach</td></tr>
         <tr><th style="text-align:left;">日時</th><td>{{ \App\Support\DisplayTime::format($generation->created_at) }}〜{{ \App\Support\DisplayTime::format($generation->completed_at) }}（{{ $generation->requester?->name ?? '-' }}）</td></tr>
     </table>

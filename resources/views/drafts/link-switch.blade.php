@@ -22,7 +22,7 @@
     <form method="POST" action="{{ route('drafts.link-switch.create') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">今すぐ調べて編集案を作る</button>
+        <button class="btn-secondary" type="submit">今すぐ調べて編集案を作る</button>
     </form>
 
     @if ($drafts->isEmpty())
@@ -58,6 +58,7 @@
     @endif
 
     @if ($skipped !== [])
+        <section class="panel">
         <h2>作業中の編集案があるため、作っていない記事</h2>
         <p class="text-muted">作業中の編集案で「目印を置き換え直す」を押すと、リンクに切り替わります。直すリンク（古い URL など）は、編集案の本文で直してください。</p>
         <ul>
@@ -68,6 +69,7 @@
                 </li>
             @endforeach
         </ul>
+        </section>
     @endif
 
 @endsection

@@ -26,11 +26,12 @@
         <form method="POST" action="{{ route('google.index-status.run') }}" style="margin-bottom:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">今すぐ調べる</button>
+            <button class="btn-secondary" type="submit">今すぐ調べる</button>
             <label><input type="checkbox" name="all" value="1"> 日数が過ぎていない記事も調べ直す</label>
         </form>
     @endunless
 
+    <section class="panel">
     <h2>分類ごとの件数</h2>
     <ul>
         @foreach (\App\Enums\GoogleIndexCategory::cases() as $option)
@@ -43,7 +44,9 @@
         @endforeach
         @if ($counts['error'] ?? 0)<li class="text-error">調べられなかった：{{ $counts['error'] }}件</li>@endif
     </ul>
+    </section>
 
+    <section class="panel">
     <h2>{{ $category ? $category->label() . 'の記事' : '登録済み以外の記事' }}（{{ $statuses->count() }}件）</h2>
     @if ($category)<p><a href="{{ route('google.index-status') }}">登録済み以外の記事をすべて表示する</a></p>@endif
 
@@ -72,5 +75,6 @@
             </table>
         </div>
     @endif
+    </section>
 
 @endsection

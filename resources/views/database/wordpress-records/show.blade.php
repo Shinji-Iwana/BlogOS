@@ -21,6 +21,7 @@
         <p class="text-error"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>
     @endif
 
+    <section class="panel">
     <h2>列の値</h2>
 
     <div style="overflow-x:auto;">
@@ -49,6 +50,7 @@
     </div>
 
     @if ($record instanceof \App\Models\Post)
+        <section class="panel">
         <h2>カテゴリ・タグ</h2>
         <p>
             カテゴリ：
@@ -66,8 +68,10 @@
                 なし
             @endforelse
         </p>
+        </section>
     @endif
 
+    <section class="panel">
     <h2>変更履歴（新しい順、最大500件）</h2>
 
     <div style="overflow-x:auto;">
@@ -110,5 +114,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection

@@ -173,3 +173,18 @@ fieldset.panel > legend + * {
     color: var(--hud-accent);
     opacity: 1;
 }
+
+
+/* ==========================================================
+   狭い画面（T5）：パネルの内側の余白を小さくする
+   ========================================================== */
+
+@media (max-width: 640px) {
+
+    .hud-panel,
+    .panel,
+    fieldset.panel {
+        padding: 10px 12px 12px;
+    }
+
+}

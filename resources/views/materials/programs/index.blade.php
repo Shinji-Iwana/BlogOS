@@ -22,18 +22,19 @@
     <form method="POST" action="{{ route('materials.programs.register') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">記事のリンクから、未登録のプログラムを登録する</button>
+        <button class="btn-secondary" type="submit">記事のリンクから、未登録のプログラムを登録する</button>
     </form>
 
     <form method="POST" action="{{ route('materials.programs.check') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">リンクを今すぐ確かめる</button>
+        <button class="btn-secondary" type="submit">リンクを今すぐ確かめる</button>
         <span class="text-muted">（毎週月曜に自動で確かめます。記事で使っているプログラムごとにリンクを1本だけ開き、提携が終わっていないかを見ます。状態は自動では変えません）</span>
     </form>
 
     @php $suspects = $programs->filter(fn ($program) => $program->isUsable() && $program->check_result === \App\Enums\AffiliateLinkCheckResult::Suspect); @endphp
     @if ($suspects->isNotEmpty())
+        <section class="panel">
         <h2 class="text-error">提携終了の疑いがあるプログラム</h2>
         <p class="text-muted">ASP の管理画面（もしもならプロモーション検索・提携中のプロモーション）で確かめ、終わっていたら状態を「提携終了」にしてください。</p>
         <ul>
@@ -41,6 +42,7 @@
                 <li>{{ $program->name }}：{{ $program->check_detail }}（{{ \App\Support\DisplayTime::format($program->checked_at) }}）</li>
             @endforeach
         </ul>
+        </section>
     @endif
 
     @php
@@ -49,6 +51,7 @@
     @endphp
 
     @if ($problems->isNotEmpty())
+        <section class="panel">
         <h2 class="text-error">提携中でないプログラムのリンクがある記事</h2>
         <p class="text-muted">リンクが無効になっている、または報酬が発生しない可能性があります。記事の改修で、別の教材に差し替えるか、紹介をやめてください（記事の教材の見直しでも、差し替えの対象として扱います）。</p>
         @foreach ($problems as $program)
@@ -61,6 +64,7 @@
                 </ul>
             </details>
         @endforeach
+        </section>
     @endif
 
     @if ($unregistered !== [])
@@ -123,6 +127,7 @@
         </div>
     @endif
 
+    <section class="panel">
     <h2>プログラムを登録する</h2>
     <p class="text-muted">まだ記事で使っていないプログラム（申請中・否認を含む）を登録します。もしもアフィリエイトの広告IDは、リンクの <code>p_id=</code> の数字です。</p>
     <form method="POST" action="{{ route('materials.programs.store') }}">
@@ -156,5 +161,6 @@
         <p>メモ <input type="text" name="memo" value="{{ old('memo') }}" style="width:400px;"></p>
         <p><button type="submit">登録する</button></p>
     </form>
+    </section>
 
 @endsection

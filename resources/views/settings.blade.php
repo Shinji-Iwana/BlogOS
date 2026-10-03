@@ -32,7 +32,7 @@
 
         <p><a href="{{ route('blogs.credentials.edit') }}">認証情報（WordPressのApplication Password）ページへ</a></p>
 
-        <section>
+        <section class="panel">
             <h2>WordPress API確認</h2>
 
             <p>
@@ -61,7 +61,7 @@
          画面のテーマ（D-49）。BlogOS 全体の設定（ブログごとではない）
          ========================================================== --}}
 
-    <section>
+    <section class="panel">
         <h2>画面のテーマ</h2>
 
         @include('partials.flash')
@@ -93,7 +93,7 @@
          セキュリティ
          ========================================================== --}}
 
-    <section>
+    <section class="panel">
         <h2>セキュリティ</h2>
 
         <p><a href="{{ route('database.login-histories.index') }}">ログイン履歴ページへ</a></p>

@@ -20,7 +20,7 @@
     {{-- 登録直後の確認結果（WORDPRESS_API 29章） --}}
     @if (session('registration'))
         @php($registration = session('registration'))
-        <section>
+        <section class="panel">
             <h2>登録時の確認結果</h2>
             <p>認証したWordPressユーザー：{{ $registration['wordpress_user'] }}（{{ implode(', ', $registration['wordpress_roles']) }}）</p>
             <p>
@@ -42,7 +42,7 @@
 
     @else
 
-        <section>
+        <section class="panel">
             <h2>BlogOS側の情報（blogs）</h2>
             <table class="data">
                 <tr><th>ID</th><td>{{ $blog->id }}</td></tr>
@@ -56,7 +56,7 @@
             </table>
         </section>
 
-        <section>
+        <section class="panel">
             <h2>認証情報（blog_credentials）</h2>
             @if ($credential)
                 <table class="data">
@@ -71,7 +71,7 @@
             @endif
         </section>
 
-        <section>
+        <section class="panel">
             <h2>WordPressのサイト設定（blog_settings）</h2>
             <table class="data">
                 <thead>

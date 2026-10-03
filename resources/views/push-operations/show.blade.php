@@ -58,6 +58,7 @@
 
     {{-- 結果が不明な反映の確認（WORDPRESS_API 24-3） --}}
     @if ($operation->state === \App\Enums\PushState::Unknown)
+        <section class="panel">
         <h2>結果の確認</h2>
         <p>WordPressの管理画面で、反映されたかどうかを確認してから選んでください。</p>
 
@@ -95,8 +96,9 @@
             @csrf
             @include('partials.selected-blog-field')
             <input type="hidden" name="result" value="not_applied">
-            <button type="submit">反映されていなかった（失敗として記録し、編集案をやり直せるようにする）</button>
+            <button class="btn-secondary" type="submit">反映されていなかった（失敗として記録し、編集案をやり直せるようにする）</button>
         </form>
+        </section>
     @endif
 
 @endsection

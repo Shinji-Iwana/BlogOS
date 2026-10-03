@@ -30,6 +30,7 @@
     @elseif ($payload === [])
         <p>WordPressの現在の内容から変わっている項目がありません。</p>
     @else
+        <section class="panel">
         <h2>送る項目</h2>
         <table class="data">
             <thead><tr><th>項目</th><th>現在</th><th>反映後</th></tr></thead>
@@ -46,8 +47,10 @@
         </table>
 
         @if (array_key_exists('content', $payload))
+            <section class="panel">
             <h2>本文の変更（{{ mb_strlen((string) ($current['content'] ?? '')) }}文字 → {{ mb_strlen((string) $payload['content']) }}文字）</h2>
             @include('partials.line-diff', ['diff' => $contentDiff])
+            </section>
         @endif
 
         <form method="POST" action="{{ route('drafts.push.store', ['id' => $draft->id]) }}" style="margin-top:12px;">

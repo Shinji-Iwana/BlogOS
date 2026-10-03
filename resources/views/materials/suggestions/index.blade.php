@@ -26,6 +26,7 @@
         @foreach ([\App\Enums\MaterialSuggestionType::Research, \App\Enums\MaterialSuggestionType::Candidate] as $type)
             @php $rows = $suggestions->where('type', $type); @endphp
             @continue($rows->isEmpty())
+            <section class="panel">
             <h2>{{ $type->label() }}：{{ $rows->count() }}件</h2>
             <div style="overflow-x:auto;">
                 <table class="data">
@@ -52,6 +53,7 @@
                     </tbody>
                 </table>
             </div>
+            </section>
         @endforeach
     @endif
 

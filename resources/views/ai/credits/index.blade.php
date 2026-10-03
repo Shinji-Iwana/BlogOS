@@ -23,6 +23,7 @@
         見込みが ${{ number_format($status['warning'], 2) }} 以下になったら画面で知らせ、足りなくなる見込みならAPI実行を止めます（${{ number_format($status['reserve'], 2) }} は、見込みのずれに備えて残します）。
     </p>
 
+    <section class="panel">
     <h2>残高の見込み</h2>
     @if ($status['base'] === null)
         <p>まだ残高が登録されていません。下の「OpenAI の画面で見た残高を登録する」から登録してください。</p>
@@ -41,7 +42,9 @@
         今月（日本時間）のAPI実行の費用の目安：${{ number_format($spent, 2) }}
         @if ($budget !== null)（月の支出の上限 ${{ number_format($budget, 2) }}。.env の BLOGOS_AI_MONTHLY_BUDGET_USD）@else（月の支出の上限は設けていません）@endif
     </p>
+    </section>
 
+    <section class="panel">
     <h2>登録する</h2>
     <div style="display:flex; flex-wrap:wrap; gap:16px;">
         <fieldset style="max-width:420px;">
@@ -69,7 +72,9 @@
             </form>
         </fieldset>
     </div>
+    </section>
 
+    <section class="panel">
     <h2>OpenAI の画面と比べる</h2>
     <p class="text-muted">
         見込みと実際の残高が大きく違うときは、OpenAI の Usage の画面（日付・モデルごとの Requests・Input tokens・Web Searches）と、下の表を比べてください。
@@ -114,7 +119,9 @@
             </tbody>
         </table>
     </div>
+    </section>
 
+    <section class="panel">
     <h2>登録の記録（新しい順）</h2>
     @if ($history->isEmpty())
         <p>まだ登録はありません。</p>
@@ -140,7 +147,7 @@
                                     @csrf
                                     @method('DELETE')
                                     @include('partials.selected-blog-field')
-                                    <button type="submit">削除</button>
+                                    <button class="btn-danger" type="submit">削除</button>
                                 </form>
                             </td>
                         </tr>
@@ -149,5 +156,6 @@
             </table>
         </div>
     @endif
+    </section>
 
 @endsection

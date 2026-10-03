@@ -26,7 +26,7 @@
         </div>
     @endif
 
-    <section>
+    <section class="panel">
         <h2>現在の状態</h2>
 
         @if ($credential)
@@ -49,14 +49,14 @@
             <form method="POST" action="{{ route('blogs.credentials.verify') }}">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button type="submit">接続確認</button>
+                <button class="btn-secondary" type="submit">接続確認</button>
             </form>
         @else
             <p>未設定です。</p>
         @endif
     </section>
 
-    <section>
+    <section class="panel">
         <h2>更新（上書き）</h2>
 
         <form method="POST" action="{{ route('blogs.credentials.update') }}">

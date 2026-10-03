@@ -32,7 +32,7 @@
         @endif
 
         <p><label><input type="checkbox" name="confirmed" value="1"> 内容を確認しました</label></p>
-        <button type="submit">{{ $force ? '完全に削除する' : 'ゴミ箱へ移動する' }}</button>
+        <button class="btn-danger" type="submit">{{ $force ? '完全に削除する' : 'ゴミ箱へ移動する' }}</button>
     </form>
 
 @endsection

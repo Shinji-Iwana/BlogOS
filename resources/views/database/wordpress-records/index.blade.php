@@ -10,9 +10,9 @@
 
     <p><a href="{{ route('database.wordpress-records.tables') }}">データの一覧に戻る</a></p>
 
-    <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}">
+    <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}" class="panel" data-code="FILTER">
         <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode('・', $definition['search']) }}で絞り込み">
-        <button type="submit">絞り込む</button>
+        <button class="btn-secondary" type="submit">絞り込む</button>
     </form>
 
     <p>{{ $records->total() }}件</p>

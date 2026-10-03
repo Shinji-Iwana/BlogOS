@@ -17,6 +17,7 @@
         各段階で、人が確認してから次へ進みます。公開（カテゴリの作成・まとめて公開）と親ロードマップは、次の段階で追加します。
     </p>
 
+    <section class="panel">
     <h2>進行中・これまでの立ち上げ</h2>
     @if ($launches->isEmpty())
         <p>ありません。</p>
@@ -27,7 +28,9 @@
             @endforeach
         </ul>
     @endif
+    </section>
 
+    <section class="panel">
     <h2>新しく立ち上げる</h2>
     <form method="GET" action="{{ route('launches.index') }}">
         <p>
@@ -65,5 +68,6 @@
             <p><button type="submit">立ち上げを始める</button></p>
         </form>
     @endif
+    </section>
 
 @endsection

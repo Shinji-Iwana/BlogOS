@@ -76,7 +76,7 @@
                         @if ($task['manual'])
                             <form method="POST" action="{{ route('scheduled-tasks.run', ['key' => $key]) }}" onsubmit="return confirm('「{{ $task['label'] }}」を今すぐ実行しますか？');">
                                 @csrf
-                                <button type="submit">今すぐ実行</button>
+                                <button class="btn-secondary" type="submit">今すぐ実行</button>
                             </form>
                         @else
                             <span class="text-muted" style="font-size:90%;">（料金がかかるため、ボタンはありません）</span>
@@ -87,6 +87,7 @@
         </tbody>
     </table>
 
+    <section class="panel">
     <h2 id="runs">実行の記録{{ $filter ? '：' . ScheduledTasks::get($filter)['label'] : '' }}</h2>
     <p>
         @if ($filter)<a href="{{ route('scheduled-tasks.index') }}#runs">すべての定期実行の記録を見る</a>@endif
@@ -130,12 +131,15 @@
         </table>
         {{ $runs->links() }}
     @endif
+    </section>
 
+    <section class="panel">
     <h2>件数の意味</h2>
     <ul class="text-muted">
         @foreach ($tasks as $task)
             <li>{{ $task['label'] }}：{{ $task['counts'] }}</li>
         @endforeach
     </ul>
+    </section>
 
 @endsection

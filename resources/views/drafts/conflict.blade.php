@@ -19,6 +19,7 @@
         WordPressの最新：{{ \App\Support\DisplayTime::format($latestModified) }} の版
     </p>
 
+    <section class="panel">
     <h2>項目の違い（WordPressの最新 → 編集案）</h2>
     <table class="data">
         <thead><tr><th>項目</th><th>WordPressの最新</th><th>編集案</th></tr></thead>
@@ -41,10 +42,14 @@
             @endforeach
         </tbody>
     </table>
+    </section>
 
+    <section class="panel">
     <h2>本文の違い（- WordPressの最新 / + 編集案）</h2>
     @include('partials.line-diff', ['diff' => $contentDiff])
+    </section>
 
+    <section class="panel">
     <h2>対応を選ぶ</h2>
 
     <form method="POST" action="{{ route('drafts.conflict.resolve', ['id' => $draft->id]) }}" style="margin-bottom:12px;">
@@ -60,7 +65,7 @@
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="discard">
         <label><input type="checkbox" name="confirmed" value="1"> 編集案の変更を捨てます</label>
-        <button type="submit">編集案を破棄する</button>
+        <button class="btn-danger" type="submit">編集案を破棄する</button>
     </form>
 
     <form method="POST" action="{{ route('drafts.conflict.resolve', ['id' => $draft->id]) }}">
@@ -70,5 +75,6 @@
         <label><input type="checkbox" name="confirmed" value="1"> <strong class="text-error">WordPress側で行われた変更は失われます</strong></label>
         <button type="submit">編集案で上書きする（反映の確認へ進む）</button>
     </form>
+    </section>
 
 @endsection

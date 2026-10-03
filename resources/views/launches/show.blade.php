@@ -62,7 +62,7 @@
                                                 @csrf
                                                 @include('partials.selected-blog-field')
                                                 <input type="hidden" name="action" value="{{ $action }}">
-                                                <button type="submit">{{ $label }}</button>
+                                                <button type="submit" @class(['btn-secondary' => $action === 'reject'])>{{ $label }}</button>
                                             </form>
                                         @endforeach
                                     @endif
@@ -141,6 +141,7 @@
 
     {{-- ⑧ 親ロードマップ --}}
     @php $roadmapsReady = $launch->children->isNotEmpty() && $launch->children->every(fn ($child) => $child->roadmap_draft_id !== null); @endphp
+    <section class="panel">
     <h2>⑧ 親ロードマップ</h2>
     <p>
         親ロードマップのページ：
@@ -182,15 +183,19 @@
             <button type="submit" @disabled($parentRemaining !== [])>親ロードマップ「{{ $parentDraft->title_raw }}」を公開する</button>
         </form>
     @endif
+    </section>
 
+    <section class="panel">
     <h2>子カテゴリを加える</h2>
     <form method="POST" action="{{ route('launches.children.store', ['id' => $launch->id]) }}">
         @csrf
         @include('partials.selected-blog-field')
         @include('launches.partials.child-options', ['options' => $options])
-        <p><button type="submit">加える</button></p>
+        <p><button class="btn-secondary" type="submit">加える</button></p>
     </form>
+    </section>
 
+    <section class="panel">
     <h2>状態</h2>
     <form method="POST" action="{{ route('launches.status', ['id' => $launch->id]) }}">
         @csrf
@@ -200,7 +205,8 @@
                 <option value="{{ $value }}" @selected($launch->status === $value)>{{ $label }}</option>
             @endforeach
         </select>
-        <button type="submit">変える</button>
+        <button class="btn-secondary" type="submit">変える</button>
     </form>
+    </section>
 
 @endsection

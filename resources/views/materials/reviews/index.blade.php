@@ -20,6 +20,7 @@
         AIの見直しの結果を確認したら「確認した」を押してください。教材の差し替え・削除は、記事の改修で行います（記事は自動では変わりません）。
     </p>
 
+    <section class="panel">
     <h2>AIの見直しの結果（確認待ち）：{{ $reviews->count() }}件</h2>
     @forelse ($reviews as $review)
         @php $article = $review->article(); @endphp
@@ -58,13 +59,15 @@
             <form method="POST" action="{{ route('materials.reviews.reject', ['id' => $review->id]) }}" style="display:inline;">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button type="submit">不採用にする</button>
+                <button class="btn-secondary" type="submit">不採用にする</button>
             </form>
         </fieldset>
     @empty
         <p>確認待ちの結果はありません。</p>
     @endforelse
+    </section>
 
+    <section class="panel">
     <h2>見直しが必要な記事：{{ count($articles) }}件</h2>
     @if ($articles === [])
         <p>見直しが必要な記事はありません。</p>
@@ -101,7 +104,7 @@
                                     @csrf
                                     @include('partials.selected-blog-field')
                                     <input type="hidden" name="target" value="{{ $key }}">
-                                    <button type="submit">このままでよい</button>
+                                    <button class="btn-secondary" type="submit">このままでよい</button>
                                 </form>
                             </td>
                         </tr>
@@ -110,5 +113,6 @@
             </table>
         </div>
     @endif
+    </section>
 
 @endsection

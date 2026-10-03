@@ -81,7 +81,7 @@
             ・<a href="{{ route('materials.index', ['kind' => $option->value, 'category' => $category?->id]) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
         @endforeach
     </p>
-    <form method="GET" action="{{ route('materials.index') }}" style="margin-bottom:8px;">
+    <form method="GET" action="{{ route('materials.index') }}" class="panel" data-code="FILTER" style="margin-bottom:8px;">
         @if ($kind)<input type="hidden" name="kind" value="{{ $kind->value }}">@endif
         <label>カテゴリ：
             <select name="category" onchange="this.form.submit()">
@@ -91,14 +91,14 @@
                 @endforeach
             </select>
         </label>
-        <noscript><button type="submit">絞り込む</button></noscript>
+        <noscript><button class="btn-secondary" type="submit">絞り込む</button></noscript>
         @if ($category)<span class="text-muted">（親カテゴリに登録した教材も出します。記事で候補になる範囲と同じです）</span>@endif
     </form>
 
     <form method="POST" action="{{ route('materials.relink') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">記事との照合をやり直す</button>
+        <button class="btn-secondary" type="submit">記事との照合をやり直す</button>
         <span class="text-muted">（教材を登録・更新したときは自動で行います）</span>
     </form>
 
@@ -160,6 +160,7 @@
                 </table>
             </div>
 
+            <section class="panel">
             <h2>チェックした教材を、AIでまとめて調べる</h2>
             @if ($api['configured'])
                 <p class="text-muted">
@@ -171,6 +172,7 @@
             @else
                 <p class="text-error">APIキーが設定されていないため、まとめて調べることはできません。教材の画面から、手動実行で1つずつ調べてください。</p>
             @endif
+            </section>
         </form>
     @endif
 

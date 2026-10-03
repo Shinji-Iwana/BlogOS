@@ -85,7 +85,7 @@
 
         <form method="POST" action="{{ route('logout') }}" class="hud-logout">
             @csrf
-            <button type="submit">ログアウト</button>
+            <button class="btn-secondary" type="submit">ログアウト</button>
         </form>
 
         @if ($syncStatus)

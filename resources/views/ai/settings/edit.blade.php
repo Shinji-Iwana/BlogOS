@@ -18,6 +18,7 @@
 
     @include('partials.ai-credit-notice')
 
+    <section class="panel">
     <h2>条件による自動の再評価</h2>
     <p>
         有効にすると、毎日（日本時間6:00）、次の条件に当てはまる公開中の記事を、自動で品質診断します（API実行・料金がかかります）。
@@ -91,6 +92,7 @@
         <p class="text-muted">改修の後に、できた編集案も品質診断し、改修前後の点数を記録します（まとめて実行の画面・編集案の画面で確認できます）。</p>
         <p class="text-muted">作業中の編集案がある記事は、人の作業を上書きしないため改修しません。作った編集案は、人が確認してから反映します（WordPressへの反映は自動では行いません）。</p>
 
+        <section class="panel">
         <h2>教材の定期チェック</h2>
         <p>
             <input type="hidden" name="material_check_enabled" value="0">
@@ -106,9 +108,11 @@
         @if ($setting->exists)
             <span class="text-muted">最終更新：{{ \App\Support\DisplayTime::format($setting->updated_at) }}</span>
         @endif
+        </section>
     </form>
 
     {{-- API実行の料金表（全ブログ共通。D-31-03） --}}
+    <section class="panel">
     <h2 id="prices">API実行の料金表（全ブログ共通）</h2>
     <p class="text-muted">
         費用の目安と月の上限の判定に使う料金です。毎日（日本時間4:30）、OpenAIの公式のページと照合します（AIは使わないため、料金はかかりません）。
@@ -143,7 +147,7 @@
                             <form method="POST" action="{{ route('ai.prices.reject', ['id' => $change->id]) }}" style="display:inline;">
                                 @csrf
                                 @include('partials.selected-blog-field')
-                                <button type="submit">反映しない</button>
+                                <button class="btn-secondary" type="submit">反映しない</button>
                             </form>
                         </td>
                     </tr>
@@ -185,7 +189,7 @@
     <form method="POST" action="{{ route('ai.prices.check') }}">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">今すぐ公式のページと照合する</button>
+        <button class="btn-secondary" type="submit">今すぐ公式のページと照合する</button>
         @if ($latestPriceCheck)
             <span class="text-muted">最後の照合：{{ \App\Support\DisplayTime::format($latestPriceCheck->created_at) }}（{{ $latestPriceCheck->succeeded() ? '照合できた' : '読み取れなかった料金あり' }}）</span>
         @endif
@@ -211,7 +215,9 @@
             </table>
         </details>
     @endif
+    </section>
 
+    <section class="panel">
     <h2>今日の時点で対象になる記事：{{ count($targets) }}件</h2>
     <p class="text-muted">
         有効にしていれば、このうち{{ min(count($targets), $remaining) }}件を次の実行で再評価します（今日の残り {{ $remaining }}件）。
@@ -248,5 +254,6 @@
             sync();
         })();
     </script>
+    </section>
 
 @endsection

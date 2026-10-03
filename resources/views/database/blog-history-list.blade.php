@@ -13,7 +13,7 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    <section>
+    <section class="panel">
         <h2>BlogOS側の情報（blog_histories）：{{ $histories->count() }}件</h2>
         <div style="overflow-x:auto;">
             <table class="data">
@@ -43,7 +43,7 @@
         </div>
     </section>
 
-    <section>
+    <section class="panel">
         <h2>WordPressのサイト設定（blog_setting_histories）：{{ $settingHistories->count() }}件</h2>
         <div style="overflow-x:auto;">
             <table class="data">

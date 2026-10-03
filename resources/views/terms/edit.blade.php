@@ -19,6 +19,7 @@
     @if ($record->wordpress_deleted_at)
         <p class="text-error">WordPress側で既に削除されています。</p>
     @else
+        <section class="panel">
         <h2>情報を更新する</h2>
         <form method="POST" action="{{ route('terms.update', ['type' => $type, 'id' => $record->id]) }}">
             @csrf
@@ -49,7 +50,9 @@
             <p><label><input type="checkbox" name="approved" value="1"> 変更した項目をWordPressへ反映することを承認します</label></p>
             <button type="submit">WordPressへ反映する</button>
         </form>
+        </section>
 
+        <section class="panel">
         <h2>完全に削除する</h2>
         <p class="text-error">
             WordPressから完全に削除します（ゴミ箱はなく、元に戻せません）。
@@ -62,8 +65,9 @@
             @include('partials.selected-blog-field')
             <p><label>確認のため、名前（{{ $label }}）を入力してください：<br><input type="text" name="confirm_name" autocomplete="off"></label></p>
             <p><label><input type="checkbox" name="confirmed" value="1"> 元に戻せないことを確認しました</label></p>
-            <button type="submit">完全に削除する</button>
+            <button class="btn-danger" type="submit">完全に削除する</button>
         </form>
+        </section>
     @endif
 
 @endsection

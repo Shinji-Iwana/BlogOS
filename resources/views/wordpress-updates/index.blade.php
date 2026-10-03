@@ -21,7 +21,7 @@
     <form method="POST" action="{{ route('wordpress-updates.check') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">今すぐ確認する</button>
+        <button class="btn-secondary" type="submit">今すぐ確認する</button>
     </form>
 
     @if ($components->isEmpty())

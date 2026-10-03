@@ -81,6 +81,7 @@
         </fieldset>
     </div>
 
+    <section class="panel">
     <h2>画像の一覧</h2>
     @if ($images->isEmpty())
         <p>画像はまだありません。</p>
@@ -109,5 +110,6 @@
     @endif
 
     @include('images.partials.resize-script')
+    </section>
 
 @endsection

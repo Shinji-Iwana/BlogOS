@@ -34,10 +34,10 @@
             <label>status <input type="text" name="status" value="{{ $query['status'] ?? '' }}" placeholder="publish,draft" style="width:10em;"></label>
             <label>search <input type="text" name="search" value="{{ $query['search'] ?? '' }}" style="width:10em;"></label>
         @endunless
-        <button type="submit">取得</button>
+        <button class="btn-secondary" type="submit">取得</button>
     </form>
 
-    <section>
+    <section class="panel">
         <h2>リクエスト</h2>
         <table class="data">
             <tr><th>HTTPメソッド</th><td>{{ $result['method'] }}</td></tr>
@@ -47,7 +47,7 @@
         </table>
     </section>
 
-    <section>
+    <section class="panel">
         <h2>レスポンス</h2>
 
         @if ($result['error'])

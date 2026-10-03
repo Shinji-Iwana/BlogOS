@@ -50,3 +50,23 @@ table.data.data-compact > * > tr > td {
 .row-danger { background: rgba(255, 90, 82, 0.18); }
 .row-error { background: rgba(255, 90, 82, 0.10); }
 .row-group { background: rgba(255, 255, 255, 0.04); }
+
+
+/* ==========================================================
+   狭い画面（T5）：列が細くなりすぎないよう、文字と余白を小さくする
+   ========================================================== */
+
+@media (max-width: 640px) {
+
+    table.data {
+        font-size: 13px;
+    }
+
+    table.data > * > tr > th,
+    table.data > * > tr > td,
+    table.data > tr > th,
+    table.data > tr > td {
+        padding: 4px 6px;
+    }
+
+}

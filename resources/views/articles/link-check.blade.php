@@ -27,6 +27,7 @@
 
     @foreach (['broken', 'outdated', 'category'] as $kind)
         @php $rows = $links->get($kind, collect()); @endphp
+        <section class="panel">
         <h2 id="{{ $kind }}">{{ $kinds[$kind] }}（{{ $rows->count() }}件）</h2>
         @if ($kind === 'broken' && $rows->isNotEmpty())
             <p><a href="{{ route('ai.batches.create', ['mode' => 'revision', 'target' => 'broken_links']) }}">リンク切れがある記事（{{ $rows->map(fn ($row) => $row['source']::class . $row['source']->id)->unique()->count() }}記事）をまとめて改修する</a></p>
@@ -50,10 +51,12 @@
                 </tbody>
             </table>
         @endif
+        </section>
     @endforeach
 
     @foreach (['orphan', 'not_in_roadmap', 'no_outbound'] as $kind)
         @php $rows = $articles->get($kind, collect()); @endphp
+        <section class="panel">
         <h2 id="{{ $kind }}">{{ $kinds[$kind] }}（{{ $rows->count() }}件）</h2>
         @if ($rows->isEmpty())
             <p>ありません。</p>
@@ -70,6 +73,7 @@
                 </ul>
             </details>
         @endif
+        </section>
     @endforeach
 
 @endsection

@@ -29,7 +29,7 @@ class ThemeTest extends TestCase
             ->assertSee('class="theme-blank"', false)
             ->assertDontSee('reactor-core', false);
 
-        $this->get(route('settings'))->assertOk()->assertSee('画面のテーマ')->assertSee('ironman')->assertSee('（制作中）');
+        $this->get(route('settings'))->assertOk()->assertSee('画面のテーマ')->assertSee('ironman')->assertDontSee('（制作中）');
     }
 
     public function test_switching_to_ironman_overrides_only_its_own_views(): void

@@ -43,7 +43,7 @@
                                     <img src="{{ $usedMedia->source_url }}" alt="" style="width:60px; height:60px; object-fit:cover; vertical-align:middle;" loading="lazy">
                                     {{ $used[$category->id]['count'] }}記事
                                     @if ((int) $current !== $usedMedia->id)
-                                        <button type="button" onclick="document.getElementById('eyecatch-{{ $category->id }}').value = '{{ $usedMedia->id }}'">これにする</button>
+                                        <button class="btn-secondary" type="button" onclick="document.getElementById('eyecatch-{{ $category->id }}').value = '{{ $usedMedia->id }}'">これにする</button>
                                     @endif
                                 @else - @endif
                             </td>

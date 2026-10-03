@@ -27,6 +27,7 @@
         （{{ $from->toDateString() }}〜{{ $to->toDateString() }}）
     </p>
 
+    <section class="panel">
     <h2>ブログ全体</h2>
     <table class="data">
         <tr>
@@ -66,7 +67,9 @@
             </td>
         </tr>
     </table>
+    </section>
 
+    <section class="panel">
     <h2>記事ごと（上位100件）</h2>
     <p>
         並べ替え：
@@ -107,7 +110,9 @@
             </tbody>
         </table>
     </div>
+    </section>
 
+    <section class="panel">
     <h2>記事に対応付けられなかったページ（GA4の表示回数の多い順）</h2>
     <p>トップページ・カテゴリのページなど、記事以外のページもここに表示されます。</p>
     <ul>
@@ -117,5 +122,6 @@
             <li>ありません。</li>
         @endforelse
     </ul>
+    </section>
 
 @endsection

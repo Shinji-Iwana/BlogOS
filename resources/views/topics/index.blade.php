@@ -43,6 +43,7 @@
         </form>
     </fieldset>
 
+    <section class="panel">
     <h2>確認待ちの案（{{ $pending->count() }}件）</h2>
     @if ($pending->isEmpty())
         <p>ありません。</p>
@@ -61,7 +62,9 @@
             </table>
         </div>
     @endif
+    </section>
 
+    <section class="panel">
     <h2>採用した記事の案（最近の30件）</h2>
     @if ($accepted->isEmpty())
         <p>ありません。</p>
@@ -75,7 +78,9 @@
             @endforeach
         </ul>
     @endif
+    </section>
 
+    <section class="panel">
     <h2>AIを使わない手がかり</h2>
     <h3>記事の少ないカテゴリ（2件以下）</h3>
     <p class="text-muted">記事が1〜2件だけのカテゴリは、評価が低くなりやすいため、記事を増やすか、まとめて公開する計画を立ててください。</p>
@@ -99,5 +104,6 @@
             </tbody>
         </table>
     @endif
+    </section>
 
 @endsection

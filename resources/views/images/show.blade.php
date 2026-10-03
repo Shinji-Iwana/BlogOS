@@ -39,6 +39,7 @@
     {{-- 画像 --}}
     <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;">
         <div>
+            <section class="panel">
             <h2>画像</h2>
             @if ($image->hasFile())
                 <img src="{{ route('images.file', ['id' => $image->id]) }}?v={{ $image->updated_at?->timestamp }}" alt="{{ $image->alt }}" class="bordered" style="max-width:640px; width:100%;">
@@ -48,12 +49,14 @@
             @else
                 <p class="text-muted">画像はまだありません。</p>
             @endif
+            </section>
         </div>
 
         {{-- 別の形式で作った画像と並べて比べる --}}
         @php $others = $image->variants->concat($image->variantOf ? [$image->variantOf] : []); @endphp
         @foreach ($others as $other)
             <div>
+                <section class="panel">
                 <h2>比べる：{{ $other->kind->label() }}</h2>
                 <a href="{{ route('images.show', ['id' => $other->id]) }}">
                     @if ($other->hasFile())
@@ -65,12 +68,14 @@
                     @endif
                 </a>
                 <p class="text-muted">使わない方は、その画像の画面から削除してください。</p>
+                </section>
             </div>
         @endforeach
     </div>
 
     {{-- 図解：SVG の編集と、PNG への変換 --}}
     @if ($isDiagram && filled($image->svg_source) && ! $image->media_id)
+        <section class="panel">
         <h2>SVG を PNG にする</h2>
         <p class="text-muted">
             この画面（ブラウザ）で、SVG を{{ config('blogos.ai.image.png_scale') }}倍の大きさの PNG にして保存します（あなたのPCの日本語のフォントで描くため、文字化けしません）。
@@ -146,9 +151,11 @@
                 });
             })();
         </script>
+        </section>
     @endif
 
     {{-- 画像の情報 --}}
+    <section class="panel">
     <h2>画像の情報</h2>
     <form method="POST" action="{{ route('images.update', ['id' => $image->id]) }}">
         @csrf
@@ -180,6 +187,8 @@
     </form>
 
     {{-- 確認済みにする・WordPress に登録する --}}
+    </section>
+    <section class="panel">
     <h2>確認と登録</h2>
     @if (! $image->isReady())
         @php $missing = $image->missingForReady(); @endphp
@@ -204,6 +213,7 @@
 
     {{-- 図がまだない図解（記事の「画像の依頼」から作り、自動で図を作れなかった場合など。D-34） --}}
     @if ($image->kind === \App\Enums\ImageKind::Diagram && blank($image->svg_source) && ! $image->hasFile())
+        <section class="panel">
         <h2>AIで図を作る</h2>
         <form method="POST" action="{{ route('images.redesign', ['id' => $image->id]) }}">
             @csrf
@@ -212,10 +222,12 @@
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'redesign'])
             <button type="submit">図を作る</button>
         </form>
+        </section>
     @endif
 
     {{-- 画像モデル・アップロード --}}
     @if (! $image->media_id && $image->kind !== \App\Enums\ImageKind::Diagram)
+        <section class="panel">
         <h2>{{ $image->kind === \App\Enums\ImageKind::Screenshot ? '画像を差し替える' : '画像を作る・差し替える' }}</h2>
         @if ($image->kind !== \App\Enums\ImageKind::Screenshot)
             <fieldset style="max-width:900px;">
@@ -252,27 +264,31 @@
             <button type="submit">アップロードして差し替える</button>
             <span id="replace-note" class="text-muted"></span>
         </form>
+        </section>
     @endif
 
     {{-- もう一方の形式でも作る --}}
     @if (in_array($image->kind, [\App\Enums\ImageKind::Diagram, \App\Enums\ImageKind::Illustration], true) && $image->variants->isEmpty() && ! $image->variantOf)
+        <section class="panel">
         <h2>もう一方の形式でも作って比べる</h2>
         <form method="POST" action="{{ route('images.variant', ['id' => $image->id]) }}" onsubmit="return confirm('もう一方の形式でも作りますか？');">
             @csrf
             @include('partials.selected-blog-field')
             @if ($isDiagram)
                 <p class="text-muted">同じ内容をイラストで作ります（画像モデル。API実行・料金がかかります）。指示文：{{ $image->image_prompt ?: '（なし）' }}</p>
-                <button type="submit" @disabled(! $api['configured'] || blank($image->image_prompt))>イラストでも作る</button>
+                <button class="btn-secondary" type="submit" @disabled(! $api['configured'] || blank($image->image_prompt))>イラストでも作る</button>
             @else
                 <p class="text-muted">同じ内容を SVG の図で作ります（文章のモデル）。</p>
                 @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'variant'])
-                <button type="submit">SVG の図でも作る</button>
+                <button class="btn-secondary" type="submit">SVG の図でも作る</button>
             @endif
         </form>
+        </section>
     @endif
 
     {{-- 記録 --}}
     @if ($image->generations->isNotEmpty())
+        <section class="panel">
         <h2>AI の実行記録</h2>
         <ul>
             @foreach ($image->generations as $generation)
@@ -283,6 +299,7 @@
                 </li>
             @endforeach
         </ul>
+        </section>
     @endif
 
     @if (! $image->media_id)
@@ -290,7 +307,7 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button type="submit">この画像を削除する</button>
+            <button class="btn-danger" type="submit">この画像を削除する</button>
         </form>
     @endif
 

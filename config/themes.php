@@ -27,7 +27,7 @@ return [
         'ironman' => [
             'label'       => 'ironman',
             'description' => '映画「アイアンマン」の世界観（アークリアクター・HUD）の見た目。',
-            'status'      => 'wip',
+            'status'      => 'ready',
             // アークリアクターの形（D-49-06）。1＝基本、2＝コアの外側の三角の金属と、コアの背面の逆回転のコイルを足した形
             'reactor_variant' => 2,
         ],

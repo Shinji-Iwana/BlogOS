@@ -60,6 +60,7 @@
         @unless ($isNew) @method('PUT') @endunless
         @include('partials.selected-blog-field')
 
+        <section class="panel">
         <h2>基本</h2>
         <table class="data" style="max-width:900px;">
             <tr>
@@ -126,7 +127,9 @@
                 </td>
             </tr>
         </table>
+        </section>
 
+        <section class="panel">
         <h2>出版の情報</h2>
         <table class="data" style="max-width:900px;">
             <tr><th style="text-align:left;">著者・講師・運営</th><td><input type="text" name="creator" value="{{ old('creator', $material->creator) }}" style="width:100%;"></td></tr>
@@ -150,7 +153,9 @@
                 </td>
             </tr>
         </table>
+        </section>
 
+        <section class="panel">
         <h2>記事に合う教材を選ぶための情報</h2>
         <p class="text-muted">AIで調べた結果を「教材の案の確認」から写せます。リストは1行に1つです。</p>
         <table class="data" style="max-width:900px;">
@@ -203,9 +208,11 @@
         </table>
 
         <p><button type="submit">{{ $isNew ? '登録する' : '更新する' }}</button></p>
+        </section>
     </form>
 
     @unless ($isNew)
+        <section class="panel">
         <h2>この教材を使っている記事：{{ $articles->count() }}件</h2>
         @if ($articles->isNotEmpty())
             <ul>
@@ -226,9 +233,10 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button type="submit">この教材を削除する</button>
+            <button class="btn-danger" type="submit">この教材を削除する</button>
             <span class="text-muted">（記事で使っている教材は削除できません）</span>
         </form>
+        </section>
     @endunless
 
 @endsection

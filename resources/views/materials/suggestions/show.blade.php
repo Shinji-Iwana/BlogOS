@@ -42,6 +42,7 @@
         @include('partials.selected-blog-field')
 
         @unless ($isResearch)
+            <section class="panel">
             <h2>アフィリエイトのリンク</h2>
             <p class="text-muted">もしも・Udemyの管理画面でリンクを作って貼り付けてください（URL、または &lt;a href="…"&gt; を含むHTML）。</p>
             <table class="data" style="max-width:900px;">
@@ -52,8 +53,10 @@
                     <tr><th style="text-align:left;">アフィリエイトのリンク</th><td><textarea name="affiliate_url" rows="2" style="width:600px;">{{ old('affiliate_url') }}</textarea></td></tr>
                 @endif
             </table>
+            </section>
         @endunless
 
+        <section class="panel">
         <h2>{{ $isResearch ? '写す項目を選ぶ' : '教材の情報' }}</h2>
         <div style="overflow-x:auto;">
             <table class="data">
@@ -117,12 +120,13 @@
         </div>
 
         <p><button type="submit">{{ $isResearch ? 'チェックした項目を教材に写す' : '教材として登録する' }}</button></p>
+        </section>
     </form>
 
     <form method="POST" action="{{ route('materials.suggestions.reject', ['id' => $suggestion->id]) }}" onsubmit="return confirm('この案を不採用にしますか？');">
         @csrf
         @include('partials.selected-blog-field')
-        <button type="submit">この案を不採用にする</button>
+        <button class="btn-secondary" type="submit">この案を不採用にする</button>
     </form>
 
 @endsection
