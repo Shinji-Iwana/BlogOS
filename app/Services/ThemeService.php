@@ -118,6 +118,14 @@ class ThemeService
     }
 
     /**
+     * テーマのファイル（public/themes/{テーマ名}/ からの場所）の URL。画面ごとの JavaScript などを、テーマの View から読み込むときに使う
+     */
+    public function assetUrl(string $file): string
+    {
+        return $this->asset($file);
+    }
+
+    /**
      * テーマのファイルの URL。更新したときにブラウザの古いキャッシュを使わないよう、更新日時を付ける
      */
     protected function asset(string $file): string

@@ -237,6 +237,7 @@
    ========================================================== */
 
 .hud-core {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(220px, 1fr) minmax(300px, 380px) minmax(220px, 1fr);
     align-items: center;
@@ -245,6 +246,8 @@
 }
 
 .hud-panels {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -252,6 +255,77 @@
 
 .hud-reactor .reactor {
     width: 100%;
+}
+
+/* パソコンの幅：線が見えるよう、アークリアクターとパネルの間を広げる */
+@media (min-width: 1025px) {
+
+    .hud-core {
+        column-gap: 56px;
+    }
+
+}
+
+
+/* ==========================================================
+   アークリアクターから各パネルへの線（js/dashboard/connectors.js が描く）
+   ----------------------------------------------------------
+   パネルの状態の色。光が、アークリアクターからパネルへ流れる。
+   ========================================================== */
+
+.hud-connectors {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.hud-connector {
+    --hud-accent: var(--im-cyan);
+}
+
+.hud-connector[data-state="warn"] { --hud-accent: var(--im-gold); }
+.hud-connector[data-state="error"] { --hud-accent: var(--im-red); }
+.hud-connector[data-state="none"] { --hud-accent: var(--im-text-faint); }
+
+.hud-connector-line,
+.hud-connector-flow {
+    fill: none;
+    stroke: var(--hud-accent);
+    stroke-linejoin: round;
+}
+
+.hud-connector-line {
+    stroke-width: 1;
+    opacity: 0.45;
+}
+
+.hud-connector-flow {
+    stroke-width: 1.6;
+    stroke-dasharray: 10 22;
+    filter: drop-shadow(0 0 3px var(--hud-accent));
+    animation: hudConnectorFlow 1.6s linear infinite;
+}
+
+@keyframes hudConnectorFlow {
+
+    to {
+        stroke-dashoffset: -32;
+    }
+
+}
+
+.hud-connector-start {
+    fill: var(--hud-accent);
+    filter: drop-shadow(0 0 4px var(--hud-accent));
+}
+
+.hud-connector-end {
+    fill: var(--im-bg);
+    stroke: var(--hud-accent);
+    stroke-width: 1.5;
 }
 
 /* 狭い画面：アークリアクター → パネルの順に縦に並べる */
