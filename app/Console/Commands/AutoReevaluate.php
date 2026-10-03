@@ -42,7 +42,7 @@ class AutoReevaluate extends Command
                 $targets = $batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation);
                 $this->info("{$label}：対象 " . count($targets) . "件（今日の残り " . $service->remainingToday($blog) . '件）');
                 foreach ($targets as $row) {
-                    $this->line("  [{$row['reason']->label()}] {$row['article']->title_raw}");
+                    $this->line("  [{$row['reason']->label()}]" . ($row['priority_notes'] ? '（優先：' . implode('・', $row['priority_notes']) . '）' : '') . " {$row['article']->title_raw}");
                 }
 
                 continue;

@@ -3,9 +3,11 @@
 namespace App\Services\Quality;
 
 use App\Enums\AiMode;
+use App\Enums\GoogleIndexCategory;
 use App\Enums\ReevaluationReason;
 use App\Models\ArticleEvaluation;
 use App\Models\Blog;
+use App\Models\GoogleIndexStatus;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\ArticleEvaluationRepository;
@@ -20,6 +22,11 @@ use Illuminate\Support\Carbon;
  * 記事が変わっていなければ、再評価しても点数の違いはAIのぶれだけになるため、次の場合だけ再評価する。
  * まだ評価していない / 1. 記事の更新 / 2. 品質基準・テンプレートの更新 / 3. この記事へのリンクの増減 /
  * 4. アクセスの減少 / 5. 定期的な見直し。複数に当てはまる場合は、先の理由を記録する。
+ *
+ * 並び順（1日の上限の中で、どの記事から再評価するか。D-48）：大きな問題がある記事を先にする。
+ * 1段目：インデックス未登録・前回の点数が40点未満（全面改修が必要）・記事の型の★の項目が ×
+ * 2段目：前回の点数が70点未満（構成の見直しが必要）・まだ評価していない ／ 3段目：それ以外
+ * 同じ段の中では理由の順、その後は Search Console の表示回数の多い順（直すと効果の大きい記事から）。
  */
 class ReevaluationDetector
 {
@@ -50,16 +57,19 @@ class ReevaluationDetector
     }
 
     /**
-     * 再評価が必要な記事（理由の優先順、同じ理由の中では記事の順）
+     * 再評価が必要な記事（大きな問題がある順。D-48）
      *
-     * @return list<array{article: Post|Page, evaluation: ArticleEvaluation|null, reason: ReevaluationReason}>
+     * @return list<array{article: Post|Page, evaluation: ArticleEvaluation|null, reason: ReevaluationReason, tier: int, priority_notes: list<string>, impressions: int}>
      */
     public function detect(Blog $blog): array
     {
         $standard = $this->loader->load($blog->quality_profile);
         $templateVersion = AiTemplate::load(AiMode::QualityDiagnosis)->version;
         $linkCounts = $this->articles->inboundLinkCounts($blog->id);
-        $trafficDrops = $this->trafficDrops($blog);
+        [$trafficDrops, $impressions] = $this->traffic($blog);
+        $notIndexed = GoogleIndexStatus::where('blog_id', $blog->id)->whereNotNull('category')
+            ->whereNotIn('category', [GoogleIndexCategory::Indexed->value, GoogleIndexCategory::Unknown->value])->get(['post_id', 'page_id'])
+            ->mapWithKeys(fn ($status) => [($status->post_id ? 'posts:' . $status->post_id : 'pages:' . $status->page_id) => true])->all();
         $periodicDays = (int) config('blogos.ai.auto_reevaluation.periodic_days');
         $cooldownDays = (int) config('blogos.ai.auto_reevaluation.traffic.cooldown_days');
 
@@ -91,21 +101,54 @@ class ReevaluationDetector
             };
 
             if ($reason !== null) {
-                $result[] = $row + ['reason' => $reason];
+                [$tier, $notes] = $this->severity($evaluation, isset($notIndexed["{$key}:{$article->id}"]));
+                $result[] = $row + ['reason' => $reason, 'tier' => $tier, 'priority_notes' => $notes, 'impressions' => $impressions["{$key}:{$article->id}"] ?? 0];
             }
         }
 
-        usort($result, fn ($a, $b) => $a['reason']->priority() <=> $b['reason']->priority());
+        usort($result, fn ($a, $b) => [$a['tier'], $a['reason']->priority(), -$a['impressions']] <=> [$b['tier'], $b['reason']->priority(), -$b['impressions']]);
 
         return $result;
     }
 
     /**
-     * アクセスが落ちた記事（Search Console のクリック数、または GA4 の表示回数）
+     * 問題の大きさの段（1 が最優先）と、その理由（D-48）
      *
-     * @return array{posts: array<int, true>, pages: array<int, true>}
+     * @return array{0: int, 1: list<string>}
      */
-    protected function trafficDrops(Blog $blog): array
+    protected function severity(?ArticleEvaluation $evaluation, bool $notIndexed): array
+    {
+        $notes = [];
+        if ($notIndexed) {
+            $notes[] = 'インデックス未登録';
+        }
+        if ($evaluation?->score !== null && $evaluation->score < 40) {
+            $notes[] = "前回 {$evaluation->score}点（全面改修が必要）";
+        }
+        if (! empty($evaluation?->type_failures)) {
+            $notes[] = '記事の型の必須の項目が ×';
+        }
+        if ($notes !== []) {
+            return [1, $notes];
+        }
+
+        if ($evaluation === null) {
+            // 理由（未評価）と同じため、優先の理由には書かない
+            return [2, []];
+        }
+        if ($evaluation->score !== null && $evaluation->score < 70) {
+            return [2, ["前回 {$evaluation->score}点（構成の見直しが必要）"]];
+        }
+
+        return [3, []];
+    }
+
+    /**
+     * アクセスが落ちた記事（Search Console のクリック数、または GA4 の表示回数）と、今の期間の記事ごとの表示回数
+     *
+     * @return array{0: array{posts: array<int, true>, pages: array<int, true>}, 1: array<string, int>}
+     */
+    protected function traffic(Blog $blog): array
     {
         $config = (array) config('blogos.ai.auto_reevaluation.traffic');
         $window = (int) $config['window_days'];
@@ -132,6 +175,8 @@ class ReevaluationDetector
             }
         }
 
-        return $drops;
+        $impressions = $current->map(fn ($row) => (int) $row->impressions)->all();
+
+        return [$drops, $impressions];
     }
 }

@@ -168,7 +168,7 @@
                         <td><a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
                         <td>{{ $row['evaluation']?->score !== null ? number_format($row['evaluation']->score, 1) . '点' : '-' }}</td>
                         <td>{{ $row['evaluation'] ? \App\Support\DisplayTime::format($row['evaluation']->created_at) : '-' }}</td>
-                        @if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<td>{{ $row['reason']?->label() }}</td>@endif
+                        @if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<td>{{ $row['reason']?->label() }}@if (! empty($row['priority_notes']))<br><span style="color:#b00; font-size:90%;">優先：{{ implode('・', $row['priority_notes']) }}</span>@endif</td>@endif
                     </tr>
                 @empty
                     <tr><td colspan="4">対象の記事はありません（実行中・待機中の記事は除いています）。</td></tr>
