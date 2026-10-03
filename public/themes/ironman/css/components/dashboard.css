@@ -8,7 +8,7 @@
    ・お知らせ
    ・種類ごとの入口のパネル
 
-   パネルの背景は透明（黒い背景をそのまま見せる）。文字の基本は白で、状態を表す部分
+   パネルの背景は、状態の色をうっすら含んだ色（上ほど少し濃く、内側にかすかな光。D-49-10）。文字の基本は白で、状態を表す部分
    （英字の札・光る点・状態の英字・今の値・枠の色）だけを状態の色にする。
 
    状態の色（data-state）：
@@ -19,7 +19,7 @@
 /* ==========================================================
    HUD のパネル（状態のパネル・入口のパネルで共通）
    ----------------------------------------------------------
-   背景は透明で、細い線の枠。四隅に HUD の角の印を付ける。
+   背景は状態の色（--hud-accent）をうっすら含んだ色で、細い線の枠。四隅に HUD の角の印を付ける。
    ========================================================== */
 
 .hud-panel {
@@ -27,7 +27,13 @@
 
     position: relative;
     padding: 12px 16px 14px;
-    background: transparent;
+    /* color-mix に対応していないブラウザでは、青の薄い色 */
+    background: rgba(102, 217, 255, 0.05);
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--hud-accent) 11%, transparent) 0%,
+            color-mix(in srgb, var(--hud-accent) 4%, transparent) 100%);
+    box-shadow: inset 0 0 22px color-mix(in srgb, var(--hud-accent) 9%, transparent);
     color: var(--im-text);
     border: 1px solid var(--im-line);
     border-radius: 2px;
@@ -106,7 +112,9 @@
 .hud-status-panel[data-state="error"] {
     --hud-accent: var(--im-red);
     border-color: rgba(255, 90, 82, 0.45);
-    box-shadow: 0 0 14px rgba(255, 90, 82, 0.15);
+    box-shadow:
+        inset 0 0 22px color-mix(in srgb, var(--hud-accent) 12%, transparent),
+        0 0 14px rgba(255, 90, 82, 0.15);
 }
 
 .hud-status-panel[data-state="none"] {
