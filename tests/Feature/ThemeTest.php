@@ -39,13 +39,14 @@ class ThemeTest extends TestCase
 
         // トップページは ironman の画面（アークリアクター＋共通の中身）
         $this->get(route('home'))->assertOk()
-            ->assertSee('/themes/ironman/css/style.css', false)
+            ->assertSee('/themes/ironman/css/tokens.css?v=', false)
+            ->assertDontSee('/themes/ironman/css/style.css', false)
             ->assertSee('class="theme-ironman"', false)
             ->assertSee('reactor-core', false)
             ->assertSee('ブログを登録する');
 
         // 上書きしていない画面は共通の画面のまま、CSS だけ ironman
-        $this->get(route('settings'))->assertOk()->assertSee('/themes/ironman/css/style.css', false)->assertSee('画面のテーマ');
+        $this->get(route('settings'))->assertOk()->assertSee('/themes/ironman/css/components/table.css?v=', false)->assertSee('画面のテーマ');
     }
 
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void

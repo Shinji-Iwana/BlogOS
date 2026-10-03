@@ -19,11 +19,10 @@
             href="{{ asset('css/blogos.css') }}?v={{ @filemtime(public_path('css/blogos.css')) }}"
         >
 
-        {{-- 選んだテーマのCSSを読み込む（public/themes/{テーマ名}/css/style.css）。 --}}
-        <link
-            rel="stylesheet"
-            href="{{ $theme->css() }}"
-        >
+        {{-- 選んだテーマのCSSを読み込む（public/themes/{テーマ名}/css/style.css の @import の順に、1つずつ更新日時を付けて。D-49-08）。 --}}
+        @foreach ($theme->stylesheets() as $stylesheet)
+            <link rel="stylesheet" href="{{ $stylesheet }}">
+        @endforeach
 
         {{-- 選んだテーマのJavaScriptを読み込む（public/themes/{テーマ名}/js/script.js）。 --}}
         <script

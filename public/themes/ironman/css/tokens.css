@@ -4,7 +4,7 @@
    ironman テーマの色・文字・光の決まり（CSS の変数）。
 
    ■ 色の考え方（D-49-04）
-   ・基本は、暗い背景に HUD の青白い光（cyan）。
+   ・基本は、黒い背景に白い文字。HUD の線・光は青白い光（cyan）。
    ・スーツの赤と金は、ボタン・注意・要対応だけに使う。
 
    他の CSS では色を直接書かず、ここの変数を使う。
@@ -13,7 +13,7 @@
 :root {
 
     /* 背景 */
-    --im-bg: #03070c;
+    --im-bg: #000000;
     --im-bg-panel: rgba(8, 22, 36, 0.78);
     --im-bg-panel-solid: #08162a;
     --im-bg-input: #040e18;
@@ -30,7 +30,7 @@
     --im-cyan-glow: rgba(102, 217, 255, 0.45);
 
     /* 文字 */
-    --im-text: #d2e7f1;
+    --im-text: #ffffff;
     --im-text-muted: #8aa7b8;
     --im-text-dim: #6f8b9b;
     --im-text-faint: #557080;

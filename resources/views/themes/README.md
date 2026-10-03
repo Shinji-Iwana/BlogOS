@@ -28,7 +28,8 @@ resources/views/                         共通の画面（どのテーマでも
 
 public/css/blogos.css                    共通の画面の見た目（どのテーマでも最初に読み込む。blank はこれだけ）
 public/themes/{テーマ名}/                テーマの CSS・JavaScript・画像（全画面で、blogos.css の後に読み込む）
-├─ css/style.css                         入口（ここから他の CSS を読み込む）
+├─ css/style.css                         入口（読み込む CSS を @import で順に書くだけ。BlogOS がこれを読み取り、
+│                                         1つずつ更新日時を付けて読み込む。読み込まれる側では @import を使わない）
 ├─ js/script.js                          入口（ここから他の JS を読み込む）
 └─ images/
 ```

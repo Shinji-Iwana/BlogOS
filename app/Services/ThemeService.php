@@ -84,6 +84,34 @@ class ThemeService
         return $this->asset('css/style.css');
     }
 
+    /**
+     * テーマの CSS の URL（読み込む順）。
+     *
+     * style.css の @import をそのまま使うと、読み込まれる側の CSS に更新日時が付かず、ブラウザが古い版を使い続ける
+     * （T2 の後も背景が白いままになった。D-49-08）。そのため、style.css の @import を読み取り、1つずつ更新日時を付けて
+     * <link> で読み込む。外部の URL（Google Fonts）はそのまま。@import がなければ style.css だけ。
+     * style.css の中の @import は1段だけ読み取る（読み込まれる側の CSS では @import を使わない）。
+     *
+     * @return list<string>
+     */
+    public function stylesheets(): array
+    {
+        $file = public_path('themes/' . $this->current() . '/css/style.css');
+        $source = @file_get_contents($file);
+        if ($source === false) {
+            return [];
+        }
+
+        // コメントの中の @import は読まない
+        $source = preg_replace('#/\*.*?\*/#s', '', $source);
+        preg_match_all('#@import\s+url\(\s*["\']?([^"\')]+)["\']?\s*\)\s*;#', $source, $matches);
+        if ($matches[1] === []) {
+            return [$this->css()];
+        }
+
+        return array_map(fn (string $url) => preg_match('#^(https?:)?//#', $url) ? $url : $this->asset('css/' . ltrim($url, './')), $matches[1]);
+    }
+
     public function js(): string
     {
         return $this->asset('js/script.js');

@@ -8,6 +8,9 @@
    ・お知らせ
    ・種類ごとの入口のパネル
 
+   パネルの背景は透明（黒い背景をそのまま見せる）。文字の基本は白で、状態を表す部分
+   （英字の札・光る点・状態の英字・今の値・枠の色）だけを状態の色にする。
+
    状態の色（data-state）：
      ok・normal（青）／warn・warning（金）／error・critical（赤）／none（判定しない：灰）
    ========================================================== */
@@ -16,7 +19,7 @@
 /* ==========================================================
    HUD のパネル（状態のパネル・入口のパネルで共通）
    ----------------------------------------------------------
-   暗い半透明の板に細い線。四隅に HUD の角の印を付ける。
+   背景は透明で、細い線の枠。四隅に HUD の角の印を付ける。
    ========================================================== */
 
 .hud-panel {
@@ -24,7 +27,8 @@
 
     position: relative;
     padding: 12px 16px 14px;
-    background: var(--im-bg-panel);
+    background: transparent;
+    color: var(--im-text);
     border: 1px solid var(--im-line);
     border-radius: 2px;
 }
@@ -75,7 +79,18 @@
 .hud-panel-label {
     font-family: var(--im-font-hud);
     font-weight: 600;
-    color: var(--im-text-muted);
+    color: var(--im-text);
+}
+
+/* パネルの中のリンクも、文字の基本の白。マウスを乗せると青白く光る */
+.hud-panel a {
+    color: var(--im-text);
+    text-decoration-color: var(--im-line-strong);
+}
+
+.hud-panel a:hover,
+.hud-panel a:focus-visible {
+    color: var(--im-cyan-bright);
 }
 
 
@@ -148,7 +163,7 @@
 .hud-panel-line {
     margin: 0;
     font-size: 13px;
-    color: var(--im-text-muted);
+    color: var(--im-text);
 }
 
 .hud-panel-foot {
@@ -180,7 +195,7 @@
     gap: 8px 20px;
     margin-bottom: 8px;
     padding: 8px 16px;
-    background: linear-gradient(90deg, rgba(102, 217, 255, 0.08), transparent 70%);
+    background: transparent;
     border-left: 3px solid var(--hud-accent);
 }
 
@@ -191,7 +206,7 @@
     font-family: var(--im-font-logo);
     font-size: 12px;
     letter-spacing: 0.2em;
-    color: var(--im-text-muted);
+    color: var(--im-text);
 }
 
 .hud-statusbar-state {
@@ -213,7 +228,7 @@
 .hud-statusbar-blog {
     margin-left: auto;
     font-family: var(--im-font-hud);
-    color: var(--im-text-muted);
+    color: var(--im-text);
 }
 
 
