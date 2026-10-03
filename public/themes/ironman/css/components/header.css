@@ -115,3 +115,24 @@
     background: rgba(102, 217, 255, 0.08);
     border-color: var(--im-line-strong);
 }
+
+
+/* ==========================================================
+   狭い画面：ブログ名が長くても、ヘッダーからはみ出さない
+   ========================================================== */
+
+.site-header {
+    gap: 12px;
+}
+
+.blog-switch-button {
+    min-width: 0;
+    max-width: 50vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.site-settings-link {
+    white-space: nowrap;
+}

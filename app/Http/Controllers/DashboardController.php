@@ -14,7 +14,11 @@ use App\Models\WordPressComponent;
 use App\Support\ScheduledTasks;
 use App\Repositories\AiPriceRepository;
 use App\Repositories\BlogRepository;
+use App\Services\Ai\AiApiPolicy;
+use App\Services\Ai\AiCreditService;
+use App\Services\Dashboard\DashboardStatusService;
 use App\Services\Sync\SyncStatusService;
+use App\Support\DashboardLinks;
 
 class DashboardController extends Controller
 {
@@ -22,6 +26,7 @@ class DashboardController extends Controller
         protected BlogRepository $blogRepository,
         protected SyncStatusService $syncStatusService,
         protected AiPriceRepository $priceRepository,
+        protected DashboardStatusService $statusService,
     ) {
     }
 
@@ -31,6 +36,7 @@ class DashboardController extends Controller
      * ブログが1件もない場合は、テーマ側でブログ登録へ誘導する。
      * 選択中のブログがない場合は null のまま表示し、画面上部の切り替えから選ばせる（表示のためにDBを書き換えない）。
      * 同期の結果と未解決の問題は、DBから読んで表示する（D-01-05）。
+     * お知らせのデータから、領域ごとの状態のパネルと BlogOS 全体の状態を出し、各画面への入口（DashboardLinks）と合わせて渡す（D-49-07）。
      */
     public function index()
     {
@@ -39,7 +45,7 @@ class DashboardController extends Controller
         // API実行の料金表のお知らせ（D-31-03）：確認待ちの値下がり、読み取れなかった料金、直近7日の値上がり
         $latestCheck = $this->priceRepository->latestCheck();
 
-        return view('dashboard.index', [
+        $data = [
             'blogs'        => $this->blogRepository->getAll(),
             'selectedBlog' => $selectedBlog,
             'syncStatus'   => $selectedBlog ? $this->syncStatusService->forBlog($selectedBlog) : null,
@@ -64,6 +70,17 @@ class DashboardController extends Controller
             'affiliateSuspects' => $selectedBlog ? AffiliateProgram::where('blog_id', $selectedBlog->id)
                 ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])
                 ->where('check_result', AffiliateLinkCheckResult::Suspect)->count() : 0,
+        ];
+
+        // 領域ごとの状態（ironman はパネルとアークリアクターの色で表す）と、各画面への入口
+        $panels = $this->statusService->panels($data, app(AiCreditService::class)->status(), app(AiApiPolicy::class)->isConfigured());
+
+        return view('dashboard.index', $data + [
+            'statusPanels' => $panels,
+            'statusCounts' => $this->statusService->counts($panels),
+            'systemState'  => $this->statusService->overall($panels),
+            'systemBusy'   => $this->statusService->busy($data),
+            'linkGroups'   => DashboardLinks::groups($selectedBlog !== null),
         ]);
     }
 

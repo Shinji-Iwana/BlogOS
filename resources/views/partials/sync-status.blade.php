@@ -51,43 +51,8 @@
         ・<a href="{{ route('database.sync-runs.index') }}">同期の記録</a>
     </p>
 
-    @error('sync')
-        <p class="text-error">{{ $message }}</p>
-    @enderror
-
-    <form method="POST" action="{{ route('sync.runs.store') }}">
-        @csrf
-        @include('partials.selected-blog-field')
-        <button type="submit" @disabled($syncStatus['state'] !== 'idle')>今すぐ同期</button>
-    </form>
+    @include('partials.sync-run-form')
 
 </section>
 
-@if ($syncStatus['state'] !== 'idle')
-    <script>
-        // 開始待ち・実行中の間だけ状態を読み、終わったら結果を表示するため読み込み直す
-        (function () {
-            const stateElement = document.getElementById('sync-state');
-            const labels = { queued: '同期の開始を待っています…', running: '同期を実行中です…' };
-
-            const poll = async function () {
-                try {
-                    const response = await fetch(@json(route('api.sync.status')), { headers: { 'Accept': 'application/json' } });
-                    if (response.ok) {
-                        const status = await response.json();
-                        if (status.state === 'idle') {
-                            window.location.reload();
-                            return;
-                        }
-                        stateElement.innerHTML = '<strong>' + labels[status.state] + '</strong>';
-                    }
-                } catch (e) {
-                    // 通信の失敗は、次の読み込みで再度試す
-                }
-                setTimeout(poll, 5000);
-            };
-
-            setTimeout(poll, 5000);
-        })();
-    </script>
-@endif
+@include('partials.sync-poll')

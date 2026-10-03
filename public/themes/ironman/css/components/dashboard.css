@@ -1,0 +1,348 @@
+/* ==========================================================
+   components/dashboard.css
+   ----------------------------------------------------------
+   ironman のトップページ（themes/ironman/dashboard/index。D-49-07）。
+
+   ・SYSTEM STATUS の帯
+   ・アークリアクターと、左右の状態のパネル（パソコンは3列、狭い画面は縦に並べる）
+   ・お知らせ
+   ・種類ごとの入口のパネル
+
+   状態の色（data-state）：
+     ok・normal（青）／warn・warning（金）／error・critical（赤）／none（判定しない：灰）
+   ========================================================== */
+
+
+/* ==========================================================
+   HUD のパネル（状態のパネル・入口のパネルで共通）
+   ----------------------------------------------------------
+   暗い半透明の板に細い線。四隅に HUD の角の印を付ける。
+   ========================================================== */
+
+.hud-panel {
+    --hud-accent: var(--im-cyan);
+
+    position: relative;
+    padding: 12px 16px 14px;
+    background: var(--im-bg-panel);
+    border: 1px solid var(--im-line);
+    border-radius: 2px;
+}
+
+/* 四隅の角の印（左上と右下） */
+.hud-panel::before,
+.hud-panel::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: var(--hud-accent);
+    border-style: solid;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.hud-panel::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+}
+
+.hud-panel::after {
+    right: -1px;
+    bottom: -1px;
+    border-width: 0 2px 2px 0;
+}
+
+.hud-panel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--im-line-faint);
+}
+
+/* 英字の札（SYNC など） */
+.hud-panel-code {
+    font-family: var(--im-font-logo);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--hud-accent);
+}
+
+.hud-panel-label {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    color: var(--im-text-muted);
+}
+
+
+/* ==========================================================
+   状態のパネル
+   ========================================================== */
+
+.hud-status-panel[data-state="warn"] {
+    --hud-accent: var(--im-gold);
+    border-color: rgba(242, 194, 91, 0.35);
+}
+
+.hud-status-panel[data-state="error"] {
+    --hud-accent: var(--im-red);
+    border-color: rgba(255, 90, 82, 0.45);
+    box-shadow: 0 0 14px rgba(255, 90, 82, 0.15);
+}
+
+.hud-status-panel[data-state="none"] {
+    --hud-accent: var(--im-text-faint);
+}
+
+/* 右上の状態（光る点＋英字） */
+.hud-panel-state {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--im-font-hud);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--hud-accent);
+}
+
+.hud-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hud-accent);
+    box-shadow: 0 0 8px var(--hud-accent);
+}
+
+.hud-status-panel[data-state="error"] .hud-dot {
+    animation: hudBlink 1.2s steps(2, jump-none) infinite;
+}
+
+@keyframes hudBlink {
+
+    50% {
+        opacity: 0.25;
+    }
+
+}
+
+/* 今の値（大きく） */
+.hud-panel-value {
+    margin: 4px 0 2px;
+    font-family: var(--im-font-hud);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+}
+
+.hud-status-panel[data-state="warn"] .hud-panel-value { color: var(--im-gold); }
+.hud-status-panel[data-state="error"] .hud-panel-value { color: var(--im-red); }
+.hud-status-panel[data-state="none"] .hud-panel-value { color: var(--im-text-dim); }
+
+.hud-panel-line {
+    margin: 0;
+    font-size: 13px;
+    color: var(--im-text-muted);
+}
+
+.hud-panel-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.hud-panel-foot form,
+.hud-panel-foot p {
+    margin: 0;
+}
+
+
+/* ==========================================================
+   SYSTEM STATUS の帯
+   ========================================================== */
+
+.hud-statusbar {
+    --hud-accent: var(--im-cyan);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 20px;
+    margin-bottom: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, rgba(102, 217, 255, 0.08), transparent 70%);
+    border-left: 3px solid var(--hud-accent);
+}
+
+.hud-statusbar[data-state="warning"] { --hud-accent: var(--im-gold); }
+.hud-statusbar[data-state="critical"] { --hud-accent: var(--im-red); }
+
+.hud-statusbar-title {
+    font-family: var(--im-font-logo);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--im-text-muted);
+}
+
+.hud-statusbar-state {
+    font-family: var(--im-font-logo);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--hud-accent);
+    text-shadow: 0 0 10px var(--hud-accent);
+}
+
+.hud-statusbar-counts {
+    display: inline-flex;
+    gap: 12px;
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+}
+
+.hud-statusbar-blog {
+    margin-left: auto;
+    font-family: var(--im-font-hud);
+    color: var(--im-text-muted);
+}
+
+
+/* ==========================================================
+   アークリアクターと左右の状態のパネル
+   ========================================================== */
+
+.hud-core {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(300px, 380px) minmax(220px, 1fr);
+    align-items: center;
+    gap: 24px;
+    margin: 8px 0 32px;
+}
+
+.hud-panels {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.hud-reactor .reactor {
+    width: 100%;
+}
+
+/* 狭い画面：アークリアクター → パネルの順に縦に並べる */
+@media (max-width: 1024px) {
+
+    .hud-core {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hud-reactor {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+
+    .hud-reactor .reactor {
+        width: min(80vw, 340px);
+    }
+
+}
+
+@media (max-width: 640px) {
+
+    .hud-core {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ==========================================================
+   お知らせ
+   ========================================================== */
+
+.hud-notices {
+    margin-bottom: 28px;
+}
+
+
+/* ==========================================================
+   種類ごとの入口のパネル
+   ========================================================== */
+
+.hud-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.hud-link-panel ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hud-link-panel li {
+    border-bottom: 1px solid var(--im-line-faint);
+}
+
+.hud-link-panel li:last-child {
+    border-bottom: 0;
+}
+
+.hud-link-panel a {
+    display: block;
+    padding: 6px 4px 6px 16px;
+    position: relative;
+    text-decoration: none;
+    transition: background var(--im-ease), color var(--im-ease);
+}
+
+/* 行の頭の印 */
+.hud-link-panel a::before {
+    content: "›";
+    position: absolute;
+    left: 2px;
+    color: var(--im-line-strong);
+}
+
+.hud-link-panel a:hover {
+    background: rgba(102, 217, 255, 0.07);
+}
+
+.hud-link-panel a:hover::before {
+    color: var(--im-cyan-bright);
+}
+
+.hud-logout {
+    margin-top: 8px;
+}
+
+
+/* ==========================================================
+   狭い画面で、はみ出さないようにする
+   ========================================================== */
+
+.hud-core > *,
+.hud-links > * {
+    min-width: 0;
+}
+
+.hud-panel-head {
+    flex-wrap: wrap;
+}
+
+.hud-panel-value,
+.hud-panel-line {
+    overflow-wrap: anywhere;
+}
