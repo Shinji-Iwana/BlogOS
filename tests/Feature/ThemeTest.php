@@ -68,6 +68,22 @@ class ThemeTest extends TestCase
             ->assertSee('name="password"', false);
     }
 
+    public function test_error_pages_and_site_search_use_the_theme(): void
+    {
+        app(ThemeService::class)->select('ironman', null);
+
+        // エラーの画面（ログイン前の枠。400番台は BlogOS が添えた理由も出す）
+        $this->get('/no-such-page')->assertNotFound()
+            ->assertSee('/themes/ironman/css/tokens.css', false)
+            ->assertSee('ERROR 404', false)
+            ->assertSee('ページが見つかりません');
+
+        // ブログを選んでいないときのサイト内検索：abort(404, 'ブログが選択されていません。')
+        $this->get(route('api-site-search'))->assertNotFound()
+            ->assertSee('ブログが選択されていません。')
+            ->assertSee('トップページへ');
+    }
+
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void
     {
         $this->put(route('settings.theme.update'), ['theme' => 'unknown'])->assertSessionHasErrors('theme');
