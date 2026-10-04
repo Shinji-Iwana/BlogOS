@@ -217,6 +217,7 @@
                     <button
                         type="button"
                         id="blog-switch-cancel"
+                        class="btn-secondary"
                     >
                         キャンセル
                     </button>
