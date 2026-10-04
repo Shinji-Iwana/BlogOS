@@ -48,6 +48,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\Topics\CategoryLaunchController;
 use App\Http\Controllers\Topics\TopicPlanningController;
 use App\Http\Controllers\WordPressUpdateController;
+use App\Http\Controllers\Terms\CategoryController;
 use App\Http\Controllers\Terms\TermController;
 use App\Http\Controllers\Sync\SyncIssueController;
 use App\Http\Controllers\Sync\SyncRunController;
@@ -160,6 +161,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     });
 
     // カテゴリ・タグ・メディアの情報の更新と削除（WORDPRESS_API 21-3）
+    // カテゴリの一覧（D-53）。更新は terms.edit
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/terms/{type}/{id}/edit', [TermController::class, 'edit'])->whereIn('type', ['categories', 'tags', 'media'])->whereNumber('id')->name('terms.edit');
 
     // 同期（D-01-03）。「今すぐ同期」はJobとして登録し、状態は api.sync.status で読む

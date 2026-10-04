@@ -22,6 +22,7 @@ class DashboardLinks
             ['label' => '編集案', 'route' => 'drafts.index', 'blog' => true],
             ['label' => '反映記録', 'route' => 'push-operations.index', 'blog' => true],
             ['label' => '記事の企画', 'route' => 'topics.index', 'blog' => true],
+            ['label' => 'カテゴリ', 'route' => 'categories.index', 'blog' => true],
             ['label' => 'カテゴリの立ち上げ', 'route' => 'launches.index', 'blog' => true],
             ['label' => 'タイトル・メタディスクリプションの改善の候補', 'route' => 'articles.titles', 'blog' => true],
             ['label' => '内部リンクの確認', 'route' => 'links.check', 'blog' => true],

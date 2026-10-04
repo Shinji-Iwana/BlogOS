@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Repositories\TermRepository;
 use App\Services\Push\PushException;
 use App\Services\Push\TermPushService;
+use App\Services\Terms\CategoryTreeService;
+use App\Support\Slug;
 use Illuminate\Http\Request;
 
 /**
@@ -21,6 +23,7 @@ class TermController extends Controller
     public function __construct(
         protected TermRepository $terms,
         protected TermPushService $pushService,
+        protected CategoryTreeService $categoryTree,
     ) {
     }
 
@@ -37,6 +40,8 @@ class TermController extends Controller
             'current'         => $this->pushService->currentValues($record),
             'parents'         => $record instanceof Category ? $this->terms->parentCandidates($record) : collect(),
             'linkedPostCount' => $this->terms->linkedPostCount($record),
+            // スラッグを変えたときに URL が変わる記事（カテゴリだけ。D-53）
+            'slugImpact'      => $record instanceof Category ? $this->categoryTree->slugImpact($record) : null,
         ]);
     }
 
@@ -60,6 +65,12 @@ class TermController extends Controller
         ], [
             'approved.accepted' => '反映の内容を確認し、承認してください。',
         ]);
+
+        // スラッグを変えると URL が変わる（カテゴリは、そのカテゴリ・子カテゴリの全記事の URL も）ため、確認を必須にする（D-53）
+        if (array_key_exists('slug', $validated['values']) && ! Slug::same($validated['values']['slug'], $request->input('base.slug'))
+            && ! $request->boolean('slug_change_confirmed')) {
+            return back()->withErrors(['slug_change_confirmed' => 'スラッグを変えると URL が変わります。影響を確認し、「URL が変わることを理解したうえで変更します」にチェックを入れてください。'])->withInput();
+        }
 
         try {
             $operation = $this->pushService->update($record, $validated['values'], $request->input('base', []), $request->user()?->id);
