@@ -5,10 +5,15 @@
    ブログ切替のポップアップも、ここで管理する。
    ========================================================== */
 
-.site-header {
+/* ヘッダーとメニューバー（D-56）を、スクロールしても上に残す */
+.site-top {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.site-header {
+    position: relative;
     padding: 10px 32px;
     background: linear-gradient(180deg, rgba(6, 18, 30, 0.96), rgba(4, 12, 22, 0.9));
     border-bottom: 1px solid var(--im-line-strong);

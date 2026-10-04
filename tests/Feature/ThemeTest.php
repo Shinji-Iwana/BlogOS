@@ -34,7 +34,8 @@ class ThemeTest extends TestCase
 
     public function test_switching_to_ironman_overrides_only_its_own_views(): void
     {
-        $this->put(route('settings.theme.update'), ['theme' => 'ironman'])->assertRedirect(route('settings'));
+        // テーマ切替ポップアップは全画面にあるため、開いていた画面に戻る（D-57）
+        $this->from(route('scheduled-tasks.index'))->put(route('settings.theme.update'), ['theme' => 'ironman'])->assertRedirect(route('scheduled-tasks.index'));
         $this->assertSame('ironman', SystemSetting::value(ThemeService::SETTING_KEY));
 
         // トップページは ironman の画面（アークリアクター＋共通の中身）
@@ -82,6 +83,21 @@ class ThemeTest extends TestCase
         $this->get(route('api-site-search'))->assertNotFound()
             ->assertSee('ブログが選択されていません。')
             ->assertSee('トップページへ');
+    }
+
+    public function test_menu_bar_links_to_theme_setting_on_every_page(): void
+    {
+        // ヘッダーの下のメニューバー（D-56）：どの画面からでも「画面のテーマ」へ
+        foreach ([route('settings'), route('scheduled-tasks.index')] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('class="site-menu"', false)
+                ->assertSee('SETTING')
+                // 押すとテーマ切替ポップアップを開く（D-57）
+                ->assertSee('data-modal-open="theme-switch-modal"', false)
+                ->assertSee('id="theme-switch-modal"', false);
+        }
+        // 設定の画面には、画面のテーマの欄を出さない（D-57）
+        $this->get(route('settings'))->assertDontSee('テーマを切り替える')->assertDontSee('data-code="THEME"', false);
     }
 
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void

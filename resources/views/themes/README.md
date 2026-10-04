@@ -22,7 +22,7 @@ resources/views/                         共通の画面（どのテーマでも
 ├─ layouts/head.blade.php                ページの頭（共通とテーマの CSS・JS を読み込む。app と guest で共通）
 ├─ auth/login.blade.php                  ログイン画面（入力欄は auth/login-form）
 ├─ errors/page.blade.php                 エラーの画面の共通の形（errors/{番号}.blade.php から読み込む。ログイン前の枠）
-├─ layouts/header.blade.php              共通のヘッダー
+├─ layouts/header.blade.php              共通のヘッダーと、その下のメニューバー（項目は App\Support\MenuItems）
 ├─ dashboard/index.blade.php             トップページ
 ├─ dashboard/content.blade.php           トップページの中身（お知らせと各画面への入口）
 └─ themes/{テーマ名}/                    テーマの画面（共通の画面の上書きと、テーマだけの部品）

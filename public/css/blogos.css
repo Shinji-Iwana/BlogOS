@@ -322,3 +322,52 @@ table.data.stacked td[data-label]::before {
 table.data.stacked td[data-label=""]::before {
     content: none;
 }
+
+
+/* ==========================================================
+   メニューバー（D-56。layouts/header の nav.site-menu）
+   ----------------------------------------------------------
+   ヘッダーの下に、種類ごとのメニューを横に並べる。押すと、その下に項目が開く。
+   ========================================================== */
+
+.site-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 4px 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.site-menu-group {
+    position: relative;
+}
+
+.site-menu-group > summary {
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+/* 英字の札（SETTING など）は、テーマで出す（blank は名前だけ。トップページの入口と同じ） */
+.site-menu-code {
+    display: none;
+}
+
+/* 開いた項目（メニューの下に重ねて出す） */
+.site-menu-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 200;
+    min-width: 200px;
+    margin: 4px 0 0;
+    padding: 4px 0;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #999;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.site-menu-links a {
+    display: block;
+    padding: 6px 12px;
+}

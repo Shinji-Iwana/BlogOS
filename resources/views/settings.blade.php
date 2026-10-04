@@ -3,7 +3,8 @@
 
     BlogOS全体の設定・管理機能への入口となるページ。
 
-    WordPress API確認用の各種ページ、画面のテーマ（D-49）、ログイン履歴への導線を配置する。
+    WordPress API確認用の各種ページと、ログイン履歴への導線を配置する。
+    画面のテーマは、メニューの「SETTING 設定 → 画面のテーマ」のポップアップで切り替える（D-57）。
 
     対象のブログは、URLで受け取らず、選択中のブログ（blogs.is_selected）とする
     （BLOGOS_DECISIONS.md D-02-05）。$selectedBlog は ShareCurrentBlog が共有している。
@@ -55,38 +56,6 @@
         </p>
 
     @endif
-
-
-    {{-- ==========================================================
-         画面のテーマ（D-49）。BlogOS 全体の設定（ブログごとではない）
-         ========================================================== --}}
-
-    <section class="panel">
-        <h2>画面のテーマ</h2>
-
-        @include('partials.flash')
-
-        <p>BlogOS の画面の見た目を選びます。表示する内容と機能は、どのテーマでも同じです。</p>
-
-        <form method="POST" action="{{ route('settings.theme.update') }}">
-            @csrf
-            @method('PUT')
-
-            @foreach ($themes as $key => $theme)
-                <p>
-                    <label>
-                        <input type="radio" name="theme" value="{{ $key }}" @checked($key === $currentTheme)>
-                        {{ $theme['label'] }}
-                        @if (($theme['status'] ?? '') === 'wip')（制作中）@endif
-                        @if ($key === $currentTheme)<strong>← 使用中</strong>@endif
-                    </label>
-                    <br><small>{{ $theme['description'] }}</small>
-                </p>
-            @endforeach
-
-            <button type="submit">テーマを変える</button>
-        </form>
-    </section>
 
 
     {{-- ==========================================================

@@ -14,17 +14,14 @@ class SettingsController extends Controller
     }
 
     /**
-     * 設定画面（各確認画面への入口と、BlogOS 全体の設定）。
+     * 設定画面（各確認画面への入口）。画面のテーマは、ヘッダーのテーマ切替ポップアップで切り替える（D-57）。
      *
      * 対象のブログは選択中のブログとし、URLには含めない（BLOGOS_DECISIONS.md D-02-05）。
      * 選択中のブログは ShareCurrentBlog が全画面に共有している。
      */
     public function index()
     {
-        return view('settings', [
-            'themes'       => $this->themes->available(),
-            'currentTheme' => $this->themes->current(),
-        ]);
+        return view('settings');
     }
 
     /**
@@ -38,6 +35,7 @@ class SettingsController extends Controller
 
         $this->themes->select($validated['theme'], $request->user()?->id);
 
-        return redirect()->route('settings')->with('status', "テーマを「{$this->themes->available()[$validated['theme']]['label']}」に変えました。");
+        // テーマ切替ポップアップは全画面にあるため、開いていた画面に戻る（D-57）
+        return back()->with('status', "テーマを「{$this->themes->available()[$validated['theme']]['label']}」に変えました。");
     }
 }

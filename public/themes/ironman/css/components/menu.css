@@ -1,0 +1,103 @@
+/* ==========================================================
+   components/menu.css
+   ----------------------------------------------------------
+   ヘッダーの下のメニューバー（layouts/header の nav.site-menu。D-56）。
+
+   ・トップページの入口のパネルと同じく、英字の札＋名前（SETTING 設定）を HUD の札で並べる
+   ・押すと、その下に HUD のパネルで項目が開く
+   ========================================================== */
+
+.site-menu {
+    gap: 8px;
+    padding: 6px 32px;
+    background: rgba(4, 12, 22, 0.92);
+    border-bottom: 1px solid var(--im-line);
+    backdrop-filter: blur(6px);
+}
+
+/* 折りたたみ（details）の全体の見た目（box.css）を使わない */
+.site-menu-group {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.site-menu-group > summary {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 12px;
+    list-style: none;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    transition: background var(--im-ease), border-color var(--im-ease);
+}
+
+/* 折りたたみの三角の印を出さない */
+.site-menu-group > summary::-webkit-details-marker {
+    display: none;
+}
+
+.site-menu-group > summary:hover,
+.site-menu-group[open] > summary {
+    background: rgba(102, 217, 255, 0.08);
+    border-color: var(--im-line-strong);
+}
+
+.site-menu-code {
+    display: inline;
+    font-family: var(--im-font-logo);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--im-cyan);
+}
+
+.site-menu-label {
+    font-family: var(--im-font-hud);
+    font-weight: 600;
+    color: var(--im-text);
+}
+
+/* 開いた項目：HUD のパネル */
+.site-menu-links {
+    min-width: 240px;
+    margin-top: 6px;
+    padding: 6px 0;
+    background:
+        linear-gradient(180deg, rgba(102, 217, 255, 0.1), rgba(102, 217, 255, 0.03)),
+        var(--im-bg-panel-solid);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    box-shadow: 0 0 18px rgba(102, 217, 255, 0.18);
+}
+
+.site-menu-links a {
+    position: relative;
+    padding: 7px 14px 7px 26px;
+    color: var(--im-text);
+    text-decoration: none;
+}
+
+.site-menu-links a::before {
+    content: "›";
+    position: absolute;
+    left: 12px;
+    color: var(--im-line-strong);
+}
+
+.site-menu-links a:hover,
+.site-menu-links a:focus-visible {
+    color: var(--im-cyan-bright);
+    background: rgba(102, 217, 255, 0.08);
+    text-shadow: none;
+}
+
+@media (max-width: 768px) {
+
+    .site-menu {
+        padding: 6px 16px;
+    }
+
+}

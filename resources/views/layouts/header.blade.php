@@ -16,6 +16,9 @@
      ブログ切替ポップアップを表示する。
      ============================================================== --}}
 
+{{-- ヘッダーとメニューバーをまとめる枠（テーマで、スクロールしても上に残すときに使う。D-56） --}}
+<div class="site-top">
+
 <header
     class="site-header"
 >
@@ -90,6 +93,32 @@
     </div>
 
 </header>
+
+
+{{-- ==============================================================
+     メニューバー（D-56）
+     --------------------------------------------------------------
+     どの画面からでも開けるよう、ヘッダーの下に出す。項目は App\Support\MenuItems。
+     種類（英字の札と名前）を押すと、項目が開く（details。public/js/blogos.js が、外を押したら閉じる）。
+     ============================================================== --}}
+
+<nav class="site-menu" aria-label="メニュー">
+    @foreach (\App\Support\MenuItems::groups() as $group)
+        <details class="site-menu-group">
+            <summary>
+                <span class="site-menu-code">{{ $group['code'] }}</span>
+                <span class="site-menu-label">{{ $group['label'] }}</span>
+            </summary>
+            <ul class="site-menu-links">
+                @foreach ($group['links'] as $link)
+                    <li><a href="{{ $link['url'] }}" @if ($link['modal']) data-modal-open="{{ $link['modal'] }}" @endif>{{ $link['label'] }}</a></li>
+                @endforeach
+            </ul>
+        </details>
+    @endforeach
+</nav>
+
+</div>
 
 
 {{-- ==============================================================
@@ -204,6 +233,96 @@
 
 
 {{-- ==============================================================
+     テーマ切替ポップアップ（D-57）
+     --------------------------------------------------------------
+     メニューの「画面のテーマ」を押した場合に表示する。
+     data-modal-open="theme-switch-modal" を付けた要素で開く。ブログ切替ポップアップと同じ形。
+
+     表示内容：テーマの名前・説明、選択用radio（使用中のテーマを選択済み）、切替ボタン、キャンセルボタン。
+     切り替えた後は、開いていた画面に戻る。
+     ============================================================== --}}
+
+@php($headerThemes = app(\App\Services\ThemeService::class))
+
+<div
+    id="theme-switch-modal"
+    class="blog-switch-modal theme-switch-modal"
+>
+
+    <div
+        class="blog-switch-dialog"
+    >
+
+        <h2>
+            画面のテーマ
+        </h2>
+
+        <form
+            method="POST"
+            action="{{ route('settings.theme.update') }}"
+        >
+
+            @csrf
+            @method('PUT')
+
+            @foreach ($headerThemes->available() as $key => $theme)
+
+                <label
+                    class="blog-switch-option"
+                >
+
+                    <input
+                        type="radio"
+                        name="theme"
+                        value="{{ $key }}"
+                        @checked($key === $headerThemes->current())
+                    >
+
+                    <strong>
+                        {{ $theme['label'] }}
+                    </strong>
+                    @if (($theme['status'] ?? '') === 'wip')（制作中）@endif
+
+                    <br>
+
+                    <span>
+                        {{ $theme['description'] }}
+                    </span>
+
+                </label>
+
+            @endforeach
+
+            <div
+                class="blog-switch-actions"
+            >
+
+                {{-- テーマ切替 --}}
+                <button
+                    type="submit"
+                >
+                    切替
+                </button>
+
+                {{-- キャンセル --}}
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    data-modal-close
+                >
+                    キャンセル
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+{{-- ==============================================================
      ブログ切替ポップアップ制御JavaScript
      --------------------------------------------------------------
      ・ブログ名ボタン押下 → ポップアップ表示
@@ -261,6 +380,49 @@
         modal.addEventListener('click', function (event) {
             if (event.target === modal) {
                 modal.style.display = 'none';
+            }
+        });
+
+    });
+</script>
+
+
+{{-- ==============================================================
+     ポップアップを開く・閉じる JavaScript（テーマ切替など。D-57）
+     --------------------------------------------------------------
+     ・data-modal-open="ポップアップのid" を付けた要素を押す → そのポップアップを表示（リンクの移動はしない）
+     ・data-modal-close を付けたボタン、背景、Esc → 閉じる
+     ============================================================== --}}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const close = (modal) => { modal.style.display = 'none'; };
+
+        document.querySelectorAll('[data-modal-open]').forEach(function (opener) {
+            opener.addEventListener('click', function (event) {
+                const modal = document.getElementById(opener.dataset.modalOpen);
+                if (!modal) {
+                    return;
+                }
+                event.preventDefault();
+                // メニューから開いた場合は、メニューを閉じる
+                const menu = opener.closest('details');
+                if (menu) {
+                    menu.open = false;
+                }
+                modal.style.display = 'block';
+            });
+        });
+
+        document.querySelectorAll('.theme-switch-modal').forEach(function (modal) {
+            modal.querySelectorAll('[data-modal-close]').forEach((button) => button.addEventListener('click', () => close(modal)));
+            modal.addEventListener('click', (event) => { if (event.target === modal) { close(modal); } });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.theme-switch-modal').forEach(close);
             }
         });
 

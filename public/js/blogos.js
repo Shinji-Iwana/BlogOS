@@ -4,6 +4,9 @@
  * ----------------------------------------------------------
  * どのテーマでも読み込む、共通の画面の JavaScript（D-50）。
  *
+ * ■ メニューバー（D-56）
+ * ・1つを開いたら他を閉じ、メニューの外を押したとき・Esc で閉じる。
+ *
  * ■ 表を横スクロールなしで見せる
  * ・一覧の表（table.data）は、まず画面の幅に収める（セルの中の長い英数字も折り返す。public/css/blogos.css）。
  * ・それでも収まらない表と、列が細くなりすぎる表（見出しが1文字ずつ縦に並ぶ）は、
@@ -142,6 +145,32 @@
         if (document.fonts) {
             document.fonts.ready.then(relayout);
         }
+    }
+
+    /**
+     * メニューバー（D-56）：1つを開いたら他を閉じ、メニューの外を押したら閉じる
+     */
+    function initMenu() {
+        const groups = Array.from(document.querySelectorAll('.site-menu-group'));
+        groups.forEach((group) => group.addEventListener('toggle', () => {
+            if (group.open) {
+                groups.filter((other) => other !== group).forEach((other) => { other.open = false; });
+            }
+        }));
+        document.addEventListener('click', (event) => {
+            groups.filter((group) => group.open && ! group.contains(event.target)).forEach((group) => { group.open = false; });
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                groups.forEach((group) => { group.open = false; });
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMenu);
+    } else {
+        initMenu();
     }
 
     if (document.readyState === 'loading') {
