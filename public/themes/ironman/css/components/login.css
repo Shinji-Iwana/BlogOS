@@ -1,0 +1,71 @@
+/* ==========================================================
+   components/login.css
+   ----------------------------------------------------------
+   ironman のログイン画面（themes/ironman/auth/login。D-51）。
+
+   画面の中央に、アークリアクター → BlogOS の名前 → ログインの入力欄のパネルを縦に並べる。
+   ========================================================== */
+
+.page-guest .site-main {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 32px;
+}
+
+.login-hud {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-hud .reactor {
+    width: clamp(180px, 40vw, 240px);
+    margin: 0 auto 12px;
+}
+
+/* BlogOS の名前（ヘッダーのロゴと同じ書体） */
+.login-title {
+    margin: 0;
+    padding: 0;
+    font-family: var(--im-font-logo);
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+    border: 0;
+}
+
+.login-subtitle {
+    margin: 4px 0 20px;
+    font-family: var(--im-font-logo);
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: var(--im-text-muted);
+}
+
+/* 入力欄のパネル：左寄せ、入力欄は横いっぱい */
+.login-hud .login-form,
+.login-hud .text-error {
+    text-align: left;
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"] {
+    width: 100%;
+}
+
+.login-form button[type="submit"] {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 17px;
+    letter-spacing: 0.2em;
+}
+
+.login-hud .text-error ul {
+    margin: 0;
+    padding-left: 18px;
+}

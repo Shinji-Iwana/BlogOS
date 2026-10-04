@@ -49,6 +49,25 @@ class ThemeTest extends TestCase
         $this->get(route('settings'))->assertOk()->assertSee('/themes/ironman/css/components/table.css?v=', false)->assertSee('画面のテーマ');
     }
 
+    public function test_login_page_uses_the_selected_theme(): void
+    {
+        auth()->logout();
+
+        $this->get(route('login'))->assertOk()
+            ->assertSee('class="theme-blank page-guest"', false)
+            ->assertSee('/css/blogos.css', false)
+            ->assertDontSee('reactor-svg', false);
+
+        app(ThemeService::class)->select('ironman', null);
+
+        // ironman はアークリアクターと BlogOS の名前を加えたログイン画面（themes/ironman/auth/login）
+        $this->get(route('login'))->assertOk()
+            ->assertSee('/themes/ironman/css/components/login.css', false)
+            ->assertSee('reactor-svg', false)
+            ->assertSee('SYSTEM ACCESS')
+            ->assertSee('name="password"', false);
+    }
+
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void
     {
         $this->put(route('settings.theme.update'), ['theme' => 'unknown'])->assertSessionHasErrors('theme');

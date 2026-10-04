@@ -14,7 +14,7 @@
    02. 基本（文字・リンク・見出し）
    03. 背景
    04. 配置
-   05. 部品（ヘッダー・文字の色・表・入力とボタン・箱・トップページ）
+   05. 部品（ヘッダー・文字の色・表・入力とボタン・箱・パネル・トップページ・ログイン画面）
    06. アークリアクター（トップページ）
    07. Animation
    08. 動きを減らす設定（最後）
@@ -51,6 +51,7 @@
 @import url("components/box.css");
 @import url("components/panel.css");
 @import url("components/dashboard.css");
+@import url("components/login.css");
 
 
 /* ==========================================================

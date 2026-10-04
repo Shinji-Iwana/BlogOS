@@ -76,6 +76,8 @@ class ThemeService
         $path = resource_path('views/themes/' . $this->current());
         if (is_dir($path)) {
             View::prependLocation($path);
+            // 前に見つけた View の場所を覚えていると、テーマの View が使われないため、忘れさせる
+            View::getFinder()->flush();
         }
     }
 

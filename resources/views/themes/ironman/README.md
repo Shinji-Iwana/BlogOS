@@ -15,6 +15,7 @@
 | --- | --- |
 | `dashboard/index.blade.php` | トップページ。SYSTEM STATUS の帯、アークリアクターと左右の状態のパネル、お知らせ（共通の `dashboard.notices`）、種類ごとの入口のパネル |
 | `components/status-panel.blade.php` | 状態のパネル（`DashboardStatusService` の1つ） |
+| `auth/login.blade.php` | ログイン画面。中央にアークリアクター・BlogOS の名前・入力欄のパネル（`css/components/login.css`） |
 | `components/reactor.blade.php` | アークリアクター（SVG。鋼の外枠・10個のコイル・三角のコア・HUD の円）。`$reactorState`（normal／warning／critical）と `$reactorBusy` で色と動きが変わる。形は `config/themes.php` の `reactor_variant`（1・2） |
 | `components/reactor-coils.blade.php` | アークリアクターの10個のコイル（外側と、形 2 のコアの背面で使う） |
 | `public/themes/ironman/css/style.css` | 入口。読み込む CSS と順番だけを書く |
