@@ -152,12 +152,6 @@
     font-weight: 600;
 }
 
-.hud-statusbar-blog {
-    margin-left: auto;
-    font-family: var(--im-font-hud);
-    color: var(--im-text);
-}
-
 
 /* ==========================================================
    アークリアクターと左右の状態のパネル

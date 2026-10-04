@@ -2,7 +2,7 @@
     トップページ（ironman テーマ。D-49-07）
 
     共通の画面（resources/views/dashboard/index.blade.php）の代わりに使う。データは共通と同じ（DashboardController）。
-    ・上：SYSTEM STATUS の帯（全体の状態・要対応と注意の数・選択中のブログ）
+    ・上：SYSTEM STATUS の帯（全体の状態・要対応と注意の数。選択中のブログはヘッダーに出ている）
     ・中：アークリアクター（全体の状態の色。同期の実行中は HUD の円が速く回る）と、左右に3つずつ状態のパネル。
       パソコンの幅では、アークリアクターから各パネルへ線を引く（js/dashboard/connectors.js）
     ・下：お知らせ（共通の dashboard/notices。同期はパネルに出すため除く）と、種類ごとの入口のパネル
@@ -36,7 +36,6 @@
                     @if ($statusCounts['warn'] > 0)<span class="text-warn">注意 {{ $statusCounts['warn'] }}</span>@endif
                 @endif
             </span>
-            <span class="hud-statusbar-blog">{{ $selectedBlog?->display_name ?? 'ブログ未選択' }}</span>
         </div>
 
         {{-- アークリアクターと、左右の状態のパネル --}}
