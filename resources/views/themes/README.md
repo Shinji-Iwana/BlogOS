@@ -50,6 +50,7 @@ public/themes/{テーマ名}/                テーマの CSS・JavaScript・画
   * 表の行：`row-current`（選択中）・`row-attention`（確認が必要）・`row-danger`（問題が残っている）・`row-error`・`row-group`
   * 箱：`bordered`・`bg-surface`・`bg-subtle`・`code-block`・`mono`
   * 表：`<table class="data">`（余白の狭い表は `data data-compact`）
+    * 表は画面の幅に収め、収まらなければ `public/js/blogos.js` が行ごとのカードの形（`table.data.stacked`）にする（D-50）。列の見出しは `<thead>` の最後の行（または th だけの最初の行）から取る。テーマの CSS では `table.data.stacked` の見た目も決める
   * 点数の棒：`bar-track`・`bar-good`・`bar-mid`・`bar-bad`、差分：`diff-added`・`diff-removed`・`diff-skip`
   * 画面の区切り：`<section class="panel">`（`<fieldset>`・`<form>` にも付けてよい）。最初の h2・legend が見出し。`data-code="EDITOR"` のような英字の札を付けてよい
   * ボタン：何も付けない＝主な操作、`btn-secondary`＝補助の操作、`btn-danger`＝取り消せない・壊す操作。主な操作へのリンクは `<a class="button-link">`

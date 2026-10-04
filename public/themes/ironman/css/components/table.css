@@ -70,3 +70,53 @@ table.data.data-compact > * > tr > td {
     }
 
 }
+
+
+/* ==========================================================
+   カードの形（D-50。public/js/blogos.js が、収まらない表を table.data.stacked にする）
+   ----------------------------------------------------------
+   1行を1枚の HUD の板にし、各値の前に列の見出しを青白い小さな文字で出す。
+   ========================================================== */
+
+table.data.stacked {
+    background: transparent;
+    border: 0;
+}
+
+table.data.stacked > * > tr {
+    margin-bottom: 10px;
+    background: var(--im-bg-panel);
+    border: 1px solid var(--im-line);
+    border-left: 3px solid var(--im-line-strong);
+}
+
+table.data.stacked > * > tr > th,
+table.data.stacked > * > tr > td {
+    padding: 5px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--im-line-faint);
+}
+
+table.data.stacked > * > tr:hover > td {
+    background: transparent;
+}
+
+table.data.stacked td[data-label]::before {
+    display: block;
+    content: attr(data-label);
+    font-family: var(--im-font-hud);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--im-cyan);
+}
+
+table.data.stacked td[data-label=""]::before {
+    content: none;
+}
+
+/* 行の強調は、カードの左の線の色で出す */
+table.data.stacked > * > tr.row-attention { border-left-color: var(--im-gold); }
+table.data.stacked > * > tr.row-danger,
+table.data.stacked > * > tr.row-error { border-left-color: var(--im-red); }
+table.data.stacked > * > tr.row-current { border-left-color: var(--im-cyan); }

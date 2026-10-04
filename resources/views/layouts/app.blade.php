@@ -24,6 +24,9 @@
             <link rel="stylesheet" href="{{ $stylesheet }}">
         @endforeach
 
+        {{-- 共通の画面の JavaScript（public/js/blogos.js。表を横スクロールなしで見せる。D-50）。 --}}
+        <script src="{{ asset('js/blogos.js') }}?v={{ @filemtime(public_path('js/blogos.js')) }}" defer></script>
+
         {{-- 選んだテーマのJavaScriptを読み込む（public/themes/{テーマ名}/js/script.js）。 --}}
         <script
             src="{{ $theme->js() }}"

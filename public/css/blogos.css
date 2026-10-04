@@ -210,3 +210,92 @@ table.data.data-compact > * > tr > td {
    ・button.btn-danger：取り消せない・壊す操作
    ・a.button-link：主な操作へのリンク
    ========================================================== */
+
+
+/* ==========================================================
+   表を横スクロールなしで見せる（D-50）
+   ----------------------------------------------------------
+   ・表は画面の幅に収める（セルの中の長い英数字・URL も折り返す）
+   ・収まらない表と、列が細くなりすぎる表は、public/js/blogos.js が table.data.stacked にする：
+     行ごとのカードの形にし、各セルの前に列の見出し（data-label）を出す
+   ・入力欄も、置かれている場所の幅からはみ出さない
+   ========================================================== */
+
+table.data {
+    max-width: 100%;
+}
+
+table.data > * > tr > th,
+table.data > * > tr > td,
+table.data > tr > th,
+table.data > tr > td {
+    overflow-wrap: anywhere;
+}
+
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+/* 入力欄は、枠と内側の余白も幅に含める（含めないと、幅の上限を決めても枠の分だけはみ出す） */
+input,
+select,
+textarea {
+    box-sizing: border-box;
+}
+
+/* fieldset は標準では中身の幅より縮まないため、置かれている場所の幅に合わせて縮むようにする */
+fieldset {
+    min-width: 0;
+}
+
+/* カードの形 */
+table.data.stacked,
+table.data.stacked > tbody,
+table.data.stacked > * > tr,
+table.data.stacked > * > tr > th,
+table.data.stacked > * > tr > td {
+    display: block;
+    width: auto !important;
+    max-width: none !important;
+}
+
+table.data.stacked {
+    border: 0;
+}
+
+/* 列の見出しの行は、各セルの前に出すため隠す */
+table.data.stacked > thead,
+table.data.stacked tr.stacked-header {
+    display: none;
+}
+
+/* 1行＝1枚のカード */
+table.data.stacked > * > tr {
+    margin-bottom: 8px;
+    border: 1px outset;
+}
+
+table.data.stacked > * > tr > th,
+table.data.stacked > * > tr > td {
+    border: 0;
+    border-bottom: 1px dotted #ccc;
+    text-align: left !important;
+    white-space: normal !important;
+}
+
+table.data.stacked > * > tr > :last-child {
+    border-bottom: 0;
+}
+
+/* 値の前の、列の見出し */
+table.data.stacked td[data-label]::before {
+    content: attr(data-label) "：";
+    font-weight: bold;
+}
+
+/* 見出しが空の列（操作のボタンなど）は、見出しを出さない */
+table.data.stacked td[data-label=""]::before {
+    content: none;
+}
