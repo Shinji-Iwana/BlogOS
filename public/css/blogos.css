@@ -152,6 +152,29 @@ table.data.data-compact > * > tr > td {
     text-decoration: none;
 }
 
+/* ヘッダーの右側：ブログ名のボタンと、ログアウトのアイコン（D-54） */
+.site-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
 .blog-switch-button {
     padding: 6px 12px;
     border: 1px solid #999;

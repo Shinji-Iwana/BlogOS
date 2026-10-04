@@ -136,3 +136,34 @@
 .site-settings-link {
     white-space: nowrap;
 }
+
+
+/* ==========================================================
+   ログアウトのアイコン（D-54）
+   ----------------------------------------------------------
+   設定・ブログ名と同じ HUD の札。マウスを乗せると、ログアウト（終わる操作）として赤く光る。
+   ボタン全般の見た目（form.css のスーツの赤と金）より優先する。
+   ========================================================== */
+
+.site-header-right {
+    gap: 10px;
+}
+
+.site-header button.logout-button {
+    padding: 5px 9px;
+    color: var(--im-cyan);
+    background: rgba(102, 217, 255, 0.06);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    box-shadow: none;
+    filter: none;
+}
+
+.site-header button.logout-button:hover,
+.site-header button.logout-button:focus-visible {
+    color: #fff;
+    background: rgba(255, 90, 82, 0.2);
+    border-color: var(--im-red);
+    box-shadow: 0 0 10px rgba(255, 90, 82, 0.45);
+    filter: none;
+}

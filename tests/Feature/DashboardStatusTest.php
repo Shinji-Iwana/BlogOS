@@ -85,6 +85,9 @@ class DashboardStatusTest extends TestCase
             ->assertSee('記事：', false)
             ->assertSee(route('drafts.index'))
             ->assertSee('今すぐ同期')
-            ->assertDontSee('SYSTEM STATUS');
+            ->assertDontSee('SYSTEM STATUS')
+            // ログアウトは、ヘッダーのアイコンだけ（D-54）
+            ->assertSee('class="logout-button"', false)
+            ->assertDontSee('>ログアウト</button>', false);
     }
 }

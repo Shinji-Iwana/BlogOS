@@ -58,21 +58,36 @@
     {{-- ==========================================================
          ヘッダー右側
          ----------------------------------------------------------
-         現在選択中のブログ名をボタンとして表示する。
+         現在選択中のブログ名をボタンとして表示し、その右隣にログアウトのアイコンを置く（D-54）。
          ========================================================== --}}
 
-    {{-- 選択中のブログがない場合も、切り替えられるようボタンを表示する --}}
-    @if ($blogs->isNotEmpty())
+    <div class="site-header-right">
 
-        <button
-            type="button"
-            id="blog-switch-open"
-            class="blog-switch-button"
-        >
-            {{ $selectedBlog?->display_name ?? '（ブログを選択）' }}
-        </button>
+        {{-- 選択中のブログがない場合も、切り替えられるようボタンを表示する --}}
+        @if ($blogs->isNotEmpty())
 
-    @endif
+            <button
+                type="button"
+                id="blog-switch-open"
+                class="blog-switch-button"
+            >
+                {{ $selectedBlog?->display_name ?? '（ブログを選択）' }}
+            </button>
+
+        @endif
+
+        {{-- ログアウト（電源のアイコン。押すとログアウトし、ログイン画面に戻る） --}}
+        <form method="POST" action="{{ route('logout') }}" class="logout-form">
+            @csrf
+            <button type="submit" class="logout-button" title="ログアウト" aria-label="ログアウト">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v9"/>
+                    <path d="M6.3 6.8a8 8 0 1 0 11.4 0"/>
+                </svg>
+            </button>
+        </form>
+
+    </div>
 
 </header>
 

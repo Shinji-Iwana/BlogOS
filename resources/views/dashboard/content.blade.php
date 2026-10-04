@@ -20,7 +20,3 @@
 
 @endif
 
-<form method="POST" action="{{ route('logout') }}" style="display:inline;">
-    @csrf
-    <button class="btn-secondary" type="submit">ログアウト</button>
-</form>

@@ -83,10 +83,6 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('logout') }}" class="hud-logout">
-            @csrf
-            <button class="btn-secondary" type="submit">ログアウト</button>
-        </form>
 
         @if ($syncStatus)
             @include('partials.sync-poll')
