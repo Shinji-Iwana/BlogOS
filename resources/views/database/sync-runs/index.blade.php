@@ -1,5 +1,6 @@
 {{--
     同期の記録（sync_runs・sync_run_resources）のDB確認画面
+    実行ごとに、実行時の情報だけを並べ、押すと対象ごとの表が開く（初めは全て閉じる。details）
 --}}
 
 @extends('layouts.app')
@@ -10,11 +11,11 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    <p>表示件数：{{ $runs->count() }}件（新しい順、最大100件）</p>
+    <p>表示件数：{{ $runs->count() }}件（新しい順、最大100件）。実行の行を押すと、対象ごとの結果が開きます。</p>
 
     @forelse ($runs as $run)
-        <section class="bordered" style="padding:10px; margin-bottom:10px;">
-            <p style="margin-top:0;">
+        <details class="sync-run">
+            <summary>
                 <strong>#{{ $run->id }}</strong>
                 ・{{ $run->trigger->label() }}
                 ・{{ $run->status->label() }}
@@ -22,7 +23,7 @@
                 @if ($run->message)
                     ・{{ $run->message }}
                 @endif
-            </p>
+            </summary>
 
             <div style="overflow-x:auto;">
                 <table class="data">
@@ -56,7 +57,7 @@
                     </tbody>
                 </table>
             </div>
-        </section>
+        </details>
     @empty
         <p>記録はありません。</p>
     @endforelse

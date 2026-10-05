@@ -822,3 +822,17 @@ body.voice-speaking .screen-drawer-signal {
 .adsense-down {
     color: #d93025;
 }
+
+
+/* 同期の記録（database/sync-runs）：実行ごとの折りたたみ。押すと対象ごとの表が開く */
+details.sync-run {
+    margin: 0 0 8px;
+}
+
+details.sync-run > summary {
+    cursor: pointer;
+}
+
+details.sync-run[open] > summary {
+    margin-bottom: 8px;
+}
