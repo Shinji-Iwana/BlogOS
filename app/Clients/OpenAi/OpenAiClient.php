@@ -316,8 +316,8 @@ class OpenAiClient
         $hint = match (true) {
             // 権限を制限したAPIキー（Restricted）で、使う機能が許可されていない
             stripos($message, 'Missing scopes') !== false => 'APIキーの権限（Permissions）が足りません。OpenAI の画面の API keys で、このキーを編集し、不足している権限（'
-                . (preg_match('/Missing scopes:\s*([^\s.]+)/i', $message, $scope) ? $scope[1] : '')
-                . '。画像なら Images）を許可してください。キーの文字列は変わらないため、.env を直す必要はありません。',
+                . $this->scopeLabel($message)
+                . '）を許可してください。キーの文字列は変わらないため、.env を直す必要はありません。',
             $response->status() === 401                                  => 'APIキーが正しいか（.env の OPENAI_API_KEY）確認してください。',
             $response->status() === 403 && stripos($message, 'verif') !== false => '画像モデルなど一部のモデルは、OpenAI の組織の本人確認（Organization Verification）が必要です。OpenAI の画面の Settings → Organization で確認してください。',
             $code === 'insufficient_quota'                               => 'OpenAIのクレジット残高が不足しています。Billing の画面で残高を確認してください。',
@@ -328,5 +328,22 @@ class OpenAiClient
         };
 
         return "HTTP {$response->status()} {$message}" . ($hint !== '' ? "（{$hint}）" : '');
+    }
+
+    /**
+     * 足りない権限の名前（例：api.model.audio.request）と、OpenAI の画面での呼び名
+     */
+    protected function scopeLabel(string $message): string
+    {
+        // 権限の名前は「.」を含むため、空白までを読み、最後の「.」（文の終わり）だけを除く
+        $scope = preg_match('/Missing scopes:\s*(\S+)/i', $message, $match) ? rtrim($match[1], '.,') : '';
+        $label = match (true) {
+            str_contains($scope, 'audio')    => '音声（Audio）',
+            str_contains($scope, 'image')    => '画像（Images）',
+            str_contains($scope, 'response') => '応答（Responses）',
+            default                          => '',
+        };
+
+        return trim($scope . ($label !== '' ? "：{$label}" : ''), '：') ?: '不足している権限';
     }
 }

@@ -97,6 +97,23 @@ class VoiceTest extends TestCase
         $this->assertCount(2, session('voice.history'));
     }
 
+    public function test_missing_audio_permission_is_explained(): void
+    {
+        $this->enable();
+        Http::fake([
+            'api.openai.com/v1/audio/transcriptions' => Http::response(['error' => [
+                'message' => "You have insufficient permissions for this operation. Missing scopes: api.model.audio.request. Check that you have the correct role in your organization.",
+            ]], 401),
+        ]);
+
+        // 制限付きの API キーで音声の権限がない：権限の名前を最後まで出し、画面での呼び名を添える
+        $response = $this->post(route('voice.turn'), ['audio' => $this->audio(), 'seconds' => 2])
+            ->assertStatus(422)
+            ->assertJsonFragment(['ok' => false]);
+        $this->assertStringContainsString('api.model.audio.request：音声（Audio）', $response->json('error'));
+        $this->assertSame(0.0, VoiceTurn::sole()->estimated_cost);
+    }
+
     public function test_status_tool_reads_the_dashboard_panels(): void
     {
         $result = app(VoiceTools::class)->call('get_status', [], $this->blog);
