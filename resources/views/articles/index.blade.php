@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>{{ $type === 'posts' ? '投稿' : '固定ページ' }}の一覧（{{ $blog->display_name }}）</h1>
+    <h1>{{ $type === 'posts' ? '投稿' : '固定ページ' }}の一覧</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

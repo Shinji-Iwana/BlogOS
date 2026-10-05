@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>取り込んだWordPressのデータ（{{ $blog->display_name }}）</h1>
+    <h1>取り込んだWordPressのデータ</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

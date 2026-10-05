@@ -11,7 +11,7 @@
 
 @section('content')
 
-    <h1>AdSense（{{ $blog->display_name }}）</h1>
+    <h1>AdSense</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

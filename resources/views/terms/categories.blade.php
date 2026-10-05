@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <h1>カテゴリ（{{ $blog->display_name }}）：{{ $categories->count() }}件</h1>
+    <h1>カテゴリ：{{ $categories->count() }}件</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

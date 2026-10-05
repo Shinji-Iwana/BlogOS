@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>教材（{{ $blog->display_name }}）：{{ $materials->count() }}件</h1>
+    <h1>教材：{{ $materials->count() }}件</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

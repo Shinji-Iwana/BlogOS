@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>教材の案の確認（{{ $blog->display_name }}）：{{ $suggestions->count() }}件</h1>
+    <h1>教材の案の確認：{{ $suggestions->count() }}件</h1>
 
     <p>
         <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>

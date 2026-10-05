@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>記事の企画（{{ $blog->display_name }}）</h1>
+    <h1>記事の企画</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ route('launches.index') }}">カテゴリの立ち上げ</a>・<a href="{{ route('drafts.index') }}">編集案の一覧</a></p>
 

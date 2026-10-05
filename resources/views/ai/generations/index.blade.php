@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>AI実行記録（{{ $blog->display_name }}）</h1>
+    <h1>AI実行記録</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

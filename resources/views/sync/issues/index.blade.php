@@ -8,7 +8,7 @@
 
 @section('content')
 
-    <h1>同期の問題（{{ $blog->display_name }}）</h1>
+    <h1>同期の問題</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

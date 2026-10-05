@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <h1>Google連携（{{ $blog->display_name }}）</h1>
+    <h1>Google連携</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

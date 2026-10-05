@@ -10,7 +10,7 @@
 
 @section('content')
 
-    <h1>サイト内検索（{{ $selectedBlog?->display_name ?? 'ブログ未選択' }}）</h1>
+    <h1>サイト内検索</h1>
 
     <p><a href="{{ url('/') }}">トップページに戻る</a></p>
 

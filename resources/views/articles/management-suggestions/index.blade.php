@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>管理情報の案の確認（{{ $blog->display_name }}）：{{ $rows->count() }}件</h1>
+    <h1>管理情報の案の確認：{{ $rows->count() }}件</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

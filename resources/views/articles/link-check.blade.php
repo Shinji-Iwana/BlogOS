@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>内部リンクの確認（{{ $blog->display_name }}）</h1>
+    <h1>内部リンクの確認</h1>
 
     <p><a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>・<a href="{{ route('ai.batches.index') }}">まとめて実行</a></p>
 

@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>カテゴリごとのアイキャッチ（{{ $blog->display_name }}）</h1>
+    <h1>カテゴリごとのアイキャッチ</h1>
 
     <p>
         <a href="{{ route('images.index') }}">画像の一覧に戻る</a>

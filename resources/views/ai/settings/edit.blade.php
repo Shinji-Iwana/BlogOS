@@ -7,7 +7,7 @@
 
 @section('content')
 
-    <h1>AIの設定（{{ $blog->display_name }}）</h1>
+    <h1>AIの設定</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

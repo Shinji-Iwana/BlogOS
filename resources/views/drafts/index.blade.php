@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>編集案の一覧（{{ $blog->display_name }}）</h1>
+    <h1>編集案の一覧</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

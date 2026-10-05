@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>タイトル・メタディスクリプションの改善の候補（{{ $blog->display_name }}）</h1>
+    <h1>タイトル・メタディスクリプションの改善の候補</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ route('analytics.index') }}">分析</a></p>
 

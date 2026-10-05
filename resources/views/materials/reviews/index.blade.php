@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>記事の教材の見直し（{{ $blog->display_name }}）</h1>
+    <h1>記事の教材の見直し</h1>
 
     <p>
         <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>

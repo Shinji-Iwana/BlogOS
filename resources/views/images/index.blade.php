@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>画像（{{ $blog->display_name }}）：{{ $images->count() }}件</h1>
+    <h1>画像：{{ $images->count() }}件</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

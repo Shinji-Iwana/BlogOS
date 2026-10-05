@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>WordPress の更新（{{ $blog->display_name }}）</h1>
+    <h1>WordPress の更新</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ $adminUrl }}" target="_blank" rel="noopener noreferrer">WordPress の更新の画面を開く</a></p>
 

@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>インデックスの登録状態（{{ $blog->display_name }}）</h1>
+    <h1>インデックスの登録状態</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>

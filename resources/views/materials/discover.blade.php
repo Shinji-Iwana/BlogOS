@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>AIで新しい教材の候補を探す（{{ $blog->display_name }}）</h1>
+    <h1>AIで新しい教材の候補を探す</h1>
 
     <p>
         <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>

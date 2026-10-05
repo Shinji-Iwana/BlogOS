@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>アフィリエイトのプログラム（{{ $blog->display_name }}）：{{ $programs->count() }}件</h1>
+    <h1>アフィリエイトのプログラム：{{ $programs->count() }}件</h1>
 
     <p>
         <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>

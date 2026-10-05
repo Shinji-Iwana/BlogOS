@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>既存の記事のリンクから教材を登録する（{{ $blog->display_name }}）</h1>
+    <h1>既存の記事のリンクから教材を登録する</h1>
 
     <p><a href="{{ route('materials.index') }}">教材の一覧に戻る</a></p>
 

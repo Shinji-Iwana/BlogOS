@@ -8,7 +8,7 @@
 
 @section('content')
 
-    <h1>分析（{{ $blog->display_name }}）</h1>
+    <h1>分析</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>
