@@ -219,7 +219,7 @@ class VoiceTest extends TestCase
         $this->assertNull(app(VoiceTools::class)->call('open_screen', ['screen' => 'no-such'], $this->blog)['navigate']);
     }
 
-    public function test_settings_are_saved_and_realtime_modes_are_not_ready(): void
+    public function test_settings_are_saved(): void
     {
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'c', 'voice' => 'onyx', 'instructions' => '明るく'])
             ->assertRedirect(route('ai.settings.edit') . '#voice');
@@ -227,7 +227,68 @@ class VoiceTest extends TestCase
         $this->assertTrue($settings->enabled());
         $this->assertSame('onyx', $settings->voice());
 
-        $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'd', 'voice' => 'onyx'])->assertSessionHasErrors('mode');
-        $this->get(route('ai.settings.edit'))->assertOk()->assertSee('id="voice"', false)->assertSee('※準備中');
+        // リアルタイム会話（D・E）も選べる（D-58-06）
+        $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'e', 'voice' => 'onyx'])->assertSessionHasNoErrors();
+        $this->assertSame('gpt-realtime-2.1', app(VoiceSettings::class)->realtimeModel());
+        $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'x', 'voice' => 'onyx'])->assertSessionHasErrors('mode');
+        $this->get(route('ai.settings.edit'))->assertOk()->assertSee('id="voice"', false)->assertSee('リアルタイム会話（mini');
+    }
+
+    public function test_realtime_session_gives_an_ephemeral_key_with_tools(): void
+    {
+        $this->enable();
+        // 方式 c のままでは、リアルタイム会話は始めない
+        $this->post(route('voice.realtime.session'))->assertStatus(422);
+
+        app(VoiceSettings::class)->save(['enabled' => true, 'mode' => 'd', 'voice' => 'cedar', 'instructions' => '落ち着いた執事のように'], null);
+        Http::fake(['api.openai.com/v1/realtime/client_secrets' => Http::response(['value' => 'ek_test', 'expires_at' => 1790000000])]);
+
+        $this->post(route('voice.realtime.session'))->assertOk()->assertJson(['ok' => true, 'secret' => 'ek_test', 'model' => 'gpt-realtime-2.1-mini', 'max_seconds' => 300]);
+
+        // 本当の API キーで鍵を作り、会話の設定（モデル・声・話し方・道具）を渡す
+        Http::assertSent(function ($request) {
+            $session = $request['session'];
+
+            return $request->hasHeader('Authorization', 'Bearer test-key')
+                && $session['model'] === 'gpt-realtime-2.1-mini'
+                && $session['audio']['output']['voice'] === 'cedar'
+                && str_contains($session['instructions'], '落ち着いた執事のように')
+                && in_array('confirm_action', array_column($session['tools'], 'name'), true)
+                && ! array_key_exists('strict', $session['tools'][0]);
+        });
+    }
+
+    public function test_realtime_tools_confirm_only_in_a_later_turn_and_usage_is_recorded(): void
+    {
+        app(VoiceSettings::class)->save(['enabled' => true, 'mode' => 'd', 'voice' => 'cedar', 'instructions' => ''], null);
+        Http::fake(['api.openai.com/v1/realtime/client_secrets' => Http::response(['value' => 'ek_test'])]);
+        Queue::fake();
+        $this->post(route('voice.realtime.session'))->assertOk();
+
+        // 発言1：同期の準備（まだ実行しない）
+        $prepared = $this->post(route('voice.realtime.tool'), ['name' => 'start_sync', 'arguments' => '{}', 'turn' => 1])->assertOk();
+        $this->assertTrue(json_decode($prepared->json('output'), true)['needs_confirmation']);
+        // 同じ発言の中の確認は断る
+        $this->post(route('voice.realtime.tool'), ['name' => 'confirm_action', 'arguments' => '{}', 'turn' => 1])->assertOk();
+        Queue::assertNothingPushed();
+
+        // 発言2：同意 → 実行
+        $this->post(route('voice.realtime.tool'), ['name' => 'start_sync', 'arguments' => '{}', 'turn' => 2]);
+        $this->post(route('voice.realtime.tool'), ['name' => 'confirm_action', 'arguments' => '{}', 'turn' => 3])->assertOk();
+        Queue::assertPushed(SyncBlogJob::class, 1);
+
+        // 応答の使用量から費用を残し、AIの費用に含める
+        $this->post(route('voice.realtime.usage'), [
+            'usage'      => ['input_tokens' => 2600, 'output_tokens' => 1250, 'input_token_details' => ['audio_tokens' => 600, 'text_tokens' => 2000, 'cached_tokens' => 0], 'output_token_details' => ['audio_tokens' => 1200, 'text_tokens' => 50]],
+            'transcript' => '同期して',
+            'reply'      => '同期を始めます。実行しますか？',
+            'tools'      => ['start_sync'],
+        ])->assertOk();
+
+        $turn = VoiceTurn::sole();
+        $this->assertSame('d', $turn->mode);
+        // mini：音声 600×$10 + 文字 2000×$0.6 + 音声の出力 1200×$20 + 文字の出力 50×$2.4（100万トークンあたり）＋ 文字起こし 60秒×$0.003/分
+        $this->assertEqualsWithDelta((600 * 10 + 2000 * 0.6 + 1200 * 20 + 50 * 2.4) / 1_000_000 + 0.003, $turn->estimated_cost, 0.000001);
+        $this->assertEqualsWithDelta($turn->estimated_cost, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()), 0.000001);
     }
 }

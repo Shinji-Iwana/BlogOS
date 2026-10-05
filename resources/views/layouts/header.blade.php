@@ -77,6 +77,10 @@
                 data-turn-url="{{ route('voice.turn') }}"
                 data-reset-url="{{ route('voice.reset') }}"
                 data-max-seconds="{{ (int) config('blogos.voice.max_seconds') }}"
+                data-mode="{{ app(\App\Services\Voice\VoiceSettings::class)->mode() }}"
+                data-session-url="{{ route('voice.realtime.session') }}"
+                data-tool-url="{{ route('voice.realtime.tool') }}"
+                data-usage-url="{{ route('voice.realtime.usage') }}"
             >
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="3" width="6" height="11" rx="3"/>

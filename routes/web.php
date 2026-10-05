@@ -86,6 +86,10 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // 音声の操作（ジャービス。D-58）。1分あたりの回数に上限を付ける
     Route::post('/voice/turn', [\App\Http\Controllers\VoiceController::class, 'turn'])->middleware('throttle:' . (int) config('blogos.voice.turns_per_minute', 10) . ',1')->name('voice.turn');
     Route::post('/voice/reset', [\App\Http\Controllers\VoiceController::class, 'reset'])->name('voice.reset');
+    // リアルタイム会話（方式 d・e。D-58-06）：会話を始める・AI が呼んだ道具を実行する・使用量を残す
+    Route::post('/voice/realtime/session', [\App\Http\Controllers\VoiceController::class, 'realtimeSession'])->middleware('throttle:10,1')->name('voice.realtime.session');
+    Route::post('/voice/realtime/tool', [\App\Http\Controllers\VoiceController::class, 'realtimeTool'])->middleware('throttle:60,1')->name('voice.realtime.tool');
+    Route::post('/voice/realtime/usage', [\App\Http\Controllers\VoiceController::class, 'realtimeUsage'])->middleware('throttle:120,1')->name('voice.realtime.usage');
     Route::put('/voice/settings', [\App\Http\Controllers\VoiceController::class, 'updateSettings'])->name('voice.settings.update');
     // 画面のテーマ（D-49）。BlogOS 全体の設定のため、選択中のブログの照合はしない
     Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');

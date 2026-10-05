@@ -165,6 +165,26 @@ class OpenAiClient
     }
 
     /**
+     * リアルタイム会話の、その場限りの鍵を作る（Realtime API の client_secrets。D-58-06）。
+     * ブラウザは、この鍵で OpenAI と直接つながる（本当の API キーはブラウザに渡さない）
+     *
+     * @param  array<string, mixed>  $session  会話の設定（モデル・指示・道具・声・文字起こし・話し終わりの判定）
+     * @return array{value: string, expires_at: int|null}
+     *
+     * @throws OpenAiException
+     */
+    public function realtimeClientSecret(array $session): array
+    {
+        $data = $this->post('/realtime/client_secrets', ['session' => $session]);
+        $value = $data['value'] ?? $data['client_secret']['value'] ?? null;
+        if (! is_string($value) || $value === '') {
+            throw new OpenAiException('リアルタイム会話の鍵が返ってきませんでした。');
+        }
+
+        return ['value' => $value, 'expires_at' => isset($data['expires_at']) ? (int) $data['expires_at'] : null];
+    }
+
+    /**
      * 録音を文字にする（Audio API の transcriptions。D-58）
      *
      * @param  string  $prompt  聞き取りのヒント（BlogOS の画面の名前・カテゴリの名前など、専門の言葉）

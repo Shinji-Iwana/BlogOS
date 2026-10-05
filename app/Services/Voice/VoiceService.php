@@ -156,7 +156,7 @@ class VoiceService
     /**
      * 判断の AI への指示
      */
-    protected function instructions(?Blog $blog): string
+    public function instructions(?Blog $blog): string
     {
         return implode("\n", [
             'あなたは、ブログ運営の管理システム「BlogOS」の音声アシスタント「ジャービス」です。利用者は BlogOS の管理者です。',
@@ -185,14 +185,14 @@ class VoiceService
 
     protected function transcribeCost(string $model, float $seconds): float
     {
-        return (float) (config("blogos.voice.prices.transcribe_per_minute.{$model}") ?? 0.006) * $seconds / 60;
+        return (float) ((config('blogos.voice.prices.transcribe_per_minute')[$model] ?? null) ?? 0.006) * $seconds / 60;
     }
 
     protected function speechCost(string $model, string $text): float
     {
         $seconds = mb_strlen($text) / max(1, (int) config('blogos.voice.chars_per_second'));
 
-        return (float) (config("blogos.voice.prices.tts_per_minute.{$model}") ?? 0.015) * $seconds / 60;
+        return (float) ((config('blogos.voice.prices.tts_per_minute')[$model] ?? null) ?? 0.015) * $seconds / 60;
     }
 
     /**
@@ -202,7 +202,7 @@ class VoiceService
     {
         $text = (float) ($this->policy->cost($models['text'], 8000 * ((int) config('blogos.voice.max_tool_rounds') + 1), 0, 2000) ?? 0.01);
 
-        return $this->transcribeCost($models['transcribe'], (float) config('blogos.voice.max_seconds')) + $text + (float) (config("blogos.voice.prices.tts_per_minute.{$models['tts']}") ?? 0.015) * 0.5;
+        return $this->transcribeCost($models['transcribe'], (float) config('blogos.voice.max_seconds')) + $text + (float) ((config('blogos.voice.prices.tts_per_minute')[$models['tts']] ?? null) ?? 0.015) * 0.5;
     }
 
     protected function client(): OpenAiClient

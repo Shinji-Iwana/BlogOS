@@ -329,6 +329,25 @@ return [
             'tts_per_minute'        => ['gpt-4o-mini-tts' => 0.015],
         ],
         'chars_per_second' => 7,
+
+        // リアルタイム会話（方式 d：mini、e：標準。段階3）。BlogOS が OpenAI からその場限りの鍵を受け取り、ブラウザが OpenAI と直接つながる（WebRTC）
+        'realtime' => [
+            'models' => [
+                'd' => env('BLOGOS_VOICE_REALTIME_MODEL_D', 'gpt-realtime-2.1-mini'),
+                'e' => env('BLOGOS_VOICE_REALTIME_MODEL_E', 'gpt-realtime-2.1'),
+            ],
+            // 会話の欄に出す、利用者の発言の文字起こし（会話とは別に、1分あたりの料金がかかる）
+            'transcription_model' => env('BLOGOS_VOICE_REALTIME_TRANSCRIPTION_MODEL', 'gpt-4o-mini-transcribe'),
+            // 会話を開いておく上限（秒）と、話しかけがないと終える時間（秒）。費用の使いすぎを防ぐ
+            'max_session_seconds' => 300,
+            'idle_seconds'        => 60,
+            // 料金（米ドル・100万トークンあたり。2026-10-05 に公式の料金ページで確認）。音声のトークンは、聞く1分 約600・話す1分 約1,200
+            'prices' => [
+                'gpt-realtime-2.1-mini' => ['audio_input' => 10.00, 'audio_cached_input' => 0.30, 'audio_output' => 20.00, 'text_input' => 0.60, 'text_cached_input' => 0.06, 'text_output' => 2.40],
+                'gpt-realtime-2.1'      => ['audio_input' => 32.00, 'audio_cached_input' => 0.40, 'audio_output' => 64.00, 'text_input' => 4.00, 'text_cached_input' => 0.40, 'text_output' => 24.00],
+            ],
+            'audio_tokens_per_second' => 10,
+        ],
     ],
 
 ];

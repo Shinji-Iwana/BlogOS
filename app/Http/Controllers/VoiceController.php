@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\BlogRepository;
 use App\Services\Voice\VoiceException;
+use App\Services\Voice\VoiceRealtimeService;
 use App\Services\Voice\VoiceService;
 use App\Services\Voice\VoiceSettings;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class VoiceController extends Controller
         protected VoiceService $voice,
         protected VoiceSettings $settings,
         protected BlogRepository $blogs,
+        protected VoiceRealtimeService $realtime,
     ) {
     }
 
@@ -70,6 +72,52 @@ class VoiceController extends Controller
     }
 
     /**
+     * リアルタイム会話を始める（その場限りの鍵。方式 d・e。D-58-06）
+     */
+    public function realtimeSession()
+    {
+        try {
+            return response()->json(['ok' => true] + $this->realtime->start($this->blogs->findSelected()));
+        } catch (VoiceException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * リアルタイム会話で、AI が呼んだ道具を実行する
+     */
+    public function realtimeTool(Request $request)
+    {
+        $validated = $request->validate([
+            'name'      => ['required', 'string', 'max:100'],
+            'arguments' => ['nullable', 'string', 'max:5000'],
+            'turn'      => ['required', 'integer', 'min:0'],
+        ]);
+
+        return response()->json(['ok' => true] + $this->realtime->tool(
+            $validated['name'], (string) ($validated['arguments'] ?? '{}'), (int) $validated['turn'], $this->blogs->findSelected(), $request->user()?->id,
+        ));
+    }
+
+    /**
+     * リアルタイム会話の、AI の1回の応答の使用量（費用を残す）
+     */
+    public function realtimeUsage(Request $request)
+    {
+        $validated = $request->validate([
+            'usage'      => ['required', 'array'],
+            'transcript' => ['nullable', 'string', 'max:5000'],
+            'reply'      => ['nullable', 'string', 'max:5000'],
+            'tools'      => ['nullable', 'array'],
+            'tools.*'    => ['string', 'max:100'],
+        ]);
+
+        $turn = $this->realtime->record($validated['usage'], (string) ($validated['transcript'] ?? ''), (string) ($validated['reply'] ?? ''), $validated['tools'] ?? [], $this->blogs->findSelected(), $request->user()?->id);
+
+        return response()->json(['ok' => true, 'cost' => round($turn->estimated_cost, 4)]);
+    }
+
+    /**
      * 会話の続きを忘れる（新しい会話を始める）
      */
     public function reset(Request $request)
@@ -86,8 +134,6 @@ class VoiceController extends Controller
             'mode'         => ['required', Rule::in(VoiceSettings::READY_MODES)],
             'voice'        => ['required', Rule::in(config('blogos.voice.voices'))],
             'instructions' => ['nullable', 'string', 'max:1000'],
-        ], [
-            'mode.in' => 'リアルタイム会話（D・E）は準備中です。今は C を選んでください。',
         ]);
 
         $this->settings->save([

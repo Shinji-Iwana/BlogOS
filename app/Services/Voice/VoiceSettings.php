@@ -13,16 +13,32 @@ use App\Services\Ai\AiApiPolicy;
 class VoiceSettings
 {
     /**
-     * 方式。c：順番に処理（段階1）。d・e：リアルタイム会話（mini・標準。段階3で加える）
+     * 方式。c：順番に処理。d・e：リアルタイム会話（mini・標準。D-58-06）
      */
     public const MODES = [
-        'c' => 'C：聞き取りも返事も OpenAI（順番に処理。1往復ずつ）',
-        'd' => 'D：リアルタイム会話（mini）※準備中',
-        'e' => 'E：リアルタイム会話（標準）※準備中',
+        'c' => 'C：聞き取りも返事も OpenAI（順番に処理。1往復ずつ、発言のたびにボタンを押す。1回 約0.5円）',
+        'd' => 'D：リアルタイム会話（mini。会話を開いている間は続けて話せる。1回 約1円）',
+        'e' => 'E：リアルタイム会話（標準。より複雑な指示に強い。1回 約2〜4円）',
     ];
 
-    /** 今使える方式（D・E は段階3で加える） */
-    public const READY_MODES = ['c'];
+    /** 使える方式 */
+    public const READY_MODES = ['c', 'd', 'e'];
+
+    /**
+     * リアルタイム会話の方式か
+     */
+    public function realtime(): bool
+    {
+        return in_array($this->mode(), ['d', 'e'], true);
+    }
+
+    /**
+     * リアルタイム会話のモデル（方式 d・e）
+     */
+    public function realtimeModel(): string
+    {
+        return (string) config('blogos.voice.realtime.models.' . $this->mode(), config('blogos.voice.realtime.models.d'));
+    }
 
     public function __construct(
         protected AiApiPolicy $policy,

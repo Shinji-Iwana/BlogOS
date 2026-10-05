@@ -2,14 +2,18 @@
  * ==========================================================
  * voice.js
  * ----------------------------------------------------------
- * 音声の操作（ジャービス。方式 c。D-58）。どのテーマでも読み込み、マイクのボタン（#voice-button）がある画面だけで動く。
+ * 音声の操作（ジャービス。D-58）。どのテーマでも読み込み、マイクのボタン（#voice-button）がある画面だけで動く。
  *
+ * ■ 方式 c（1往復ずつ）
  * ・マイクのボタン（ironman はトップページのアークリアクターも）を押すと録音を始め、
  *   もう一度押すか、話し終えて少し黙ると止めて、BlogOS に送る（1回の上限は data-max-seconds 秒）。
  * ・BlogOS が、聞き取った文字・返事・返事の声（MP3）・画面を移る URL を返す。
  *   会話の欄に文字を出し、声を再生し、画面を移る命令なら、再生の後に移る。
  * ・状態を <body> の class（voice-listening・voice-thinking・voice-speaking）で表す（テーマの CSS で、アークリアクターなどを光らせる）。
  * ・Esc で、録音・再生をやめる。
+ *
+ * ■ 方式 d・e（リアルタイム会話。D-58-06）
+ * ・ボタンを押すと会話を始め、続けて話せる。もう一度押す・Esc・しばらく話しかけない・上限の時間で終える（下の「リアルタイム会話」）。
  * ==========================================================
  */
 
@@ -228,7 +232,216 @@
         player.play().catch(done);
     }
 
+    // ==========================================================
+    // リアルタイム会話（方式 d・e。D-58-06）
+    // ----------------------------------------------------------
+    // ボタンを押すと会話を始め、もう一度押す・Esc・しばらく話しかけない・上限の時間で終える。
+    // 会話を開いている間は、ボタンを押し直さずに続けて話せる（話し終わりは OpenAI が判断する）。
+    // BlogOS から、その場限りの鍵を受け取り、ブラウザが OpenAI と直接つながる（WebRTC）。
+    // AI が呼んだ道具は BlogOS で実行し、結果を AI に返す。応答ごとに使用量を BlogOS に送り、費用を残す。
+    // ==========================================================
+
+    const rt = { pc: null, dc: null, stream: null, audio: null, turn: 0, recordedTurn: -1, transcript: '', reply: '', navigate: null, pendingCalls: 0, idleTimer: null, maxTimer: null, idleSeconds: 60 };
+
+    function isRealtime() {
+        return ['d', 'e'].includes(button.dataset.mode);
+    }
+
+    async function postJson(url, body) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+                credentials: 'same-origin',
+            });
+
+            return await response.json().catch(() => ({ ok: false, error: '応答を読み取れませんでした（HTTP ' + response.status + '）。' }));
+        } catch (e) {
+            return { ok: false, error: 'BlogOS に送れませんでした（通信の失敗）。' };
+        }
+    }
+
+    function sendEvent(event) {
+        if (rt.dc && rt.dc.readyState === 'open') {
+            rt.dc.send(JSON.stringify(event));
+        }
+    }
+
+    function resetIdle() {
+        clearTimeout(rt.idleTimer);
+        rt.idleTimer = setTimeout(() => endRealtime('しばらく話しかけがなかったため、会話を終えました。'), rt.idleSeconds * 1000);
+    }
+
+    async function startRealtime() {
+        stopPlayback();
+        openPanel();
+        show('voice-transcript', '');
+        show('voice-reply', '');
+        setState('thinking');
+        document.getElementById('voice-state').textContent = '接続しています…';
+
+        if (!navigator.mediaDevices || !window.RTCPeerConnection) {
+            show('voice-reply', 'このブラウザでは、リアルタイム会話を使えません（マイクは HTTPS か localhost の画面でだけ使えます）。');
+            setState('idle');
+            return;
+        }
+
+        const session = await postJson(button.dataset.sessionUrl, {});
+        if (!session.ok) {
+            show('voice-reply', session.error || '会話を始められませんでした。');
+            setState('idle');
+            return;
+        }
+
+        try {
+            rt.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (e) {
+            show('voice-reply', 'マイクを使えませんでした。ブラウザでマイクの使用を許可してください。');
+            setState('idle');
+            return;
+        }
+
+        rt.pc = new RTCPeerConnection();
+        rt.audio = document.createElement('audio');
+        rt.audio.autoplay = true;
+        rt.pc.ontrack = (event) => { rt.audio.srcObject = event.streams[0]; };
+        rt.pc.addTrack(rt.stream.getTracks()[0]);
+        rt.dc = rt.pc.createDataChannel('oai-events');
+        rt.dc.addEventListener('open', () => { setState('listening'); resetIdle(); });
+        rt.dc.addEventListener('message', (event) => {
+            try {
+                onRealtimeEvent(JSON.parse(event.data));
+            } catch (e) {
+                // 読み取れない出来事は無視する
+            }
+        });
+        rt.turn = 0;
+        rt.recordedTurn = -1;
+        rt.navigate = null;
+        rt.pendingCalls = 0;
+        rt.idleSeconds = session.idle_seconds || 60;
+
+        try {
+            const offer = await rt.pc.createOffer();
+            await rt.pc.setLocalDescription(offer);
+            const answer = await fetch('https://api.openai.com/v1/realtime/calls', {
+                method: 'POST',
+                body: offer.sdp,
+                headers: { Authorization: 'Bearer ' + session.secret, 'Content-Type': 'application/sdp' },
+            });
+            if (!answer.ok) {
+                throw new Error('HTTP ' + answer.status);
+            }
+            await rt.pc.setRemoteDescription({ type: 'answer', sdp: await answer.text() });
+        } catch (e) {
+            endRealtime('OpenAI につなげませんでした（' + e.message + '）。');
+            return;
+        }
+
+        rt.maxTimer = setTimeout(() => endRealtime('会話の上限の時間になったため、終えました。'), (session.max_seconds || 300) * 1000);
+    }
+
+    function endRealtime(message) {
+        clearTimeout(rt.idleTimer);
+        clearTimeout(rt.maxTimer);
+        if (rt.dc) {
+            rt.dc.close();
+        }
+        if (rt.pc) {
+            rt.pc.close();
+        }
+        if (rt.stream) {
+            rt.stream.getTracks().forEach((track) => track.stop());
+        }
+        if (rt.audio) {
+            rt.audio.srcObject = null;
+        }
+        rt.pc = rt.dc = rt.stream = rt.audio = null;
+        setState('idle');
+        if (message) {
+            document.getElementById('voice-state').textContent = message;
+        }
+    }
+
+    function onRealtimeEvent(event) {
+        switch (event.type) {
+            // 利用者が話し始めた：発言の番号を進める（確認つきの操作は、次の発言でだけ確認を受け付ける）
+            case 'input_audio_buffer.speech_started':
+                rt.turn++;
+                rt.transcript = '';
+                setState('listening');
+                resetIdle();
+                break;
+            case 'input_audio_buffer.speech_stopped':
+                setState('thinking');
+                break;
+            case 'conversation.item.input_audio_transcription.completed':
+                rt.transcript = event.transcript || '';
+                show('voice-transcript', rt.transcript ? '「' + rt.transcript.trim() + '」' : '');
+                break;
+            case 'response.output_audio_transcript.done':
+                rt.reply = event.transcript || '';
+                show('voice-reply', rt.reply);
+                break;
+            case 'output_audio_buffer.started':
+            case 'output_audio_buffer.speech_started':
+                setState('speaking');
+                break;
+            case 'output_audio_buffer.stopped':
+            case 'output_audio_buffer.speech_stopped':
+                setState('listening');
+                resetIdle();
+                // 画面を移る命令なら、返事が終わってから移る（画面を移ると会話も終わる）
+                if (rt.navigate && rt.pendingCalls === 0) {
+                    const url = rt.navigate;
+                    endRealtime();
+                    window.location.href = url;
+                }
+                break;
+            case 'response.done':
+                onResponseDone(event.response || {});
+                break;
+            case 'error':
+                show('voice-reply', 'エラー：' + ((event.error && event.error.message) || '不明'));
+                break;
+        }
+    }
+
+    async function onResponseDone(response) {
+        const calls = (response.output || []).filter((item) => item.type === 'function_call');
+
+        // 使用量（費用）を残す。利用者の発言の文字起こしは、その発言の最初の応答だけに付ける
+        const transcript = rt.recordedTurn !== rt.turn ? rt.transcript : '';
+        rt.recordedTurn = rt.turn;
+        postJson(button.dataset.usageUrl, { usage: response.usage || {}, transcript: transcript, reply: calls.length === 0 ? rt.reply : '', tools: calls.map((call) => call.name) });
+
+        if (calls.length === 0) {
+            return;
+        }
+
+        rt.pendingCalls += calls.length;
+        for (const call of calls) {
+            const result = await postJson(button.dataset.toolUrl, { name: call.name, arguments: call.arguments || '{}', turn: rt.turn });
+            if (result.navigate) {
+                rt.navigate = result.navigate;
+            }
+            sendEvent({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: call.call_id, output: result.output || JSON.stringify({ error: result.error || '道具を実行できませんでした。' }) } });
+            rt.pendingCalls--;
+        }
+        sendEvent({ type: 'response.create' });
+    }
+
     function toggle() {
+        if (isRealtime()) {
+            if (rt.pc) {
+                endRealtime('会話を終えました。');
+            } else {
+                startRealtime();
+            }
+            return;
+        }
+
         if (recorder && recorder.state === 'recording') {
             stop();
         } else if (!document.body.classList.contains('voice-thinking')) {
@@ -255,12 +468,16 @@
             reactor.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } });
         });
 
-        document.getElementById('voice-close').addEventListener('click', () => { cancel(); panel.hidden = true; });
+        document.getElementById('voice-close').addEventListener('click', () => { cancel(); endRealtime(); panel.hidden = true; });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && (recorder || player)) {
+            if (event.key === 'Escape' && rt.pc) {
+                endRealtime('会話を終えました。');
+            } else if (event.key === 'Escape' && (recorder || player)) {
                 cancel();
             }
         });
+        // 画面を離れるときは、会話を終える
+        window.addEventListener('pagehide', () => { if (rt.pc) { endRealtime(); } });
     }
 
     if (document.readyState === 'loading') {
