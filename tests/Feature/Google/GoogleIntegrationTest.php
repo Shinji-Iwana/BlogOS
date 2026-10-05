@@ -40,6 +40,9 @@ class GoogleIntegrationTest extends TestCase
     /** AdSenseがページ単位の集計を受け付けるか */
     protected bool $adsensePageSupported = true;
 
+    /** AdSenseが受け付けない分け方（例：[['TRAFFIC_SOURCE_NAME']]） */
+    protected array $adsenseUnsupported = [];
+
     /** GA4 が失敗を返すか */
     protected bool $ga4Fails = false;
 
@@ -134,20 +137,41 @@ class GoogleIntegrationTest extends TestCase
             return Http::response(['rows' => array_map(fn ($k) => ['keys' => $k, 'clicks' => 3, 'impressions' => 100, 'ctr' => 0.03, 'position' => 4.5], $keys)]);
         }
 
+        // AdSense の支払い（残高と、前回の支払い。D-67）
+        if (str_ends_with($url, 'pub-111/payments')) {
+            return Http::response(['payments' => [
+                ['name' => 'accounts/pub-111/payments/unpaid', 'amount' => '¥602'],
+                ['name' => 'accounts/pub-111/payments/2026-08-21', 'amount' => '¥8,040', 'date' => ['year' => 2026, 'month' => 8, 'day' => 21]],
+                ['name' => 'accounts/pub-111/payments/2026-07-21', 'amount' => '¥8,500', 'date' => ['year' => 2026, 'month' => 7, 'day' => 21]],
+            ]]);
+        }
+
         // AdSense reports:generate
         if (str_contains($url, 'reports:generate')) {
+            preg_match_all('/metrics=([A-Z_]+)/', $url, $metricNames);
+            $metricHeaders = array_map(fn ($name) => $name === 'ESTIMATED_EARNINGS' ? ['name' => $name, 'type' => 'METRIC_CURRENCY', 'currencyCode' => 'JPY'] : ['name' => $name], $metricNames[1]);
+            $metricValues = ['ESTIMATED_EARNINGS' => '12.5', 'PAGE_VIEWS' => '100', 'IMPRESSIONS' => '300', 'CLICKS' => '2'];
+            $metricCells = array_map(fn ($name) => ['value' => $metricValues[$name]], $metricNames[1]);
+
+            // 本日（期間の指定なしの合計）
+            if (str_contains($url, 'dateRange=TODAY')) {
+                return Http::response(['headers' => $metricHeaders, 'totals' => ['cells' => array_map(fn ($name) => ['value' => $name === 'ESTIMATED_EARNINGS' ? '3' : '10'], $metricNames[1])]]);
+            }
+
             parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
             $date = sprintf('%04d-%02d-%02d', $query['startDate_year'], $query['startDate_month'], $query['startDate_day']);
-            $withPage = str_contains($url, 'dimensions=PAGE_URL');
-            if ($withPage && ! $this->adsensePageSupported) {
+            preg_match_all('/dimensions=([A-Z_]+)/', $url, $dimensionNames);
+            $extra = array_values(array_diff($dimensionNames[1], ['DATE']));
+            if (($extra === ['PAGE_URL'] && ! $this->adsensePageSupported) || in_array($extra, $this->adsenseUnsupported, true)) {
                 return Http::response(['error' => ['code' => 400, 'message' => 'Invalid dimension']], 400);
             }
+            $extraValues = ['PAGE_URL' => 'https://blog.example.test/post-100/', 'AD_UNIT_NAME' => 'rectangle-top', 'COUNTRY_NAME' => '日本', 'BID_TYPE_NAME' => 'CPM', 'TRAFFIC_SOURCE_NAME' => 'Google'];
             $headers = array_merge(
                 [['name' => 'DATE', 'type' => 'DIMENSION']],
-                $withPage ? [['name' => 'PAGE_URL', 'type' => 'DIMENSION']] : [],
-                [['name' => 'ESTIMATED_EARNINGS', 'type' => 'METRIC_CURRENCY', 'currencyCode' => 'JPY'], ['name' => 'PAGE_VIEWS'], ['name' => 'IMPRESSIONS'], ['name' => 'CLICKS']]
+                array_map(fn ($name) => ['name' => $name, 'type' => 'DIMENSION'], $extra),
+                $metricHeaders
             );
-            $cells = array_merge([['value' => $date]], $withPage ? [['value' => 'https://blog.example.test/post-100/']] : [], [['value' => '12.5'], ['value' => '100'], ['value' => '300'], ['value' => '2']]);
+            $cells = array_merge([['value' => $date]], array_map(fn ($name) => ['value' => $extraValues[$name]], $extra), $metricCells);
 
             return Http::response(['headers' => $headers, 'rows' => [['cells' => $cells]]]);
         }
@@ -294,6 +318,52 @@ class GoogleIntegrationTest extends TestCase
         $this->assertStringContainsString('ページ単位', $results['adsense']['message']);
         $this->assertSame(1, DB::table('google_adsense_site_daily')->count());
         $this->assertSame(0, DB::table('google_adsense_page_daily')->count());
+    }
+
+    public function test_adsense_dimensions_are_stored_and_shown_with_today_and_balance(): void
+    {
+        // トラフィックソースは受け付けない場合も、ほかの分け方は保存する
+        $this->adsenseUnsupported = [['TRAFFIC_SOURCE_NAME']];
+        $this->configureAll($this->connectAccount());
+
+        $results = app(GoogleFetchService::class)->run($this->blog, SyncTrigger::Manual, null, [GoogleService::Adsense], Carbon::parse('2026-09-14'), Carbon::parse('2026-09-14'));
+
+        // 広告ユニット・国・入札方法ごと×日（直近28日を取り直す。偽の応答は期間の始まりの日だけを返す）
+        $this->assertSame(SyncStatus::Succeeded, $results['adsense']['status']);
+        $this->assertStringContainsString('TRAFFIC_SOURCE_NAME', $results['adsense']['message']);
+        $this->assertSame(['ad_unit', 'bid_type', 'country'], DB::table('google_adsense_dimension_daily')->orderBy('dimension')->pluck('dimension')->all());
+        $this->assertSame('2026-08-18', DB::table('google_adsense_dimension_daily')->value('date'));
+        $this->assertSame('rectangle-top', DB::table('google_adsense_dimension_daily')->where('dimension', 'ad_unit')->value('value'));
+
+        // 画面：過去7日間（9/8〜9/14）・昨日（9/14）の数値、本日（問い合わせ）、残高と前回の支払い
+        DB::table('google_adsense_site_daily')->insert([
+            ['blog_id' => $this->blog->id, 'date' => '2026-09-07', 'currency_code' => 'JPY', 'estimated_earnings' => 5, 'page_views' => 50, 'impressions' => 100, 'clicks' => 0],
+            ['blog_id' => $this->blog->id, 'date' => '2026-09-01', 'currency_code' => 'JPY', 'estimated_earnings' => 8, 'page_views' => 80, 'impressions' => 200, 'clicks' => 1],
+        ]);
+        DB::table('google_adsense_dimension_daily')->insert(['blog_id' => $this->blog->id, 'date' => '2026-09-14', 'dimension' => 'ad_unit', 'value' => 'rectangle-middle', 'currency_code' => 'JPY', 'estimated_earnings' => 4, 'impressions' => 40, 'clicks' => 0]);
+
+        $html = $this->actingAs($this->user)->get(route('analytics.adsense'))->assertOk()
+            ->assertSee('推定収益額')
+            ->assertSee('¥3')                 // 本日
+            ->assertSee('¥602')               // 残高
+            ->assertSee('前回の支払い：¥8,040（2026-08-21）')
+            ->assertSee('rectangle-middle')
+            ->assertSee('ページのインプレッション収益')
+            ->getContent();
+        // 昨日（9/14）¥12.5 と、先週の同じ曜日（9/7）¥5 の比較：+¥7.5（+150%）
+        $this->assertStringContainsString('▲ +¥8（+150%）', $html);
+        // 過去7日間（9/8〜9/14）¥12.5 と、その前の7日間（9/1〜9/7）¥13：-¥0.5（-4%）
+        $this->assertStringContainsString('▼ -¥1（-4%）', $html);
+
+        // 本日・残高は30分使い回す（2回目は問い合わせない）
+        $before = collect($this->requests)->filter(fn ($r) => str_ends_with($r['url'], '/payments'))->count();
+        $this->actingAs($this->user)->get(route('analytics.adsense'))->assertOk();
+        $this->assertSame($before, collect($this->requests)->filter(fn ($r) => str_ends_with($r['url'], '/payments'))->count());
+    }
+
+    public function test_adsense_screen_without_connection(): void
+    {
+        $this->actingAs($this->user)->get(route('analytics.adsense'))->assertOk()->assertSee('AdSense がつながっていません');
     }
 
     public function test_failure_is_recorded_and_other_services_continue(): void

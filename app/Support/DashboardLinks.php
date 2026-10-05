@@ -48,6 +48,7 @@ class DashboardLinks
         ['key' => 'analytics', 'code' => 'ANALYTICS', 'label' => '分析', 'links' => [
             ['label' => '分析（GA4・Search Console・AdSense）', 'route' => 'analytics.index', 'blog' => true],
             ['label' => '記事の実績と次にやること', 'route' => 'analytics.performance', 'blog' => true],
+            ['label' => 'AdSense（推定収益額・残高・広告ユニット）', 'route' => 'analytics.adsense', 'blog' => true],
             ['label' => 'インデックスの登録状態', 'route' => 'google.index-status', 'blog' => true],
             ['label' => 'Google連携の設定', 'route' => 'google.settings', 'blog' => true],
         ]],

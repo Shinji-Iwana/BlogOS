@@ -949,6 +949,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `google_search_console_query_daily` | ページ×検索クエリ×日 | 上に加えて `query` |
 | `google_adsense_site_daily` | ブログ×日 | `currency_code`、`estimated_earnings`、`page_views`、`impressions`、`clicks` |
 | `google_adsense_page_daily` | ページ×日 | `page_url`、上と同じ指標（AdSense APIがページ単位の集計を返す場合だけ使う） |
+| `google_adsense_dimension_daily` | 分け方×値×日 | `dimension`（`ad_unit` 広告ユニット / `country` 国 / `bid_type` 入札方法 / `traffic_source` トラフィックソース）、`value`（その名前）、`currency_code`・`estimated_earnings`・`impressions`・`clicks`。画面「AdSense」のカード（D-67）。毎日の同期で、直近28日以上を取り直す |
 
 * ページ単位の表は、`normalized_path`、`post_id` / `page_id`（多くとも一方）を持つ。URL・パス・クエリは長さの制限がないため、一意キーには、値のハッシュ（`*_hash`、SHA-1）を使う。
 * 全ての表は `blog_id`、`date`（集計の対象日。GA4・Search Consoleはプロパティのタイムゾーン、AdSenseはアカウントのタイムゾーン）、`fetched_at` を持ち、一意キーは `blog_id + date + （ページ・流入元・クエリ）` とする。

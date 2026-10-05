@@ -353,3 +353,42 @@
 .hud-panel-line {
     overflow-wrap: anywhere;
 }
+
+
+/* ==========================================================
+   画面「AdSense」のカード（D-67）：線と棒を HUD の光の色に
+   ========================================================== */
+
+.adsense-spark {
+    color: var(--im-cyan);
+    filter: drop-shadow(0 0 3px var(--im-cyan-glow));
+}
+
+.adsense-bar span {
+    background: var(--im-cyan);
+    box-shadow: 0 0 6px var(--im-cyan-glow);
+}
+
+.adsense-bar-previous span {
+    background: rgba(102, 217, 255, 0.3);
+    box-shadow: none;
+}
+
+.adsense-row {
+    border-bottom-color: var(--im-line-faint);
+}
+
+.adsense-figure-value,
+.adsense-metric-value {
+    color: var(--im-cyan-bright);
+    font-family: var(--im-font-hud);
+    text-shadow: var(--im-glow-text);
+}
+
+.adsense-up {
+    color: var(--im-ok);
+}
+
+.adsense-down {
+    color: var(--im-red);
+}

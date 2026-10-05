@@ -301,6 +301,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     // 記事の実績と次にやること（D-47 S4）
     Route::get('/analytics/performance', [PerformanceController::class, 'index'])->name('analytics.performance');
+    // AdSense（推定収益額・残高・パフォーマンス・広告ユニットなど。D-67）
+    Route::get('/analytics/adsense', [\App\Http\Controllers\Analytics\AdsenseController::class, 'index'])->name('analytics.adsense');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
