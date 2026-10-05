@@ -143,4 +143,39 @@ class AiCreditTest extends TestCase
         $this->delete(route('ai.credits.destroy', ['id' => $entry->id]), $this->selected())->assertRedirect();
         $this->assertSame(0, AiCreditEntry::count());
     }
+    public function test_balance_and_purchase_are_registered_from_menu_popups(): void
+    {
+        // メニューの「設定 → AI」に2つの項目があり、それぞれポップアップを開く。日時の欄には今が入っている（D-62）
+        $this->travelTo(now()->setTime(12, 34));
+        $home = $this->get(route('home'))->assertOk()
+            ->assertSee('data-modal-open="credit-balance-modal"', false)
+            ->assertSee('data-modal-open="credit-purchase-modal"', false)
+            ->assertSee('id="credit-balance-modal"', false)
+            ->assertSee('id="credit-purchase-modal"', false)
+            ->getContent();
+        $this->assertStringContainsString('value="' . now(config('blogos.display_timezone'))->format('Y-m-d\TH:i') . '"', $home);
+        // 「AIの費用と残高」の画面には、もう登録の欄はない
+        $this->get(route('ai.credits.index'))->assertOk()->assertDontSee('<h2>登録する</h2>', false)->assertDontSee('空なら今');
+
+        // 登録した後は、開いていた画面に戻る
+        $this->from(route('drafts.index'))->post(route('ai.credits.balance'), $this->selected(['_form' => 'credit-balance', 'amount' => 20, 'occurred_at' => now(config('blogos.display_timezone'))->format('Y-m-d\TH:i')]))
+            ->assertRedirect(route('drafts.index'));
+        $this->from(route('drafts.index'))->post(route('ai.credits.purchase'), $this->selected(['_form' => 'credit-purchase', 'amount' => 5]))
+            ->assertRedirect(route('drafts.index'));
+        $this->assertSame([AiCreditEntryType::Balance, AiCreditEntryType::Purchase], AiCreditEntry::orderBy('id')->pluck('type')->all());
+
+        // 日時は日本時間として読み、今より後は断る
+        $this->post(route('ai.credits.balance'), $this->selected(['amount' => 1, 'occurred_at' => now(config('blogos.display_timezone'))->addMinutes(5)->format('Y-m-d\TH:i')]))
+            ->assertSessionHasErrors('occurred_at');
+        $this->assertSame(2, AiCreditEntry::count());
+    }
+
+    public function test_credit_popup_stays_open_with_errors(): void
+    {
+        $this->from(route('home'))->post(route('ai.credits.purchase'), $this->selected(['_form' => 'credit-purchase', 'amount' => '']))->assertRedirect(route('home'));
+
+        $html = $this->get(route('home'))->assertOk()->assertSee('金額（米ドル）を入力してください。')->getContent();
+        $this->assertMatchesRegularExpression('/id="credit-purchase-modal"[^>]*data-modal-autoopen/', $html);
+        $this->assertDoesNotMatchRegularExpression('/id="credit-balance-modal"[^>]*data-modal-autoopen/', $html);
+    }
 }

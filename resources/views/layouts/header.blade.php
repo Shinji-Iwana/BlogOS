@@ -358,6 +358,15 @@
 
 
 {{-- ==============================================================
+     残高・課金の登録ポップアップ（D-62）
+     --------------------------------------------------------------
+     メニューの「AI → OpenAIの画面で見た残高を登録」「課金した額を登録」を押した場合に表示する。中身は ai/credits/modals。
+     ============================================================== --}}
+
+@include('ai.credits.modals')
+
+
+{{-- ==============================================================
      ブログ切替ポップアップ制御JavaScript
      --------------------------------------------------------------
      ・ブログ名ボタン押下 → ポップアップ表示
@@ -490,6 +499,14 @@
                     menu.querySelectorAll('details').forEach((details) => { details.open = false; });
                     menu.open = false;
                 }
+                // 日時の欄に、開いた時刻を入れる（data-default-now="時間帯"。例：残高の登録。D-62）
+                modal.querySelectorAll('input[data-default-now]').forEach(function (input) {
+                    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+                        timeZone: input.dataset.defaultNow, hourCycle: 'h23',
+                        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+                    }).formatToParts(new Date()).map((part) => [part.type, part.value]));
+                    input.value = parts.year + '-' + parts.month + '-' + parts.day + 'T' + parts.hour + ':' + parts.minute;
+                });
                 modal.style.display = 'block';
             });
         });

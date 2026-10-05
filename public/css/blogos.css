@@ -393,6 +393,15 @@ table.data.stacked td[data-label=""]::before {
     margin: 0 0 0 2px;
 }
 
+/* パソコン：横に開く項目は、1行で出す（例：OpenAIの画面で見た残高を登録） */
+@media (min-width: 769px) {
+
+    .site-menu-sublinks a {
+        white-space: nowrap;
+    }
+
+}
+
 /* スマホ：横に開くと画面からはみ出すため、下に開く */
 @media (max-width: 768px) {
 

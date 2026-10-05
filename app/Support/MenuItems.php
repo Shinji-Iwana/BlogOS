@@ -20,6 +20,9 @@ class MenuItems
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
             // AI の設定（下の階層。D-61）
             ['label' => 'AI', 'children' => [
+                // 押すと残高・課金の登録ポップアップを開く（画面は移らない。D-62）
+                ['label' => 'OpenAIの画面で見た残高を登録', 'modal' => 'credit-balance-modal'],
+                ['label' => '課金した額を登録', 'modal' => 'credit-purchase-modal'],
                 // 押すと音声操作ポップアップを開く（画面は移らない）
                 ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
             ]],

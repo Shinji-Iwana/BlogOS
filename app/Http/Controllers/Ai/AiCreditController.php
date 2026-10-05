@@ -9,11 +9,13 @@ use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * AIの費用と残高（全ブログ共通。D-31-04）。
  *
- * OpenAI の画面で見た残高と、課金した額を登録する。BlogOS の日ごと・モデルごとの記録を、OpenAI の Usage の画面と比べられるように表示する。
+ * OpenAI の画面で見た残高と、課金した額を登録する（メニューの「設定 → AI」のポップアップ。ai/credits/modals。D-62）。
+ * BlogOS の日ごと・モデルごとの記録を、OpenAI の Usage の画面と比べられるように表示する。
  */
 class AiCreditController extends Controller
 {
@@ -52,7 +54,8 @@ class AiCreditController extends Controller
 
         $difference = $entry->estimated_balance !== null ? sprintf('（その時点の BlogOS の見込み $%.2f、差 $%+.2f）', $entry->estimated_balance, $amount - $entry->estimated_balance) : '';
 
-        return redirect()->route('ai.credits.index')->with('status', sprintf('残高 $%.2f を登録しました%s。', $amount, $difference));
+        // 開いていた画面に戻る（メニューのポップアップから登録する。D-62）
+        return back()->with('status', sprintf('残高 $%.2f を登録しました%s。', $amount, $difference));
     }
 
     public function storePurchase(Request $request)
@@ -60,7 +63,7 @@ class AiCreditController extends Controller
         [$amount, $occurredAt, $note] = $this->validated($request);
         $this->credits->recordPurchase($amount, $occurredAt, $note, $request->user()?->id);
 
-        return redirect()->route('ai.credits.index')->with('status', sprintf('課金 $%.2f を登録しました。', $amount));
+        return back()->with('status', sprintf('課金 $%.2f を登録しました。', $amount));
     }
 
     /**
@@ -82,17 +85,22 @@ class AiCreditController extends Controller
     {
         $validated = $request->validate([
             'amount'      => ['required', 'numeric', 'min:0', 'max:100000'],
-            'occurred_at' => ['nullable', 'date', 'before_or_equal:now'],
+            'occurred_at' => ['nullable', 'date'],
             'note'        => ['nullable', 'string', 'max:1000'],
         ], [
-            'amount.required'             => '金額（米ドル）を入力してください。',
-            'occurred_at.before_or_equal' => '日時は、今より前にしてください。',
+            'amount.required' => '金額（米ドル）を入力してください。',
         ]);
 
-        // 画面の日時は日本時間で入力する
+        // 画面の日時は日本時間で入力する（初めは、ポップアップを開いた時刻が入っている。D-62）
         $occurredAt = filled($validated['occurred_at'] ?? null)
             ? Carbon::parse($validated['occurred_at'], config('blogos.display_timezone'))->utc()
             : now();
+
+        // 今より後は登録できない。日本時間として読んでから比べる
+        // （検証の before_or_equal:now は、入力を UTC として読むため、日本時間の「今」が9時間先と判断されてしまう）
+        if ($occurredAt->isFuture()) {
+            throw ValidationException::withMessages(['occurred_at' => '日時は、今より前にしてください。']);
+        }
 
         return [(float) $validated['amount'], $occurredAt, $validated['note'] ?? null];
     }

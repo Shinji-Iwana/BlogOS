@@ -1,5 +1,6 @@
 {{--
-    AIの費用と残高（全ブログ共通。D-31-04）：OpenAI の残高の見込み、残高・課金の登録、OpenAI の画面と比べるための日ごとの記録
+    AIの費用と残高（全ブログ共通。D-31-04）：OpenAI の残高の見込み、OpenAI の画面と比べるための日ごとの記録、登録の記録
+    残高・課金の登録は、メニューの「設定 → AI」のポップアップ（ai/credits/modals。D-62）
 --}}
 
 @extends('layouts.app')
@@ -19,14 +20,16 @@
 
     <p class="text-muted">
         OpenAI の API は前払い（チャージした残高から引かれる）です。BlogOS は OpenAI の残高を直接取得できないため、
-        OpenAI の画面で見た残高と、課金した額をここに登録し、その後のAPI実行の費用の目安を引いて、残高を見込みます。
+        OpenAI の画面で見た残高と、課金した額を登録し（メニューの「設定 → AI」の
+        「<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」
+        「<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-purchase-modal">課金した額を登録</a>」）、その後のAPI実行の費用の目安を引いて、残高を見込みます。
         見込みが ${{ number_format($status['warning'], 2) }} 以下になったら画面で知らせ、足りなくなる見込みならAPI実行を止めます（${{ number_format($status['reserve'], 2) }} は、見込みのずれに備えて残します）。
     </p>
 
     <section class="panel">
     <h2>残高の見込み</h2>
     @if ($status['base'] === null)
-        <p>まだ残高が登録されていません。下の「OpenAI の画面で見た残高を登録する」から登録してください。</p>
+        <p>まだ残高が登録されていません。メニューの「設定 → AI →<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」から登録してください。</p>
     @else
         <table class="data">
             <tr><th style="text-align:left;">最後に登録した残高</th><td>${{ number_format($status['base']->amount, 2) }}（{{ \App\Support\DisplayTime::format($status['base']->occurred_at) }}）</td></tr>
@@ -42,36 +45,6 @@
         今月（日本時間）のAPI実行の費用の目安：${{ number_format($spent, 2) }}
         @if ($budget !== null)（月の支出の上限 ${{ number_format($budget, 2) }}。.env の BLOGOS_AI_MONTHLY_BUDGET_USD）@else（月の支出の上限は設けていません）@endif
     </p>
-    </section>
-
-    <section class="panel">
-    <h2>登録する</h2>
-    <div style="display:flex; flex-wrap:wrap; gap:16px;">
-        <fieldset style="max-width:420px;">
-            <legend>OpenAI の画面で見た残高を登録する</legend>
-            <p class="text-muted">OpenAI の Billing の画面の Credit balance。登録すると、残高の見込みはこの額から計算し直します（実際との差を記録します）。</p>
-            <form method="POST" action="{{ route('ai.credits.balance') }}">
-                @csrf
-                @include('partials.selected-blog-field')
-                <p><label>残高（米ドル） $<input type="number" name="amount" step="0.01" min="0" value="{{ old('amount') }}" style="width:100px;" required></label></p>
-                <p><label>見た日時（日本時間。空なら今） <input type="datetime-local" name="occurred_at" value="{{ old('occurred_at') }}"></label></p>
-                <p><label>メモ <input type="text" name="note" value="{{ old('note') }}" style="width:260px;"></label></p>
-                <button type="submit">残高を登録する</button>
-            </form>
-        </fieldset>
-        <fieldset style="max-width:420px;">
-            <legend>課金した額を登録する</legend>
-            <p class="text-muted">残高に加わった額（税を除く）。課金の直後に残高も見た場合は、左の「残高を登録する」だけでもかまいません。</p>
-            <form method="POST" action="{{ route('ai.credits.purchase') }}">
-                @csrf
-                @include('partials.selected-blog-field')
-                <p><label>課金した額（米ドル） $<input type="number" name="amount" step="0.01" min="0" value="" style="width:100px;" required></label></p>
-                <p><label>課金した日時（日本時間。空なら今） <input type="datetime-local" name="occurred_at" value=""></label></p>
-                <p><label>メモ <input type="text" name="note" value="" style="width:260px;"></label></p>
-                <button type="submit">課金を登録する</button>
-            </form>
-        </fieldset>
-    </div>
     </section>
 
     <section class="panel">
