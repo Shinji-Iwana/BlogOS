@@ -8,11 +8,23 @@
    ========================================================== */
 
 .site-menu {
+    position: relative;
     gap: 8px;
     padding: 6px 32px;
-    background: rgba(4, 12, 22, 0.92);
-    border-bottom: 1px solid var(--im-line);
-    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--im-line-strong);
+}
+
+/* 上の帯（ヘッダーとメニューバー）の下の光の線 */
+.site-menu::after {
+    content: "";
+    position: absolute;
+    left: 32px;
+    right: 32px;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--im-cyan), transparent);
+    opacity: 0.8;
+    pointer-events: none;
 }
 
 /* 折りたたみ（details）の全体の見た目（box.css）を使わない */
@@ -98,6 +110,11 @@
 
     .site-menu {
         padding: 6px 16px;
+    }
+
+    .site-menu::after {
+        left: 16px;
+        right: 16px;
     }
 
 }

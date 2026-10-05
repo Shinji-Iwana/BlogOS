@@ -124,12 +124,12 @@ table.data.data-compact > * > tr > td {
    共通のヘッダー（layouts/header）
    ========================================================== */
 
+/* ヘッダーとメニューバーの間には線を引かない（メニューバーの下の線で、上の帯の終わりを示す） */
 .site-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
-    border-bottom: 1px solid #ccc;
 }
 
 .site-header-left {

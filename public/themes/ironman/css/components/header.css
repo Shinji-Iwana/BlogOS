@@ -5,32 +5,22 @@
    ブログ切替のポップアップも、ここで管理する。
    ========================================================== */
 
-/* ヘッダーとメニューバー（D-56）を、スクロールしても上に残す */
+/* ヘッダーとメニューバー（D-56）を、スクロールしても上に残す。
+   2つを1つの帯に見せるよう、背景はまとめて付ける（間に線・色の境目を出さない）。
+   背景の格子の線が透けて境目に見えないよう、透けない色にする */
 .site-top {
     position: sticky;
     top: 0;
     z-index: 100;
+    background: linear-gradient(180deg, #06121e, #040c16);
+    /* 帯の下の光（メニューバーに付けると、上のヘッダーとの間にも光がにじむため、帯全体に付ける） */
+    box-shadow: 0 2px 18px rgba(102, 217, 255, 0.12);
 }
 
+/* ヘッダーとメニューバーの間には線を引かない（上の帯の下の線・光は、メニューバーの下に引く。components/menu.css） */
 .site-header {
     position: relative;
     padding: 10px 32px;
-    background: linear-gradient(180deg, rgba(6, 18, 30, 0.96), rgba(4, 12, 22, 0.9));
-    border-bottom: 1px solid var(--im-line-strong);
-    box-shadow: 0 2px 18px rgba(102, 217, 255, 0.12);
-    backdrop-filter: blur(6px);
-}
-
-/* バーの下の光の線 */
-.site-header::after {
-    content: "";
-    position: absolute;
-    left: 32px;
-    right: 32px;
-    bottom: -1px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--im-cyan), transparent);
-    opacity: 0.8;
 }
 
 .site-header-left {
@@ -80,11 +70,6 @@
 
     .site-header {
         padding: 8px 16px;
-    }
-
-    .site-header::after {
-        left: 16px;
-        right: 16px;
     }
 
 }
