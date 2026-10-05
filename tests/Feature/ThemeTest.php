@@ -98,6 +98,12 @@ class ThemeTest extends TestCase
         }
         // 設定の画面には、画面のテーマの欄を出さない（D-57）
         $this->get(route('settings'))->assertDontSee('テーマを切り替える')->assertDontSee('data-code="THEME"', false);
+
+        // 「設定」の左に「履歴」。その中の「WordPressとの同期」で、同期の履歴の画面を開く（D-69）
+        $html = $this->get(route('settings'))->getContent();
+        $this->assertMatchesRegularExpression('/HISTORY<\/span>\s*<span class="site-menu-label">履歴<\/span>.*?href="' . preg_quote(route('database.sync-runs.index'), '/') . '"\s*>WordPressとの同期<\/a>.*?SETTING<\/span>/s', $html);
+        \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期の履歴</h1>', false);
     }
 
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void

@@ -1,5 +1,5 @@
 {{--
-    同期の記録（sync_runs・sync_run_resources）のDB確認画面
+    WordPressとの同期の履歴（sync_runs・sync_run_resources。メニューの「履歴 → WordPressとの同期」）
     実行ごとに、実行時の情報だけを並べ、押すと対象ごとの表が開く（初めは全て閉じる。details）
 --}}
 
@@ -7,7 +7,7 @@
 
 @section('content')
 
-    <h1>同期の記録（{{ $blog->display_name }}）</h1>
+    <h1>WordPressとの同期の履歴</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 

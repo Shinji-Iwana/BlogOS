@@ -48,7 +48,7 @@
         @else
             なし（<a href="{{ route('sync.issues.index', ['resolved' => 1]) }}">解決済みを見る</a>）
         @endif
-        ・<a href="{{ route('database.sync-runs.index') }}">同期の記録</a>
+        ・<a href="{{ route('database.sync-runs.index') }}">WordPressとの同期の履歴</a>
     </p>
 
     @include('partials.sync-run-form')

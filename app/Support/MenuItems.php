@@ -17,6 +17,10 @@ class MenuItems
      * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string, children?: list<array>}>}>
      */
     public const GROUPS = [
+        // 履歴（D-69）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
+        ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
+            ['label' => 'WordPressとの同期', 'route' => 'database.sync-runs.index'],
+        ]],
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
             // AI の設定（下の階層。D-61）
             ['label' => 'AI', 'children' => [

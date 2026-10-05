@@ -77,7 +77,7 @@ class DashboardStatusService
 
     protected function sync(?array $status): array
     {
-        $panel = ['key' => 'sync', 'code' => 'SYNC', 'label' => '同期', 'url' => route('database.sync-runs.index'), 'link' => '同期の記録'];
+        $panel = ['key' => 'sync', 'code' => 'SYNC', 'label' => '同期', 'url' => route('database.sync-runs.index'), 'link' => 'WordPressとの同期の履歴'];
         if ($status === null) {
             return $this->none('sync', 'SYNC', '同期');
         }
