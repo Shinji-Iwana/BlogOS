@@ -31,7 +31,7 @@
 @endphp
 
 @foreach ($creditForms as $kind => $form)
-    @php($creditFailed = old('_form') === 'credit-' . $kind && $errors->any())
+    @php $creditFailed = old('_form') === 'credit-' . $kind && $errors->any(); @endphp
 
     <div
         id="credit-{{ $kind }}-modal"

@@ -836,3 +836,14 @@ details.sync-run > summary {
 details.sync-run[open] > summary {
     margin-bottom: 8px;
 }
+
+
+/* 定期実行のポップアップの「次の実行」「前回」（D-63-06） */
+.schedule-run-info {
+    margin: 12px 0;
+    font-size: 13px;
+}
+
+.schedule-run-failed {
+    color: #c00;
+}

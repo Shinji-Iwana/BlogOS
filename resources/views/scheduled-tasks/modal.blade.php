@@ -106,6 +106,9 @@
                 </p>
             @endif
 
+            {{-- 次の実行と前回（D-63-06。ボタンの上） --}}
+            @include('scheduled-tasks.run-info')
+
             <div
                 class="blog-switch-actions"
             >

@@ -221,4 +221,26 @@ class ScheduledTaskTest extends TestCase
         $this->put(route('scheduled-tasks.update-blog', ['key' => 'materials:check']), ['selected_blog_id' => $blog->id, 'frequency' => 'daily', 'time' => '07:10']);
         $this->assertFalse(app(\App\Repositories\BlogAiSettingRepository::class)->forBlog($blog)->material_check_enabled);
     }
+
+    public function test_popups_show_next_and_last_run(): void
+    {
+        // WordPress との同期は前回あり（件数とリンクは出さない）、Google との同期は無効、古い記録の削除はまだ実行していない（D-63-06）
+        ScheduledTaskRun::create(['task_key' => 'blogs:sync', 'trigger' => 'scheduled', 'status' => 'succeeded', 'started_at' => now()->subHour(),
+            'finished_at' => now()->subHour()->addSeconds(95), 'duration_seconds' => 95, 'processed_count' => 120, 'changed_count' => 3]);
+        $this->put(route('scheduled-tasks.update', ['key' => 'google:fetch']), ['frequency' => 'daily', 'time' => '05:00']);
+
+        $html = $this->get(route('home'))->assertOk()->getContent();
+        $popup = fn (string $id) => preg_match('/id="' . $id . '".*?<\/form>/s', $html, $m) ? $m[0] : '';
+
+        $sync = $popup('scheduled-blogs-sync-modal');
+        $this->assertMatchesRegularExpression('/次の実行：\d{4}-\d{2}-\d{2} 03:00/', $sync);
+        $this->assertMatchesRegularExpression('/前回：\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
+        $this->assertStringNotContainsString('処理 120件', $sync);
+        $this->assertStringNotContainsString('記録を見る', $sync);
+
+        $this->assertStringContainsString('次の実行：無効', $popup('scheduled-google-fetch-modal'));
+        $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
+        // 記事の再評価（専用のポップアップ）にも出す
+        $this->assertStringContainsString('次の実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
+    }
 }

@@ -48,7 +48,7 @@
     </section>
 
     {{-- 処理ごとの内訳（何の処理に、どれだけのトークンと費用がかかったか。D-66） --}}
-    @php($purposeTotal = array_sum(array_column($byPurpose, 'cost')))
+    @php $purposeTotal = array_sum(array_column($byPurpose, 'cost')); @endphp
     <section class="panel">
     <h2>処理ごとの内訳</h2>
     <p class="text-muted">

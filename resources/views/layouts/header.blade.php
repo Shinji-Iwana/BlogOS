@@ -268,7 +268,10 @@
      切り替えた後は、開いていた画面に戻る。
      ============================================================== --}}
 
-@php($headerThemes = app(\App\Services\ThemeService::class))
+{{-- 1行の @php(...) と @php … @endphp を同じ画面に混ぜると、Blade が読み違えるため、ブロックで書く --}}
+@php
+    $headerThemes = app(\App\Services\ThemeService::class);
+@endphp
 
 <div
     id="theme-switch-modal"
@@ -373,12 +376,20 @@
      中身は scheduled-tasks/modal。
      ============================================================== --}}
 
+@php
+    // 各ポップアップの「次の実行」「前回」のため、設定と、定期実行ごとの最後の実行の記録をまとめて読む（D-63-06）
+    $scheduleSettingsAll = app(\App\Services\Schedule\ScheduledTaskService::class)->settings();
+    $scheduleLastRuns = \App\Models\ScheduledTaskRun::whereIn('id', \App\Models\ScheduledTaskRun::whereIn('task_key', \App\Support\ScheduledTasks::MENU)->groupBy('task_key')->selectRaw('MAX(id)'))
+        ->get()->keyBy('task_key');
+@endphp
 @foreach (\App\Support\ScheduledTasks::MENU as $scheduledKey)
     {{-- 記事の再評価は、専用のポップアップ（ScheduledTasks の modal_view。D-64） --}}
     @include(\App\Support\ScheduledTasks::get($scheduledKey)['modal_view'] ?? 'scheduled-tasks.modal', [
-        'taskKey' => $scheduledKey,
-        'modalId' => \App\Support\ScheduledTasks::modalId($scheduledKey),
-        'title'   => \App\Support\ScheduledTasks::menuLabel($scheduledKey) . '（定期実行）',
+        'taskKey'          => $scheduledKey,
+        'modalId'          => \App\Support\ScheduledTasks::modalId($scheduledKey),
+        'title'            => \App\Support\ScheduledTasks::menuLabel($scheduledKey) . '（定期実行）',
+        'scheduleSettings' => $scheduleSettingsAll,
+        'lastRun'          => $scheduleLastRuns->get($scheduledKey),
     ])
 @endforeach
 

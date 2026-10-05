@@ -179,3 +179,9 @@ a.button-link:focus-visible {
     text-shadow: none;
     filter: brightness(1.15);
 }
+
+
+/* 定期実行のポップアップの「前回」が失敗のとき（D-63-06） */
+.schedule-run-failed {
+    color: var(--im-red);
+}
