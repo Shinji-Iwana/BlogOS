@@ -416,7 +416,9 @@ class AiBatchTest extends TestCase
         $this->fakeOpenAi();
 
         // 初期値は無効・gpt-6-luna・medium
-        $this->get(route('ai.settings.edit'))->assertOk()->assertSee('対象になる記事：3件')->assertSee('name="auto_reevaluation_enabled" value="1" >', false);
+        // 設定は、メニューの「設定 → 定期実行 → 記事の再評価」のポップアップ（D-64）。画面「AIの設定」は今日の対象を出す
+        $this->get(route('ai.settings.edit'))->assertOk()->assertSee('対象になる記事：3件')->assertDontSee('<h2>条件による自動の再評価</h2>', false);
+        $this->get(route('home'))->assertOk()->assertSee('name="auto_reevaluation_enabled" value="1" >', false);
         $this->artisan('ai:auto-reevaluate')->assertSuccessful();
         $this->assertSame(0, AiBatch::count());
         $this->artisan('ai:auto-reevaluate', ['--dry-run' => true])->expectsOutputToContain('[未評価] 記事1')->assertSuccessful();
@@ -456,6 +458,13 @@ class AiBatchTest extends TestCase
         $this->artisan('ai:auto-reevaluate')->assertSuccessful();
         $this->assertSame(2, AiBatch::count());
 
+        // ポップアップから、時刻も合わせて保存する。保存した後は、開いていた画面に戻る（D-64）
+        $this->from(route('drafts.index'))->put(route('ai.settings.update'), $this->selected([
+            '_form' => 'scheduled-ai-auto-reevaluate-modal', 'frequency' => 'daily', 'time' => '06:20',
+            'auto_reevaluation_enabled' => 1, 'auto_model' => 'gpt-6-sol', 'auto_reasoning_effort' => 'low',
+        ] + $this->noRevision()))->assertRedirect(route('drafts.index'))->assertSessionHasNoErrors();
+        $this->assertSame('06:20', app(\App\Services\Schedule\ScheduledTaskService::class)->setting('ai:auto-reevaluate')['time']);
+
         // 無効にすると実行しない（記事1本を更新しても）
         $this->put(route('ai.settings.update'), $this->selected(['auto_reevaluation_enabled' => 0, 'auto_model' => 'gpt-6-luna', 'auto_reasoning_effort' => 'medium'] + $this->noRevision()));
         $this->posts[1]->update(['wordpress_modified_gmt' => now()]);
@@ -469,7 +478,7 @@ class AiBatchTest extends TestCase
         $this->fakeOpenAi();
 
         // 初期値は、診断の後の編集案の作成が有効
-        $this->get(route('ai.settings.edit'))->assertSee('name="auto_revision_enabled" value="1" checked', false);
+        $this->get(route('home'))->assertSee('name="auto_revision_enabled" value="1" checked', false);
 
         $this->put(route('ai.settings.update'), $this->selected([
             'auto_reevaluation_enabled' => 1, 'auto_model' => 'gpt-6-luna', 'auto_reasoning_effort' => 'medium',

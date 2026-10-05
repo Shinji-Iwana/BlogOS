@@ -12,12 +12,15 @@ use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiBatchService;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AutoReevaluationService;
-use App\Services\Materials\MaterialCheckService;
+use App\Services\Schedule\ScheduledTaskService;
+use App\Support\ScheduledTasks;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
  * ブログごとのAIの設定（条件による自動の再評価の有効・無効と、使うモデル。D-25）。
+ * 設定は、メニューの「設定 → 定期実行 → 記事の再評価」のポップアップ（ai/settings/reevaluation-modal）から保存する。
+ * 画面「AIの設定」は、API実行の料金表と、自動の再評価の今日の対象を出す（D-64）。
  */
 class AiSettingsController extends Controller
 {
@@ -28,8 +31,8 @@ class AiSettingsController extends Controller
         protected AiApiPolicy $apiPolicy,
         protected AiBatchService $batchService,
         protected AutoReevaluationService $autoService,
-        protected MaterialCheckService $materialCheck,
         protected AiPriceRepository $priceRepository,
+        protected ScheduledTaskService $schedule,
     ) {
     }
 
@@ -39,19 +42,9 @@ class AiSettingsController extends Controller
 
         return view('ai.settings.edit', [
             'blog'       => $blog,
-            'setting'    => $this->settings->forBlog($blog),
-            'configured' => $this->apiPolicy->isConfigured(),
-            'models'     => $this->apiPolicy->models(),
             // 今日の時点で、自動の再評価の対象になる記事（有効・無効にかかわらず表示する）
             'targets'    => $this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation),
             'remaining'  => $this->autoService->remainingToday($blog),
-            'config'     => config('blogos.ai.auto_reevaluation'),
-            'revision'   => $this->autoService->followUpRevision(null, null),
-            'scopeOptions' => AutoReevaluationService::scopeOptions(),
-            // 教材の定期チェック（D-30）
-            'materialCheck'    => config('blogos.materials.check'),
-            'materialDefaults' => $this->apiPolicy->defaults(AiMode::MaterialResearch),
-            'materialDue'      => $this->materialCheck->due($blog)->count(),
             // API実行の料金表（全ブログ共通。D-31-03）
             'priceModels'      => $this->apiPolicy->models(),
             'webSearchPrice'   => $this->apiPolicy->webSearch()['cost_per_call'],
@@ -75,7 +68,10 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => ['required', 'string', 'max:100'],
             'auto_revision_reasoning_effort' => ['required', 'string', 'max:30'],
             'auto_revision_scope'            => ['nullable', Rule::in(array_keys(AutoReevaluationService::scopeOptions()))],
-            'material_check_enabled'         => ['nullable', 'boolean'],
+            // 定期実行の時刻（全ブログ共通。ポップアップから送ったときだけ。D-64）
+            'frequency'                      => ['sometimes', 'required', Rule::in(['daily', 'weekly'])],
+            'weekday'                        => ['nullable', 'required_if:frequency,weekly', 'integer', 'between:0,6'],
+            'time'                           => ['sometimes', 'required', 'date_format:H:i'],
         ]);
 
         try {
@@ -94,9 +90,18 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => $validated['auto_revision_model'],
             'auto_revision_reasoning_effort' => $validated['auto_revision_reasoning_effort'],
             'auto_revision_scope'            => $validated['auto_revision_scope'] ?? AiBatchService::SCOPE_BY_SCORE,
-            'material_check_enabled'         => (bool) ($validated['material_check_enabled'] ?? false),
+            // 教材の定期チェックの有効・無効は、ここでは変えない（メニューのポップアップ。D-63-03）
         ], $request->user()?->id);
 
-        return redirect()->route('ai.settings.edit')->with('status', 'AIの設定を保存しました。' . ($enabled && ! $this->apiPolicy->isConfigured() ? '（APIキーが設定されていないため、自動の再評価は実行されません）' : ''));
+        $warnings = [];
+        if (isset($validated['frequency'], $validated['time'])) {
+            $warnings = $this->schedule->save('ai:auto-reevaluate', $validated, $request->user()?->id);
+        }
+
+        // 開いていた画面に戻る（メニューのポップアップから保存する。D-64）
+        $redirect = back()->with('status', "記事の再評価の設定を保存しました（{$blog->display_name}：" . ($enabled ? '有効' : '無効') . '）。'
+            . ($enabled && ! $this->apiPolicy->isConfigured() ? '（APIキーが設定されていないため、自動の再評価は実行されません）' : ''));
+
+        return $warnings === [] ? $redirect : $redirect->withErrors(['order' => '「' . ScheduledTasks::menuLabel('ai:auto-reevaluate') . '」：' . implode(' ', $warnings)]);
     }
 }

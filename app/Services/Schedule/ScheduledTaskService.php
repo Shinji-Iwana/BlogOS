@@ -47,6 +47,28 @@ class ScheduledTaskService
     }
 
     /**
+     * いつ・有効を保存する（画面「定期実行」とメニューのポップアップ。D-44・D-63）。時刻の順番の注意を返す
+     *
+     * @param  array{frequency: string, weekday?: int|string|null, time: string, enabled?: bool|string|null}  $values
+     * @return list<string>
+     */
+    public function save(string $key, array $values, ?int $userId): array
+    {
+        $task = ScheduledTasks::get($key);
+
+        ScheduledTaskSetting::updateOrCreate(['task_key' => $key], [
+            'frequency'  => $values['frequency'],
+            'weekday'    => $values['frequency'] === 'weekly' ? (int) $values['weekday'] : null,
+            'time'       => $values['time'],
+            // 画面で無効にできない定期実行は、常に有効にしておく
+            'enabled'    => ! $task['can_disable'] || (bool) ($values['enabled'] ?? false),
+            'updated_by' => $userId,
+        ]);
+
+        return $this->orderWarnings()[$key] ?? [];
+    }
+
+    /**
      * @return Collection<string, ScheduledTaskSetting>
      */
     public function settings(): Collection

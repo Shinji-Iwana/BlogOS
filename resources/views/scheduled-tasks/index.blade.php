@@ -17,47 +17,31 @@
     @include('partials.flash')
 
     <p class="text-muted">
-        サーバーの cron から毎分起動し、下の時刻（日本時間）に実行します。時刻を変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。
+        サーバーの cron から毎分起動し、決めた時刻（日本時間）に実行します。
+        いつ・有効の設定は、各行の「設定」か、メニューの「設定 → 定期実行」で変えます。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。
         実行するたびに、開始・終了・かかった時間・処理件数などを記録します。
         同期と Google の取得は Queue で処理するため、Queue の処理が終わった時点を「終了」にします。
     </p>
 
     <table class="data" style="max-width:1200px;">
-        <thead><tr><th>内容</th><th>いつ</th><th>次の実行</th><th>前回</th><th></th></tr></thead>
+        <thead><tr><th>内容</th><th>設定</th><th>次の実行</th><th>前回</th><th></th></tr></thead>
         <tbody>
             @foreach ($tasks as $key => $task)
-                @php $last = $task['last']; $setting = $task['setting']; @endphp
+                @php $last = $task['last']; @endphp
                 <tr>
-                    <td style="max-width:320px;">
-                        <strong>{{ $task['label'] }}</strong><br>
+                    <td style="max-width:420px;">
+                        {{-- 名前は、メニューとポップアップの題名と同じ（D-63-05） --}}
+                        <strong>{{ ScheduledTasks::menuLabel($key) }}</strong><br>
                         <span class="text-muted" style="font-size:90%;">{{ $task['description'] }}</span>
                         @foreach ($warnings[$key] ?? [] as $warning)
                             <br><span class="text-error" style="font-size:90%;">順番の注意：{{ $warning }}</span>
                         @endforeach
                     </td>
-                    <td style="white-space:nowrap;">
-                        <form method="POST" action="{{ route('scheduled-tasks.update', ['key' => $key]) }}">
-                            @csrf
-                            @method('PUT')
-                            <select name="frequency" onchange="this.form.querySelector('.weekday').style.display = this.value === 'weekly' ? '' : 'none'">
-                                <option value="daily" @selected($setting['frequency'] === 'daily')>毎日</option>
-                                <option value="weekly" @selected($setting['frequency'] === 'weekly')>毎週</option>
-                            </select>
-                            <select name="weekday" class="weekday" @if ($setting['frequency'] !== 'weekly') style="display:none" @endif>
-                                @foreach (ScheduledTasks::WEEKDAYS as $index => $weekday)
-                                    <option value="{{ $index }}" @selected($setting['weekday'] === $index)>{{ $weekday }}曜</option>
-                                @endforeach
-                            </select>
-                            <input type="time" name="time" value="{{ $setting['time'] }}" step="60" required>
-                            @if ($task['can_disable'])
-                                <label><input type="checkbox" name="enabled" value="1" @checked($setting['enabled'])> 有効</label>
-                            @elseif (! $task['manual'])
-                                <br><span class="text-muted" style="font-size:90%;">有効・無効は<a href="{{ route('ai.settings.edit') }}">AIの設定</a>で決めます</span>
-                            @else
-                                <br><span class="text-muted" style="font-size:90%;">止められません（止めると記録が増え続けるため）</span>
-                            @endif
-                            <button type="submit">保存</button>
-                        </form>
+                    <td>
+                        {{-- いつ・有効は、メニューの「設定 → 定期実行」と同じポップアップで変える（D-63-04） --}}
+                        @if (in_array($key, ScheduledTasks::MENU, true))
+                            <button type="button" class="btn-secondary" data-modal-open="{{ ScheduledTasks::modalId($key) }}">設定</button>
+                        @endif
                     </td>
                     <td style="white-space:nowrap;">{{ $task['next'] ? DisplayTime::format($task['next'], 'Y-m-d H:i') : '無効' }}</td>
                     <td style="font-size:90%;">
@@ -74,7 +58,7 @@
                     </td>
                     <td>
                         @if ($task['manual'])
-                            <form method="POST" action="{{ route('scheduled-tasks.run', ['key' => $key]) }}" onsubmit="return confirm('「{{ $task['label'] }}」を今すぐ実行しますか？');">
+                            <form method="POST" action="{{ route('scheduled-tasks.run', ['key' => $key]) }}" onsubmit="return confirm('「{{ ScheduledTasks::menuLabel($key) }}」を今すぐ実行しますか？');">
                                 @csrf
                                 <button class="btn-secondary" type="submit">今すぐ実行</button>
                             </form>
@@ -88,7 +72,7 @@
     </table>
 
     <section class="panel">
-    <h2 id="runs">実行の記録{{ $filter ? '：' . ScheduledTasks::get($filter)['label'] : '' }}</h2>
+    <h2 id="runs">実行の記録{{ $filter ? '：' . ScheduledTasks::menuLabel($filter) : '' }}</h2>
     <p>
         @if ($filter)<a href="{{ route('scheduled-tasks.index') }}#runs">すべての定期実行の記録を見る</a>@endif
         <span class="text-muted">（1年で削除します）</span>
@@ -101,7 +85,7 @@
             <tbody>
                 @foreach ($runs as $run)
                     <tr>
-                        <td>{{ $run->label() }}</td>
+                        <td>{{ ScheduledTasks::get($run->task_key) ? ScheduledTasks::menuLabel($run->task_key) : $run->label() }}</td>
                         <td>
                             {{ \App\Models\ScheduledTaskRun::TRIGGERS[$run->trigger] ?? $run->trigger }}{{ $run->requester ? "（{$run->requester->name}）" : '' }}
                             @if (($delay = $run->delaySeconds()) !== null && $delay >= 120)<br><span class="text-warn">予定より {{ ScheduledTaskService::duration($delay) }}遅れて開始</span>@endif
@@ -136,8 +120,8 @@
     <section class="panel">
     <h2>件数の意味</h2>
     <ul class="text-muted">
-        @foreach ($tasks as $task)
-            <li>{{ $task['label'] }}：{{ $task['counts'] }}</li>
+        @foreach ($tasks as $key => $task)
+            <li>{{ ScheduledTasks::menuLabel($key) }}：{{ $task['counts'] }}</li>
         @endforeach
     </ul>
     </section>

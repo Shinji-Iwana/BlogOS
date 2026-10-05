@@ -26,6 +26,8 @@ class MenuItems
                 // 押すと音声操作ポップアップを開く（画面は移らない）
                 ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
             ]],
+            // 定期実行の設定（下の階層。項目は ScheduledTasks::MENU。押すと、いつ・有効の設定のポップアップを開く。D-63）
+            ['label' => '定期実行', 'children' => 'scheduled-tasks'],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
         ]],
@@ -47,6 +49,14 @@ class MenuItems
     }
 
     /**
+     * 「定期実行」の下の項目（App\Support\ScheduledTasks::MENU）
+     */
+    protected static function scheduledTaskLinks(): array
+    {
+        return array_map(fn (string $key) => ['label' => ScheduledTasks::menuLabel($key), 'modal' => ScheduledTasks::modalId($key)], ScheduledTasks::MENU);
+    }
+
+    /**
      * 項目に URL を付ける（下の階層も）
      */
     protected static function links(array $links): array
@@ -55,7 +65,7 @@ class MenuItems
             'label'    => $link['label'],
             'url'      => isset($link['route']) ? route($link['route'], $link['params'] ?? []) . (isset($link['fragment']) ? '#' . $link['fragment'] : '') : '#',
             'modal'    => $link['modal'] ?? null,
-            'children' => self::links($link['children'] ?? []),
+            'children' => self::links(($link['children'] ?? []) === 'scheduled-tasks' ? self::scheduledTaskLinks() : ($link['children'] ?? [])),
         ], $links);
     }
 }

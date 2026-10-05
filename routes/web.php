@@ -223,6 +223,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/batches', [AiBatchController::class, 'store'])->name('ai.batches.store');
         Route::post('/ai/batches/{id}/cancel', [AiBatchController::class, 'cancel'])->whereNumber('id')->name('ai.batches.cancel');
         Route::put('/ai/settings', [AiSettingsController::class, 'update'])->name('ai.settings.update');
+        // 定期実行のいつと、選択中のブログの有効・無効（教材の定期チェック。メニューのポップアップ。D-63-03）
+        Route::put('/scheduled-tasks/{key}/blog', [ScheduledTaskController::class, 'updateWithBlog'])->where('key', '[a-z:-]+')->name('scheduled-tasks.update-blog');
         // AIの費用と残高（D-31-04）
         Route::post('/ai/credits/balance', [AiCreditController::class, 'storeBalance'])->name('ai.credits.balance');
         Route::post('/ai/credits/purchase', [AiCreditController::class, 'storePurchase'])->name('ai.credits.purchase');

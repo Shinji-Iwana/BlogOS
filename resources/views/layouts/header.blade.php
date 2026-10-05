@@ -367,6 +367,23 @@
 
 
 {{-- ==============================================================
+     定期実行の設定のポップアップ（D-63）
+     --------------------------------------------------------------
+     メニューの「定期実行 → WordPressとの同期」などを押した場合に表示する（App\Support\ScheduledTasks::MENU の定期実行ごとに1つ）。
+     中身は scheduled-tasks/modal。
+     ============================================================== --}}
+
+@foreach (\App\Support\ScheduledTasks::MENU as $scheduledKey)
+    {{-- 記事の再評価は、専用のポップアップ（ScheduledTasks の modal_view。D-64） --}}
+    @include(\App\Support\ScheduledTasks::get($scheduledKey)['modal_view'] ?? 'scheduled-tasks.modal', [
+        'taskKey' => $scheduledKey,
+        'modalId' => \App\Support\ScheduledTasks::modalId($scheduledKey),
+        'title'   => \App\Support\ScheduledTasks::menuLabel($scheduledKey) . '（定期実行）',
+    ])
+@endforeach
+
+
+{{-- ==============================================================
      ブログ切替ポップアップ制御JavaScript
      --------------------------------------------------------------
      ・ブログ名ボタン押下 → ポップアップ表示

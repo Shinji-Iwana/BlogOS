@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Jobs\RunScheduledTaskJob;
 use App\Models\ScheduledTaskRun;
-use App\Models\ScheduledTaskSetting;
+use App\Repositories\BlogAiSettingRepository;
 use App\Services\Schedule\ScheduledTaskService;
 use App\Support\ScheduledTasks;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 /**
  * 定期実行の確認・時刻の変更・今すぐ実行（D-44）。定期実行はブログ全体の処理のため、選択中のブログに関係しない。
+ * 時刻の変更は、メニューの「設定 → 定期実行」のポップアップ（scheduled-tasks/modal。D-63）からもできる。
  */
 class ScheduledTaskController extends Controller
 {
+    use UsesSelectedBlog;
+
     public function __construct(
         protected ScheduledTaskService $service,
+        protected BlogAiSettingRepository $aiSettings,
     ) {
     }
 
@@ -48,24 +54,52 @@ class ScheduledTaskController extends Controller
         $task = ScheduledTasks::get($key);
         abort_if($task === null, 404);
 
-        $validated = $request->validate([
+        $warnings = $this->service->save($key, $this->validated($request), $request->user()?->id);
+
+        return $this->saved($task, $warnings);
+    }
+
+    /**
+     * いつと、選択中のブログの有効・無効を保存する（有効・無効をブログごとに決める定期実行。例：教材の定期チェック。D-63-03）
+     */
+    public function updateWithBlog(Request $request, string $key)
+    {
+        $task = ScheduledTasks::get($key);
+        abort_if($task === null || ! isset($task['blog_setting']), 404);
+        $blog = $this->selectedBlog();
+        $validated = $this->validated($request);
+
+        $warnings = $this->service->save($key, $validated, $request->user()?->id);
+
+        // ブログの AI の設定がまだなければ、既定の値で作る（自動の再評価のモデルなど）
+        $current = $this->aiSettings->forBlog($blog);
+        $enabled = (bool) ($validated['enabled'] ?? false);
+        $this->aiSettings->save($blog, [$task['blog_setting'] => $enabled] + ($current->exists ? [] : Arr::except($current->getAttributes(), ['blog_id'])), $request->user()?->id);
+
+        return $this->saved($task, $warnings, "（{$blog->display_name}：" . ($enabled ? '有効' : '無効') . '）');
+    }
+
+    /**
+     * @return array{frequency: string, weekday?: int|string|null, time: string, enabled?: bool|string|null}
+     */
+    protected function validated(Request $request): array
+    {
+        return $request->validate([
             'frequency' => ['required', Rule::in(['daily', 'weekly'])],
             'weekday'   => ['nullable', 'required_if:frequency,weekly', 'integer', 'between:0,6'],
             'time'      => ['required', 'date_format:H:i'],
             'enabled'   => ['nullable', 'boolean'],
         ]);
+    }
 
-        ScheduledTaskSetting::updateOrCreate(['task_key' => $key], [
-            'frequency'  => $validated['frequency'],
-            'weekday'    => $validated['frequency'] === 'weekly' ? (int) $validated['weekday'] : null,
-            'time'       => $validated['time'],
-            // 画面で無効にできない定期実行は、常に有効にしておく
-            'enabled'    => ! $task['can_disable'] || (bool) ($validated['enabled'] ?? false),
-            'updated_by' => $request->user()?->id,
-        ]);
-
-        $warnings = $this->service->orderWarnings()[$key] ?? [];
-        $redirect = redirect()->route('scheduled-tasks.index')->with('status', "「{$task['label']}」の設定を保存しました（次の定期実行から反映されます）。");
+    /**
+     * 開いていた画面に戻る（画面「定期実行」と、メニューのポップアップの両方から保存する。D-63）
+     *
+     * @param  list<string>  $warnings
+     */
+    protected function saved(array $task, array $warnings, string $suffix = '')
+    {
+        $redirect = back()->with('status', "「{$task['label']}」の設定を保存しました{$suffix}（次の定期実行から反映されます）。");
 
         return $warnings === [] ? $redirect : $redirect->withErrors(['order' => "「{$task['label']}」：" . implode(' ', $warnings)]);
     }

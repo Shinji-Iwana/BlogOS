@@ -688,3 +688,8 @@ body.voice-speaking .screen-drawer-signal {
 .tip-box[hidden] {
     display: none;
 }
+
+/* 記事の再評価のポップアップ（D-64）：モデルなどの選択が並ぶため、広くする */
+.reevaluation-dialog {
+    width: 720px;
+}
