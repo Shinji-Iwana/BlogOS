@@ -278,11 +278,11 @@ class AiApiPolicy
     }
 
     /**
-     * 今回の最大の費用で、残高の見込み・月の支出の上限を超えないか確かめる
+     * 今回の最大の費用で、残高の見込み・月の支出の上限を超えないか確かめる（音声の操作からも使う。D-58）
      *
      * @throws AiApiUnavailableException
      */
-    protected function assertAffordable(float $max): void
+    public function assertAffordable(float $max): void
     {
         // OpenAI の残高の見込み：今回の最大の費用を引いて、残しておく額を下回るなら実行しない（残高が未登録なら判定しない。画面で登録を促す）
         $credit = $this->credits->status();

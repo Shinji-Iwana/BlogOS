@@ -7,6 +7,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@yield('title', 'BlogOS')</title>
+{{-- ブラウザから送る処理（音声の操作など）の CSRF 対策 --}}
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 {{-- 共通の画面の見た目（public/css/blogos.css）。テーマのCSSより先に読み込み、テーマで上書きする。 --}}
 <link
@@ -21,6 +23,9 @@
 
 {{-- 共通の画面の JavaScript（public/js/blogos.js。表を横スクロールなしで見せる。D-50）。 --}}
 <script src="{{ asset('js/blogos.js') }}?v={{ @filemtime(public_path('js/blogos.js')) }}" defer></script>
+
+{{-- 音声の操作（public/js/voice.js。マイクのボタンがある画面だけで動く。D-58）。 --}}
+<script src="{{ asset('js/voice.js') }}?v={{ @filemtime(public_path('js/voice.js')) }}" defer></script>
 
 {{-- 選んだテーマのJavaScriptを読み込む（public/themes/{テーマ名}/js/script.js）。 --}}
 <script

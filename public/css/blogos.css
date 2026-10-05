@@ -371,3 +371,76 @@ table.data.stacked td[data-label=""]::before {
     display: block;
     padding: 6px 12px;
 }
+
+
+/* ==========================================================
+   音声の操作（D-58）：ヘッダーのマイクのボタンと、会話の欄
+   ========================================================== */
+
+.voice-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* 聞いている間は、ボタンを赤くする */
+body.voice-listening .voice-button {
+    color: #fff;
+    background: #c00;
+    border-color: #c00;
+}
+
+.voice-panel {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 300;
+    width: min(380px, calc(100vw - 32px));
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #999;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.voice-panel[hidden] {
+    display: none;
+}
+
+.voice-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.voice-panel-title {
+    font-weight: bold;
+}
+
+.voice-panel-state {
+    color: #666;
+    font-size: 13px;
+}
+
+.voice-panel-close {
+    margin-left: auto;
+    padding: 0 8px;
+}
+
+.voice-line {
+    margin: 8px 0 0;
+}
+
+.voice-line-user {
+    color: #666;
+}
+
+.voice-panel-note {
+    margin: 8px 0 0;
+    font-size: 11px;
+}

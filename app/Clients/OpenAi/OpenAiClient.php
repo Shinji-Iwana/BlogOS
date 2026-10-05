@@ -118,6 +118,94 @@ class OpenAiClient
     }
 
     /**
+     * 道具（function）を使える1回の判断（音声の操作。D-58）。
+     *
+     * $input は、会話と道具の結果の並び（Responses API の input）。道具を呼ぶ場合は、output の function_call を返すので、
+     * 呼び出し側で道具を実行し、function_call と function_call_output を input に加えて、もう一度呼ぶ（store: false のため）。
+     *
+     * @param  list<array<string, mixed>>  $input
+     * @param  list<array<string, mixed>>  $tools
+     * @return array{text: string, output: list<array<string, mixed>>, calls: list<array{call_id: string, name: string, arguments: array}>, model: string, input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls: int}
+     *
+     * @throws OpenAiException
+     */
+    public function respondWithTools(string $model, string $instructions, array $input, array $tools, ?string $effort, int $maxOutputTokens): array
+    {
+        $data = $this->post('/responses', array_filter([
+            'model'             => $model,
+            'instructions'      => $instructions,
+            'input'             => $input,
+            'tools'             => $tools,
+            'reasoning'         => $effort !== null ? ['effort' => $effort] : null,
+            'max_output_tokens' => $maxOutputTokens,
+            'store'             => false,
+        ], fn ($value) => $value !== null));
+
+        if (($data['status'] ?? null) !== 'completed') {
+            throw new OpenAiException('回答を得られませんでした：' . ($data['error']['message'] ?? $data['incomplete_details']['reason'] ?? (string) ($data['status'] ?? '不明')), 200, null, $this->usage($data));
+        }
+
+        $text = '';
+        $calls = [];
+        foreach ((array) ($data['output'] ?? []) as $item) {
+            if (($item['type'] ?? null) === 'function_call') {
+                $arguments = json_decode((string) ($item['arguments'] ?? '{}'), true);
+                $calls[] = ['call_id' => (string) ($item['call_id'] ?? ''), 'name' => (string) ($item['name'] ?? ''), 'arguments' => is_array($arguments) ? $arguments : []];
+            }
+            if (($item['type'] ?? null) === 'message') {
+                foreach ((array) ($item['content'] ?? []) as $content) {
+                    if (($content['type'] ?? null) === 'output_text') {
+                        $text .= (string) ($content['text'] ?? '');
+                    }
+                }
+            }
+        }
+
+        return ['text' => $text, 'output' => array_values((array) ($data['output'] ?? [])), 'calls' => $calls, 'model' => (string) ($data['model'] ?? $model)] + $this->usage($data);
+    }
+
+    /**
+     * 録音を文字にする（Audio API の transcriptions。D-58）
+     *
+     * @param  string  $prompt  聞き取りのヒント（BlogOS の画面の名前・カテゴリの名前など、専門の言葉）
+     *
+     * @throws OpenAiException
+     */
+    public function transcribe(string $model, string $audio, string $filename, string $language, string $prompt = ''): string
+    {
+        $response = $this->send('/audio/transcriptions', fn ($http, string $url) => $http->acceptJson()
+            ->attach('file', $audio, $filename)
+            ->post($url, array_filter(['model' => $model, 'language' => $language, 'prompt' => $prompt, 'response_format' => 'json'], fn ($value) => $value !== '')));
+
+        return trim((string) $response->json('text', ''));
+    }
+
+    /**
+     * 文章を声にする（Audio API の speech。D-58）。MP3 のバイト列を返す
+     *
+     * @param  string  $instructions  話し方の指示（例：落ち着いた執事のように）
+     *
+     * @throws OpenAiException
+     */
+    public function speech(string $model, string $voice, string $text, string $instructions = ''): string
+    {
+        $response = $this->send('/audio/speech', fn ($http, string $url) => $http->post($url, array_filter([
+            'model'           => $model,
+            'voice'           => $voice,
+            'input'           => $text,
+            'instructions'    => $instructions,
+            'response_format' => 'mp3',
+        ], fn ($value) => $value !== '')));
+
+        $bytes = $response->body();
+        if ($bytes === '') {
+            throw new OpenAiException('音声が返ってきませんでした。', $response->status());
+        }
+
+        return $bytes;
+    }
+
+    /**
      * @return array{input_tokens: int, cached_input_tokens: int, output_tokens: int, reasoning_tokens: int, web_search_calls: int}
      */
     protected function usage(array $data): array
@@ -140,13 +228,32 @@ class OpenAiClient
      */
     protected function post(string $path, array $body): array
     {
+        $response = $this->send($path, fn ($http, string $url) => $http->acceptJson()->post($url, $body));
+
+        $data = $response->json();
+        if (! is_array($data)) {
+            throw new OpenAiException('OpenAI APIの応答がJSONではありません。', $response->status(), mb_substr($response->body(), 0, 2000));
+        }
+
+        return $data;
+    }
+
+    /**
+     * 送って、成功した応答を返す（1分あたりの上限は待って送り直す。失敗は OpenAiException）
+     *
+     * @param  callable(\Illuminate\Http\Client\PendingRequest, string): Response  $request
+     *
+     * @throws OpenAiException
+     */
+    protected function send(string $path, callable $request): Response
+    {
         $url = rtrim($this->baseUrl, '/') . $path;
         $waited = 0;
 
         while (true) {
             try {
                 /** @var Response $response */
-                $response = Http::timeout($this->timeout)->withToken($this->apiKey)->acceptJson()->post($url, $body);
+                $response = $request(Http::timeout($this->timeout)->withToken($this->apiKey), $url);
             } catch (ConnectionException $e) {
                 Log::warning('OpenAI APIへの接続に失敗しました。', ['url' => $url, 'message' => $e->getMessage()]);
 
@@ -174,12 +281,7 @@ class OpenAiClient
             );
         }
 
-        $data = $response->json();
-        if (! is_array($data)) {
-            throw new OpenAiException('OpenAI APIの応答がJSONではありません。', $response->status(), mb_substr($response->body(), 0, 2000));
-        }
-
-        return $data;
+        return $response;
     }
 
     /**

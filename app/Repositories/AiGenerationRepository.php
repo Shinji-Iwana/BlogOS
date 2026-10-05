@@ -6,6 +6,7 @@ use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
 use App\Enums\AiMode;
 use App\Models\AiGeneration;
+use App\Models\VoiceTurn;
 use App\Models\ArticleDraft;
 use App\Models\Page;
 use App\Models\Post;
@@ -51,7 +52,9 @@ class AiGenerationRepository
     {
         return (float) AiGeneration::where('execution_method', AiExecutionMethod::Api)
             ->where('created_at', '>=', $from)
-            ->sum('estimated_cost');
+            ->sum('estimated_cost')
+            // 音声の操作の費用も含める（D-58）
+            + (float) VoiceTurn::where('created_at', '>=', $from)->sum('estimated_cost');
     }
 
     /**
@@ -62,7 +65,9 @@ class AiGenerationRepository
     {
         return (float) AiGeneration::where('execution_method', AiExecutionMethod::Api)
             ->whereRaw('COALESCE(completed_at, created_at) > ?', [$after])
-            ->sum('estimated_cost');
+            ->sum('estimated_cost')
+            // 音声の操作の費用も含める（D-58）
+            + (float) VoiceTurn::where('created_at', '>', $after)->sum('estimated_cost');
     }
 
     /**

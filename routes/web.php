@@ -83,6 +83,10 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::post('/blog-switch', [BlogSwitchController::class, 'switch'])->name('blog-switch');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    // 音声の操作（ジャービス。D-58）。1分あたりの回数に上限を付ける
+    Route::post('/voice/turn', [\App\Http\Controllers\VoiceController::class, 'turn'])->middleware('throttle:' . (int) config('blogos.voice.turns_per_minute', 10) . ',1')->name('voice.turn');
+    Route::post('/voice/reset', [\App\Http\Controllers\VoiceController::class, 'reset'])->name('voice.reset');
+    Route::put('/voice/settings', [\App\Http\Controllers\VoiceController::class, 'updateSettings'])->name('voice.settings.update');
     // 画面のテーマ（D-49）。BlogOS 全体の設定のため、選択中のブログの照合はしない
     Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
 

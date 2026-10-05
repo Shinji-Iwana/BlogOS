@@ -293,4 +293,42 @@ return [
         'mass_deletion_minimum' => 2,
     ],
 
+    /*
+     * 音声の操作（ジャービス。D-58）
+     *
+     * 方式 c：録音 → 聞き取り（文字にする）→ 文章の AI が判断して BlogOS の道具を呼ぶ → 返事を声にする、を順番に行う。
+     * 方式 d・e（リアルタイム会話）は段階3で加える。使う方式・声・話し方は、画面「AIの設定」の「音声」で選ぶ（system_settings）。
+     */
+    'voice' => [
+        // 聞き取り（音声 → 文字）・判断（文章の AI）・返事（文字 → 音声）のモデル
+        'transcribe_model' => env('BLOGOS_VOICE_TRANSCRIBE_MODEL', 'gpt-transcribe'),
+        'text_model'       => env('BLOGOS_VOICE_TEXT_MODEL', 'gpt-6-luna'),
+        'text_effort'      => env('BLOGOS_VOICE_TEXT_EFFORT', 'none'),
+        'tts_model'        => env('BLOGOS_VOICE_TTS_MODEL', 'gpt-4o-mini-tts'),
+
+        // 選べる声（gpt-4o-mini-tts の13種類。2026-10-05 に公式のガイドで確認）と、初期値
+        'voices'        => ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer', 'verse', 'marin', 'cedar'],
+        'default_voice' => 'cedar',
+
+        // 話し方の指示の初期値
+        'default_instructions' => '落ち着いた英国の執事のように、丁寧に、少し低めの声で、ゆっくり話してください。',
+
+        // 1回の録音の上限（秒）と、1分あたりの回数の上限（使いすぎを防ぐ）
+        'max_seconds'      => 30,
+        'max_upload_kb'    => 4096,
+        'turns_per_minute' => 10,
+
+        // 判断で道具を呼ぶ回数の上限（1回の発言あたり）と、覚えておく直前のやり取りの数（「それを開いて」のような続きの発言のため）
+        'max_tool_rounds' => 4,
+        'history_turns'   => 4,
+
+        // 料金（米ドル。2026-10-05 に公式の料金ページで確認）。費用の目安（AIの費用と残高）に使う。
+        // 返事の声は、1分あたりの目安（音声100万トークン 12ドル）で、話す時間は文字数から見積もる
+        'prices' => [
+            'transcribe_per_minute' => ['gpt-transcribe' => 0.0045, 'gpt-4o-mini-transcribe' => 0.003, 'gpt-4o-transcribe' => 0.006],
+            'tts_per_minute'        => ['gpt-4o-mini-tts' => 0.015],
+        ],
+        'chars_per_second' => 7,
+    ],
+
 ];

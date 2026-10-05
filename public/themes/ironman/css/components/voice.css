@@ -1,0 +1,108 @@
+/* ==========================================================
+   components/voice.css
+   ----------------------------------------------------------
+   音声の操作（ジャービス。D-58）の ironman の見た目。
+
+   ・ヘッダーのマイクのボタン：設定・ブログ名と同じ HUD の札。聞いている間は赤く光る
+   ・会話の欄：画面の右下の HUD のパネル
+   ・アークリアクター（トップページ）：押すと話しかけられる。
+     聞いている間は光が速く脈打ち、考えている間は HUD の円が速く回り、話している間は強く脈打つ
+   ========================================================== */
+
+.site-header button.voice-button {
+    padding: 5px 9px;
+    color: var(--im-cyan);
+    background: rgba(102, 217, 255, 0.06);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    box-shadow: none;
+    filter: none;
+}
+
+.site-header button.voice-button:hover,
+.site-header button.voice-button:focus-visible {
+    color: var(--im-cyan-bright);
+    background: rgba(102, 217, 255, 0.14);
+    box-shadow: var(--im-glow);
+    filter: none;
+}
+
+body.voice-listening .site-header button.voice-button {
+    color: #fff;
+    background: rgba(255, 90, 82, 0.3);
+    border-color: var(--im-red);
+    box-shadow: 0 0 12px rgba(255, 90, 82, 0.6);
+    animation: voiceBlink 1s ease-in-out infinite;
+}
+
+@keyframes voiceBlink {
+
+    50% {
+        box-shadow: 0 0 4px rgba(255, 90, 82, 0.3);
+    }
+
+}
+
+
+/* ==========================================================
+   会話の欄
+   ========================================================== */
+
+.voice-panel {
+    color: var(--im-text);
+    background:
+        linear-gradient(180deg, rgba(102, 217, 255, 0.1), rgba(102, 217, 255, 0.03)),
+        var(--im-bg-panel-solid);
+    border: 1px solid var(--im-line-strong);
+    border-radius: 2px;
+    box-shadow: 0 0 22px rgba(102, 217, 255, 0.25);
+}
+
+.voice-panel-title {
+    font-family: var(--im-font-logo);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+}
+
+.voice-panel-state {
+    font-family: var(--im-font-hud);
+    color: var(--im-cyan);
+}
+
+body.voice-listening .voice-panel-state {
+    color: var(--im-red);
+}
+
+.voice-line-user {
+    color: var(--im-text-muted);
+}
+
+.voice-line-reply {
+    color: var(--im-text);
+}
+
+
+/* ==========================================================
+   アークリアクター（トップページ）
+   ========================================================== */
+
+body.voice-available .hud-reactor .reactor {
+    cursor: pointer;
+}
+
+body.voice-listening .reactor {
+    --reactor-pulse: 1s;
+}
+
+body.voice-thinking .reactor {
+    --reactor-spin-a: 6s;
+    --reactor-spin-b: 9s;
+    --reactor-spin-core: 5s;
+    --reactor-flow: 0.4s;
+}
+
+body.voice-speaking .reactor {
+    --reactor-pulse: 0.7s;
+}

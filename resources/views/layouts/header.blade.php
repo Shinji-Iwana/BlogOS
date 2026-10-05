@@ -66,6 +66,26 @@
 
     <div class="site-header-right">
 
+        {{-- 音声の操作（マイク。押して話し、もう一度押すか少し黙ると送る。D-58）。有効にしているときだけ --}}
+        @if (app(\App\Services\Voice\VoiceSettings::class)->available())
+            <button
+                type="button"
+                id="voice-button"
+                class="voice-button"
+                title="話しかける（音声の操作）"
+                aria-label="話しかける（音声の操作）"
+                data-turn-url="{{ route('voice.turn') }}"
+                data-reset-url="{{ route('voice.reset') }}"
+                data-max-seconds="{{ (int) config('blogos.voice.max_seconds') }}"
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="3" width="6" height="11" rx="3"/>
+                    <path d="M5 11a7 7 0 0 0 14 0"/>
+                    <path d="M12 18v3"/>
+                </svg>
+            </button>
+        @endif
+
         {{-- 選択中のブログがない場合も、切り替えられるようボタンを表示する --}}
         @if ($blogs->isNotEmpty())
 
@@ -386,6 +406,26 @@
 
     });
 </script>
+
+
+{{-- ==============================================================
+     音声の操作の会話の欄（D-58）
+     --------------------------------------------------------------
+     聞き取った文字と返事を出す（聞き違いをすぐ確かめられるように）。public/js/voice.js が表示・更新する。
+     ============================================================== --}}
+
+@if (app(\App\Services\Voice\VoiceSettings::class)->available())
+    <div id="voice-panel" class="voice-panel" hidden>
+        <div class="voice-panel-head">
+            <span class="voice-panel-title">JARVIS</span>
+            <span class="voice-panel-state" id="voice-state"></span>
+            <button type="button" class="voice-panel-close btn-secondary" id="voice-close" aria-label="閉じる">×</button>
+        </div>
+        <p class="voice-line voice-line-user" id="voice-transcript" hidden></p>
+        <p class="voice-line voice-line-reply" id="voice-reply" hidden></p>
+        <p class="voice-panel-note text-muted">返事は AI が作った音声です</p>
+    </div>
+@endif
 
 
 {{-- ==============================================================

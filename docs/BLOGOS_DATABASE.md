@@ -854,7 +854,11 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 
 ## 10-6. system_settings
 
-BlogOS 全体の設定（ブログごとではない設定。D-49）。`key`（UNIQUE）、`value`、`updated_by`。行がない設定は config の既定で動く。今のキーは `theme`（画面のテーマ。`config/themes.php` の名前）だけ。
+BlogOS 全体の設定（ブログごとではない設定。D-49）。`key`（UNIQUE）、`value`、`updated_by`。行がない設定は config の既定で動く。キーは `theme`（画面のテーマ。`config/themes.php` の名前）と、音声の操作の `voice.enabled`・`voice.mode`・`voice.voice`・`voice.instructions`（D-58）。
+
+## 10-7. voice_turns
+
+音声の操作のやり取り（D-58）。1回の発言ごとに1行：`user_id`・`blog_id`、`mode`（c・d・e）、`transcript`（聞き取った文字）・`reply`（返事）、`tool_calls`（呼んだ道具と結果。JSON）、`navigate_url`、`audio_seconds`、`transcribe_model`・`text_model`・`tts_model`・`voice`、`input_tokens`・`cached_input_tokens`・`output_tokens`（判断の文章の AI）、`estimated_cost`（米ドル。聞き取り＋判断＋返事の声）、`error`。費用は「AIの費用と残高」の見込みと今月の費用に含める。INDEX：`created_at`。
 
 ---
 
