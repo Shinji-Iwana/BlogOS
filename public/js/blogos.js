@@ -7,6 +7,9 @@
  * ■ メニューバー（D-56）
  * ・1つを開いたら他を閉じ、メニューの外を押したとき・Esc で閉じる。
  *
+ * ■ 説明のツールチップ（D-61-02）
+ * ・data-tip を付けた「?」（partials/tip）に、説明を出す（下の「説明のツールチップ」）。
+ *
  * ■ 画面のパネル（D-59）
  * ・トップページのリンク・メニューと、声で開く画面を、画面を移らずに横から出るパネルに表示する（下の「画面のパネル」）。
  * ・window.BlogOS.openScreen(url)・closeScreen()・reloadWhenIdle() を、voice.js などから使う。
@@ -360,12 +363,81 @@
         }
     }
 
+    // ==========================================================
+    // 説明のツールチップ（D-61-02。resources/views/partials/tip）
+    // ----------------------------------------------------------
+    // data-tip を付けた要素（「?」）に、マウスを乗せる・Tab で選ぶ・押すと、説明を出す。
+    // ポップアップの中でも切れないよう、画面に固定した1つの枠（.tip-box）に出し、画面からはみ出さない位置に置く。
+    // 外を押す・Esc・スクロールで消す。「?」を押しても、項目（ラジオボタンなど）は選ばない。
+    // ==========================================================
+
+    function initTips() {
+        let box = null;
+
+        const hide = () => {
+            if (box) {
+                box.hidden = true;
+            }
+        };
+
+        const show = (tip) => {
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'tip-box';
+                box.setAttribute('role', 'tooltip');
+                document.body.appendChild(box);
+            }
+            box.textContent = tip.dataset.tip;
+            box.hidden = false;
+
+            // 「?」の下（入らなければ上）に、画面の端から 8px 離して置く
+            const rect = tip.getBoundingClientRect();
+            const left = Math.min(Math.max(8, rect.left + rect.width / 2 - box.offsetWidth / 2), window.innerWidth - box.offsetWidth - 8);
+            let top = rect.bottom + 6;
+            if (top + box.offsetHeight > window.innerHeight - 8) {
+                top = rect.top - box.offsetHeight - 6;
+            }
+            box.style.left = left + 'px';
+            box.style.top = Math.max(8, top) + 'px';
+        };
+
+        const tipOf = (event) => (event.target instanceof Element ? event.target.closest('[data-tip]') : null);
+
+        document.addEventListener('mouseover', (event) => { const tip = tipOf(event); if (tip) { show(tip); } });
+        document.addEventListener('mouseout', (event) => { const tip = tipOf(event); if (tip && !tip.contains(event.relatedTarget)) { hide(); } });
+        document.addEventListener('focusin', (event) => { const tip = tipOf(event); if (tip) { show(tip); } });
+        document.addEventListener('focusout', (event) => { if (tipOf(event)) { hide(); } });
+        document.addEventListener('click', (event) => {
+            const tip = tipOf(event);
+            if (tip) {
+                // 項目（label の中のラジオボタンなど）を選ばない
+                event.preventDefault();
+                show(tip);
+            } else {
+                hide();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            const tip = tipOf(event);
+            if (tip && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                show(tip);
+            } else if (event.key === 'Escape') {
+                hide();
+            }
+        });
+        window.addEventListener('scroll', hide, true);
+        window.addEventListener('resize', hide);
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initMenu);
         document.addEventListener('DOMContentLoaded', initScreens);
+        document.addEventListener('DOMContentLoaded', initTips);
     } else {
         initMenu();
         initScreens();
+        initTips();
     }
 
     if (document.readyState === 'loading') {

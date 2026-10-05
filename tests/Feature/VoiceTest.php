@@ -237,7 +237,10 @@ class VoiceTest extends TestCase
         $this->get(route('home'))->assertOk()
             ->assertSee('data-modal-open="voice-settings-modal"', false)
             ->assertSee('id="voice-settings-modal"', false)
-            ->assertSee('リアルタイム会話（mini');
+            ->assertSee('リアルタイム会話（mini')
+            // 説明は、各項目の「?」のツールチップに出す（D-61-02）
+            ->assertSee('class="tip"', false)
+            ->assertSee('data-tip="返事の声の話し方', false);
         $this->get(route('ai.settings.edit'))->assertOk()->assertDontSee('id="voice"', false)->assertDontSee('音声の設定を保存する');
     }
 
