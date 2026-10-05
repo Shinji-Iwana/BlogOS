@@ -1,0 +1,119 @@
+/* ==========================================================
+   components/drawer.css
+   ----------------------------------------------------------
+   画面のパネル（D-59）の ironman の見た目。共通の形は public/css/blogos.css。
+
+   ・パネル：右から出る HUD のパネル。左の縁に光の線
+   ・上の帯：SCREEN の札・画面の名前・全画面で開く・閉じる。左端の点が、声の操作の状態で光る
+   ・トップページ（パソコン・タブレットの幅）：パネルを開いている間は、左の空いた所にアークリアクターだけを出す
+     （聞いている・考えている・話している の反応が見えるように。状態のパネル・お知らせ・入口は隠す）
+   ========================================================== */
+
+.screen-drawer {
+    background: linear-gradient(180deg, rgba(6, 18, 30, 0.97), rgba(2, 8, 16, 0.97));
+    border-left: 1px solid var(--im-line-strong);
+    box-shadow: -6px 0 28px rgba(102, 217, 255, 0.18);
+    backdrop-filter: blur(6px);
+}
+
+/* 左の縁の光の線 */
+.screen-drawer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, var(--im-cyan), transparent);
+}
+
+.screen-drawer-head {
+    padding: 8px 16px;
+    background: rgba(102, 217, 255, 0.05);
+    border-bottom: 1px solid var(--im-line);
+}
+
+.screen-drawer-code {
+    display: inline;
+    font-family: var(--im-font-hud);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--im-cyan);
+    text-shadow: var(--im-glow-text);
+}
+
+.screen-drawer-title {
+    color: var(--im-text);
+    font-weight: 600;
+}
+
+.screen-drawer-full {
+    color: var(--im-cyan);
+}
+
+.screen-drawer-full:hover,
+.screen-drawer-full:focus-visible {
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+}
+
+/* 声の操作の状態 */
+.screen-drawer-signal {
+    background: var(--im-line-strong);
+}
+
+body.voice-listening .screen-drawer-signal {
+    background: var(--im-red);
+    box-shadow: 0 0 8px var(--im-red);
+    animation: voiceBlink 1s ease-in-out infinite;
+}
+
+body.voice-thinking .screen-drawer-signal {
+    background: var(--im-gold);
+    box-shadow: var(--im-glow-gold);
+}
+
+body.voice-speaking .screen-drawer-signal {
+    background: var(--im-cyan-bright);
+    box-shadow: var(--im-glow);
+}
+
+
+/* ==========================================================
+   トップページ：パネルを開いている間は、左の空いた所にアークリアクターだけ
+   ========================================================== */
+
+@media (min-width: 769px) {
+
+    body.drawer-open .hud-statusbar,
+    body.drawer-open .hud-notices,
+    body.drawer-open .hud-links,
+    body.drawer-open .hud-panels,
+    body.drawer-open .hud-connectors {
+        display: none;
+    }
+
+    body.drawer-open .hud-reactor {
+        position: fixed;
+        top: calc(var(--drawer-top, 0px) + (100vh - var(--drawer-top, 0px)) / 2);
+        left: calc((100vw - var(--drawer-width)) / 2);
+        z-index: 1;
+        width: min(calc((100vw - var(--drawer-width)) * 0.8), 380px, 60vh);
+        transform: translate(-50%, -50%);
+        animation: drawerReactorIn 0.4s ease;
+    }
+
+    body.drawer-open .hud-reactor .reactor {
+        width: 100%;
+    }
+
+}
+
+@keyframes drawerReactorIn {
+
+    from {
+        opacity: 0;
+    }
+
+}

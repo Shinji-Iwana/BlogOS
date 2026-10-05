@@ -444,3 +444,141 @@ body.voice-listening .voice-button {
     margin: 8px 0 0;
     font-size: 11px;
 }
+
+
+/* ==========================================================
+   画面のパネル（D-59）
+   ----------------------------------------------------------
+   トップページのリンク・メニューと、声で開く画面を、画面を移らずに、右から出るパネルに表示する（public/js/blogos.js）。
+   ・上の端は、ヘッダーとメニューの下（--drawer-top。blogos.js が測る）。メニューの項目は、パネルより上に出る
+   ・幅（--drawer-width）：パソコン 62%、タブレット 75%、スマホは全体
+   ・パネルの中の画面（html.is-embedded）は、ヘッダー・メニュー・会話の欄・パネルを出さない
+   ========================================================== */
+
+:root {
+    --drawer-width: min(62vw, 1100px);
+}
+
+@media (max-width: 1024px) {
+
+    :root {
+        --drawer-width: 75vw;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    :root {
+        --drawer-width: 100vw;
+    }
+
+}
+
+html.is-embedded .site-top,
+html.is-embedded .voice-panel,
+html.is-embedded .screen-drawer {
+    display: none;
+}
+
+.screen-drawer {
+    position: fixed;
+    top: var(--drawer-top, 0px);
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    width: var(--drawer-width);
+    background: #fff;
+    border-left: 1px solid #999;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.screen-drawer.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+}
+
+.screen-drawer-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+/* 英字の札は ironman だけで出す */
+.screen-drawer-code {
+    display: none;
+}
+
+.screen-drawer-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: bold;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.screen-drawer-full {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.screen-drawer-close {
+    padding: 0 8px;
+}
+
+.screen-drawer-frame {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: transparent;
+}
+
+/* 声の操作の状態（聞いている：赤、考えている：黄、話している：青） */
+.screen-drawer-signal {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+body.voice-listening .screen-drawer-signal {
+    background: #c00;
+}
+
+body.voice-thinking .screen-drawer-signal {
+    background: #e90;
+}
+
+body.voice-speaking .screen-drawer-signal {
+    background: #09c;
+}
+
+/* パネルを開いている間は、会話の欄を左下に出す（パネルに重ねない。スマホは重ねる） */
+@media (min-width: 769px) {
+
+    body.drawer-open .voice-panel {
+        right: auto;
+        left: 16px;
+        width: min(380px, calc(100vw - var(--drawer-width) - 32px));
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .screen-drawer,
+    .screen-drawer.is-open {
+        transition: none;
+    }
+
+}

@@ -29,8 +29,9 @@
              各ページ固有の本文
              ========================================================== --}}
 
-        {{-- テーマのCSSで、本文の余白・幅を決められるよう、枠を付ける（blank では何もしない） --}}
-        <main class="site-main">
+        {{-- テーマのCSSで、本文の余白・幅を決められるよう、枠を付ける（blank では何もしない）。
+             トップページのリンクは、画面を移らず、横の画面のパネルに開く（data-drawer-links。D-59） --}}
+        <main class="site-main" @if (request()->routeIs('home')) data-drawer-links @endif>
             @yield('content')
         </main>
 

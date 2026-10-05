@@ -291,4 +291,24 @@ class VoiceTest extends TestCase
         $this->assertEqualsWithDelta((600 * 10 + 2000 * 0.6 + 1200 * 20 + 50 * 2.4) / 1_000_000 + 0.003, $turn->estimated_cost, 0.000001);
         $this->assertEqualsWithDelta($turn->estimated_cost, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()), 0.000001);
     }
+
+    public function test_screens_open_in_the_drawer_and_can_be_closed_by_voice(): void
+    {
+        $this->enable();
+
+        // トップページ：画面のパネルがあり、リンクとメニューはパネルに開く。ほかのサイトの中には表示させない
+        $this->get(route('home'))->assertOk()
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertSee('id="screen-drawer"', false)
+            ->assertSee('data-drawer-links', false)
+            ->assertSee('data-home-url="' . route('home') . '"', false);
+
+        // トップページ以外：リンクは、ふつうに画面を移る
+        $this->get(route('settings'))->assertOk()->assertDontSee('data-drawer-links', false);
+
+        // 声で「閉じて」：パネルを閉じる（close）
+        $closed = app(VoiceTools::class)->call('close_screen', [], $this->blog);
+        $this->assertSame('close', $closed['navigate']);
+        $this->assertContains('close_screen', array_column(app(VoiceTools::class)->definitions(true), 'name'));
+    }
 }

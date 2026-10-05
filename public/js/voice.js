@@ -14,6 +14,11 @@
  *
  * ■ 方式 d・e（リアルタイム会話。D-58-06）
  * ・ボタンを押すと会話を始め、続けて話せる。もう一度押す・Esc・しばらく話しかけない・上限の時間で終える（下の「リアルタイム会話」）。
+ *
+ * ■ 画面を開く命令（D-59）
+ * ・画面を移らず、横から出る画面のパネル（blogos.js の BlogOS.openScreen）に開く。会話は切れず、続けて話せる。
+ * ・「閉じて」（close）とトップページを開く命令は、パネルを閉じる。トップページ以外の画面でトップページを開く命令だけ、画面を移る。
+ * ・画面のパネルの中の画面（is-embedded）では動かない（マイクのボタンは、外側の画面だけ）。
  * ==========================================================
  */
 
@@ -209,7 +214,37 @@
 
         show('voice-transcript', data.transcript ? '「' + data.transcript + '」' : '');
         show('voice-reply', data.reply);
+        // 画面のパネルで開ける画面は、返事を待たずに開く（画面を移る場合だけ、返事の後に移る）
+        if (data.navigate && openScreen(data.navigate)) {
+            data.navigate = null;
+        }
         speak(data);
+    }
+
+    /**
+     * 画面を開く命令を、画面のパネルで開く（D-59）。パネルで済んだら true、画面を移る必要があれば false
+     */
+    function openScreen(url) {
+        const screens = window.BlogOS;
+        if (!screens || !screens.openScreen) {
+            return false;
+        }
+        if (url === 'close') {
+            screens.closeScreen();
+            return true;
+        }
+        const target = new URL(url, window.location.href);
+        const home = new URL(button.dataset.homeUrl || '/', window.location.href);
+        if (target.pathname === home.pathname) {
+            if (window.location.pathname !== home.pathname) {
+                return false;
+            }
+            screens.closeScreen();
+            return true;
+        }
+        screens.openScreen(target.href);
+
+        return true;
     }
 
     function speak(data) {
@@ -309,6 +344,8 @@
         rt.pc.addTrack(rt.stream.getTracks()[0]);
         rt.dc = rt.pc.createDataChannel('oai-events');
         rt.dc.addEventListener('open', () => { setState('listening'); resetIdle(); });
+        // 会話中の印（同期の終わりなどの、画面の読み込み直しを、会話を終えるまで待つ。D-59）
+        document.body.classList.add('voice-session');
         rt.dc.addEventListener('message', (event) => {
             try {
                 onRealtimeEvent(JSON.parse(event.data));
@@ -342,7 +379,11 @@
         rt.maxTimer = setTimeout(() => endRealtime('会話の上限の時間になったため、終えました。'), (session.max_seconds || 300) * 1000);
     }
 
-    function endRealtime(message) {
+    /**
+     * @param {string|undefined} message 会話の欄に出す文
+     * @param {boolean} leaving 画面を移るために終える（待っていた読み込み直しをしない）
+     */
+    function endRealtime(message, leaving) {
         clearTimeout(rt.idleTimer);
         clearTimeout(rt.maxTimer);
         if (rt.dc) {
@@ -361,6 +402,10 @@
         setState('idle');
         if (message) {
             document.getElementById('voice-state').textContent = message;
+        }
+        document.body.classList.remove('voice-session');
+        if (!leaving && window.BlogOS && window.BlogOS.idle) {
+            window.BlogOS.idle();
         }
     }
 
@@ -392,10 +437,10 @@
             case 'output_audio_buffer.speech_stopped':
                 setState('listening');
                 resetIdle();
-                // 画面を移る命令なら、返事が終わってから移る（画面を移ると会話も終わる）
+                // 画面を移る命令（トップページ以外の画面から、トップページを開く）なら、返事が終わってから移る（会話も終わる）
                 if (rt.navigate && rt.pendingCalls === 0) {
                     const url = rt.navigate;
-                    endRealtime();
+                    endRealtime(undefined, true);
                     window.location.href = url;
                 }
                 break;
@@ -423,7 +468,8 @@
         rt.pendingCalls += calls.length;
         for (const call of calls) {
             const result = await postJson(button.dataset.toolUrl, { name: call.name, arguments: call.arguments || '{}', turn: rt.turn });
-            if (result.navigate) {
+            // 画面のパネルで開ける画面は、すぐ開く（会話は続く）
+            if (result.navigate && !openScreen(result.navigate)) {
                 rt.navigate = result.navigate;
             }
             sendEvent({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: call.call_id, output: result.output || JSON.stringify({ error: result.error || '道具を実行できませんでした。' }) } });
@@ -452,7 +498,8 @@
     function init() {
         button = document.getElementById('voice-button');
         panel = document.getElementById('voice-panel');
-        if (!button || !panel) {
+        // 画面のパネルの中の画面では動かない（会話は外側の画面で続ける。D-59）
+        if (!button || !panel || window.self !== window.top) {
             return;
         }
 
@@ -470,6 +517,10 @@
 
         document.getElementById('voice-close').addEventListener('click', () => { cancel(); endRealtime(); panel.hidden = true; });
         document.addEventListener('keydown', (event) => {
+            // 画面のパネルを閉じた Esc（blogos.js）では、会話を終えない
+            if (event.defaultPrevented) {
+                return;
+            }
             if (event.key === 'Escape' && rt.pc) {
                 endRealtime('会話を終えました。');
             } else if (event.key === 'Escape' && (recorder || player)) {

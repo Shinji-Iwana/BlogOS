@@ -81,6 +81,7 @@
                 data-session-url="{{ route('voice.realtime.session') }}"
                 data-tool-url="{{ route('voice.realtime.tool') }}"
                 data-usage-url="{{ route('voice.realtime.usage') }}"
+                data-home-url="{{ route('home') }}"
             >
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="3" width="6" height="11" rx="3"/>
@@ -126,7 +127,7 @@
      種類（英字の札と名前）を押すと、項目が開く（details。public/js/blogos.js が、外を押したら閉じる）。
      ============================================================== --}}
 
-<nav class="site-menu" aria-label="メニュー">
+<nav class="site-menu" aria-label="メニュー" @if (request()->routeIs('home')) data-drawer-links @endif>
     @foreach (\App\Support\MenuItems::groups() as $group)
         <details class="site-menu-group">
             <summary>
@@ -430,6 +431,28 @@
         <p class="voice-panel-note text-muted">返事は AI が作った音声です</p>
     </div>
 @endif
+
+
+{{-- ==============================================================
+     画面のパネル（D-59）
+     --------------------------------------------------------------
+     トップページのリンク・メニューと、声で開く画面を、画面を移らずに、横から出るパネルの中に表示する
+     （画面を移ると、声の会話が切れるため。アークリアクターも見えたままにする）。
+     パネルの中の画面は、ヘッダーとメニューを出さない（layouts/head の is-embedded）。
+     「全画面で開く」で、パネルの中の画面を、ふつうの画面として開く。public/js/blogos.js が開く・閉じる。
+     ============================================================== --}}
+
+<aside id="screen-drawer" class="screen-drawer" aria-label="画面のパネル" aria-hidden="true">
+    <div class="screen-drawer-head">
+        {{-- 声の操作の状態（聞いている・考えている・話している）。狭い画面で、アークリアクターの代わりに光る --}}
+        <span class="screen-drawer-signal" aria-hidden="true"></span>
+        <span class="screen-drawer-code">SCREEN</span>
+        <span class="screen-drawer-title" id="screen-drawer-title"></span>
+        <a href="#" class="screen-drawer-full" id="screen-drawer-full">全画面で開く</a>
+        <button type="button" class="btn-secondary screen-drawer-close" id="screen-drawer-close" aria-label="閉じる">×</button>
+    </div>
+    <iframe class="screen-drawer-frame" id="screen-drawer-frame" title="画面"></iframe>
+</aside>
 
 
 {{-- ==============================================================

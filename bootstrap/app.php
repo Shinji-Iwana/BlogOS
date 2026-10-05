@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ApplyTheme;
+use App\Http\Middleware\SameOriginFrames;
 use App\Services\Schedule\ScheduledTaskService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -20,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // 選んだテーマの View を、共通の画面より先に探す（D-49）
         $middleware->web(append: ApplyTheme::class);
+        // ほかのサイトの中に、BlogOS の画面を入れて表示させない（画面のパネルは同じサイトなので表示できる。D-59）
+        $middleware->web(append: SameOriginFrames::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // エラーをJSONで返すかどうかは、Laravel標準の判定（リクエストがJSONを求めているか）に任せる。

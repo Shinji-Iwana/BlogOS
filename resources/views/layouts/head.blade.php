@@ -10,6 +10,9 @@
 {{-- ブラウザから送る処理（音声の操作など）の CSRF 対策 --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+{{-- 画面のパネル（トップページの横）の中に表示しているとき、ヘッダーとメニューを出さない（表示する前に決める。D-59） --}}
+<script>if (window.self !== window.top) { document.documentElement.classList.add('is-embedded'); }</script>
+
 {{-- 共通の画面の見た目（public/css/blogos.css）。テーマのCSSより先に読み込み、テーマで上書きする。 --}}
 <link
     rel="stylesheet"

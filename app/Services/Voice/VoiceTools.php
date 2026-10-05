@@ -22,6 +22,7 @@ use App\Support\DashboardLinks;
  * 文章の AI に「道具」（function）として渡し、AI が選んで呼ぶ。方式 c・d・e で共通。
  * 段階1：見るだけの道具。段階2：確認つきの操作（同期の開始・品質診断のまとめて実行。VoiceActions）。
  * WordPress への反映・削除・承認は声ではしない。
+ * 画面を開く道具は、開く URL（navigate）を返す。ブラウザが、画面を移らずに画面のパネルに開く。'close' はパネルを閉じる（D-59）。
  */
 class VoiceTools
 {
@@ -86,6 +87,7 @@ class VoiceTools
             $this->function('open_screen', 'BlogOS の画面を開く。使える画面：' . $screenList, [
                 'screen' => ['type' => 'string', 'enum' => array_keys($screens), 'description' => '開く画面のキー'],
             ], ['screen']),
+            $this->function('close_screen', '画面のパネル（開いた画面）を閉じて、トップページに戻る', [], []),
             $this->function('get_status', '今の BlogOS の状況（同期・定期実行・WordPress・AI の残高・内部リンク・教材と提携の状態と、全体の状態）を調べる', [], []),
             $this->function('get_ai_credit', 'OpenAI の残高の見込みと、今月の AI の費用を調べる', [], []),
             $this->function('count_articles', '記事の件数を調べる（例の記事のタイトルも返す）。not_indexed：インデックス未登録、low_score：最新の評価が threshold 点未満、unevaluated：まだ評価していない公開中の記事、editing_drafts：作業中・確認待ちの編集案', [
@@ -121,6 +123,7 @@ class VoiceTools
     {
         return match ($name) {
             'open_screen'    => $this->openScreen((string) ($arguments['screen'] ?? ''), $blog),
+            'close_screen'   => ['result' => ['closed' => true], 'navigate' => 'close'],
             'get_status'     => ['result' => $this->getStatus(), 'navigate' => null],
             'get_ai_credit'  => ['result' => $this->getAiCredit(), 'navigate' => null],
             'count_articles' => ['result' => $this->countArticles((string) ($arguments['kind'] ?? ''), (int) ($arguments['threshold'] ?? 70) ?: 70, $blog), 'navigate' => null],
