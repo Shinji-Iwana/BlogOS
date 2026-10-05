@@ -328,10 +328,13 @@ return [
         'history_turns'   => 4,
 
         // 料金（米ドル。2026-10-05 に公式の料金ページで確認）。費用の目安（AIの費用と残高）に使う。
-        // 返事の声は、1分あたりの目安（音声100万トークン 12ドル）で、話す時間は文字数から見積もる
+        // 料金表（ai_prices）にあればその値を使い、毎日の公式のページとの照合で更新する（App\Services\Voice\VoicePrices。D-68-02）。
+        // 聞き取りは1分あたり。返事の声は100万トークンあたり（文字の入力・音声の出力）で、1分あたりは音声の出力 × tts_audio_tokens_per_minute
+        // （話す時間は文字数から見積もる）
         'prices' => [
-            'transcribe_per_minute' => ['gpt-transcribe' => 0.0045, 'gpt-4o-mini-transcribe' => 0.003, 'gpt-4o-transcribe' => 0.006],
-            'tts_per_minute'        => ['gpt-4o-mini-tts' => 0.015],
+            'transcribe_per_minute'       => ['gpt-transcribe' => 0.0045, 'gpt-4o-mini-transcribe' => 0.003, 'gpt-4o-transcribe' => 0.006],
+            'tts'                         => ['gpt-4o-mini-tts' => ['text_input' => 0.60, 'audio_output' => 12.00]],
+            'tts_audio_tokens_per_minute' => 1250,
         ],
         'chars_per_second' => 7,
 
@@ -346,7 +349,7 @@ return [
             // 会話を開いておく上限（秒）と、話しかけがないと終える時間（秒）。費用の使いすぎを防ぐ
             'max_session_seconds' => 300,
             'idle_seconds'        => 60,
-            // 料金（米ドル・100万トークンあたり。2026-10-05 に公式の料金ページで確認）。音声のトークンは、聞く1分 約600・話す1分 約1,200
+            // 料金（米ドル・100万トークンあたり。2026-10-05 に公式の料金ページで確認。料金表にあればその値。D-68-02）。音声のトークンは、聞く1分 約600・話す1分 約1,200
             'prices' => [
                 'gpt-realtime-2.1-mini' => ['audio_input' => 10.00, 'audio_cached_input' => 0.30, 'audio_output' => 20.00, 'text_input' => 0.60, 'text_cached_input' => 0.06, 'text_output' => 2.40],
                 'gpt-realtime-2.1'      => ['audio_input' => 32.00, 'audio_cached_input' => 0.40, 'audio_output' => 64.00, 'text_input' => 4.00, 'text_cached_input' => 0.40, 'text_output' => 24.00],

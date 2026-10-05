@@ -712,6 +712,7 @@ AIが作った記事の管理情報の案（D-27-03）。`blog_id`、`post_id` /
 API実行の料金表と、OpenAI の公式のページとの毎日の照合（全ブログ共通。D-31-03）。
 
 * `ai_prices`：`price_key`（モデル名、または `web_search`。一意）、`input`・`cached_input`・`cache_write`・`output`（1Mトークンあたりの米ドル）、`per_call`（Web検索の1回あたり）、`long_context_threshold`・`long_input_multiplier`・`long_output_multiplier`（長い入力の規則）、`checked_at`（最後に公式のページと照合できた日時）。初期値は `config/blogos.php`。
+  音声の操作のモデル（D-68-02）：聞き取りのモデルは `per_call` に1分あたりの料金、返事の声のモデルは `input`（文字の入力）・`audio_output`（音声の出力）、リアルタイム会話のモデルは `input`・`cached_input`・`output`（文字）と `audio_input`・`audio_cached_input`・`audio_output`（音声。1Mトークンあたり）。
 * `ai_price_changes`：`price_key`・`field`・`old_value`・`new_value`、`status`（`applied`：反映済み / `pending`：値下がりの確認待ち / `rejected`：反映しない / `superseded`：公式のページの値がさらに変わった・戻った）、`decided_by`（自動で反映した値上がりは NULL）・`decided_at`。
 * `ai_price_checks`：照合の結果（`status`：`succeeded` / `failed`、`messages`（JSON）、`applied_count`・`pending_count`）。1年で削除する。
 

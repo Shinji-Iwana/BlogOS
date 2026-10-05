@@ -241,7 +241,13 @@ class VoiceTest extends TestCase
             // 説明は、各項目の「?」のツールチップに出す（D-61-02）
             ->assertSee('class="tip"', false)
             ->assertSee('data-tip="返事の声の話し方', false);
-        $this->get(route('ai.settings.edit'))->assertOk()->assertDontSee('id="voice"', false)->assertDontSee('音声の設定を保存する');
+        $this->get(route('ai.settings.edit'))->assertOk()->assertDontSee('id="voice"', false)->assertDontSee('音声の設定を保存する')
+            // API実行の料金表に、音声の操作のモデルの料金も出す（D-68）
+            ->assertSee('音声の操作のモデル')
+            ->assertSee('gpt-4o-mini-tts')
+            ->assertSee('返事の声（文字を声にする）（使用中：方式A）')
+            ->assertSee('gpt-realtime-2.1-mini')
+            ->assertSee('（使用中：方式B）');
     }
 
     public function test_settings_popup_stays_open_with_errors(): void

@@ -50,7 +50,10 @@ class AiPriceTest extends TestCase
      */
     protected array $pages = [];
 
-    protected function fakePages(array $luna, string $webSearch = '10.00', ?string $solPage = null): void
+    /**
+     * @param array{transcribe?: string, tts_output?: string, realtime_audio_input?: string} $voice 音声の操作のモデルの料金（省略時は設定と同じ）
+     */
+    protected function fakePages(array $luna, string $webSearch = '10.00', ?string $solPage = null, array $voice = []): void
     {
         $this->pages = [
             'gpt-6-luna'  => $this->modelPage(...$luna),
@@ -58,7 +61,18 @@ class AiPriceTest extends TestCase
             'gpt-6-astra' => $this->modelPage('10.00', '1.00', '12.50', '50.00'),
             'pricing'     => "<td>Web search (all models)</td><td>\${$webSearch} / 1k calls</td>"
                 // 画像モデル（標準の処理の表）
-                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$2.00</td><td>$30.00</td></tr><tr><td>Text</td><td>$5.00</td><td>$1.25</td><td>-</td></tr>',
+                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$2.00</td><td>$30.00</td></tr><tr><td>Text</td><td>$5.00</td><td>$1.25</td><td>-</td></tr>'
+                // 音声の操作のモデル（D-68-02）：リアルタイム会話の表と、聞き取りの表（公式のページと同じ並び）
+                . '<h2>Realtime and audio generation models</h2><tr><td>gpt-realtime-2.1</td><td>Audio</td><td>$32.00</td><td>$0.40</td><td>$64.00</td></tr>'
+                . '<tr><td>Text</td><td>$4.00</td><td>$0.40</td><td>$24.00</td></tr><tr><td>Image</td><td>$5.00</td><td>$0.50</td><td>-</td></tr>'
+                . '<tr><td>gpt-realtime-2.1-mini</td><td>Audio</td><td>$' . ($voice['realtime_audio_input'] ?? '10.00') . '</td><td>$0.30</td><td>$20.00</td></tr>'
+                . '<tr><td>Text</td><td>$0.60</td><td>$0.06</td><td>$2.40</td></tr><tr><td>Image</td><td>$0.80</td><td>$0.08</td><td>-</td></tr>'
+                . '<h2>Transcription models</h2><tr><td>gpt-live-transcribe</td><td>Live transcription</td><td>-</td><td>-</td><td>$0.017 / minute</td></tr>'
+                . '<tr><td>gpt-transcribe</td><td>Transcription</td><td>-</td><td>-</td><td>$' . ($voice['transcribe'] ?? '0.0045') . ' / minute</td></tr>'
+                . '<tr><td>gpt-4o-transcribe</td><td>Transcription</td><td>$2.50</td><td>$10.00</td><td>$0.006 / minute</td></tr>'
+                . '<tr><td>gpt-4o-mini-transcribe</td><td>Transcription</td><td>$1.25</td><td>$5.00</td><td>$0.003 / minute</td></tr>',
+            'gpt-4o-mini-tts' => '<h2>Pricing</h2><p>Text tokens</p><p>Per 1M tokens</p><div>Input</div><div>$0.60</div><p>Quick comparison</p>'
+                . '<p>Audio tokens</p><p>Per 1M tokens</p><div>Output</div><div>$' . ($voice['tts_output'] ?? '12.00') . '</div>',
         ];
 
         Http::fake(fn ($request) => Http::response($this->pages[basename(parse_url($request->url(), PHP_URL_PATH))] ?? '', 200));
@@ -142,6 +156,30 @@ class AiPriceTest extends TestCase
 
         $this->get(route('home'))->assertOk()->assertSee('公式のページから読み取れなかった料金があります。');
         $this->get(route('ai.settings.edit'))->assertOk()->assertSee('読み取れなかった料金があります');
+    }
+
+    public function test_voice_model_prices_are_checked(): void
+    {
+        // 返事の声の音声の出力が値上がり、聞き取りが値下がり、リアルタイム会話（mini）の音声の入力が値上がり（D-68-02）
+        $this->fakePages(['0.10', '0.01', '0.125', '0.50'], '10.00', null, ['tts_output' => '16.00', 'transcribe' => '0.004', 'realtime_audio_input' => '12.00']);
+
+        $this->artisan('ai:check-prices')->assertSuccessful();
+
+        $this->assertSame(16.0, AiPrice::where('price_key', 'gpt-4o-mini-tts')->value('audio_output') + 0.0);
+        $this->assertSame(12.0, AiPrice::where('price_key', 'gpt-realtime-2.1-mini')->value('audio_input') + 0.0);
+        $pending = AiPriceChange::where('status', AiPriceChangeStatus::Pending)->sole();
+        $this->assertSame(['gpt-transcribe', 'per_call', 0.004], [$pending->price_key, $pending->field, $pending->new_value]);
+
+        // 費用の目安は、新しい料金表で計算する（返事の声 1分＝音声の出力 1,250トークン）
+        $prices = app(\App\Services\Voice\VoicePrices::class);
+        $this->assertEqualsWithDelta(16.0 * 1250 / 1_000_000, $prices->ttsPerMinute('gpt-4o-mini-tts'), 0.0000001);
+        $this->assertSame(12.0, $prices->realtime('gpt-realtime-2.1-mini')['audio_input']);
+        $this->assertSame(0.0045, $prices->transcribePerMinute('gpt-transcribe'));
+
+        // 画面：照合した日時と、確認待ちの名前
+        $this->get(route('ai.settings.edit'))->assertOk()
+            ->assertSee('gpt-transcribe 1分あたり')
+            ->assertSee('文字の入力 $0.6・音声の出力 $16', false);
     }
 
     public function test_check_can_be_run_from_screen(): void

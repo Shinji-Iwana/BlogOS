@@ -188,16 +188,19 @@ class VoiceService
         return implode('、', array_unique($words));
     }
 
+    /**
+     * 料金は、料金表（毎日の公式のページとの照合で更新）にあればその値（D-68-02）
+     */
     protected function transcribeCost(string $model, float $seconds): float
     {
-        return (float) ((config('blogos.voice.prices.transcribe_per_minute')[$model] ?? null) ?? 0.006) * $seconds / 60;
+        return app(VoicePrices::class)->transcribePerMinute($model) * $seconds / 60;
     }
 
     protected function speechCost(string $model, string $text): float
     {
         $seconds = mb_strlen($text) / max(1, (int) config('blogos.voice.chars_per_second'));
 
-        return (float) ((config('blogos.voice.prices.tts_per_minute')[$model] ?? null) ?? 0.015) * $seconds / 60;
+        return app(VoicePrices::class)->ttsPerMinute($model) * $seconds / 60;
     }
 
     /**
@@ -207,7 +210,7 @@ class VoiceService
     {
         $text = (float) ($this->policy->cost($models['text'], 8000 * ((int) config('blogos.voice.max_tool_rounds') + 1), 0, 2000) ?? 0.01);
 
-        return $this->transcribeCost($models['transcribe'], (float) config('blogos.voice.max_seconds')) + $text + (float) ((config('blogos.voice.prices.tts_per_minute')[$models['tts']] ?? null) ?? 0.015) * 0.5;
+        return $this->transcribeCost($models['transcribe'], (float) config('blogos.voice.max_seconds')) + $text + app(VoicePrices::class)->ttsPerMinute($models['tts']) * 0.5;
     }
 
     protected function client(): OpenAiClient

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * API実行の料金表（1Mトークンあたりの米ドル。Web検索は1回あたり）。D-31-03。
+ * API実行の料金表（1Mトークンあたりの米ドル。Web検索は1回あたり、音声の聞き取りのモデルは1分あたり）。D-31-03・D-68-02。
  */
 class AiPrice extends Model
 {
@@ -26,6 +26,9 @@ class AiPrice extends Model
             'cache_write'            => 'float',
             'output'                 => 'float',
             'per_call'               => 'float',
+            'audio_input'            => 'float',
+            'audio_cached_input'     => 'float',
+            'audio_output'           => 'float',
             'long_context_threshold' => 'integer',
             'long_input_multiplier'  => 'float',
             'long_output_multiplier' => 'float',

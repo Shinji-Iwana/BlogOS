@@ -127,7 +127,7 @@ class VoiceRealtimeService
         // 会話の欄に出す文字起こしの費用（聞いた音声の長さ。音声のトークンから見積もる）
         $seconds = ($audioIn - $cachedAudio) / max(1, (int) config('blogos.voice.realtime.audio_tokens_per_second'));
         $transcriptionModel = (string) config('blogos.voice.realtime.transcription_model');
-        $cost += (float) ((config('blogos.voice.prices.transcribe_per_minute')[$transcriptionModel] ?? null) ?? 0.003) * $seconds / 60;
+        $cost += app(VoicePrices::class)->transcribePerMinute($transcriptionModel) * $seconds / 60;
 
         return VoiceTurn::create([
             'user_id'             => $userId,
@@ -173,15 +173,13 @@ class VoiceRealtimeService
     }
 
     /**
-     * モデルの料金（モデル名に「.」が入るため、config のキーの区切りとして読まれないよう、一覧から引く）
+     * モデルの料金（料金表にあればその値。D-68-02）
      *
      * @return array{audio_input: float, audio_cached_input: float, audio_output: float, text_input: float, text_cached_input: float, text_output: float}
      */
     protected function prices(string $model): array
     {
-        $prices = (array) config('blogos.voice.realtime.prices');
-
-        return $prices[$model] ?? $prices['gpt-realtime-2.1'];
+        return app(VoicePrices::class)->realtime($model);
     }
 
     protected function client(): OpenAiClient

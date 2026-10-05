@@ -99,6 +99,56 @@
     </table>
     <p class="text-muted">料金は1Mトークンあたりの米ドル（標準の処理）。キャッシュされていない入力は、キャッシュの書き込みの料金で計算します。</p>
 
+    {{-- 音声の操作のモデルの料金（D-58・D-68。料金表の値で、毎日の公式のページとの照合の対象。D-68-02） --}}
+    <h3>音声の操作のモデル</h3>
+    @php
+        $voice = config('blogos.voice');
+        $voicePrices = app(\App\Services\Voice\VoicePrices::class);
+        $inUse = fn (bool $used, string $modes) => $used ? "（使用中：方式{$modes}）" : '';
+        $checked = fn (string $name) => ($at = $voicePrices->checkedAt($name)) ? \App\Support\DisplayTime::format($at) : '-';
+    @endphp
+    <table class="data">
+        <thead><tr><th>モデル</th><th>使い道</th><th>料金</th><th>公式のページと照合した日時</th></tr></thead>
+        <tbody>
+            @foreach (\App\Services\Voice\VoicePrices::transcribeModels() as $name)
+                <tr>
+                    <td>{{ $name }}</td>
+                    <td>聞き取り（話した声を文字にする）{{ $inUse($name === $voice['transcribe_model'], 'A') }}{{ $inUse($name === $voice['realtime']['transcription_model'], 'B・C の会話の文字') }}</td>
+                    <td>1分 ${{ $voicePrices->transcribePerMinute($name) }}</td>
+                    <td>{{ $checked($name) }}</td>
+                </tr>
+            @endforeach
+            @foreach (\App\Services\Voice\VoicePrices::ttsModels() as $name)
+                @php $tts = $voicePrices->tts($name); @endphp
+                <tr>
+                    <td>{{ $name }}</td>
+                    <td>返事の声（文字を声にする）{{ $inUse($name === $voice['tts_model'], 'A') }}</td>
+                    <td>
+                        文字の入力 ${{ $tts['text_input'] }}・音声の出力 ${{ $tts['audio_output'] }}（1Mトークンあたり）<br>
+                        1分 約${{ round($tts['per_minute'], 4) }}（音声の出力 1分{{ number_format($voice['prices']['tts_audio_tokens_per_minute']) }}トークン。話す時間は、文字数から見積もる：1秒{{ $voice['chars_per_second'] }}文字）
+                    </td>
+                    <td>{{ $checked($name) }}</td>
+                </tr>
+            @endforeach
+            @foreach (\App\Services\Voice\VoicePrices::realtimeModels() as $name)
+                @php $price = $voicePrices->realtime($name); @endphp
+                <tr>
+                    <td>{{ $name }}</td>
+                    <td>リアルタイム会話（聞き取り・判断・返事の声）{{ $inUse($name === $voice['realtime']['models']['d'], 'B') }}{{ $inUse($name === $voice['realtime']['models']['e'], 'C') }}</td>
+                    <td>
+                        音声：入力 ${{ $price['audio_input'] }}・キャッシュ済みの入力 ${{ $price['audio_cached_input'] }}・出力 ${{ $price['audio_output'] }}<br>
+                        文字：入力 ${{ $price['text_input'] }}・キャッシュ済みの入力 ${{ $price['text_cached_input'] }}・出力 ${{ $price['text_output'] }}（1Mトークンあたり）
+                    </td>
+                    <td>{{ $checked($name) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+    <p class="text-muted">
+        方式 A の判断（{{ $voice['text_model'] }}）は、上の表の文章のモデルの料金で計算します。
+        音声の操作のモデルの料金も、ほかのモデルと同じく毎日公式のページと照合します（聞き取りとリアルタイム会話は料金のページ、返事の声はモデルのページ）。
+    </p>
+
     <form method="POST" action="{{ route('ai.prices.check') }}">
         @csrf
         @include('partials.selected-blog-field')
