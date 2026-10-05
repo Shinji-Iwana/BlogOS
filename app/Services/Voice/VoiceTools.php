@@ -50,15 +50,14 @@ class VoiceTools
     }
 
     /**
-     * 開ける画面（キー => [名前, URL]）。トップページ・設定と、トップページの入口（DashboardLinks）
+     * 開ける画面（キー => [名前, URL]）。トップページと、トップページの入口（DashboardLinks。設定は「管理」にある）
      *
      * @return array<string, array{label: string, url: string}>
      */
     public function screens(bool $hasSelectedBlog): array
     {
         $screens = [
-            'home'     => ['label' => 'トップページ', 'url' => route('home')],
-            'settings' => ['label' => '設定', 'url' => route('settings')],
+            'home' => ['label' => 'トップページ', 'url' => route('home')],
         ];
         foreach (DashboardLinks::GROUPS as $group) {
             foreach ($group['links'] as $link) {

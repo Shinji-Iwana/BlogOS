@@ -52,6 +52,8 @@ class DashboardLinks
             ['label' => 'Google連携の設定', 'route' => 'google.settings', 'blog' => true],
         ]],
         ['key' => 'system', 'code' => 'SYSTEM', 'label' => '管理', 'links' => [
+            // 以前はヘッダーの「BlogOS」の横にあった（D-60）
+            ['label' => '設定', 'route' => 'settings', 'blog' => false],
             ['label' => 'WordPress の更新', 'route' => 'wordpress-updates.index', 'blog' => true],
             ['label' => '定期実行', 'route' => 'scheduled-tasks.index', 'blog' => false],
             ['label' => 'ブログを登録する', 'route' => 'blogs.create', 'blog' => false],

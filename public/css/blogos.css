@@ -144,13 +144,6 @@ table.data.data-compact > * > tr > td {
     font-weight: bold;
 }
 
-.site-settings-link {
-    display: inline-block;
-    padding: 6px 12px;
-    border: 1px solid #999;
-    border-radius: 4px;
-    text-decoration: none;
-}
 
 /* ヘッダーの右側：ブログ名のボタンと、ログアウトのアイコン（D-54） */
 .site-header-right {

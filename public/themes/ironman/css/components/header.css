@@ -53,8 +53,7 @@
     color: #fff;
 }
 
-/* 設定・ブログ名のボタン（HUD の札） */
-.site-settings-link,
+/* ブログ名のボタン（HUD の札） */
 .blog-switch-button {
     padding: 4px 14px;
     font-family: var(--im-font-hud);
@@ -69,7 +68,6 @@
     transition: background var(--im-ease), box-shadow var(--im-ease), color var(--im-ease);
 }
 
-.site-settings-link:hover,
 .blog-switch-button:hover,
 .blog-switch-button:focus-visible {
     color: var(--im-cyan-bright);
@@ -139,15 +137,11 @@
     white-space: nowrap;
 }
 
-.site-settings-link {
-    white-space: nowrap;
-}
-
 
 /* ==========================================================
    ログアウトのアイコン（D-54）
    ----------------------------------------------------------
-   設定・ブログ名と同じ HUD の札。マウスを乗せると、ログアウト（終わる操作）として赤く光る。
+   ブログ名と同じ HUD の札。マウスを乗せると、ログアウト（終わる操作）として赤く光る。
    ボタン全般の見た目（form.css のスーツの赤と金）より優先する。
    ========================================================== */
 
