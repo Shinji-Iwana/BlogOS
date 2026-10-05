@@ -227,7 +227,7 @@ class VoiceTest extends TestCase
         $this->assertTrue($settings->enabled());
         $this->assertSame('onyx', $settings->voice());
 
-        // リアルタイム会話（D・E）も選べる（D-58-06）
+        // リアルタイム会話（画面では B・C。保存する値は d・e）も選べる（D-58-06）
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'e', 'voice' => 'onyx'])->assertSessionHasNoErrors();
         $this->assertSame('gpt-realtime-2.1', app(VoiceSettings::class)->realtimeModel());
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'x', 'voice' => 'onyx'])->assertSessionHasErrors('mode');
