@@ -285,7 +285,14 @@
             try {
                 const doc = frame.contentDocument;
                 const heading = doc.querySelector('main h1, main h2');
-                title.textContent = heading ? heading.textContent.trim() : doc.title;
+                // 見出しの中のツールチップの「?」（.tip）は、パネルの名前に入れない
+                let name = doc.title;
+                if (heading) {
+                    const copy = heading.cloneNode(true);
+                    copy.querySelectorAll('.tip').forEach((tip) => tip.remove());
+                    name = copy.textContent.replace(/\s+/g, ' ').trim();
+                }
+                title.textContent = name;
                 full.href = frame.contentWindow.location.href;
             } catch (e) {
                 title.textContent = '';

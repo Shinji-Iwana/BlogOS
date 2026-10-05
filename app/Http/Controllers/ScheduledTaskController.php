@@ -26,26 +26,35 @@ class ScheduledTaskController extends Controller
     ) {
     }
 
-    public function index(Request $request)
+    public function index()
     {
         $settings = $this->service->settings();
-        $key = array_key_exists((string) $request->query('task'), ScheduledTasks::TASKS) ? (string) $request->query('task') : null;
 
         $tasks = [];
         foreach (ScheduledTasks::TASKS as $taskKey => $task) {
+            // 次の実行と前回は、設定のポップアップに出す（D-63-07）
             $tasks[$taskKey] = $task + [
                 'setting' => $this->service->setting($taskKey, $settings),
-                'next'    => $this->service->nextRunAt($taskKey, $settings),
-                'last'    => ScheduledTaskRun::where('task_key', $taskKey)->latest('started_at')->latest('id')->first(),
             ];
         }
 
         return view('scheduled-tasks.index', [
             'tasks'    => $tasks,
             'warnings' => $this->service->orderWarnings($settings),
-            'runs'     => ScheduledTaskRun::with('requester:id,name')->when($key !== null, fn ($q) => $q->where('task_key', $key))
+        ]);
+    }
+
+    /**
+     * 定期実行の履歴（メニューの「履歴 → 定期実行」。定期実行ごとにしぼり込める。D-63-08）
+     */
+    public function runs(Request $request)
+    {
+        $key = array_key_exists((string) $request->query('task'), ScheduledTasks::TASKS) ? (string) $request->query('task') : null;
+
+        return view('scheduled-tasks.runs', [
+            'runs'   => ScheduledTaskRun::with('requester:id,name')->when($key !== null, fn ($q) => $q->where('task_key', $key))
                 ->latest('started_at')->latest('id')->paginate(50)->withQueryString(),
-            'filter'   => $key,
+            'filter' => $key,
         ]);
     }
 

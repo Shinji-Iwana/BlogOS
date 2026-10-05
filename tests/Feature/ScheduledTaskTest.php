@@ -102,7 +102,22 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString('[同期] https://blog.example.test：成功', $run->output);
         $this->assertNotNull($run->peak_memory_mb);
 
-        $this->get(route('scheduled-tasks.index', ['task' => 'blogs:sync']))->assertOk()->assertSee('処理 ' . $run->processed_count . '件');
+        // 画面「定期実行」：前回・次の実行の列と、実行の記録はない（D-63-07・D-63-08）
+        $this->get(route('scheduled-tasks.index'))->assertOk()
+            ->assertDontSee('<th>前回</th>', false)
+            ->assertDontSee('<th>次の実行</th>', false)
+            ->assertDontSee('<th>きっかけ</th>', false);
+
+        // 定期実行の履歴（メニューの「履歴 → 定期実行」）：定期実行ごとにしぼり込める
+        $this->get(route('home'))->assertSee('href="' . route('scheduled-tasks.runs') . '" >定期実行</a>', false);
+        ScheduledTaskRun::create(['task_key' => 'model:prune', 'trigger' => 'scheduled', 'status' => 'succeeded', 'started_at' => now(), 'processed_count' => 777]);
+        $this->get(route('scheduled-tasks.runs', ['task' => 'blogs:sync']))->assertOk()
+            ->assertSee('<h1>定期実行の履歴', false)
+            ->assertSee('1年で削除します')
+            ->assertSee('<option value="blogs:sync" selected>WordPressとの同期</option>', false)
+            ->assertSee('<td>' . number_format($run->processed_count) . '</td>', false)
+            ->assertDontSee('<td>777</td>', false);
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('<td>777</td>', false);
     }
 
     public function test_failed_run_is_recorded_and_shown_on_dashboard(): void

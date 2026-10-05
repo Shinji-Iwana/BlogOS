@@ -20,6 +20,7 @@ class MenuItems
         // 履歴（D-69）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
             ['label' => 'WordPressとの同期', 'route' => 'database.sync-runs.index'],
+            ['label' => '定期実行', 'route' => 'scheduled-tasks.runs'],
         ]],
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
             // AI の設定（下の階層。D-61）
