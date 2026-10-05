@@ -116,13 +116,14 @@ class AiCreditTest extends TestCase
             'model' => 'gpt-6-luna', 'template_key' => 'revision', 'template_version' => '1', 'input' => 'x', 'requested_by' => $this->user->id,
             'status' => AiGenerationStatus::Succeeded, 'estimated_cost' => 1.00, 'input_tokens' => 5000, 'cached_input_tokens' => 1000, 'output_tokens' => 3000,
         ]);
-        \App\Models\VoiceTurn::create(['user_id' => $this->user->id, 'mode' => 'c', 'input_tokens' => 800, 'output_tokens' => 40, 'estimated_cost' => 0.004]);
+        \App\Models\VoiceTurn::create(['user_id' => $this->user->id, 'mode' => 'c', 'transcribe_model' => 'gpt-transcribe', 'text_model' => 'gpt-6-luna', 'tts_model' => 'gpt-4o-mini-tts',
+            'input_tokens' => 800, 'output_tokens' => 40, 'estimated_cost' => 0.004]);
 
         $html = $this->get(route('ai.credits.index'))->assertOk()->assertSee('処理ごとの内訳')->getContent();
         preg_match('/<h2>処理ごとの内訳<\/h2>.*?<\/table>/s', $html, $table);
 
         // 費用の多い順。処理・きっかけ・回数・トークン・費用・1回あたり・割合
-        $this->assertMatchesRegularExpression('/記事改修<\/td>\s*<td>人が実行<\/td>.*?品質診断<\/td>\s*<td>自動（定期実行など）<\/td>.*?音声の操作（方式A）<\/td>/s', $table[0]);
+        $this->assertMatchesRegularExpression('/記事改修<\/td>\s*<td>人が実行<\/td>\s*<td>gpt-6-luna<\/td>.*?品質診断<\/td>\s*<td>自動（定期実行など）<\/td>\s*<td>gpt-6-luna<\/td>.*?音声の操作（方式A）<\/td>\s*<td>人が実行（声）<\/td>\s*<td>gpt-transcribe・gpt-6-luna・gpt-4o-mini-tts<\/td>/s', $table[0]);
         $this->assertStringContainsString('>5,000</td>', $table[0]);
         $this->assertStringContainsString('>$0.5000</td>', $table[0]);
         $this->assertStringContainsString('>$0.2500</td>', $table[0]);

@@ -49,9 +49,9 @@ class AiCreditController extends Controller
     }
 
     /**
-     * 処理ごと・きっかけごとの内訳（API実行と音声の操作。費用の多い順。D-66）
+     * 処理ごと・きっかけごと・モデルごとの内訳（API実行と音声の操作。費用の多い順。D-66）
      *
-     * @return list<array{label: string, trigger: string, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, web_search_calls: int|null, cost: float}>
+     * @return list<array{label: string, trigger: string, model: string, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, web_search_calls: int|null, cost: float}>
      */
     protected function usageByPurpose(Carbon $from, Carbon $to): array
     {
@@ -60,6 +60,7 @@ class AiCreditController extends Controller
             $rows[] = [
                 'label'               => AiMode::tryFrom((string) $row->purpose)?->label() ?? (string) $row->purpose,
                 'trigger'             => (int) $row->automatic === 1 ? '自動（定期実行など）' : '人が実行',
+                'model'               => (string) ($row->model ?? '-'),
                 'requests'            => (int) $row->requests,
                 'input_tokens'        => (int) $row->input_tokens,
                 'cached_input_tokens' => (int) $row->cached_input_tokens,
@@ -73,6 +74,8 @@ class AiCreditController extends Controller
                 // 画面での方式の呼び方（A・B・C。D-60-03）
                 'label'               => '音声の操作（方式' . mb_substr(VoiceSettings::MODES[$row->mode] ?? (string) $row->mode, 0, 1) . '）',
                 'trigger'             => '人が実行（声）',
+                // 聞き取り・判断・返事の声のモデル（リアルタイム会話は、判断と返事の声が同じモデル）
+                'model'               => implode('・', array_unique(array_filter([$row->transcribe_model, $row->text_model, $row->tts_model]))) ?: '-',
                 'requests'            => (int) $row->requests,
                 'input_tokens'        => (int) $row->input_tokens,
                 'cached_input_tokens' => (int) $row->cached_input_tokens,

@@ -52,7 +52,7 @@
     <section class="panel">
     <h2>処理ごとの内訳</h2>
     <p class="text-muted">
-        品質診断・記事改修などの処理ごとに、API実行の回数・トークン数・費用の目安を、費用の多い順に出します（音声の操作を含みます）。
+        品質診断・記事改修などの処理ごと・使ったモデルごとに、API実行の回数・トークン数・費用の目安を、費用の多い順に出します（音声の操作を含みます）。
         きっかけの「自動」は、定期実行（記事の再評価・教材の照合など）と、その続きの処理（診断の後の改修など）です。
     </p>
     <p>
@@ -62,12 +62,13 @@
         @endforeach
     </p>
     <table class="data">
-        <thead><tr><th>処理</th><th>きっかけ</th><th>Requests</th><th>Input tokens</th><th>うちキャッシュ済み</th><th>Output tokens</th><th>Web Searches</th><th>費用の目安</th><th>1回あたり</th><th>割合</th></tr></thead>
+        <thead><tr><th>処理</th><th>きっかけ</th><th>モデル</th><th>Requests</th><th>Input tokens</th><th>うちキャッシュ済み</th><th>Output tokens</th><th>Web Searches</th><th>費用の目安</th><th>1回あたり</th><th>割合</th></tr></thead>
         <tbody>
             @forelse ($byPurpose as $row)
                 <tr>
                     <td>{{ $row['label'] }}</td>
                     <td>{{ $row['trigger'] }}</td>
+                    <td>{{ $row['model'] }}</td>
                     <td style="text-align:right;">{{ number_format($row['requests']) }}</td>
                     <td style="text-align:right;">{{ number_format($row['input_tokens']) }}</td>
                     <td style="text-align:right;">{{ number_format($row['cached_input_tokens']) }}</td>
@@ -78,11 +79,11 @@
                     <td style="text-align:right;">{{ $purposeTotal > 0 ? number_format($row['cost'] / $purposeTotal * 100, 1) : '0.0' }}%</td>
                 </tr>
             @empty
-                <tr><td colspan="10">この期間のAPI実行はありません。</td></tr>
+                <tr><td colspan="11">この期間のAPI実行はありません。</td></tr>
             @endforelse
             @if ($byPurpose !== [])
                 <tr>
-                    <th colspan="2" style="text-align:left;">合計</th>
+                    <th colspan="3" style="text-align:left;">合計</th>
                     <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'requests'))) }}</td>
                     <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'input_tokens'))) }}</td>
                     <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'cached_input_tokens'))) }}</td>
