@@ -72,14 +72,14 @@
     color: var(--im-text);
 }
 
-/* 開いた項目：HUD のパネル */
+/* 開いた項目：HUD のパネル（パネルと同じ、青をうっすら含んだ透ける色。下の本文はぼかす） */
 .site-menu-links {
     min-width: 240px;
     margin-top: 6px;
     padding: 6px 0;
-    background:
-        linear-gradient(180deg, rgba(102, 217, 255, 0.1), rgba(102, 217, 255, 0.03)),
-        var(--im-bg-panel-solid);
+    background: linear-gradient(180deg, rgba(102, 217, 255, 0.11), rgba(102, 217, 255, 0.04));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     border: 1px solid var(--im-line-strong);
     border-radius: 2px;
     box-shadow: 0 0 18px rgba(102, 217, 255, 0.18);
