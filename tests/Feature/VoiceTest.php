@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncBlogJob;
+use App\Models\AiBatch;
 use App\Models\Blog;
+use App\Models\Post;
 use App\Models\User;
 use App\Models\VoiceTurn;
 use App\Repositories\AiGenerationRepository;
@@ -11,6 +14,7 @@ use App\Services\Voice\VoiceTools;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -112,6 +116,96 @@ class VoiceTest extends TestCase
             ->assertJsonFragment(['ok' => false]);
         $this->assertStringContainsString('api.model.audio.request：音声（Audio）', $response->json('error'));
         $this->assertSame(0.0, VoiceTurn::sole()->estimated_cost);
+    }
+
+    /**
+     * 判断の AI の偽の応答（道具の呼び出し、または返事）
+     */
+    protected function aiCalls(array $calls): array
+    {
+        return ['status' => 'completed', 'model' => 'gpt-6-luna', 'usage' => ['input_tokens' => 100, 'output_tokens' => 10], 'output' => array_map(
+            fn ($call, $i) => ['type' => 'function_call', 'call_id' => "call_{$i}", 'name' => $call, 'arguments' => '{}'], $calls, array_keys($calls))];
+    }
+
+    protected function aiSays(string $text): array
+    {
+        return ['status' => 'completed', 'model' => 'gpt-6-luna', 'usage' => ['input_tokens' => 100, 'output_tokens' => 10], 'output' => [
+            ['type' => 'message', 'content' => [['type' => 'output_text', 'text' => $text]]],
+        ]];
+    }
+
+    public function test_sync_runs_only_after_confirmation_in_the_next_turn(): void
+    {
+        $this->enable();
+        Queue::fake();
+        Http::fake([
+            'api.openai.com/v1/audio/transcriptions' => Http::sequence()->push(['text' => '同期して'])->push(['text' => 'はい']),
+            'api.openai.com/v1/responses'            => Http::sequence()
+                // 1回目の発言：操作の準備（まだ実行しない）→ 内容を伝えて尋ねる
+                ->push($this->aiCalls(['start_sync']))
+                ->push($this->aiSays('Example Blog の同期を始めます。実行しますか？'))
+                // 2回目の発言：同意 → 確認した
+                ->push($this->aiCalls(['confirm_action']))
+                ->push($this->aiSays('同期を開始しました。')),
+            'api.openai.com/v1/audio/speech'         => Http::response('ID3', 200),
+        ]);
+
+        $this->post(route('voice.turn'), ['audio' => $this->audio(), 'seconds' => 1])->assertOk();
+        Queue::assertNothingPushed();
+        $this->assertTrue(VoiceTurn::first()->tool_calls[0]['result']['needs_confirmation']);
+
+        $this->post(route('voice.turn'), ['audio' => $this->audio(), 'seconds' => 1])->assertOk()->assertJson(['reply' => '同期を開始しました。']);
+        Queue::assertPushed(SyncBlogJob::class, 1);
+    }
+
+    public function test_confirmation_in_the_same_turn_is_refused(): void
+    {
+        $this->enable();
+        Queue::fake();
+        Http::fake([
+            'api.openai.com/v1/audio/transcriptions' => Http::response(['text' => '同期して']),
+            'api.openai.com/v1/responses'            => Http::sequence()
+                // AI が、尋ねずに同じ発言の中で確認を済ませようとした
+                ->push($this->aiCalls(['start_sync', 'confirm_action']))
+                ->push($this->aiSays('同期を始めます。実行しますか？')),
+            'api.openai.com/v1/audio/speech'         => Http::response('ID3', 200),
+        ]);
+
+        $this->post(route('voice.turn'), ['audio' => $this->audio(), 'seconds' => 1])->assertOk();
+
+        Queue::assertNothingPushed();
+        $this->assertStringContainsString('次の発言', VoiceTurn::sole()->tool_calls[1]['result']['error']);
+    }
+
+    public function test_quality_diagnosis_needs_targets_and_is_limited(): void
+    {
+        $tools = app(VoiceTools::class)->withContext(null, 1);
+
+        // 対象がなければ、確認待ちにしない
+        $this->assertSame('対象の記事がありません。', $tools->call('run_quality_diagnosis', ['target' => 'unevaluated', 'threshold' => null, 'limit' => 10], $this->blog)['result']['error']);
+        // 声で選べない対象は断る
+        $this->assertArrayHasKey('error', $tools->call('run_quality_diagnosis', ['target' => 'all', 'threshold' => null, 'limit' => 10], $this->blog)['result']);
+    }
+
+    public function test_quality_diagnosis_is_registered_after_confirmation(): void
+    {
+        Queue::fake();
+        foreach ([1, 2, 3] as $id) {
+            Post::create(['blog_id' => $this->blog->id, 'wordpress_id' => $id, 'title_raw' => "記事{$id}", 'status' => 'publish',
+                'link' => "https://blog.example.test/{$id}.html", 'normalized_path' => "/{$id}.html", 'wordpress_modified_gmt' => '2026-09-01 00:00:00']);
+        }
+
+        // 1回目の発言：未評価の記事を2件 → 確認待ち（件数と対象の全体を伝える）
+        $prepared = app(VoiceTools::class)->withContext(null, 1)->call('run_quality_diagnosis', ['target' => 'unevaluated', 'threshold' => null, 'limit' => 2], $this->blog);
+        $this->assertTrue($prepared['result']['needs_confirmation']);
+        $this->assertStringContainsString('2件', $prepared['result']['summary']);
+        $this->assertSame(0, AiBatch::count());
+
+        // 2回目の発言：確認した → まとめて実行に登録し、その画面を開く
+        $done = app(VoiceTools::class)->withContext(null, 2)->call('confirm_action', [], $this->blog);
+        $batch = AiBatch::sole();
+        $this->assertSame(2, $batch->total_count);
+        $this->assertSame(route('ai.batches.show', ['id' => $batch->id]), $done['navigate']);
     }
 
     public function test_status_tool_reads_the_dashboard_panels(): void

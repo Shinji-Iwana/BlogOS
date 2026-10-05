@@ -17,10 +17,11 @@ use App\Services\Dashboard\DashboardStatusService;
 use App\Support\DashboardLinks;
 
 /**
- * 音声で使える道具（D-58 段階1：見るだけ）。
+ * 音声で使える道具（D-58）。
  *
  * 文章の AI に「道具」（function）として渡し、AI が選んで呼ぶ。方式 c・d・e で共通。
- * データを書き換える道具は持たない（操作は段階2で、確認を挟んで加える。WordPress への反映・削除・承認は声ではしない）。
+ * 段階1：見るだけの道具。段階2：確認つきの操作（同期の開始・品質診断のまとめて実行。VoiceActions）。
+ * WordPress への反映・削除・承認は声ではしない。
  */
 class VoiceTools
 {
@@ -30,7 +31,21 @@ class VoiceTools
         protected AiCreditService $credits,
         protected AiApiPolicy $policy,
         protected ArticleEvaluationRepository $evaluations,
+        protected VoiceActions $actions,
     ) {
+    }
+
+    /** 今の発言の利用者と、記録（voice_turns）の ID（確認つきの操作で、同じ発言の中の確認を断るため） */
+    protected ?int $userId = null;
+
+    protected int $turnId = 0;
+
+    public function withContext(?int $userId, int $turnId): static
+    {
+        $this->userId = $userId;
+        $this->turnId = $turnId;
+
+        return $this;
     }
 
     /**
@@ -84,6 +99,16 @@ class VoiceTools
                 'type' => ['type' => 'string', 'enum' => ['posts', 'pages']],
                 'id'   => ['type' => 'integer', 'description' => 'find_articles が返した id'],
             ], ['type', 'id']),
+
+            // 確認つきの操作（段階2）：呼んだ時点では実行しない。返ってきた summary を伝えて、実行してよいか尋ねる
+            $this->function('start_sync', '【確認が必要な操作】選択中のブログの WordPress との同期を始める準備をする（まだ実行しない）', [], []),
+            $this->function('run_quality_diagnosis', '【確認が必要な操作】記事の品質診断（AI。費用がかかる）をまとめて実行する準備をする（まだ実行しない）。target：below_score（threshold 点未満）・unevaluated（未評価）・needs_reevaluation（再評価の条件に当てはまる）・not_indexed（インデックス未登録）', [
+                'target'    => ['type' => 'string', 'enum' => VoiceActions::DIAGNOSIS_TARGETS],
+                'threshold' => ['type' => ['integer', 'null'], 'description' => 'below_score のときの点数（指定がなければ 70）'],
+                'limit'     => ['type' => 'integer', 'description' => '件数（最大 ' . VoiceActions::MAX_DIAGNOSIS . '）'],
+            ], ['target', 'threshold', 'limit']),
+            $this->function('confirm_action', '確認待ちの操作を実行する。利用者が、前の返事で伝えた操作の内容に、この発言で同意した（はい・実行して など）ときだけ呼ぶ', [], []),
+            $this->function('cancel_action', '確認待ちの操作をやめる（利用者が、いいえ・やめて などと言ったとき）', [], []),
         ];
     }
 
@@ -101,6 +126,10 @@ class VoiceTools
             'count_articles' => ['result' => $this->countArticles((string) ($arguments['kind'] ?? ''), (int) ($arguments['threshold'] ?? 70) ?: 70, $blog), 'navigate' => null],
             'find_articles'  => ['result' => $this->findArticles((string) ($arguments['query'] ?? ''), $blog), 'navigate' => null],
             'open_article'   => $this->openArticle((string) ($arguments['type'] ?? ''), (int) ($arguments['id'] ?? 0), $blog),
+            'start_sync'     => ['result' => $this->actions->prepareSync($blog, $this->turnId), 'navigate' => null],
+            'run_quality_diagnosis' => ['result' => $this->actions->prepareDiagnosis($blog, $this->turnId, (string) ($arguments['target'] ?? ''), isset($arguments['threshold']) ? (int) $arguments['threshold'] : null, (int) ($arguments['limit'] ?? 10)), 'navigate' => null],
+            'confirm_action' => $this->actions->confirm($blog, $this->turnId, $this->userId),
+            'cancel_action'  => ['result' => $this->actions->cancel(), 'navigate' => null],
             default          => ['result' => ['error' => "「{$name}」という道具はありません。"], 'navigate' => null],
         };
     }

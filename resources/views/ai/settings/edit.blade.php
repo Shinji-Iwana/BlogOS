@@ -121,7 +121,7 @@
         ボタンを押して話し、もう一度押すか、少し黙ると送ります（1回 {{ config('blogos.voice.max_seconds') }}秒まで）。
         聞き取りは {{ config('blogos.voice.transcribe_model') }}、判断は {{ config('blogos.voice.text_model') }}、返事の声は {{ config('blogos.voice.tts_model') }}（OpenAI。返事は AI が作った音声です）。
         費用は1回の命令で約0.5円（1ドル150円）の目安で、「AIの費用と残高」の見込みと月の上限に含めます。
-        今できるのは、画面を開く・状況や件数や残高を答える・記事を探して開く、だけです（操作は準備中。WordPress への反映・削除・承認は声ではしません）。
+        できるのは、画面を開く・状況や件数や残高を答える・記事を探して開く、と、確認つきの操作（同期を始める・品質診断をまとめて実行する。内容と費用の目安を聞いてから「はい」で実行）です。WordPress への反映・削除・承認は声ではしません。
     </p>
     @unless ($configured)
         <p class="text-warn">OpenAI の API キー（.env の OPENAI_API_KEY）が設定されていないため、使えません。</p>

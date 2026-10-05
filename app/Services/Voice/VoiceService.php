@@ -96,6 +96,7 @@ class VoiceService
         $input[] = ['role' => 'user', 'content' => $transcript];
 
         $definitions = $this->tools->definitions($blog !== null);
+        $this->tools->withContext($turn->user_id, $turn->id);
         $calls = [];
         $navigate = null;
         $usage = ['input_tokens' => 0, 'cached_input_tokens' => 0, 'output_tokens' => 0];
@@ -162,7 +163,9 @@ class VoiceService
             '・日本語で、丁寧に、短く（2文以内。数字は要点だけ）答えてください。返事はそのまま読み上げるので、記号・箇条書き・URL・英字の画面のキーは使わないでください。',
             '・画面を開く・状況・件数・残高・記事を探す依頼には、必ず道具を使ってください。数字は道具の結果だけを使い、推測しないでください。',
             '・「それを開いて」のような続きの依頼は、直前のやり取りから判断してください。',
-            '・道具にない操作（WordPress への反映・削除・承認・設定の変更・AI の実行など）は、声ではできないと伝え、関係する画面を開くかを尋ねてください。',
+            '・同期を始める（start_sync）と、品質診断のまとめて実行（run_quality_diagnosis）は確認が必要な操作です。道具を呼ぶと、まだ実行せず内容（summary）が返るので、その内容を伝えて「実行しますか？」と尋ねてください。'
+                . '利用者が次の発言で同意したら confirm_action、断ったら cancel_action を呼びます。同じ発言の中で confirm_action を呼ばないでください。件数の指定がなければ10件にしてください。',
+            '・道具にない操作（WordPress への反映・削除・承認・設定の変更・ほかの AI の実行など）は、声ではできないと伝え、関係する画面を開くかを尋ねてください。',
             '・選択中のブログ：' . ($blog?->display_name ?? 'なし（ブログが選ばれていません）'),
         ]);
     }
