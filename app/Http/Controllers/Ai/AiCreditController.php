@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Ai;
 
+use App\Enums\AiMode;
 use App\Http\Controllers\Controller;
 use App\Models\AiCreditEntry;
+use App\Services\Voice\VoiceSettings;
 use App\Repositories\AiGenerationRepository;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
@@ -16,6 +18,7 @@ use Illuminate\Validation\ValidationException;
  *
  * OpenAI の画面で見た残高と、課金した額を登録する（メニューの「設定 → AI」のポップアップ。ai/credits/modals。D-62）。
  * BlogOS の日ごと・モデルごとの記録を、OpenAI の Usage の画面と比べられるように表示する。
+ * 処理ごと（品質診断・記事改修など）・きっかけごとの内訳も出す（何に費用がかかっているかを見るため。D-66）。
  */
 class AiCreditController extends Controller
 {
@@ -36,12 +39,51 @@ class AiCreditController extends Controller
             'status'     => $this->credits->status(),
             'history'    => $this->credits->history(),
             'usage'      => $this->generations->apiUsageByDay($from, $to),
+            'byPurpose'  => $this->usageByPurpose($from, $to),
             'days'       => $days,
             'spent'      => $this->apiPolicy->spentThisMonth(),
             'budget'     => $this->apiPolicy->monthlyBudget(),
             'configured' => $this->apiPolicy->isConfigured(),
             'reconcileDays' => (int) config('blogos.ai.credit.reconcile_days'),
         ]);
+    }
+
+    /**
+     * 処理ごと・きっかけごとの内訳（API実行と音声の操作。費用の多い順。D-66）
+     *
+     * @return list<array{label: string, trigger: string, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, web_search_calls: int|null, cost: float}>
+     */
+    protected function usageByPurpose(Carbon $from, Carbon $to): array
+    {
+        $rows = [];
+        foreach ($this->generations->apiUsageByPurpose($from, $to) as $row) {
+            $rows[] = [
+                'label'               => AiMode::tryFrom((string) $row->purpose)?->label() ?? (string) $row->purpose,
+                'trigger'             => (int) $row->automatic === 1 ? '自動（定期実行など）' : '人が実行',
+                'requests'            => (int) $row->requests,
+                'input_tokens'        => (int) $row->input_tokens,
+                'cached_input_tokens' => (int) $row->cached_input_tokens,
+                'output_tokens'       => (int) $row->output_tokens,
+                'web_search_calls'    => (int) $row->web_search_calls,
+                'cost'                => (float) $row->cost,
+            ];
+        }
+        foreach ($this->generations->voiceUsageByMode($from, $to) as $row) {
+            $rows[] = [
+                // 画面での方式の呼び方（A・B・C。D-60-03）
+                'label'               => '音声の操作（方式' . mb_substr(VoiceSettings::MODES[$row->mode] ?? (string) $row->mode, 0, 1) . '）',
+                'trigger'             => '人が実行（声）',
+                'requests'            => (int) $row->requests,
+                'input_tokens'        => (int) $row->input_tokens,
+                'cached_input_tokens' => (int) $row->cached_input_tokens,
+                'output_tokens'       => (int) $row->output_tokens,
+                'web_search_calls'    => null,
+                'cost'                => (float) $row->cost,
+            ];
+        }
+        usort($rows, fn ($a, $b) => $b['cost'] <=> $a['cost']);
+
+        return $rows;
     }
 
     /**

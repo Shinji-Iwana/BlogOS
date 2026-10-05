@@ -47,6 +47,57 @@
     </p>
     </section>
 
+    {{-- 処理ごとの内訳（何の処理に、どれだけのトークンと費用がかかったか。D-66） --}}
+    @php($purposeTotal = array_sum(array_column($byPurpose, 'cost')))
+    <section class="panel">
+    <h2>処理ごとの内訳</h2>
+    <p class="text-muted">
+        品質診断・記事改修などの処理ごとに、API実行の回数・トークン数・費用の目安を、費用の多い順に出します（音声の操作を含みます）。
+        きっかけの「自動」は、定期実行（記事の再評価・教材の照合など）と、その続きの処理（診断の後の改修など）です。
+    </p>
+    <p>
+        期間：
+        @foreach ([7, 30, 90] as $option)
+            @if ($option === $days)<strong>直近{{ $option }}日</strong>@else<a href="{{ route('ai.credits.index', ['days' => $option]) }}">直近{{ $option }}日</a>@endif
+        @endforeach
+    </p>
+    <table class="data">
+        <thead><tr><th>処理</th><th>きっかけ</th><th>Requests</th><th>Input tokens</th><th>うちキャッシュ済み</th><th>Output tokens</th><th>Web Searches</th><th>費用の目安</th><th>1回あたり</th><th>割合</th></tr></thead>
+        <tbody>
+            @forelse ($byPurpose as $row)
+                <tr>
+                    <td>{{ $row['label'] }}</td>
+                    <td>{{ $row['trigger'] }}</td>
+                    <td style="text-align:right;">{{ number_format($row['requests']) }}</td>
+                    <td style="text-align:right;">{{ number_format($row['input_tokens']) }}</td>
+                    <td style="text-align:right;">{{ number_format($row['cached_input_tokens']) }}</td>
+                    <td style="text-align:right;">{{ number_format($row['output_tokens']) }}</td>
+                    <td style="text-align:right;">{{ $row['web_search_calls'] !== null ? number_format($row['web_search_calls']) : '-' }}</td>
+                    <td style="text-align:right;">${{ number_format($row['cost'], 4) }}</td>
+                    <td style="text-align:right;">${{ number_format($row['requests'] > 0 ? $row['cost'] / $row['requests'] : 0, 4) }}</td>
+                    <td style="text-align:right;">{{ $purposeTotal > 0 ? number_format($row['cost'] / $purposeTotal * 100, 1) : '0.0' }}%</td>
+                </tr>
+            @empty
+                <tr><td colspan="10">この期間のAPI実行はありません。</td></tr>
+            @endforelse
+            @if ($byPurpose !== [])
+                <tr>
+                    <th colspan="2" style="text-align:left;">合計</th>
+                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'requests'))) }}</td>
+                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'input_tokens'))) }}</td>
+                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'cached_input_tokens'))) }}</td>
+                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'output_tokens'))) }}</td>
+                    <td style="text-align:right;">{{ number_format(array_sum(array_map(fn ($row) => (int) $row['web_search_calls'], $byPurpose))) }}</td>
+                    <td style="text-align:right;">${{ number_format($purposeTotal, 4) }}</td>
+                    <td></td>
+                    <td style="text-align:right;">100%</td>
+                </tr>
+            @endif
+        </tbody>
+    </table>
+    <p class="text-muted">音声の操作の方式 A は、聞き取りと返事の声の費用（話した時間から見積もる）も、費用の目安に含めます（トークン数は、判断の文章の AI の分だけ）。</p>
+    </section>
+
     <section class="panel">
     <h2>OpenAI の画面と比べる</h2>
     <p class="text-muted">

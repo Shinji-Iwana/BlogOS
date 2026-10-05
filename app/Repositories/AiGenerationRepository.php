@@ -89,6 +89,37 @@ class AiGenerationRepository
     }
 
     /**
+     * API実行の処理ごと（実行モード）・きっかけごとの集計（何の処理に、どれだけのトークンと費用がかかったか。D-66）。
+     * きっかけは、人が始めたか（requested_by あり）、定期実行などで自動で動いたか（requested_by なし）
+     *
+     * @return Collection<int, object{purpose: string, automatic: int, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, web_search_calls: int, cost: float}>
+     */
+    public function apiUsageByPurpose(DateTimeInterface $from, DateTimeInterface $to): Collection
+    {
+        return AiGeneration::where('execution_method', AiExecutionMethod::Api)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotNull('input_tokens')
+            ->selectRaw('purpose, CASE WHEN requested_by IS NULL THEN 1 ELSE 0 END as automatic, COUNT(*) as requests, SUM(input_tokens) as input_tokens, SUM(COALESCE(cached_input_tokens, 0)) as cached_input_tokens, SUM(output_tokens) as output_tokens, SUM(COALESCE(web_search_calls, 0)) as web_search_calls, SUM(estimated_cost) as cost')
+            ->groupBy('purpose', 'automatic')
+            ->toBase()
+            ->get();
+    }
+
+    /**
+     * 音声の操作の方式ごとの集計（D-58・D-66）
+     *
+     * @return Collection<int, object{mode: string, requests: int, input_tokens: int, cached_input_tokens: int, output_tokens: int, cost: float}>
+     */
+    public function voiceUsageByMode(DateTimeInterface $from, DateTimeInterface $to): Collection
+    {
+        return VoiceTurn::whereBetween('created_at', [$from, $to])
+            ->selectRaw('mode, COUNT(*) as requests, SUM(input_tokens) as input_tokens, SUM(cached_input_tokens) as cached_input_tokens, SUM(output_tokens) as output_tokens, SUM(estimated_cost) as cost')
+            ->groupBy('mode')
+            ->toBase()
+            ->get();
+    }
+
+    /**
      * 成功したAPI実行の、1回あたりの費用の平均（まとめて実行の費用の目安。モデル名は応答の日付付きの名前を含む）
      */
     public function averageApiCost(AiMode $mode, string $model): ?float

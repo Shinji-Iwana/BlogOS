@@ -106,6 +106,30 @@ class AiCreditTest extends TestCase
         $this->get(route('ai.credits.index'))->assertOk()->assertSee('$14.50')->assertSee('gpt-6-luna')->assertSee('差 -0.18');
     }
 
+    public function test_usage_is_broken_down_by_purpose_and_trigger(): void
+    {
+        // 自動（定期実行）の品質診断2回、人が実行した記事改修1回、音声の操作（方式A）1回
+        $this->spend(0.30, now()->subHour()->toDateTimeString());
+        $this->spend(0.20, now()->subHour()->toDateTimeString());
+        AiGeneration::create([
+            'blog_id' => $this->blog->id, 'purpose' => AiMode::Revision, 'execution_method' => AiExecutionMethod::Api, 'provider' => 'openai',
+            'model' => 'gpt-6-luna', 'template_key' => 'revision', 'template_version' => '1', 'input' => 'x', 'requested_by' => $this->user->id,
+            'status' => AiGenerationStatus::Succeeded, 'estimated_cost' => 1.00, 'input_tokens' => 5000, 'cached_input_tokens' => 1000, 'output_tokens' => 3000,
+        ]);
+        \App\Models\VoiceTurn::create(['user_id' => $this->user->id, 'mode' => 'c', 'input_tokens' => 800, 'output_tokens' => 40, 'estimated_cost' => 0.004]);
+
+        $html = $this->get(route('ai.credits.index'))->assertOk()->assertSee('処理ごとの内訳')->getContent();
+        preg_match('/<h2>処理ごとの内訳<\/h2>.*?<\/table>/s', $html, $table);
+
+        // 費用の多い順。処理・きっかけ・回数・トークン・費用・1回あたり・割合
+        $this->assertMatchesRegularExpression('/記事改修<\/td>\s*<td>人が実行<\/td>.*?品質診断<\/td>\s*<td>自動（定期実行など）<\/td>.*?音声の操作（方式A）<\/td>/s', $table[0]);
+        $this->assertStringContainsString('>5,000</td>', $table[0]);
+        $this->assertStringContainsString('>$0.5000</td>', $table[0]);
+        $this->assertStringContainsString('>$0.2500</td>', $table[0]);
+        $this->assertMatchesRegularExpression('/>66\.5%<\/td>/', $table[0]);
+        $this->assertStringContainsString('>$1.5040</td>', $table[0]);
+    }
+
     public function test_low_balance_warns_and_insufficient_balance_blocks_api(): void
     {
         $this->post(route('ai.credits.balance'), $this->selected(['amount' => 2.50]))->assertRedirect();
