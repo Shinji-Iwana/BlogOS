@@ -35,8 +35,12 @@
         'enabled' => '選択中のブログ（' . ($selectedBlog?->display_name ?? 'なし') . '）で、自動の再評価をするかを決めます。有効・無効とモデルは、ブログごとに決めます。',
         'model' => '品質診断に使うモデルと推論の深さ。モデルによって、選べる推論の深さが変わります（料金は1Mトークンあたりの米ドル）。',
         'revision' => "自動の再評価の後、基準（{$reevaluationRevision['below_score']}点）未満、または必須条件を満たさない記事の編集案を、自動で作ります。\n"
+            . "記事に作業中の編集案があれば、記事ではなく編集案を診断します。AI が作ったままの編集案は、その編集案を改修します（人が手を入れた編集案は、診断だけ）。\n"
             . "改修の後に、できた編集案も品質診断し、改修前後の点数を記録します（まとめて実行の画面・編集案の画面で確認できます）。\n"
             . '作業中の編集案がある記事は、人の作業を上書きしないため改修しません。作った編集案は、人が確認してから反映します（WordPressへの反映は自動では行いません）。',
+        'rounds' => "改修の後の診断で、まだ基準に満たない場合に、改修と診断を繰り返す上限の回数（1回なら、繰り返さない）。\n"
+            . "改修しても点数が上がらなかった記事は、上限の前でも止めます。上限まで改修しても基準に届かなかった記事は、人が確認します。\n"
+            . "1回の繰り返しごとに、改修と診断の費用がかかります。1日の件数（{$reevaluationConfig['daily_limit']}件）には、最初の診断だけを数えます。",
         'scope' => "編集案で、記事をどこまで直すか。\n点数で自動判別：{$scopeThresholds['minor']}点以上は軽微な改善、{$scopeThresholds['restructure']}点以上は構成の見直し、それ未満は全面改修。",
     ];
 @endphp
@@ -158,6 +162,16 @@
                     </select>
                 </label>
                 @include('partials.tip', ['tip' => $tips['scope']])
+            </p>
+            <p>
+                <label>改修の繰り返し（最大）
+                    <select name="auto_revision_max_rounds">
+                        @foreach (range(1, (int) $reevaluationConfig['max_revision_rounds']) as $rounds)
+                            <option value="{{ $rounds }}" @selected((int) $value('auto_revision_max_rounds', $reevaluationSetting->auto_revision_max_rounds ?? $reevaluationConfig['default_revision_rounds']) === $rounds)>{{ $rounds }}回</option>
+                        @endforeach
+                    </select>
+                </label>
+                @include('partials.tip', ['tip' => $tips['rounds']])
             </p>
 
             <div

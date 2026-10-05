@@ -173,7 +173,12 @@ return [
             'effort' => env('BLOGOS_AI_AUTO_EFFORT', 'medium'),
 
             // 1日に自動で再評価する記事の上限（ブログごと）。超えた分は翌日以降に回す
+            // （最初の品質診断の記事の数。基準を満たすまでの改修と診断の繰り返しは数えない。D-65）
             'daily_limit' => (int) env('BLOGOS_AI_AUTO_DAILY_LIMIT', 30),
+
+            // 診断の後の改修を、基準を満たすまで繰り返す回数（ブログごとに、記事の再評価のポップアップで 1〜max_revision_rounds から選ぶ。D-65）
+            'default_revision_rounds' => 3,
+            'max_revision_rounds'     => 5,
 
             // 5. 前回の評価からこの日数が過ぎたら、定期的に見直す
             'periodic_days' => (int) env('BLOGOS_AI_AUTO_PERIODIC_DAYS', 90),

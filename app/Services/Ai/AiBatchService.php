@@ -9,6 +9,7 @@ use App\Enums\AiBatchTrigger;
 use App\Enums\AiExecutionMethod;
 use App\Enums\AiGenerationStatus;
 use App\Enums\AiMode;
+use App\Enums\DraftOrigin;
 use App\Enums\GoogleIndexCategory;
 use App\Enums\ReevaluationReason;
 use App\Enums\RevisionScope;
@@ -16,6 +17,7 @@ use App\Jobs\RunAiBatchItemJob;
 use App\Models\AiBatch;
 use App\Models\AiBatchItem;
 use App\Models\AiGeneration;
+use App\Models\ArticleDraft;
 use App\Models\ArticleEvaluation;
 use App\Models\Blog;
 use App\Models\GoogleIndexStatus;
@@ -145,8 +147,9 @@ class AiBatchService
      * まとめて実行を登録する
      *
      * @param list<array{article: Post|Page, reason: ReevaluationReason|null}> $targets
-     * @param array{below_score: float, model: string, effort: string, revision_scope: string}|null $followUpRevision
-     *                                                                                               品質診断の後に、基準に満たない記事の編集案を続けて作る設定（D-26）
+     * @param array{below_score: float, model: string, effort: string, revision_scope: string, max_rounds?: int}|null $followUpRevision
+     *                                                                                               品質診断の後に、基準に満たない記事の編集案を続けて作る設定（D-26）。
+     *                                                                                               max_rounds があれば、基準を満たすまで繰り返す（D-65）
      *
      * @throws AiException
      */
@@ -213,15 +216,22 @@ class AiBatchService
             if ($article === null || $article->status !== 'publish') {
                 throw new AiException('記事が見つからないか、公開中ではなくなりました。');
             }
-            // まとめて実行の改修では、作業中の編集案を上書きしない（人の作業を消さないため。D-26-03）
-            if ($batch->purpose === AiMode::Revision && ($draft = $this->drafts->activeFor($article)) !== null) {
-                throw new AiException("作業中の編集案 #{$draft->id} があるため、改修しませんでした（人の作業を上書きしないため）。");
+            // まとめて実行の改修では、作業中の編集案を上書きしない（人の作業を消さないため。D-26-03）。
+            // ただし、記事の再評価で基準を満たすまで繰り返す改修では、AI が作ったままの編集案を続けて改修する（D-65）
+            $draft = $this->drafts->activeFor($article);
+            if ($batch->purpose === AiMode::Revision && $draft !== null && ! $this->mayReviseDraft($batch, $draft)) {
+                throw new AiException(in_array($draft->id, (array) ($batch->target_parameters['drafts'] ?? []), true)
+                    ? "編集案 #{$draft->id} に人が手を入れたため、改修しませんでした（人の作業を上書きしないため）。"
+                    : "作業中の編集案 #{$draft->id} があるため、改修しませんでした（人の作業を上書きしないため）。");
             }
 
-            // 記事改修：改修前の点数（記事の最新の評価）と改修範囲。「点数で自動判別」なら点数から決める（D-27-02）
+            // 記事の再評価（定期実行）の品質診断：作業中の編集案があれば、記事ではなく編集案を診断する（D-65）
+            $diagnoseDraft = $batch->purpose === AiMode::QualityDiagnosis && $draft !== null && ! empty($batch->target_parameters['diagnose_drafts']);
+
+            // 記事改修：改修前の点数（改修する編集案の最新の評価。なければ記事の最新の評価）と改修範囲。「点数で自動判別」なら点数から決める（D-27-02）
             $scope = null;
             if ($batch->purpose === AiMode::Revision) {
-                $before = $this->evaluations->latestFor($article, null)?->score;
+                $before = ($draft !== null ? $this->evaluations->latestFor($article, $draft)?->score : null) ?? $this->evaluations->latestFor($article, null)?->score;
                 $setting = (string) ($batch->target_parameters['revision_scope'] ?? RevisionScope::Minor->value);
                 $scope = $setting === self::SCOPE_BY_SCORE ? RevisionScope::byScore($before) : (RevisionScope::tryFrom($setting) ?? RevisionScope::Minor);
                 $this->batches->updateItem($item, ['score_before' => $before, 'revision_scope' => $scope->value]);
@@ -230,8 +240,8 @@ class AiBatchService
             $generation = $this->runService->start(
                 $batch->purpose,
                 $batch->blog,
-                $article,
-                null,
+                $diagnoseDraft ? null : $article,
+                $diagnoseDraft ? $draft : null,
                 [],
                 $scope,
                 $batch->requested_by,
@@ -245,7 +255,9 @@ class AiBatchService
             $this->batches->updateItem($item, [
                 'ai_generation_id' => $generation->id,
                 'status'           => $succeeded ? AiBatchItemStatus::Succeeded : AiBatchItemStatus::Failed,
-                'message'          => $generation->error,
+                'message'          => $generation->error ?? ($diagnoseDraft
+                    ? "記事に作業中の編集案 #{$draft->id} があるため、編集案を診断しました。" . (self::autoRevisable($draft) ? '' : '人が手を入れた編集案のため、改修はしません。')
+                    : null),
             ]);
 
             // 記事改修の後に、できた編集案を品質診断する（改修前後の点数を比べるため。D-27-01）
@@ -270,7 +282,8 @@ class AiBatchService
      */
     protected function diagnoseDraft(AiBatchItem $item, AiBatch $batch, AiGeneration $revision): void
     {
-        $draft = $revision->createdDrafts()->latest('id')->first();
+        // 改修した編集案（作業中の編集案を改修した場合は、その編集案。新しく作った場合は、作った編集案）
+        $draft = $revision->draft ?? $revision->createdDrafts()->latest('id')->first();
         if ($draft === null) {
             return;
         }
@@ -317,6 +330,94 @@ class AiBatchService
     {
         if ($this->batches->completeIfFinished($batch)) {
             $this->startFollowUpRevision($batch->fresh());
+            $this->startNextRevisionRound($batch->fresh());
+        }
+    }
+
+    /**
+     * AI が作ったままの編集案か（人が手を入れていない。記事の再評価の繰り返しで、続けて改修してよい。D-65）
+     */
+    public static function autoRevisable(ArticleDraft $draft): bool
+    {
+        return $draft->origin === DraftOrigin::Ai && ! $draft->human_edited;
+    }
+
+    /**
+     * このまとめて実行で、作業中の編集案を改修してよいか（記事の再評価の繰り返しで渡された、AI が作ったままの編集案だけ。D-65）
+     */
+    protected function mayReviseDraft(AiBatch $batch, ArticleDraft $draft): bool
+    {
+        return in_array($draft->id, (array) ($batch->target_parameters['drafts'] ?? []), true) && self::autoRevisable($draft);
+    }
+
+    /**
+     * 記事の再評価の繰り返し（D-65）：改修の後の診断で、まだ基準に満たない記事を、上限の回数まで改修し直す。
+     * 改修しても点数が上がらなかった記事は、そこで止める（同じ指摘で費用をかけ続けないため）。
+     * 止めた理由（基準を満たした・上がらなかった・上限の回数）は、記事ごとのメッセージに残す
+     */
+    public function startNextRevisionRound(AiBatch $batch): ?AiBatch
+    {
+        $parameters = (array) $batch->target_parameters;
+        if ($batch->purpose !== AiMode::Revision || $batch->status !== AiBatchStatus::Completed || ! isset($parameters['max_rounds'])) {
+            return null;
+        }
+
+        $round = (int) ($parameters['round'] ?? 1);
+        $maxRounds = (int) $parameters['max_rounds'];
+        $belowScore = (float) ($parameters['below_score'] ?? config('blogos.ai.acceptance_score'));
+
+        $targets = [];
+        $draftIds = [];
+        foreach ($batch->items()->with(['post', 'page', 'generation'])->where('status', AiBatchItemStatus::Succeeded)->whereNotNull('diagnosis_generation_id')->get() as $item) {
+            $evaluation = ArticleEvaluation::where('ai_generation_id', $item->diagnosis_generation_id)->latest('id')->first();
+            $article = $item->article();
+            if ($evaluation === null || $evaluation->score === null || $article === null) {
+                continue;
+            }
+
+            $note = match (true) {
+                (float) $evaluation->score >= $belowScore && $evaluation->required_conditions_passed !== false => null,
+                $item->score_before !== null && (float) $evaluation->score <= (float) $item->score_before   => '改修しても点数が上がらなかったため、繰り返しを止めました。人が確認してください。',
+                $round >= $maxRounds                                                                          => "上限の{$maxRounds}回まで改修しましたが、基準に届きませんでした。人が確認してください。",
+                default                                                                                       => false,
+            };
+            if ($note !== false) {
+                if ($note !== null) {
+                    $this->batches->updateItem($item, ['message' => trim(($item->message ?? '') . ' ' . $note)]);
+                }
+
+                continue;
+            }
+
+            $draft = $item->generation?->draft ?? $item->generation?->createdDrafts()->latest('id')->first();
+            if ($draft === null || ! $draft->state->isActive() || ! self::autoRevisable($draft)) {
+                continue;
+            }
+            $targets[] = ['article' => $article, 'reason' => null];
+            $draftIds[] = $draft->id;
+        }
+
+        if ($targets === []) {
+            return null;
+        }
+
+        try {
+            return $this->start(
+                $batch->blog,
+                AiMode::Revision,
+                $batch->trigger,
+                AiBatchTarget::AfterDiagnosis,
+                $targets,
+                $batch->model,
+                $batch->reasoning_effort,
+                ['round' => $round + 1, 'drafts' => $draftIds] + $parameters,
+                $batch->requested_by,
+                parentBatchId: $batch->id,
+            );
+        } catch (AiException $e) {
+            $this->batches->noteStopReason($batch, "改修を繰り返せませんでした：{$e->getMessage()}");
+
+            return null;
         }
     }
 
@@ -333,6 +434,7 @@ class AiBatchService
 
         $belowScore = (float) $settings['below_score'];
         $targets = [];
+        $draftIds = [];
         foreach ($this->batches->succeededItemsWithEvaluation($batch) as $item) {
             $evaluation = $item->generation?->evaluations->sortByDesc('id')->first();
             $article = $item->article();
@@ -340,6 +442,14 @@ class AiBatchService
                 continue;
             }
             if (($evaluation->score !== null && $evaluation->score < $belowScore) || $evaluation->required_conditions_passed === false) {
+                // 編集案を診断した場合（記事の再評価。D-65）：AI が作ったままの編集案は、その編集案を改修する。人が手を入れた編集案は改修しない
+                if ($evaluation->article_draft_id !== null) {
+                    $draft = ArticleDraft::find($evaluation->article_draft_id);
+                    if ($draft === null || ! $draft->state->isActive() || ! self::autoRevisable($draft)) {
+                        continue;
+                    }
+                    $draftIds[] = $draft->id;
+                }
                 $targets[] = ['article' => $article, 'reason' => null];
             }
         }
@@ -357,7 +467,9 @@ class AiBatchService
                 $targets,
                 $settings['model'],
                 $settings['effort'],
-                ['below_score' => $belowScore, 'revision_scope' => $settings['revision_scope'] ?? RevisionScope::Minor->value],
+                ['below_score' => $belowScore, 'revision_scope' => $settings['revision_scope'] ?? RevisionScope::Minor->value]
+                    // 基準を満たすまで繰り返す（記事の再評価。D-65）：何回目か・上限・改修してよい編集案
+                    + (isset($settings['max_rounds']) ? ['round' => 1, 'max_rounds' => (int) $settings['max_rounds'], 'drafts' => $draftIds] : []),
                 $batch->requested_by,
                 parentBatchId: $batch->id,
             );

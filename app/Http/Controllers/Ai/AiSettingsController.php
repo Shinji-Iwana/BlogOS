@@ -68,6 +68,8 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => ['required', 'string', 'max:100'],
             'auto_revision_reasoning_effort' => ['required', 'string', 'max:30'],
             'auto_revision_scope'            => ['nullable', Rule::in(array_keys(AutoReevaluationService::scopeOptions()))],
+            // 基準を満たすまで、改修と診断を繰り返す上限の回数（D-65）
+            'auto_revision_max_rounds'       => ['nullable', 'integer', 'between:1,' . (int) config('blogos.ai.auto_reevaluation.max_revision_rounds')],
             // 定期実行の時刻（全ブログ共通。ポップアップから送ったときだけ。D-64）
             'frequency'                      => ['sometimes', 'required', Rule::in(['daily', 'weekly'])],
             'weekday'                        => ['nullable', 'required_if:frequency,weekly', 'integer', 'between:0,6'],
@@ -90,6 +92,7 @@ class AiSettingsController extends Controller
             'auto_revision_model'            => $validated['auto_revision_model'],
             'auto_revision_reasoning_effort' => $validated['auto_revision_reasoning_effort'],
             'auto_revision_scope'            => $validated['auto_revision_scope'] ?? AiBatchService::SCOPE_BY_SCORE,
+            'auto_revision_max_rounds'       => (int) ($validated['auto_revision_max_rounds'] ?? $this->settings->forBlog($blog)->auto_revision_max_rounds ?? config('blogos.ai.auto_reevaluation.default_revision_rounds')),
             // 教材の定期チェックの有効・無効は、ここでは変えない（メニューのポップアップ。D-63-03）
         ], $request->user()?->id);
 

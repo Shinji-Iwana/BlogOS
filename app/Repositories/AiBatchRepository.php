@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Enums\AiBatchItemStatus;
 use App\Enums\AiBatchStatus;
 use App\Enums\AiBatchTrigger;
+use App\Enums\AiMode;
 use App\Models\AiBatch;
 use App\Models\AiBatchItem;
 use DateTimeInterface;
@@ -168,7 +169,8 @@ class AiBatchRepository
      */
     public function autoItemCountSince(int $blogId, DateTimeInterface $from): int
     {
-        return AiBatchItem::whereHas('batch', fn ($query) => $query->where('blog_id', $blogId)->where('trigger', AiBatchTrigger::Auto))
+        // 最初の品質診断だけを数える（基準を満たすまでの改修と、改修の後の診断は数えない。D-65）
+        return AiBatchItem::whereHas('batch', fn ($query) => $query->where('blog_id', $blogId)->where('trigger', AiBatchTrigger::Auto)->where('purpose', AiMode::QualityDiagnosis))
             ->where('created_at', '>=', $from)
             ->count();
     }

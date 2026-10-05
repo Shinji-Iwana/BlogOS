@@ -699,7 +699,7 @@ BlogOSのAI機能のまとめて実行（人が画面から実行したもの・
 
 ## 9-8. blog_ai_settings
 
-ブログごとのAIの設定（1ブログ1行。D-25）。`auto_reevaluation_enabled`（条件による自動の再評価。初期値は無効）、`auto_model` / `auto_reasoning_effort`（自動の再評価で使うモデル。初期値は gpt-6-luna・medium）、`auto_revision_enabled` / `auto_revision_model` / `auto_revision_reasoning_effort`（自動の再評価の後に、基準に満たない記事の編集案を作るか（初期値は有効）と、使うモデル。D-26）、`auto_revision_scope`（その改修範囲。`auto`：点数で自動判別（初期値） / `minor` / `restructure` / `full`。D-27-02）、`material_check_enabled`（教材の定期チェック。初期値は無効。D-30-07）、`updated_by`。
+ブログごとのAIの設定（1ブログ1行。D-25）。`auto_reevaluation_enabled`（条件による自動の再評価。初期値は無効）、`auto_model` / `auto_reasoning_effort`（自動の再評価で使うモデル。初期値は gpt-6-luna・medium）、`auto_revision_enabled` / `auto_revision_model` / `auto_revision_reasoning_effort`（自動の再評価の後に、基準に満たない記事の編集案を作るか（初期値は有効）と、使うモデル。D-26）、`auto_revision_scope`（その改修範囲。`auto`：点数で自動判別（初期値） / `minor` / `restructure` / `full`。D-27-02）、`auto_revision_max_rounds`（基準を満たすまで、改修と診断を繰り返す上限の回数。1〜5、初期値3。D-65）、`material_check_enabled`（教材の定期チェック。初期値は無効。D-30-07）、`updated_by`。
 
 ## 9-9. article_management_suggestions
 

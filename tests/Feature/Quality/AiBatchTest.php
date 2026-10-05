@@ -498,4 +498,122 @@ class AiBatchTest extends TestCase
         $this->assertSame(3, ArticleDraft::count());
         $this->assertSame(3, ArticleDraft::where('ai_generation_id', '!=', null)->count());
     }
+
+    /**
+     * 品質診断の結果を、呼ばれた順に変える（$goodRatios：診断ごとの、○にする項目の割合。残りは△）
+     *
+     * @param list<float> $goodRatios
+     */
+    protected function fakeImprovingOpenAi(array $goodRatios): void
+    {
+        $standard = app(QualityStandardLoader::class)->load('si-note');
+        $diagnoses = 0;
+        $judgments = function (array $keys, float $ratio) {
+            $good = (int) floor(count($keys) * $ratio);
+
+            return array_combine($keys, array_map(fn ($index) => $index < $good ? ['judgment' => '○', 'comment' => '十分'] : ['judgment' => '△', 'comment' => '一部不足'], array_keys($keys)));
+        };
+
+        Http::fake(['api.openai.com/v1/responses' => function (Request $request) use ($standard, $goodRatios, &$diagnoses, $judgments) {
+            if (str_contains($request['input'], '=== 本文 ===')) {
+                $text = "=== タイトル ===\n改修した記事\n=== 本文 ===\n<p>改修した本文</p>";
+            } else {
+                $ratio = $goodRatios[min($diagnoses, count($goodRatios) - 1)];
+                $diagnoses++;
+                $text = json_encode(['required' => $judgments(array_keys($standard->required), $ratio), 'items' => $judgments(array_keys($standard->items), $ratio), 'summary' => '要改善'], JSON_UNESCAPED_UNICODE);
+            }
+
+            return Http::response([
+                'id' => 'resp_1', 'status' => 'completed', 'model' => $request['model'],
+                'output' => [['type' => 'message', 'content' => [['type' => 'output_text', 'text' => $text]]]],
+                'usage' => ['input_tokens' => 2000, 'input_tokens_details' => ['cached_tokens' => 0], 'output_tokens' => 1000, 'output_tokens_details' => ['reasoning_tokens' => 100]],
+            ]);
+        }]);
+    }
+
+    /**
+     * 記事1だけを、自動の再評価の対象にする（記事2・3は、評価したばかりにする）
+     */
+    protected function onlyFirstPostNeedsReevaluation(): void
+    {
+        foreach ([2, 3] as $number) {
+            $this->evaluate($this->posts[$number]);
+        }
+    }
+
+    protected function enableAutoReevaluation(int $maxRounds): void
+    {
+        $this->put(route('ai.settings.update'), $this->selected([
+            'auto_reevaluation_enabled' => 1, 'auto_model' => 'gpt-6-luna', 'auto_reasoning_effort' => 'medium',
+            'auto_revision_enabled' => 1, 'auto_revision_model' => 'gpt-6-luna', 'auto_revision_reasoning_effort' => 'medium', 'auto_revision_max_rounds' => $maxRounds,
+        ]))->assertSessionHasNoErrors();
+    }
+
+    public function test_auto_reevaluation_repeats_revision_up_to_the_limit(): void
+    {
+        // 診断のたびに点数が上がるが、基準（90点）には届かない
+        $this->fakeImprovingOpenAi([0.0, 0.2, 0.4, 0.6, 0.8]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(3);
+        $this->assertSame(3, BlogAiSetting::sole()->auto_revision_max_rounds);
+
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+
+        // 最初の診断は1件。改修は3回（回ごとのまとめて実行）。編集案は1つを改修し続ける
+        $this->assertSame(1, AiBatch::where('purpose', 'quality_diagnosis')->sole()->total_count);
+        $rounds = AiBatch::where('purpose', 'revision')->orderBy('id')->get();
+        $this->assertSame([1, 2, 3], $rounds->map(fn ($batch) => $batch->target_parameters['round'])->all());
+        $this->assertSame(1, ArticleDraft::count());
+        $scores = $rounds->map(fn ($batch) => [(float) $batch->items()->sole()->score_before, (float) $batch->items()->sole()->score_after])->all();
+        $this->assertTrue($scores[0][1] > $scores[0][0] && $scores[1][0] === $scores[0][1] && $scores[2][1] > $scores[2][0] && $scores[2][1] < 90);
+        $this->assertStringContainsString('上限の3回まで改修しましたが、基準に届きませんでした。', $rounds[2]->items()->sole()->message);
+        $this->get(route('ai.batches.show', ['id' => $rounds[1]->id]))->assertOk()->assertSee('2回目（最大3回');
+
+        // 1日の上限には、最初の診断だけを数える
+        $this->assertSame((int) config('blogos.ai.auto_reevaluation.daily_limit') - 1, app(\App\Services\Ai\AutoReevaluationService::class)->remainingToday($this->blog));
+    }
+
+    public function test_auto_reevaluation_stops_when_the_score_does_not_rise(): void
+    {
+        // 改修しても点数が変わらない
+        $this->fakeImprovingOpenAi([0.0, 0.0]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(3);
+
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+
+        $revision = AiBatch::where('purpose', 'revision')->sole();
+        $this->assertStringContainsString('改修しても点数が上がらなかったため、繰り返しを止めました。', $revision->items()->sole()->message);
+    }
+
+    public function test_auto_reevaluation_diagnoses_existing_drafts(): void
+    {
+        $this->fakeImprovingOpenAi([0.0, 0.2, 0.4]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(1);
+
+        // 人が手を入れた編集案：編集案を診断するだけで、改修しない
+        $draft = app(\App\Services\Articles\DraftService::class)->createFromArticle($this->posts[1], RevisionScope::Minor, $this->user->id);
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+
+        $diagnosis = AiBatch::where('purpose', 'quality_diagnosis')->sole();
+        $this->assertStringContainsString("編集案 #{$draft->id} があるため、編集案を診断しました。人が手を入れた編集案のため、改修はしません。", $diagnosis->items()->sole()->message);
+        $this->assertSame($draft->id, ArticleEvaluation::where('ai_generation_id', $diagnosis->items()->sole()->ai_generation_id)->value('article_draft_id'));
+        $this->assertSame(0, AiBatch::where('purpose', 'revision')->count());
+
+        // 診断の後に編集案が変わっていなければ、翌日も診断し直さない
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $this->assertSame(1, AiBatch::count());
+
+        // AI が作ったままの編集案：その編集案を改修する（新しい編集案は作らない）
+        $draft->forceFill(['origin' => 'ai', 'human_edited' => false, 'updated_at' => now()->addMinute()])->save();
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+
+        $revision = AiBatch::where('purpose', 'revision')->sole();
+        $this->assertSame(AiBatchItemStatus::Succeeded, $revision->items()->sole()->status);
+        $this->assertSame($draft->id, AiGeneration::find($revision->items()->sole()->ai_generation_id)->article_draft_id);
+        $this->assertSame(1, ArticleDraft::count());
+    }
 }

@@ -29,11 +29,21 @@
         <tr><th style="text-align:left;">対象</th><td>{{ $batch->target->label() }}@if (isset($batch->target_parameters['below_score']))（{{ $batch->target_parameters['below_score'] }}点未満）@endif @if (isset($batch->target_parameters['revision_scope']))・改修範囲 {{ \App\Services\Ai\AutoReevaluationService::scopeOptions()[$batch->target_parameters['revision_scope']] ?? $batch->target_parameters['revision_scope'] }}@endif</td></tr>
         <tr><th style="text-align:left;">モデル・推論の深さ</th><td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td></tr>
         @if ($batch->parent)
-            <tr><th style="text-align:left;">元の品質診断</th><td><a href="{{ route('ai.batches.show', ['id' => $batch->parent->id]) }}">まとめて実行 #{{ $batch->parent->id }}</a></td></tr>
+            <tr><th style="text-align:left;">{{ $batch->parent->purpose === \App\Enums\AiMode::Revision ? '前の回の改修' : '元の品質診断' }}</th><td><a href="{{ route('ai.batches.show', ['id' => $batch->parent->id]) }}">まとめて実行 #{{ $batch->parent->id }}</a></td></tr>
+        @endif
+        {{-- 記事の再評価で、基準を満たすまで改修と診断を繰り返す（D-65） --}}
+        @if (isset($batch->target_parameters['max_rounds']))
+            <tr><th style="text-align:left;">基準を満たすまでの繰り返し</th><td>
+                {{ $batch->target_parameters['round'] ?? 1 }}回目（最大{{ $batch->target_parameters['max_rounds'] }}回。点数が上がらなかった記事は止める）
+                @foreach ($batch->children as $child)
+                    →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">次の回：まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件・{{ $child->status->label() }}）</a>
+                @endforeach
+            </td></tr>
         @endif
         @if (isset($batch->follow_up['revision']))
             <tr><th style="text-align:left;">診断の後の編集案の作成</th><td>
                 {{ $batch->follow_up['revision']['below_score'] }}点未満、または必須条件を満たさない記事を、{{ $batch->follow_up['revision']['model'] }}・{{ $batch->follow_up['revision']['effort'] }} で改修する
+                @if (($batch->follow_up['revision']['max_rounds'] ?? 1) > 1)（基準を満たすまで、最大{{ $batch->follow_up['revision']['max_rounds'] }}回）@endif
                 @forelse ($batch->children as $child)
                     →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件・{{ $child->status->label() }}）</a>
                 @empty
