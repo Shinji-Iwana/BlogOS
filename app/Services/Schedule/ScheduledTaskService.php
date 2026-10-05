@@ -47,7 +47,7 @@ class ScheduledTaskService
     }
 
     /**
-     * いつ・有効を保存する（画面「定期実行」とメニューのポップアップ。D-44・D-63）。時刻の順番の注意を返す
+     * いつ・有効を保存する（メニューのポップアップ。D-44・D-63）。時刻の順番の注意を返す
      *
      * @param  array{frequency: string, weekday?: int|string|null, time: string, enabled?: bool|string|null}  $values
      * @return list<string>

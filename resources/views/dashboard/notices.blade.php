@@ -23,6 +23,10 @@
     @if (session('status'))
         <p class="text-ok">{{ session('status') }}</p>
     @endif
+    {{-- メニューの即時実行など、トップページから送った処理の誤り（例：実行中。D-63-09） --}}
+    @foreach ($errors->all() as $message)
+        <p class="text-error">{{ $message }}</p>
+    @endforeach
 
     {{-- 同期（テーマが別の場所に出す場合は、$withSync = false で読み込む） --}}
     @if ($selectedBlog && ($withSync ?? true))
@@ -59,7 +63,7 @@
             定期実行：
             @if ($scheduleNotice['stopped'])26時間以上、定期実行が動いていません（サーバーの cron を確認してください）。@endif
             @if (! empty($scheduleNotice['failed']))前回が失敗した定期実行があります（{{ implode('、', $scheduleNotice['failed']) }}）。@endif
-            <a href="{{ route('scheduled-tasks.index') }}">定期実行を確認する</a>
+            <a href="{{ route('scheduled-tasks.runs') }}">定期実行の履歴</a>
         </p>
     @endif
 

@@ -129,7 +129,12 @@
                                 <summary>{{ $link['label'] }}</summary>
                                 <ul class="site-menu-links site-menu-sublinks">
                                     @foreach ($link['children'] as $child)
-                                        <li><a href="{{ $child['url'] }}" @if ($child['modal']) data-modal-open="{{ $child['modal'] }}" @endif>{{ $child['label'] }}</a></li>
+                                        @if ($child['post'])
+                                            {{-- 押すと確認してから、その処理を送る（例：即時実行。D-63-09） --}}
+                                            <li><a href="#" data-menu-post="{{ $child['post'] }}" data-menu-confirm="{{ $child['confirm'] }}">{{ $child['label'] }}</a></li>
+                                        @else
+                                            <li><a href="{{ $child['url'] }}" @if ($child['modal']) data-modal-open="{{ $child['modal'] }}" @endif>{{ $child['label'] }}</a></li>
+                                        @endif
                                     @endforeach
                                 </ul>
                             </details>
@@ -536,6 +541,31 @@
                     input.value = parts.year + '-' + parts.month + '-' + parts.day + 'T' + parts.hour + ':' + parts.minute;
                 });
                 modal.style.display = 'block';
+            });
+        });
+
+        // メニューの、処理を送る項目（例：即時実行。D-63-09）：確認してから送り、開いていた画面に戻る
+        document.querySelectorAll('[data-menu-post]').forEach(function (item) {
+            item.addEventListener('click', function (event) {
+                event.preventDefault();
+                const menu = item.closest('.site-menu-group');
+                if (menu) {
+                    menu.querySelectorAll('details').forEach((details) => { details.open = false; });
+                    menu.open = false;
+                }
+                if (item.dataset.menuConfirm && ! window.confirm(item.dataset.menuConfirm)) {
+                    return;
+                }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = item.dataset.menuPost;
+                const token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = '_token';
+                token.value = document.querySelector('meta[name="csrf-token"]').content;
+                form.appendChild(token);
+                document.body.appendChild(form);
+                form.submit();
             });
         });
 

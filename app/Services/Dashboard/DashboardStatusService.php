@@ -108,7 +108,7 @@ class DashboardStatusService
 
     protected function schedule(array $notice): array
     {
-        $panel = ['key' => 'schedule', 'code' => 'SCHEDULE', 'label' => '定期実行', 'url' => route('scheduled-tasks.index'), 'link' => '定期実行を確認する'];
+        $panel = ['key' => 'schedule', 'code' => 'SCHEDULE', 'label' => '定期実行', 'url' => route('scheduled-tasks.runs'), 'link' => '定期実行の履歴'];
 
         if ($notice['stopped']) {
             return $panel + ['state' => self::ERROR, 'value' => '停止の疑い', 'lines' => ['26時間以上動いていません（cron を確認）']];

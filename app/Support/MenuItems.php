@@ -12,7 +12,8 @@ class MenuItems
 {
     /**
      * route（と params・fragment）は開く画面。modal は、押したときに画面を移らずに開くポップアップの id（layouts/header）。
-     * modal だけの項目は、画面を移らない。children は、押すと横に開く、下の階層の項目（同じ形）
+     * modal だけの項目は、画面を移らない。children は、押すと横に開く、下の階層の項目（同じ形）。
+     * post（と post_params・confirm）は、押すと確認してから、その処理を送る（画面は移らず、開いていた画面に戻る。例：即時実行。D-63-09）
      *
      * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string, children?: list<array>}>}>
      */
@@ -31,6 +32,8 @@ class MenuItems
                 // 押すと音声操作ポップアップを開く（画面は移らない）
                 ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
             ]],
+            // 即時実行（下の階層。項目は ScheduledTasks::runNowKeys()。押すと、確認してから定期実行を今すぐ Queue に登録する。D-63-09）
+            ['label' => '即時実行', 'children' => 'run-now'],
             // 定期実行の設定（下の階層。項目は ScheduledTasks::MENU。押すと、いつ・有効の設定のポップアップを開く。D-63）
             ['label' => '定期実行', 'children' => 'scheduled-tasks'],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
@@ -41,7 +44,7 @@ class MenuItems
     /**
      * 出すメニュー（URL を付ける）
      *
-     * @return list<array{key: string, code: string, label: string, links: list<array{label: string, url: string, modal: string|null, children: list<array>}>}>
+     * @return list<array{key: string, code: string, label: string, links: list<array{label: string, url: string, modal: string|null, post: string|null, confirm: string|null, children: list<array>}>}>
      */
     public static function groups(): array
     {
@@ -62,6 +65,19 @@ class MenuItems
     }
 
     /**
+     * 「即時実行」の下の項目（App\Support\ScheduledTasks::runNowKeys()。定期実行の今すぐ実行を送る）
+     */
+    protected static function runNowLinks(): array
+    {
+        return array_map(fn (string $key) => [
+            'label'       => ScheduledTasks::menuLabel($key),
+            'post'        => 'scheduled-tasks.run',
+            'post_params' => ['key' => $key],
+            'confirm'     => '「' . ScheduledTasks::menuLabel($key) . '」を今すぐ実行しますか？',
+        ], ScheduledTasks::runNowKeys());
+    }
+
+    /**
      * 項目に URL を付ける（下の階層も）
      */
     protected static function links(array $links): array
@@ -70,7 +86,13 @@ class MenuItems
             'label'    => $link['label'],
             'url'      => isset($link['route']) ? route($link['route'], $link['params'] ?? []) . (isset($link['fragment']) ? '#' . $link['fragment'] : '') : '#',
             'modal'    => $link['modal'] ?? null,
-            'children' => self::links(($link['children'] ?? []) === 'scheduled-tasks' ? self::scheduledTaskLinks() : ($link['children'] ?? [])),
+            'post'     => isset($link['post']) ? route($link['post'], $link['post_params'] ?? []) : null,
+            'confirm'  => $link['confirm'] ?? null,
+            'children' => self::links(match ($link['children'] ?? []) {
+                'scheduled-tasks' => self::scheduledTaskLinks(),
+                'run-now'         => self::runNowLinks(),
+                default           => $link['children'] ?? [],
+            }),
         ], $links);
     }
 }

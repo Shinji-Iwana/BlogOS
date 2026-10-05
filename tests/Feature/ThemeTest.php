@@ -35,7 +35,7 @@ class ThemeTest extends TestCase
     public function test_switching_to_ironman_overrides_only_its_own_views(): void
     {
         // テーマ切替ポップアップは全画面にあるため、開いていた画面に戻る（D-57）
-        $this->from(route('scheduled-tasks.index'))->put(route('settings.theme.update'), ['theme' => 'ironman'])->assertRedirect(route('scheduled-tasks.index'));
+        $this->from(route('scheduled-tasks.runs'))->put(route('settings.theme.update'), ['theme' => 'ironman'])->assertRedirect(route('scheduled-tasks.runs'));
         $this->assertSame('ironman', SystemSetting::value(ThemeService::SETTING_KEY));
 
         // トップページは ironman の画面（アークリアクター＋共通の中身）
@@ -88,7 +88,7 @@ class ThemeTest extends TestCase
     public function test_menu_bar_links_to_theme_setting_on_every_page(): void
     {
         // ヘッダーの下のメニューバー（D-56）：どの画面からでも「画面のテーマ」へ
-        foreach ([route('settings'), route('scheduled-tasks.index')] as $url) {
+        foreach ([route('settings'), route('scheduled-tasks.runs')] as $url) {
             $this->get($url)->assertOk()
                 ->assertSee('class="site-menu"', false)
                 ->assertSee('SETTING')

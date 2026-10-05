@@ -49,16 +49,9 @@ class ScheduledTaskTest extends TestCase
         $this->assertSame('0 3 * * *', $events['blogs:sync']);
         $this->assertSame('45 6 * * 1', $events['affiliate:check-links']);
 
-        $this->get(route('scheduled-tasks.index'))->assertOk()->assertSee('<strong>WordPressとの同期</strong>', false)->assertSee('まだ実行していません')
-            ->assertDontSee('順番の注意')
-            // いつ・有効は、メニューのポップアップで変える。画面の「いつ」の列はない（D-63-04）
-            ->assertDontSee('<th>いつ</th>', false)
-            ->assertSee('<th>設定</th>', false)
-            ->assertSee('<button type="button" class="btn-secondary" data-modal-open="scheduled-blogs-sync-modal">設定</button>', false)
-            ->assertDontSee('設定を変える')
-            // 名前は、メニューとポップアップの題名と同じ（D-63-05）
-            ->assertSee('<strong>Googleとの同期</strong>', false)
-            ->assertDontSee('<strong>Google のデータの取得</strong>', false);
+        // 画面「定期実行」はなくした（設定はメニューの「設定 → 定期実行」、今すぐ実行は「設定 → 即時実行」。D-63-10）
+        $this->get('/scheduled-tasks')->assertNotFound();
+        $this->get(route('home'))->assertOk()->assertDontSee('順番の注意');
 
         // 同期を 4:10 にし、WordPress の更新の確認を無効にする
         $this->put(route('scheduled-tasks.update', ['key' => 'blogs:sync']), ['frequency' => 'daily', 'time' => '04:10', 'enabled' => '1'])->assertSessionHasNoErrors();
@@ -74,7 +67,8 @@ class ScheduledTaskTest extends TestCase
         // Google の取得を、同期より前にすると注意が出る
         $this->put(route('scheduled-tasks.update', ['key' => 'google:fetch']), ['frequency' => 'daily', 'time' => '04:00', 'enabled' => '1'])
             ->assertSessionHasErrors('order');
-        $this->get(route('scheduled-tasks.index'))->assertSee('順番の注意：「WordPress との同期」（04:10）が終わった後の時刻にしてください。');
+        // 順番の注意は、設定のポップアップに出す
+        $this->get(route('home'))->assertSee('順番の注意：「WordPress との同期」（04:10）が終わった後の時刻にしてください。');
 
         $this->put(route('scheduled-tasks.update', ['key' => 'blogs:sync']), ['frequency' => 'daily', 'time' => '25:00'])->assertSessionHasErrors('time');
     }
@@ -102,11 +96,8 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString('[同期] https://blog.example.test：成功', $run->output);
         $this->assertNotNull($run->peak_memory_mb);
 
-        // 画面「定期実行」：前回・次の実行の列と、実行の記録はない（D-63-07・D-63-08）
-        $this->get(route('scheduled-tasks.index'))->assertOk()
-            ->assertDontSee('<th>前回</th>', false)
-            ->assertDontSee('<th>次の実行</th>', false)
-            ->assertDontSee('<th>きっかけ</th>', false);
+        // トップページの定期実行のパネルから、定期実行の履歴へ（D-63-10）
+        $this->get(route('home'))->assertSee('<a href="' . route('scheduled-tasks.runs') . '">定期実行の履歴</a>', false);
 
         // 定期実行の履歴（メニューの「履歴 → 定期実行」）：定期実行ごとにしぼり込める
         $this->get(route('home'))->assertSee('href="' . route('scheduled-tasks.runs') . '" >定期実行</a>', false);
@@ -257,5 +248,30 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
         // 記事の再評価（専用のポップアップ）にも出す
         $this->assertStringContainsString('次の実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
+    }
+
+    public function test_run_now_menu_runs_the_same_as_the_screen_button(): void
+    {
+        Queue::fake();
+
+        // メニューの「設定 → 即時実行 → WordPressの更新確認」：確認してから、今すぐ実行と同じ処理を送る（D-63-09）
+        $html = $this->get(route('home'))->assertOk()->getContent();
+        $url = route('scheduled-tasks.run', ['key' => 'wordpress:check-updates']);
+        $this->assertMatchesRegularExpression('/>即時実行<\/summary>.*?data-menu-post="' . preg_quote($url, '/') . '" data-menu-confirm="「WordPressの更新確認」を今すぐ実行しますか？">WordPressの更新確認<\/a>.*?>定期実行<\/summary>/s', $html);
+
+        // 今すぐ実行のある定期実行を全て、メニューの「定期実行」と同じ順に出す（料金がかかる2つは出さない）
+        preg_match('/>即時実行<\/summary>(.*?)<\/ul>/s', $html, $runNow);
+        preg_match_all('/data-menu-confirm="[^"]*">([^<]+)<\/a>/', $runNow[1], $labels);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'アフィリエイト提携先との同期', 'AI料金表の照合', '古い記録の削除'], $labels[1]);
+
+        // 開いていた画面に戻り、Queue に登録する
+        $this->from(route('drafts.index'))->post($url)->assertRedirect(route('drafts.index'))
+            ->assertSessionHas('status', fn ($status) => str_contains($status, '「WordPressの更新確認」を Queue に登録しました'));
+        Queue::assertPushed(RunScheduledTaskJob::class, fn ($job) => $job->taskKey === 'wordpress:check-updates');
+
+        // 実行中なら、トップページに理由を出す
+        ScheduledTaskRun::create(['task_key' => 'wordpress:check-updates', 'trigger' => 'manual', 'status' => 'running', 'started_at' => now()]);
+        $this->from(route('home'))->post($url)->assertRedirect(route('home'));
+        $this->get(route('home'))->assertSee('は実行中です。終わってから実行してください。');
     }
 }

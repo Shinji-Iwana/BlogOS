@@ -1,10 +1,10 @@
 {{--
-    定期実行の設定のポップアップ（D-63）。画面「定期実行」の、1つの定期実行の「いつ」（毎日・毎週・時刻）と「有効」の設定。
+    定期実行の設定のポップアップ（D-63）。1つの定期実行の「いつ」（毎日・毎週・時刻）と「有効」の設定。
 
     メニューの「設定 → 定期実行 → WordPressとの同期」などを押した場合に表示する（data-modal-open="scheduled-blogs-sync-modal" など。
     App\Support\ScheduledTasks::MENU の定期実行ごとに、layouts/header から読み込む）。
-    テーマ切替・課金の登録のポップアップと同じ形。今すぐ実行のボタンは付けない（画面「定期実行」にある）。
-    保存は画面「定期実行」と同じ処理（scheduled-tasks.update）。保存した後は、開いていた画面に戻る。
+    テーマ切替・課金の登録のポップアップと同じ形。今すぐ実行のボタンは付けない（メニューの「設定 → 即時実行」にある）。
+    保存は scheduled-tasks.update。保存した後は、開いていた画面に戻る。
     有効・無効をブログごとに決める定期実行（教材の定期チェック）は、選択中のブログの設定も保存する（scheduled-tasks.update-blog。D-63-03）。
     入力の誤りで戻ったときは、ポップアップを開いたままにして誤りを出す。
     受け取る値：$taskKey（App\Support\ScheduledTasks のキー。例：blogs:sync）・$modalId・$title
@@ -44,7 +44,7 @@
 
         <h2>
             {{ $title }}
-            @include('partials.tip', ['tip' => "定期実行：{$scheduledTask['description']}。\n時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行と、実行の記録は、画面「定期実行」にあります。"])
+            @include('partials.tip', ['tip' => "定期実行：{$scheduledTask['description']}。\n時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行はメニューの「設定 → 即時実行」、実行の記録はメニューの「履歴 → 定期実行」にあります。"])
         </h2>
 
         @if ($scheduleFailed)
@@ -94,7 +94,7 @@
             @elseif ($scheduledTask['can_disable'])
                 <p>
                     <label><input type="checkbox" name="enabled" value="1" @checked($scheduleValues['enabled'])> 有効</label>
-                    @include('partials.tip', ['tip' => '外すと、定期実行をしません（画面「定期実行」の「今すぐ実行」は使えます）。'])
+                    @include('partials.tip', ['tip' => '外すと、定期実行をしません（メニューの「設定 → 即時実行」は使えます）。'])
                 </p>
             @else
                 {{-- 止められない定期実行（古い記録の削除）：有効のまま変えられない。送らない（保存の処理が、常に有効にする） --}}

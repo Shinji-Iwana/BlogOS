@@ -13,7 +13,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 /**
- * 定期実行の確認・時刻の変更・今すぐ実行（D-44）。定期実行はブログ全体の処理のため、選択中のブログに関係しない。
+ * 定期実行の時刻の変更・今すぐ実行・履歴（D-44）。定期実行はブログ全体の処理のため、選択中のブログに関係しない。
+ * 画面「定期実行」はなくし、時刻の変更はメニューの「設定 → 定期実行」、今すぐ実行は「設定 → 即時実行」から送る（D-63-10）。
  * 時刻の変更は、メニューの「設定 → 定期実行」のポップアップ（scheduled-tasks/modal。D-63）からもできる。
  */
 class ScheduledTaskController extends Controller
@@ -26,23 +27,6 @@ class ScheduledTaskController extends Controller
     ) {
     }
 
-    public function index()
-    {
-        $settings = $this->service->settings();
-
-        $tasks = [];
-        foreach (ScheduledTasks::TASKS as $taskKey => $task) {
-            // 次の実行と前回は、設定のポップアップに出す（D-63-07）
-            $tasks[$taskKey] = $task + [
-                'setting' => $this->service->setting($taskKey, $settings),
-            ];
-        }
-
-        return view('scheduled-tasks.index', [
-            'tasks'    => $tasks,
-            'warnings' => $this->service->orderWarnings($settings),
-        ]);
-    }
 
     /**
      * 定期実行の履歴（メニューの「履歴 → 定期実行」。定期実行ごとにしぼり込める。D-63-08）
@@ -102,7 +86,7 @@ class ScheduledTaskController extends Controller
     }
 
     /**
-     * 開いていた画面に戻る（画面「定期実行」と、メニューのポップアップの両方から保存する。D-63）
+     * 開いていた画面に戻る（メニューのポップアップから保存する。D-63）
      *
      * @param  list<string>  $warnings
      */
@@ -126,6 +110,7 @@ class ScheduledTaskController extends Controller
 
         RunScheduledTaskJob::dispatch($key, $request->user()?->id);
 
-        return back()->with('status', "「{$task['label']}」を Queue に登録しました（しばらくしてから、この画面を開き直してください）。");
+        // メニューの即時実行から送る（D-63-09）。結果は、定期実行の履歴で見る
+        return back()->with('status', '「' . ScheduledTasks::menuLabel($key) . '」を Queue に登録しました（結果は、しばらくしてから「定期実行の履歴」で確認できます）。');
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\BlogCredential;
 use App\Models\User;
 use App\Models\WordPressComponent;
+use App\Services\WordPress\WordPressUpdateCheckService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -46,8 +47,9 @@ class WordPressUpdateTest extends TestCase
             };
         });
 
-        $this->post(route('wordpress-updates.check'), ['selected_blog_id' => $blog->id])
-            ->assertSessionHas('status', fn ($message) => str_contains($message, '更新あり 2件・公開停止 1件'));
+        // 確認は、定期実行（メニューの「設定 → 即時実行」も同じ）で行う。画面の「今すぐ確認する」はなくした（D-63-10）
+        $result = app(WordPressUpdateCheckService::class)->check($blog);
+        $this->assertSame([2, 1], [$result['updates'], $result['closed']]);
 
         $rows = WordPressComponent::all()->keyBy('slug');
         $this->assertTrue($rows['akismet/akismet']->update_available);
@@ -59,13 +61,14 @@ class WordPressUpdateTest extends TestCase
         $this->assertSame('7.1.1', $rows['wordpress']->installed_version);
 
         $this->get(route('wordpress-updates.index'))->assertOk()
+            ->assertDontSee('今すぐ確認する')
             ->assertSee('WordPress.org で公開停止になっています')
             ->assertSee('無効のまま残っています');
         $this->get(route('home'))->assertOk()->assertSee('更新が2件あります')->assertSee('公開停止になったプラグインが1件あります');
 
         // 削除したプラグインは、次の確認で消える
         array_pop($plugins);
-        $this->post(route('wordpress-updates.check'), ['selected_blog_id' => $blog->id]);
+        app(WordPressUpdateCheckService::class)->check($blog);
         $this->assertFalse(WordPressComponent::where('slug', 'my-plugin/my-plugin')->exists());
     }
 }

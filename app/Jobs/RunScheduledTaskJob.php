@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
- * 画面「定期実行」の「今すぐ実行」（D-44）。定期実行と同じ処理を Queue で1回実行し、記録する。
+ * 定期実行の「今すぐ実行」（メニューの「設定 → 即時実行」。D-44・D-63-09）。定期実行と同じ処理を Queue で1回実行し、記録する。
  */
 class RunScheduledTaskJob implements ShouldQueue
 {

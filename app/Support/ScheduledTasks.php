@@ -10,7 +10,7 @@ namespace App\Support;
  * - can_disable：画面で無効にできるか（古い記録の削除は止めると DB が増え続けるため不可。料金がかかる2つは AI の設定で有効・無効を決める）
  * - manual：画面の「今すぐ実行」を出すか（料金がかかるものは出さない）
  * - blog_setting：有効・無効を、ブログごとの AI の設定（blog_ai_settings）のこの列で決める（教材の定期チェック。D-63-03）
- * - menu_label：メニューとポップアップの題名での名前（label と違う名前にする場合だけ。利用者の指定。画面「定期実行」と記録は label のまま。D-63）
+ * - menu_label：メニューとポップアップの題名での名前（label と違う名前にする場合だけ。利用者の指定。D-63）
  * - modal_view：設定のポップアップの View（なければ scheduled-tasks/modal。記事の再評価は ai/settings/reevaluation-modal。D-64）
  * - counts：処理件数・変更件数が何を数えたものか
  */
@@ -100,6 +100,17 @@ class ScheduledTasks
      * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）
      */
     public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'ai:auto-reevaluate', 'affiliate:check-links', 'materials:check', 'ai:check-prices', 'model:prune'];
+
+    /**
+     * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。
+     * 今すぐ実行できる定期実行（manual）全て。並びは、メニューの「設定 → 定期実行」と同じ（MENU の順）
+     *
+     * @return list<string>
+     */
+    public static function runNowKeys(): array
+    {
+        return array_values(array_filter(self::MENU, fn (string $key) => self::TASKS[$key]['manual']));
+    }
 
     /**
      * 設定のポップアップの id（例：blogs:sync → scheduled-blogs-sync-modal）

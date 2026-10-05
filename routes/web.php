@@ -95,7 +95,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
-    Route::get('/scheduled-tasks', [ScheduledTaskController::class, 'index'])->name('scheduled-tasks.index');
+    // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）
     // 定期実行の履歴（メニューの「履歴 → 定期実行」。D-63-08）
     Route::get('/scheduled-tasks/runs', [ScheduledTaskController::class, 'runs'])->name('scheduled-tasks.runs');
     Route::put('/scheduled-tasks/{key}', [ScheduledTaskController::class, 'update'])->where('key', '[a-z:-]+')->name('scheduled-tasks.update');
@@ -311,6 +311,5 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
         Route::post('/google/fetch', [GoogleSettingsController::class, 'fetch'])->name('google.fetch');
         Route::post('/google/index-status', [GoogleIndexController::class, 'run'])->name('google.index-status.run');
-        Route::post('/wordpress-updates', [WordPressUpdateController::class, 'check'])->name('wordpress-updates.check');
     });
 });

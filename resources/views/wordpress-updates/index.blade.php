@@ -13,16 +13,11 @@
     @include('partials.flash')
 
     <p class="text-muted">
-        WordPress 本体・プラグイン・テーマのバージョンを、WordPress.org の最新のバージョンと比べます（毎日 04:45 に自動で確認します）。
+        WordPress 本体・プラグイン・テーマのバージョンを、WordPress.org の最新のバージョンと比べます（毎日、定期実行で自動で確認します。すぐ確認するときは、メニューの「設定 → 即時実行 → WordPressの更新確認」）。
         更新は BlogOS からは行いません。WordPress の管理画面の「更新」で行ってください（更新の前に、バックアップがあることを確認してください）。
         最後に確認した日時：{{ $checkedAt ? \App\Support\DisplayTime::format($checkedAt) : '未確認' }}
     </p>
 
-    <form method="POST" action="{{ route('wordpress-updates.check') }}" style="margin-bottom:8px;">
-        @csrf
-        @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">今すぐ確認する</button>
-    </form>
 
     @if ($components->isEmpty())
         <p>まだ確認していません。</p>
