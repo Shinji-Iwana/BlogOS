@@ -34,7 +34,7 @@ class VoiceService
     public function turn(string $audio, string $filename, float $seconds, ?Blog $blog, ?int $userId, array $history = []): array
     {
         if (! $this->settings->available()) {
-            throw new VoiceException('音声の操作が有効になっていません（画面「AIの設定」の「音声」で有効にしてください）。');
+            throw new VoiceException('音声の操作が有効になっていません（メニューの「AI → 音声操作」で有効にしてください）。');
         }
 
         $seconds = max(0.0, min($seconds, (float) config('blogos.voice.max_seconds')));

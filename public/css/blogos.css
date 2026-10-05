@@ -365,6 +365,47 @@ table.data.stacked td[data-label=""]::before {
     padding: 6px 12px;
 }
 
+/* 下の階層（例：設定 → AI → 音声操作）。押すと横に開く（D-61） */
+.site-menu-sub {
+    position: relative;
+}
+
+.site-menu-sub > details > summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.site-menu-sub > details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.site-menu-sub > details > summary::after {
+    content: "▸";
+}
+
+.site-menu-links.site-menu-sublinks {
+    top: -5px;
+    left: 100%;
+    margin: 0 0 0 2px;
+}
+
+/* スマホ：横に開くと画面からはみ出すため、下に開く */
+@media (max-width: 768px) {
+
+    .site-menu-links.site-menu-sublinks {
+        position: static;
+        margin: 0;
+        padding: 0 0 0 12px;
+        border: 0;
+        box-shadow: none;
+    }
+
+}
+
 
 /* ==========================================================
    音声の操作（D-58）：ヘッダーのマイクのボタンと、会話の欄
@@ -574,4 +615,15 @@ body.voice-speaking .screen-drawer-signal {
         transition: none;
     }
 
+}
+
+
+/* ==========================================================
+   音声操作ポップアップ（D-61。layouts/header・voice/settings-modal）
+   ----------------------------------------------------------
+   説明の文と、話し方の指示の入力欄があるため、テーマ切替・ブログ切替のポップアップより広くする。
+   ========================================================== */
+
+.voice-settings-dialog {
+    width: 720px;
 }

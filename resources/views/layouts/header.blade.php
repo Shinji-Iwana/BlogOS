@@ -122,7 +122,21 @@
             </summary>
             <ul class="site-menu-links">
                 @foreach ($group['links'] as $link)
-                    <li><a href="{{ $link['url'] }}" @if ($link['modal']) data-modal-open="{{ $link['modal'] }}" @endif>{{ $link['label'] }}</a></li>
+                    @if ($link['children'] !== [])
+                        {{-- 下の階層：押すと横に開く（スマホは下に開く） --}}
+                        <li class="site-menu-sub">
+                            <details>
+                                <summary>{{ $link['label'] }}</summary>
+                                <ul class="site-menu-links site-menu-sublinks">
+                                    @foreach ($link['children'] as $child)
+                                        <li><a href="{{ $child['url'] }}" @if ($child['modal']) data-modal-open="{{ $child['modal'] }}" @endif>{{ $child['label'] }}</a></li>
+                                    @endforeach
+                                </ul>
+                            </details>
+                        </li>
+                    @else
+                        <li><a href="{{ $link['url'] }}" @if ($link['modal']) data-modal-open="{{ $link['modal'] }}" @endif>{{ $link['label'] }}</a></li>
+                    @endif
                 @endforeach
             </ul>
         </details>
@@ -258,7 +272,7 @@
 
 <div
     id="theme-switch-modal"
-    class="blog-switch-modal theme-switch-modal"
+    class="blog-switch-modal site-modal theme-switch-modal"
 >
 
     <div
@@ -332,6 +346,15 @@
     </div>
 
 </div>
+
+
+{{-- ==============================================================
+     音声操作ポップアップ（D-61）
+     --------------------------------------------------------------
+     メニューの「AI → 音声操作」を押した場合に表示する。中身は voice/settings-modal。
+     ============================================================== --}}
+
+@include('voice.settings-modal')
 
 
 {{-- ==============================================================
@@ -442,10 +465,11 @@
 
 
 {{-- ==============================================================
-     ポップアップを開く・閉じる JavaScript（テーマ切替など。D-57）
+     ポップアップを開く・閉じる JavaScript（テーマ切替・音声操作など。D-57・D-61）
      --------------------------------------------------------------
      ・data-modal-open="ポップアップのid" を付けた要素を押す → そのポップアップを表示（リンクの移動はしない）
-     ・data-modal-close を付けたボタン、背景、Esc → 閉じる
+     ・data-modal-close を付けたボタン、背景、Esc → 閉じる（class="site-modal" のポップアップ）
+     ・data-modal-autoopen を付けたポップアップ → 画面を開いたときに表示（入力の誤りで戻ったとき）
      ============================================================== --}}
 
 <script>
@@ -460,23 +484,28 @@
                     return;
                 }
                 event.preventDefault();
-                // メニューから開いた場合は、メニューを閉じる
-                const menu = opener.closest('details');
+                // メニューから開いた場合は、メニューを閉じる（下の階層も）
+                const menu = opener.closest('.site-menu-group');
                 if (menu) {
+                    menu.querySelectorAll('details').forEach((details) => { details.open = false; });
                     menu.open = false;
                 }
                 modal.style.display = 'block';
             });
         });
 
-        document.querySelectorAll('.theme-switch-modal').forEach(function (modal) {
+        document.querySelectorAll('.site-modal[data-modal-autoopen]').forEach(function (modal) {
+            modal.style.display = 'block';
+        });
+
+        document.querySelectorAll('.site-modal').forEach(function (modal) {
             modal.querySelectorAll('[data-modal-close]').forEach((button) => button.addEventListener('click', () => close(modal)));
             modal.addEventListener('click', (event) => { if (event.target === modal) { close(modal); } });
         });
 
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
-                document.querySelectorAll('.theme-switch-modal').forEach(close);
+                document.querySelectorAll('.site-modal').forEach(close);
             }
         });
 

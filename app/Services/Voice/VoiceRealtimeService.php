@@ -41,7 +41,7 @@ class VoiceRealtimeService
     public function start(?Blog $blog): array
     {
         if (! $this->settings->available() || ! $this->settings->realtime()) {
-            throw new VoiceException('リアルタイム会話の方式（B・C）が有効になっていません（画面「AIの設定」の「音声」）。');
+            throw new VoiceException('リアルタイム会話の方式（B・C）が有効になっていません（メニューの「AI → 音声操作」）。');
         }
 
         $model = $this->settings->realtimeModel();

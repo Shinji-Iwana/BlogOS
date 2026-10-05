@@ -12,12 +12,17 @@ class MenuItems
 {
     /**
      * route（と params・fragment）は開く画面。modal は、押したときに画面を移らずに開くポップアップの id（layouts/header）。
-     * modal だけの項目は、画面を移らない
+     * modal だけの項目は、画面を移らない。children は、押すと横に開く、下の階層の項目（同じ形）
      *
-     * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string}>}>
+     * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string, children?: list<array>}>}>
      */
     public const GROUPS = [
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
+            // AI の設定（下の階層。D-61）
+            ['label' => 'AI', 'children' => [
+                // 押すと音声操作ポップアップを開く（画面は移らない）
+                ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
+            ]],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
         ]],
@@ -26,7 +31,7 @@ class MenuItems
     /**
      * 出すメニュー（URL を付ける）
      *
-     * @return list<array{key: string, code: string, label: string, links: list<array{label: string, url: string, modal: string|null}>}>
+     * @return list<array{key: string, code: string, label: string, links: list<array{label: string, url: string, modal: string|null, children: list<array>}>}>
      */
     public static function groups(): array
     {
@@ -34,11 +39,20 @@ class MenuItems
             'key'   => $group['key'],
             'code'  => $group['code'],
             'label' => $group['label'],
-            'links' => array_map(fn (array $link) => [
-                'label' => $link['label'],
-                'url'   => isset($link['route']) ? route($link['route'], $link['params'] ?? []) . (isset($link['fragment']) ? '#' . $link['fragment'] : '') : '#',
-                'modal' => $link['modal'] ?? null,
-            ], $group['links']),
+            'links' => self::links($group['links']),
         ], self::GROUPS);
+    }
+
+    /**
+     * 項目に URL を付ける（下の階層も）
+     */
+    protected static function links(array $links): array
+    {
+        return array_map(fn (array $link) => [
+            'label'    => $link['label'],
+            'url'      => isset($link['route']) ? route($link['route'], $link['params'] ?? []) . (isset($link['fragment']) ? '#' . $link['fragment'] : '') : '#',
+            'modal'    => $link['modal'] ?? null,
+            'children' => self::links($link['children'] ?? []),
+        ], $links);
     }
 }

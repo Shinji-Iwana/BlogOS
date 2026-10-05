@@ -99,6 +99,36 @@
     color: var(--im-line-strong);
 }
 
+/* 下の階層を開く項目（例：AI）。折りたたみの全体の見た目（box.css）を使わず、ほかの項目と同じ形にする。開いている間は光らせる */
+.site-menu-sub > details {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.site-menu-sub > details > summary {
+    position: relative;
+    padding: 7px 14px 7px 26px;
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+    color: var(--im-text);
+}
+
+.site-menu-sub > details > summary::before {
+    content: "›";
+    position: absolute;
+    left: 12px;
+    color: var(--im-line-strong);
+}
+
+.site-menu-sub > details > summary::after {
+    color: var(--im-cyan);
+}
+
+.site-menu-sub > details[open] > summary,
+.site-menu-sub > details > summary:hover,
 .site-menu-links a:hover,
 .site-menu-links a:focus-visible {
     color: var(--im-cyan-bright);

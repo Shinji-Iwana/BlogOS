@@ -221,8 +221,9 @@ class VoiceTest extends TestCase
 
     public function test_settings_are_saved(): void
     {
-        $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'c', 'voice' => 'onyx', 'instructions' => '明るく'])
-            ->assertRedirect(route('ai.settings.edit') . '#voice');
+        // 開いていた画面に戻る（メニューのポップアップから保存する。D-61）
+        $this->from(route('drafts.index'))->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'c', 'voice' => 'onyx', 'instructions' => '明るく'])
+            ->assertRedirect(route('drafts.index'));
         $settings = app(VoiceSettings::class);
         $this->assertTrue($settings->enabled());
         $this->assertSame('onyx', $settings->voice());
@@ -231,7 +232,25 @@ class VoiceTest extends TestCase
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'e', 'voice' => 'onyx'])->assertSessionHasNoErrors();
         $this->assertSame('gpt-realtime-2.1', app(VoiceSettings::class)->realtimeModel());
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'x', 'voice' => 'onyx'])->assertSessionHasErrors('mode');
-        $this->get(route('ai.settings.edit'))->assertOk()->assertSee('id="voice"', false)->assertSee('リアルタイム会話（mini');
+
+        // 設定はメニューの「AI → 音声操作」のポップアップにある。AIの設定の画面には、もうない（D-61）
+        $this->get(route('home'))->assertOk()
+            ->assertSee('data-modal-open="voice-settings-modal"', false)
+            ->assertSee('id="voice-settings-modal"', false)
+            ->assertSee('リアルタイム会話（mini');
+        $this->get(route('ai.settings.edit'))->assertOk()->assertDontSee('id="voice"', false)->assertDontSee('音声の設定を保存する');
+    }
+
+    public function test_settings_popup_stays_open_with_errors(): void
+    {
+        // 誤りで戻ったときは、ポップアップを開いたままにし、誤りを出す（D-61）
+        $this->from(route('home'))->put(route('voice.settings.update'), ['_form' => 'voice', 'enabled' => '1', 'mode' => 'x', 'voice' => 'onyx'])
+            ->assertRedirect(route('home'));
+        $html = $this->get(route('home'))->assertOk()->assertSee('<ul class="text-error">', false)->getContent();
+        $this->assertMatchesRegularExpression('/id="voice-settings-modal"[^>]*data-modal-autoopen/', $html);
+
+        // 誤りがなければ、開かない
+        $this->assertDoesNotMatchRegularExpression('/id="voice-settings-modal"[^>]*data-modal-autoopen/', $this->get(route('settings'))->getContent());
     }
 
     public function test_realtime_session_gives_an_ephemeral_key_with_tools(): void

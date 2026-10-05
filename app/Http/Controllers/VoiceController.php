@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
  * 音声の操作（ジャービス。D-58）。
  *
  * turn：ブラウザで録音した1回の発言を受け取り、聞き取った文字・返事・返事の声（MP3）・画面を移る URL を JSON で返す。
- * updateSettings：画面「AIの設定」の「音声」（BlogOS 全体の設定）。
+ * updateSettings：メニューの「AI → 音声操作」のポップアップ（BlogOS 全体の設定。D-61）。
  */
 class VoiceController extends Controller
 {
@@ -143,6 +143,7 @@ class VoiceController extends Controller
             'instructions' => (string) ($validated['instructions'] ?? ''),
         ], $request->user()?->id);
 
-        return redirect()->to(route('ai.settings.edit') . '#voice')->with('status', '音声の設定を保存しました。');
+        // 開いていた画面に戻る（テーマ切替と同じ）
+        return back()->with('status', '音声の設定を保存しました。');
     }
 }

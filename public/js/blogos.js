@@ -159,6 +159,9 @@
         groups.forEach((group) => group.addEventListener('toggle', () => {
             if (group.open) {
                 groups.filter((other) => other !== group).forEach((other) => { other.open = false; });
+            } else {
+                // 閉じたら、下の階層（AI など）も閉じる
+                group.querySelectorAll('details').forEach((details) => { details.open = false; });
             }
         }));
         document.addEventListener('click', (event) => {
@@ -297,7 +300,7 @@
                 return;
             }
             event.preventDefault();
-            const menu = link.closest('details');
+            const menu = link.closest('.site-menu-group');
             if (menu) {
                 menu.open = false;
             }
