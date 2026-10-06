@@ -14,12 +14,18 @@
 /* ==========================================================
    HUD のパネル（トップページのパネルと、各画面の .panel で共通）
    ----------------------------------------------------------
-   背景は状態の色（--hud-accent）をうっすら含んだ色で、細い線の枠。四隅に HUD の角の印を付ける。
+   四隅を斜めに削った形（八角形）。背景は状態の色（--hud-accent）をうっすら含んだ色。
+   ・形：パネル自体を clip-path で八角形に切る（--hud-cut：削る大きさ）
+   ・枠の線：::after に、八角形の輪（外の八角形から内の八角形を抜いた形）を描く（--hud-border：線の色）
+   ・左上と右下の角は、枠の線を状態の色で明るくする（HUD の角の印）
+   ・パネルの中の「?」の説明（.tip-box）は body に出すため、切られない
    ========================================================== */
 
 .hud-panel,
 .panel {
     --hud-accent: var(--im-cyan);
+    --hud-border: var(--im-line);
+    --hud-cut: 12px;
 
     position: relative;
     padding: 12px 16px 14px;
@@ -31,37 +37,38 @@
             color-mix(in srgb, var(--hud-accent) 4%, transparent) 100%);
     box-shadow: inset 0 0 22px color-mix(in srgb, var(--hud-accent) 9%, transparent);
     color: var(--im-text);
-    border: 1px solid var(--im-line);
-    border-radius: 2px;
+    border: 1px solid transparent;
+    border-radius: 0;
+    clip-path: polygon(
+        var(--hud-cut) 0, calc(100% - var(--hud-cut)) 0, 100% var(--hud-cut), 100% calc(100% - var(--hud-cut)),
+        calc(100% - var(--hud-cut)) 100%, var(--hud-cut) 100%, 0 calc(100% - var(--hud-cut)), 0 var(--hud-cut));
 }
 
-/* 四隅の角の印（左上と右下） */
-.hud-panel::before,
+/* 枠の線（八角形の輪）。左上と右下の角は、状態の色で明るくする */
 .hud-panel::after,
-.panel::before,
 .panel::after {
     content: "";
     position: absolute;
-    width: 14px;
-    height: 14px;
-    border-color: var(--hud-accent);
-    border-style: solid;
-    opacity: 0.9;
+    inset: -1px;
+    background:
+        linear-gradient(var(--hud-accent), var(--hud-accent)) 0 0 / 44px 44px no-repeat,
+        linear-gradient(var(--hud-accent), var(--hud-accent)) 100% 100% / 44px 44px no-repeat,
+        var(--hud-border);
+    clip-path: polygon(evenodd,
+        var(--hud-cut) 0, calc(100% - var(--hud-cut)) 0, 100% var(--hud-cut), 100% calc(100% - var(--hud-cut)),
+        calc(100% - var(--hud-cut)) 100%, var(--hud-cut) 100%, 0 calc(100% - var(--hud-cut)), 0 var(--hud-cut), var(--hud-cut) 0,
+        calc(var(--hud-cut) + 0.5px) 1px, calc(100% - var(--hud-cut) - 0.5px) 1px, calc(100% - 1px) calc(var(--hud-cut) + 0.5px),
+        calc(100% - 1px) calc(100% - var(--hud-cut) - 0.5px), calc(100% - var(--hud-cut) - 0.5px) calc(100% - 1px),
+        calc(var(--hud-cut) + 0.5px) calc(100% - 1px), 1px calc(100% - var(--hud-cut) - 0.5px), 1px calc(var(--hud-cut) + 0.5px),
+        calc(var(--hud-cut) + 0.5px) 1px);
+    opacity: 0.95;
     pointer-events: none;
 }
 
+/* ::before は、英字の札（data-code）だけに使う */
 .hud-panel::before,
 .panel::before {
-    top: -1px;
-    left: -1px;
-    border-width: 2px 0 0 2px;
-}
-
-.hud-panel::after,
-.panel::after {
-    right: -1px;
-    bottom: -1px;
-    border-width: 0 2px 2px 0;
+    content: none;
 }
 
 .hud-panel-head {
@@ -111,10 +118,10 @@
     margin: 24px 0;
 }
 
-/* fieldset の標準の枠・余白を、パネルに合わせる */
+/* fieldset の標準の枠・余白を、パネルに合わせる（枠の線は ::after の八角形の輪） */
 fieldset.panel {
     padding: 12px 16px 14px;
-    border: 1px solid var(--im-line);
+    border: 1px solid transparent;
 }
 
 /* 区切りの見出し（パネルの見出しの行） */
@@ -156,15 +163,20 @@ fieldset.panel > legend + * {
     vertical-align: 2px;
 }
 
-/* 見出しのない区切り（form.panel など）は、札をパネルの左上の外に出す */
+/* 見出しのない区切り（form.panel など）は、札をパネルの左上の中に出す（パネルを八角形に切るため、外には出せない） */
+.panel[data-code] {
+    padding-top: 26px;
+}
+
 .panel[data-code]::before {
+    position: absolute;
     width: auto;
     height: auto;
-    top: -9px;
-    left: 18px;
-    padding: 0 8px;
+    top: 5px;
+    left: calc(var(--hud-cut) + 8px);
+    padding: 0;
     border: 0;
-    background: var(--im-bg);
+    background: none;
     font-family: var(--im-font-logo);
     font-size: 11px;
     font-weight: 700;

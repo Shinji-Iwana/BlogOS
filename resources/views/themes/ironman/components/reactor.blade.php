@@ -165,6 +165,22 @@
             <circle cx="200" cy="200" r="190.5" fill="none" stroke-width="4" stroke-dasharray="1 5" opacity="0.5"/>
             <circle cx="200" cy="200" r="186.5" fill="none" stroke-width="1" stroke-dasharray="4 10" opacity="0.55"/>
         </g>
+        {{-- 外側に広がる電子の輪（4本。左回り・右回りを交互にし、外ほど薄く・遅くする。リアクターの枠の外にはみ出して描く） --}}
+        <g class="reactor-hud reactor-hud-ring reactor-hud-c">
+            <circle cx="200" cy="200" r="206" fill="none" stroke-width="1" stroke-dasharray="120 14 36 14 60 30" opacity="0.6"/>
+            <circle cx="200" cy="200" r="210" fill="none" stroke-width="3" stroke-dasharray="1 7" opacity="0.35"/>
+        </g>
+        <g class="reactor-hud reactor-hud-ring reactor-hud-d">
+            <circle cx="200" cy="200" r="219" fill="none" stroke-width="2" stroke-dasharray="40 26 8 26 180 50" opacity="0.5"/>
+        </g>
+        <g class="reactor-hud reactor-hud-ring reactor-hud-e">
+            <circle cx="200" cy="200" r="229" fill="none" stroke-width="1" stroke-dasharray="6 6" opacity="0.4"/>
+            <circle cx="200" cy="200" r="233" fill="none" stroke-width="1.2" stroke-dasharray="220 40 90 60" opacity="0.45"/>
+        </g>
+        <g class="reactor-hud reactor-hud-ring reactor-hud-f">
+            <circle cx="200" cy="200" r="243" fill="none" stroke-width="0.8" stroke-dasharray="300 24 60 24 140 80" opacity="0.3"/>
+            <circle cx="200" cy="200" r="243" fill="none" stroke-width="5" stroke-dasharray="2 46" opacity="0.4"/>
+        </g>
 
         {{-- ===== 段になった鋼の外枠（半径 147〜182） ===== --}}
         <circle cx="200" cy="200" r="182" fill="#030405"/>

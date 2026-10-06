@@ -30,6 +30,12 @@
     --reactor-spin-a: 60s;
     --reactor-spin-b: 90s;
 
+    /* 外側に広がる電子の輪（外ほど遅い） */
+    --reactor-spin-c: 45s;
+    --reactor-spin-d: 75s;
+    --reactor-spin-e: 110s;
+    --reactor-spin-f: 150s;
+
     /* コアの背面のコイル（形 2）の回転の速さ（逆向き） */
     --reactor-spin-core: 40s;
 
@@ -56,6 +62,10 @@
 .reactor[data-busy="1"] {
     --reactor-spin-a: 12s;
     --reactor-spin-b: 18s;
+    --reactor-spin-c: 9s;
+    --reactor-spin-d: 15s;
+    --reactor-spin-e: 22s;
+    --reactor-spin-f: 30s;
     --reactor-spin-core: 10s;
 }
 

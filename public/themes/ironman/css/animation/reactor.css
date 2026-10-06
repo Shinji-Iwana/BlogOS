@@ -142,3 +142,20 @@
 .reactor-hud-b {
     animation: reactorSpin var(--reactor-spin-b) linear infinite reverse;
 }
+
+/* 外側に広がる電子の輪：右回り・左回りを交互にする（b が左回りのため、c は右回りから） */
+.reactor-hud-c {
+    animation: reactorSpin var(--reactor-spin-c) linear infinite;
+}
+
+.reactor-hud-d {
+    animation: reactorSpin var(--reactor-spin-d) linear infinite reverse;
+}
+
+.reactor-hud-e {
+    animation: reactorSpin var(--reactor-spin-e) linear infinite;
+}
+
+.reactor-hud-f {
+    animation: reactorSpin var(--reactor-spin-f) linear infinite reverse;
+}
