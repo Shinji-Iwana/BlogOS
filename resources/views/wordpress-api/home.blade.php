@@ -1,5 +1,5 @@
 {{--
-    API確認画面：エンドポイント一覧（D-11-05）
+    WordPress API情報：エンドポイント一覧（D-11-05。メニューの「情報 → WordPress API」。D-63-12）
 
     選択中のブログのWordPress APIを、その場で呼び出して確認する。取得結果はDBに保存しない。
 --}}
@@ -8,9 +8,9 @@
 
 @section('content')
 
-    <h1>WordPress API確認</h1>
+    <h1>WordPress API情報</h1>
 
-    <p><a href="{{ route('settings') }}">設定ページに戻る</a></p>
+    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @if ($selectedBlog)
         <p>対象のブログ：{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</p>

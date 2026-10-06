@@ -3,7 +3,7 @@
 
     BlogOS全体の設定・管理機能への入口となるページ。
 
-    WordPress API確認用の各種ページと、ログイン履歴への導線を配置する。
+    認証情報と、ログイン履歴への導線を配置する。
     画面のテーマは、メニューの「SETTING 設定 → 画面のテーマ」のポップアップで切り替える（D-57）。
 
     対象のブログは、URLで受け取らず、選択中のブログ（blogs.is_selected）とする
@@ -22,7 +22,7 @@
 
 
     {{-- ==========================================================
-         WordPress API確認（選択中のブログが対象）
+         選択中のブログ（WordPress API情報は、メニューの「情報 → WordPress API」から開く。D-63-12）
          ========================================================== --}}
 
     @if ($selectedBlog)
@@ -32,16 +32,6 @@
         </p>
 
         <p><a href="{{ route('blogs.credentials.edit') }}">認証情報（WordPressのApplication Password）ページへ</a></p>
-
-        <section class="panel">
-            <h2>WordPress API確認</h2>
-
-            <p>
-                WordPress REST APIから取得した情報を確認します。
-            </p>
-
-            <p><a href="{{ route('wp-api.home') }}">エンドポイント一覧ページへ</a></p>
-        </section>
 
     @elseif ($blogs->isNotEmpty())
 

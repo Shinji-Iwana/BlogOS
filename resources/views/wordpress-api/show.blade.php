@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <h1>WordPress API確認：{{ $definition['label'] }}@if ($id) （{{ $id }}）@endif</h1>
+    <h1>WordPress API情報：{{ $definition['label'] }}@if ($id) （{{ $id }}）@endif</h1>
 
     <p>
         <a href="{{ route('wp-api.home') }}">エンドポイント一覧に戻る</a>

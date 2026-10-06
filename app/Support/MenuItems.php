@@ -42,6 +42,8 @@ class MenuItems
         // 情報（D-63-11）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [
             ['label' => 'WordPress', 'route' => 'wordpress-updates.index'],
+            // WordPress API情報（D-63-12。以前は設定の画面とトップページの「管理」から開いた）
+            ['label' => 'WordPress API', 'route' => 'wp-api.home'],
         ]],
     ];
 
