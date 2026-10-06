@@ -569,6 +569,14 @@ class AiBatchTest extends TestCase
         $this->assertStringContainsString('上限の3回まで改修しましたが、基準に届きませんでした。', $rounds[2]->items()->sole()->message);
         $this->get(route('ai.batches.show', ['id' => $rounds[1]->id]))->assertOk()->assertSee('2回目（最大3回');
 
+        // 繰り返しの結果を確かめるコマンド（読み取りだけ。D-63-30）
+        $post = $rounds[0]->items()->sole()->post_id;
+        $this->artisan('blogos:report-revision-rounds')->expectsOutputToContain('記事の再評価（繰り返しのある改修）：1記事')
+            ->expectsOutputToContain('3回目：1件')->expectsOutputToContain("post:{$post} 1回目：")->assertSuccessful();
+        $this->artisan('blogos:report-revision-rounds', ['--article' => "post:{$post}"])->expectsOutputToContain('■ 3回目')
+            ->expectsOutputToContain('判定が変わった項目')->expectsOutputToContain('本文の変更の記録')->assertSuccessful();
+        $this->assertSame(1, ArticleDraft::count());
+
         // 1日の上限には、最初の診断だけを数える
         $this->assertSame((int) config('blogos.ai.auto_reevaluation.daily_limit') - 1, app(\App\Services\Ai\AutoReevaluationService::class)->remainingToday($this->blog));
     }
