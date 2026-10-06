@@ -118,6 +118,8 @@ class DraftController extends Controller
             'evaluations'    => $this->evaluations->forDraft($draft),
             // 指摘 → 改修での対応 → 改修後の確認（D-47）
             'revisionFindings' => app(\App\Services\Quality\RevisionFindingService::class)->latestFor($draft),
+            // この記事をロードマップに載せる編集案（孤立記事。D-70-06）
+            'roadmapDraft'     => $article instanceof \App\Models\Post ? app(\App\Services\Articles\RoadmapLinkService::class)->pendingDraftFor($article) : null,
             'qualityStandard'  => app(\App\Services\Quality\QualityStandardLoader::class)->load($blog->quality_profile),
             'categories'     => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'categories') : collect(),
             'tags'           => $draft->target_type === PushResourceType::Post ? $this->articles->terms($blog->id, 'tags') : collect(),

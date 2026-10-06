@@ -56,6 +56,57 @@ class InternalLinkCheckTest extends TestCase
         ]);
     }
 
+    public function test_posts_missing_from_the_roadmap_are_added_by_a_roadmap_draft(): void
+    {
+        config(['services.openai.key' => 'sk-test-key', 'blogos.ai.api.monthly_budget_usd' => 10]);
+        $prompts = [];
+        \Illuminate\Support\Facades\Http::fake(['api.openai.com/v1/responses' => function (\Illuminate\Http\Client\Request $request) use (&$prompts) {
+            $prompts[] = $request['input'];
+
+            return \Illuminate\Support\Facades\Http::response([
+                'id' => 'resp_1', 'status' => 'completed', 'model' => $request['model'],
+                'output' => [['type' => 'message', 'content' => [['type' => 'output_text', 'text' => "=== タイトル ===\nAIのタイトル\n=== メタディスクリプション ===\nAIの説明\n=== 本文 ===\n"
+                    . "<div class=\"roadmap-step\"><h3>ステップ1：基礎</h3><ul><li>[[記事:10]]</li><li>[[記事:12]]</li></ul></div>\n=== 指摘への対応 ===\n[]"]]]],
+                'usage' => ['input_tokens' => 2000, 'input_tokens_details' => ['cached_tokens' => 0], 'output_tokens' => 1000, 'output_tokens_details' => ['reasoning_tokens' => 100]],
+            ]);
+        }]);
+
+        $js = Category::create(['blog_id' => $this->blog->id, 'wordpress_id' => 30, 'name' => 'JavaScript', 'slug' => 'js']);
+        $basic = Category::create(['blog_id' => $this->blog->id, 'wordpress_id' => 31, 'name' => '基礎', 'slug' => 'js-basic', 'parent_id' => $js->id]);
+        $noRoadmap = Category::create(['blog_id' => $this->blog->id, 'wordpress_id' => 32, 'name' => 'Dialog', 'slug' => 'js-dialog', 'parent_id' => $js->id]);
+        $this->createPost(10, '/js/js-basic/10.html', '<p>本文</p>', $basic);
+        $orphan = $this->createPost(12, '/js/js-basic/12.html', '<p>本文</p>', $basic);
+        $this->createPost(13, '/js/js-dialog/13.html', '<p>本文</p>', $noRoadmap);
+        $this->createPage(100, 'js', '/js.html', 0, '<p><a href="/js/js-basic.html">基礎</a></p>');
+        $roadmap = $this->createPage(101, 'js-basic', '/js/js-basic.html', 100, '<div class="roadmap-step"><h3>ステップ1：基礎</h3><ul><li><a href="/js/js-basic/10.html">記事10</a></li></ul></div>');
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $orphan->id, 'article_type' => 'acquisition', 'main_search_intent' => '基礎を知りたい']);
+        app(ContentExtractionService::class)->extractAll($this->blog);
+
+        // ロードマップに載っていない記事（記事12）を、子ロードマップのページごとにまとめる。ロードマップのないカテゴリの記事13は対象外で、確認の画面に案内を出す（D-70-06）
+        $service = app(\App\Services\Articles\RoadmapLinkService::class);
+        $targets = $service->targets($this->blog);
+        $this->assertSame([$roadmap->id], array_keys($targets));
+        $this->assertSame(['記事12'], collect($targets[$roadmap->id]['posts'])->pluck('title_raw')->all());
+        $this->get(route('links.check'))->assertSee('カテゴリのロードマップのページがありません。カテゴリの立ち上げで作ってください');
+
+        // ロードマップのページの改修を、記事を載せることだけの指示で実行し、編集案にする（指摘は渡さない・タイトルとメタディスクリプションは変えない）
+        $results = $service->run($this->blog, 'gpt-6-luna', 'medium');
+        $this->assertStringContainsString('1件の記事を載せる改修を登録しました', $results[0]);
+        $this->assertStringContainsString('ロードマップに記事を載せる（BlogOS が指定）', $prompts[0]);
+        $this->assertStringContainsString("[[記事:{$orphan->wordpress_id}]] 記事12（主の検索意図：基礎を知りたい）", $prompts[0]);
+        $this->assertStringContainsString('品質の指摘は扱いません', $prompts[0]);
+        $draft = ArticleDraft::where('page_id', $roadmap->id)->sole();
+        $this->assertSame('ロードマップ101', $draft->title_raw);
+        $this->assertStringContainsString('/js/js-basic/12.html', $draft->content_raw);
+        $this->assertSame(0, \App\Models\RevisionFinding::count());
+
+        // 作業中の編集案があるロードマップには、重ねて作らない。記事の編集案の画面には「対応中」と出す
+        $this->assertStringContainsString('作業中の編集案があるため、登録しませんでした', $service->run($this->blog, 'gpt-6-luna', 'medium')[0]);
+        $this->assertSame($draft->id, $service->pendingDraftFor($orphan)?->id);
+        $postDraft = app(\App\Services\Articles\DraftService::class)->createFromArticle($orphan, \App\Enums\RevisionScope::Minor, null, null);
+        $this->get(route('drafts.edit', ['id' => $postDraft->id]))->assertOk()->assertSee("編集案 #{$draft->id}</a>で、この記事を載せる作業中です", false);
+    }
+
     public function test_link_issues_are_detected_fixed_and_passed_to_revision(): void
     {
         $js = Category::create(['blog_id' => $this->blog->id, 'wordpress_id' => 30, 'name' => 'JavaScript', 'slug' => 'js']);

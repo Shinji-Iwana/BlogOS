@@ -131,6 +131,14 @@ class PromptBuilder
             $values = $this->imageValues->values($image, $article, $parameters) + $values;
         }
 
+        // 孤立記事をロードマップに載せる改修（D-70-06）：記事を載せることだけを行い、指摘は渡さない
+        if ($mode === AiMode::Revision && filled($parameters[\App\Services\Articles\RoadmapLinkService::PARAMETER] ?? null)) {
+            $values['revision_scope'] = 'ロードマップに記事を載せる（BlogOS が指定）：下の「人が提供した情報」の「' . \App\Services\Articles\RoadmapLinkService::PARAMETER . '」の記事を、内容に合うステップの記事の一覧（html-rules.md 3-15）に、目印（例：[[記事:24]]）で1つずつ加えてください。'
+                . '学習の順番に合う位置に置き、合うステップがなければ、学習の順番に合う位置に新しいステップを加えてください。'
+                . 'ほかの部分（ほかのステップの見出し・説明・載っている記事・タイトル・メタディスクリプション・抜粋）は変えないでください。情報の時点の段落の追加も、この改修では行わないでください。';
+            $values['shortfalls'] = '（この改修では、ロードマップに記事を載せることだけを行います。品質の指摘は扱いません。「=== 指摘への対応 ===」は [] にしてください）';
+        }
+
         $prompt = preg_replace_callback('/\{\{([a-z_]+)\}\}/', fn ($m) => $values[$m[1]] ?? $m[0], $template->body);
 
         return ['prompt' => $prompt, 'template' => $template, 'standard' => $standard];

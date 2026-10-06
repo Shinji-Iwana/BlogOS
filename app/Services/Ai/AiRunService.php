@@ -191,7 +191,8 @@ class AiRunService
         ]);
 
         // 記事改修：渡した指摘（番号付き）を記録する（対応・改修後の確認とつなぐ。D-47）
-        if ($mode === AiMode::Revision) {
+        // ロードマップに記事を載せる改修（D-70-06）は、指摘を渡さないため記録しない
+        if ($mode === AiMode::Revision && blank($parameters[\App\Services\Articles\RoadmapLinkService::PARAMETER] ?? null)) {
             app(RevisionFindingService::class)->record($generation, $article, $draft);
         }
 
@@ -440,7 +441,9 @@ class AiRunService
         // タイトル・メタディスクリプションは、その指摘を渡したときだけ変える。指摘がなければ今のまま（基準を満たしているものを崩さないため。D-70）。
         // 指摘を記録していない改修（評価がない記事など）は、これまでどおり AI の出力を使う
         $findingKeys = \App\Models\RevisionFinding::where('ai_generation_id', $generation->id)->pluck('item_key')->all();
-        $hasEvaluation = $findingKeys !== [] || app(RevisionFindingService::class)->collect($generation->post ?? $generation->page, $generation->draft)['evaluation'] !== null;
+        // ロードマップに記事を載せる改修（D-70-06）は、タイトル・メタディスクリプションを変えない
+        $hasEvaluation = $findingKeys !== [] || filled(((array) $generation->parameters)[\App\Services\Articles\RoadmapLinkService::PARAMETER] ?? null)
+            || app(RevisionFindingService::class)->collect($generation->post ?? $generation->page, $generation->draft)['evaluation'] !== null;
         $keepTitle = $hasEvaluation && filled($draft->title_raw) && array_intersect($findingKeys, ['seo.title_keyword', 'seo.title_appeal', 'seo.title_form']) === [];
         $keepMeta = $hasEvaluation && filled($draft->meta_description) && ! in_array('seo.meta_description', $findingKeys, true);
 

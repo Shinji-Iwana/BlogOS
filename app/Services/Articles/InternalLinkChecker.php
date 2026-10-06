@@ -199,11 +199,13 @@ class InternalLinkChecker
         $published = $posts->where('status', 'publish');
         $roadmapPages = $pages->filter(fn (Page $page) => $page->status === 'publish' && $this->isRoadmap($page, $categories));
         foreach ($published as $post) {
-            if (empty($inbound['posts'][$post->id])) {
-                $articleRows[] = ['kind' => 'orphan', 'article' => $post, 'reason' => '公開中のほかの記事から、リンクされていません'];
-            }
             $category = $post->categories->first();
             $roadmap = $category !== null ? $this->roadmapPage($category) : null;
+            if (empty($inbound['posts'][$post->id])) {
+                // ロードマップがあれば、記事の再評価でロードマップの編集案を作って載せる（D-70-06）。なければカテゴリの立ち上げで作る
+                $articleRows[] = ['kind' => 'orphan', 'article' => $post, 'reason' => '公開中のほかの記事から、リンクされていません'
+                    . ($roadmap === null ? '（カテゴリのロードマップのページがありません。カテゴリの立ち上げで作ってください）' : '（記事の再評価で、ロードマップに載せる編集案を作ります）')];
+            }
             if ($roadmap !== null && empty($inbound['posts'][$post->id][Page::class . ':' . $roadmap->id])) {
                 $articleRows[] = ['kind' => 'not_in_roadmap', 'article' => $post, 'reason' => "ロードマップ「{$roadmap->title_raw}」に載っていません"];
             }

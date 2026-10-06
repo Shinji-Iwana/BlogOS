@@ -127,6 +127,14 @@
         </section>
     @endif
 
+    {{-- 孤立記事：この記事をロードマップに載せる編集案（D-70-06） --}}
+    @if ($roadmapDraft)
+        <p class="text-warn">
+            この記事は、ほかの記事からのリンクが足りません（孤立記事）。ロードマップの<a href="{{ route('drafts.edit', ['id' => $roadmapDraft->id]) }}">編集案 #{{ $roadmapDraft->id }}</a>で、この記事を載せる作業中です。
+            その編集案も確かめて反映してください（反映の順番は問いません）。
+        </p>
+    @endif
+
     {{-- BlogOS の仕上げ：目印・画像の依頼・広告（D-34） --}}
     @if ($placeholders !== [] || $draftImages->isNotEmpty() || $draft->finish_notes)
         <fieldset class="panel" style="max-width:1000px;">
