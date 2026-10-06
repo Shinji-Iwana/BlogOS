@@ -48,7 +48,7 @@
      *
      * 画面に固定した canvas を、本文の後ろ（z-index:-1）に置き、格子の線の上を、薄い青い光の線が流れる。
      * 本文の邪魔にならないよう、薄く・本数を少なくする（GRID_FLOW）。
-     * 動きを減らす設定の人・画面のパネルの中（iframe）・タブを見ていないときは、動かさない。
+     * トップページの横の画面のパネルの中（iframe）でも動かす。動きを減らす設定の人・タブを見ていないときは、動かさない。
      */
     const GRID_FLOW = {
         cell: 48,          // 格子の間隔（background.css と同じ）
@@ -62,7 +62,7 @@
     };
 
     function startGridFlow() {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('is-embedded')) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             return;
         }
 
