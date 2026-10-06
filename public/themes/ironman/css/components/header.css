@@ -76,6 +76,102 @@
     text-shadow: none;
 }
 
+/* パネルと同じく、四隅を斜めに削った形にし、マウスを乗せると枠を電気が流れる。
+   形は clip-path、枠の線は ::after の八角形の輪、流れる電気は js/script.js（startHoverFlow）が置く SVG（.hover-flow） */
+.blog-switch-button {
+    --hover-cut: 6px;
+
+    position: relative;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: inset 0 0 10px rgba(102, 217, 255, 0.08);
+    clip-path: polygon(
+        var(--hover-cut) 0, calc(100% - var(--hover-cut)) 0, 100% var(--hover-cut), 100% calc(100% - var(--hover-cut)),
+        calc(100% - var(--hover-cut)) 100%, var(--hover-cut) 100%, 0 calc(100% - var(--hover-cut)), 0 var(--hover-cut));
+}
+
+.blog-switch-button::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: var(--hover-line, var(--im-line-strong));
+    transition: background var(--im-ease);
+    clip-path: polygon(evenodd,
+        var(--hover-cut) 0, calc(100% - var(--hover-cut)) 0, 100% var(--hover-cut), 100% calc(100% - var(--hover-cut)),
+        calc(100% - var(--hover-cut)) 100%, var(--hover-cut) 100%, 0 calc(100% - var(--hover-cut)), 0 var(--hover-cut), var(--hover-cut) 0,
+        calc(var(--hover-cut) + 0.5px) 1px, calc(100% - var(--hover-cut) - 0.5px) 1px, calc(100% - 1px) calc(var(--hover-cut) + 0.5px),
+        calc(100% - 1px) calc(100% - var(--hover-cut) - 0.5px), calc(100% - var(--hover-cut) - 0.5px) calc(100% - 1px),
+        calc(var(--hover-cut) + 0.5px) calc(100% - 1px), 1px calc(100% - var(--hover-cut) - 0.5px), 1px calc(var(--hover-cut) + 0.5px),
+        calc(var(--hover-cut) + 0.5px) 1px);
+    pointer-events: none;
+}
+
+/* マウスを乗せたとき：形で切るため外側の光は出せない。内側を光らせる */
+.blog-switch-button:hover,
+.blog-switch-button:focus-visible {
+    box-shadow: inset 0 0 14px rgba(102, 217, 255, 0.3);
+}
+
+/* 枠を流れる電気（パネルと同じ形。マウスを乗せたときだけ） */
+.hover-flow {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--im-ease);
+}
+
+.hover-flow path {
+    fill: none;
+    stroke: var(--hover-accent, var(--im-cyan));
+    stroke-linejoin: round;
+    animation-play-state: paused;
+}
+
+.hover-flow-line {
+    stroke-width: 1.6;
+    stroke-dasharray: 60 10 18 10 30 16 6 14 26 18;
+    filter: drop-shadow(0 0 2px var(--hover-accent, var(--im-cyan)));
+    animation: hoverFlowLine 3.5s linear infinite;
+}
+
+.hover-flow-dots {
+    stroke-width: 2;
+    stroke-dasharray: 1 5;
+    opacity: 0.45;
+    animation: hoverFlowDots 3s linear infinite reverse;
+}
+
+.blog-switch-button:hover > .hover-flow,
+.blog-switch-button:focus-visible > .hover-flow {
+    opacity: 1;
+}
+
+.blog-switch-button:hover > .hover-flow path,
+.blog-switch-button:focus-visible > .hover-flow path {
+    animation-play-state: running;
+}
+
+/* 模様の長さの合計（208・48）だけずらすと、切れ目なく流れ続ける */
+@keyframes hoverFlowLine {
+
+    to {
+        stroke-dashoffset: -208;
+    }
+
+}
+
+@keyframes hoverFlowDots {
+
+    to {
+        stroke-dashoffset: -48;
+    }
+
+}
+
 @media (max-width: 768px) {
 
     .site-header {

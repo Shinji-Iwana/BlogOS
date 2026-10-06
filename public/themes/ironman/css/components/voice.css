@@ -106,3 +106,85 @@ body.voice-thinking .reactor {
 body.voice-speaking .reactor {
     --reactor-pulse: 0.7s;
 }
+
+
+/* ==========================================================
+   ヘッダーのアイコンのボタン（音声操作・ログアウト）の形
+   ----------------------------------------------------------
+   ブログ名のボタン（components/header.css）と同じく、四隅を斜めに削った形にし、マウスを乗せると枠を電気が流れる
+   （流れる電気の SVG（.hover-flow）は js/script.js の startHoverFlow が置く）。
+   色は変数で変える：--hover-line（枠の線）・--hover-accent（流れる電気）。
+   ヘッダーの各ボタンの見た目（header.css・このファイルの上）より後に読み込まれるため、ここに書く。
+   ========================================================== */
+
+.site-header button.logout-button,
+.site-header button.voice-button {
+    --hover-cut: 6px;
+
+    position: relative;
+    border-color: transparent;
+    border-radius: 0;
+    box-shadow: inset 0 0 10px rgba(102, 217, 255, 0.08);
+    clip-path: polygon(
+        var(--hover-cut) 0, calc(100% - var(--hover-cut)) 0, 100% var(--hover-cut), 100% calc(100% - var(--hover-cut)),
+        calc(100% - var(--hover-cut)) 100%, var(--hover-cut) 100%, 0 calc(100% - var(--hover-cut)), 0 var(--hover-cut));
+}
+
+/* 枠の線（八角形の輪） */
+.site-header button.logout-button::after,
+.site-header button.voice-button::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: var(--hover-line, var(--im-line-strong));
+    transition: background var(--im-ease);
+    clip-path: polygon(evenodd,
+        var(--hover-cut) 0, calc(100% - var(--hover-cut)) 0, 100% var(--hover-cut), 100% calc(100% - var(--hover-cut)),
+        calc(100% - var(--hover-cut)) 100%, var(--hover-cut) 100%, 0 calc(100% - var(--hover-cut)), 0 var(--hover-cut), var(--hover-cut) 0,
+        calc(var(--hover-cut) + 0.5px) 1px, calc(100% - var(--hover-cut) - 0.5px) 1px, calc(100% - 1px) calc(var(--hover-cut) + 0.5px),
+        calc(100% - 1px) calc(100% - var(--hover-cut) - 0.5px), calc(100% - var(--hover-cut) - 0.5px) calc(100% - 1px),
+        calc(var(--hover-cut) + 0.5px) calc(100% - 1px), 1px calc(100% - var(--hover-cut) - 0.5px), 1px calc(var(--hover-cut) + 0.5px),
+        calc(var(--hover-cut) + 0.5px) 1px);
+    pointer-events: none;
+}
+
+/* マウスを乗せたとき：形で切るため外側の光は出せない。内側を光らせ、枠を電気が流れる */
+.site-header button.voice-button:hover,
+.site-header button.voice-button:focus-visible {
+    --hover-line: var(--im-cyan);
+    border-color: transparent;
+    box-shadow: inset 0 0 14px rgba(102, 217, 255, 0.3);
+}
+
+/* ログアウト（終わる操作）は赤 */
+.site-header button.logout-button:hover,
+.site-header button.logout-button:focus-visible {
+    --hover-line: var(--im-red);
+    border-color: transparent;
+    --hover-accent: var(--im-red);
+    box-shadow: inset 0 0 14px rgba(255, 90, 82, 0.35);
+}
+
+/* 話を聞いている間の音声操作のボタンは、赤い枠を電気が流れ続ける */
+body.voice-listening .site-header button.voice-button {
+    --hover-line: var(--im-red);
+    border-color: transparent;
+    --hover-accent: var(--im-red);
+    box-shadow: inset 0 0 14px rgba(255, 90, 82, 0.45);
+}
+
+.site-header button.logout-button:hover > .hover-flow,
+.site-header button.logout-button:focus-visible > .hover-flow,
+.site-header button.voice-button:hover > .hover-flow,
+.site-header button.voice-button:focus-visible > .hover-flow,
+body.voice-listening .site-header button.voice-button > .hover-flow {
+    opacity: 1;
+}
+
+.site-header button.logout-button:hover > .hover-flow path,
+.site-header button.logout-button:focus-visible > .hover-flow path,
+.site-header button.voice-button:hover > .hover-flow path,
+.site-header button.voice-button:focus-visible > .hover-flow path,
+body.voice-listening .site-header button.voice-button > .hover-flow path {
+    animation-play-state: running;
+}

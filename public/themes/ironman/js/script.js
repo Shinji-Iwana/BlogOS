@@ -267,13 +267,60 @@
         }, 1000 - (Date.now() % 1000));
     }
 
+    /**
+     * マウスを乗せたときに枠を電気が流れる、四隅を削った小さな部品（ヘッダーのブログ名・音声操作・ログアウトのボタン）。
+     * 部品の中に、枠に沿った線の SVG（.hover-flow）を置く。見せ方・流れは css/components/header.css
+     */
+    function startHoverFlow() {
+        const SVG = 'http://www.w3.org/2000/svg';
+        const targets = document.querySelectorAll('.blog-switch-button, .site-header .logout-button, .site-header .voice-button');
+        if (targets.length === 0) {
+            return;
+        }
+
+        const draw = (target) => {
+            const svg = target.querySelector(':scope > .hover-flow');
+            const width = target.offsetWidth;
+            const height = target.offsetHeight;
+            const cut = Math.min(parseFloat(getComputedStyle(target).getPropertyValue('--hover-cut')) || 6, width / 2, height / 2);
+            const i = 1;
+
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            const d = [`M${cut} ${i}`, `L${width - cut} ${i}`, `L${width - i} ${cut}`, `L${width - i} ${height - cut}`,
+                `L${width - cut} ${height - i}`, `L${cut} ${height - i}`, `L${i} ${height - cut}`, `L${i} ${cut}`, 'Z'].join(' ');
+            svg.querySelectorAll('path').forEach((path) => path.setAttribute('d', d));
+        };
+
+        const observer = 'ResizeObserver' in window ? new ResizeObserver((entries) => entries.forEach((entry) => draw(entry.target))) : null;
+
+        targets.forEach((target) => {
+            const svg = document.createElementNS(SVG, 'svg');
+            svg.setAttribute('class', 'hover-flow');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            ['hover-flow-line', 'hover-flow-dots'].forEach((name) => {
+                const path = document.createElementNS(SVG, 'path');
+                path.setAttribute('class', name);
+                svg.appendChild(path);
+            });
+            target.appendChild(svg);
+
+            draw(target);
+            if (observer) {
+                observer.observe(target);
+            }
+        });
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', startGridFlow);
         document.addEventListener('DOMContentLoaded', startModalFlow);
         document.addEventListener('DOMContentLoaded', startClock);
+        document.addEventListener('DOMContentLoaded', startHoverFlow);
     } else {
         startGridFlow();
         startModalFlow();
         startClock();
+        startHoverFlow();
     }
 })();
