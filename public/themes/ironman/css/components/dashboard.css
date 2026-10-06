@@ -20,6 +20,88 @@
 
 
 /* ==========================================================
+   マウスを乗せたパネル
+   ----------------------------------------------------------
+   背景がうっすら光り（ボタンと同じ考え方）、枠を電気が流れる（アークリアクターからパネルへの線と同じ流れ方）。
+   枠の線の SVG（.hud-panel-flow）は js/dashboard/panel-flow.js が置く。
+   ========================================================== */
+
+.hud-panel {
+    transition: background var(--im-ease), box-shadow var(--im-ease);
+}
+
+.hud-panel:hover,
+.hud-panel:focus-within {
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--hud-accent) 20%, transparent) 0%,
+            color-mix(in srgb, var(--hud-accent) 8%, transparent) 100%);
+    box-shadow: inset 0 0 34px color-mix(in srgb, var(--hud-accent) 22%, transparent);
+}
+
+.hud-panel-flow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--im-ease);
+}
+
+/* アークリアクターの周りの電子の輪と同じく、長さの違う光の線（長い・短い・中くらい）と、細かい点を重ね、逆向きに流す */
+.hud-panel-flow path {
+    fill: none;
+    stroke: var(--hud-accent);
+    stroke-linejoin: round;
+    animation-play-state: paused;
+}
+
+/* 模様の長さの合計（388）だけずらすと、切れ目なく流れ続ける */
+.hud-panel-flow-line {
+    stroke-width: 1.6;
+    stroke-dasharray: 120 14 36 14 60 30 8 26 50 30;
+    filter: drop-shadow(0 0 3px var(--hud-accent));
+    animation: hudPanelFlowLine 6s linear infinite;
+}
+
+.hud-panel-flow-dots {
+    stroke-width: 2.4;
+    stroke-dasharray: 1 7;
+    opacity: 0.45;
+    animation: hudPanelFlowDots 4s linear infinite reverse;
+}
+
+@keyframes hudPanelFlowLine {
+
+    to {
+        stroke-dashoffset: -388;
+    }
+
+}
+
+@keyframes hudPanelFlowDots {
+
+    to {
+        stroke-dashoffset: -64;
+    }
+
+}
+
+.hud-panel:hover > .hud-panel-flow,
+.hud-panel:focus-within > .hud-panel-flow {
+    opacity: 1;
+}
+
+.hud-panel:hover > .hud-panel-flow path,
+.hud-panel:focus-within > .hud-panel-flow path {
+    animation-play-state: running;
+}
+
+
+/* ==========================================================
    状態のパネル
    ========================================================== */
 
