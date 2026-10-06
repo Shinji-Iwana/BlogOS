@@ -4,19 +4,17 @@ namespace App\Http\Controllers\Google;
 
 use App\Clients\Google\GoogleOAuthClient;
 use App\Enums\GoogleService;
-use App\Enums\SyncTrigger;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
-use App\Jobs\GoogleFetchJob;
 use App\Repositories\GoogleAccountRepository;
 use App\Repositories\GoogleFetchRunRepository;
 use App\Repositories\GoogleMetricRepository;
 use App\Services\Google\GoogleConnectionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 /**
- * Google連携の設定（Googleアカウントの接続と、選択中のブログの対応先）と、手動での取得（D-21-01、D-21-07）。
+ * Google連携の設定（Googleアカウントの接続と、選択中のブログの対応先）（D-21-01、D-21-07）。
+ * 取得は、定期実行とメニューの「設定 → 即時実行 → Googleとの同期」で行う（D-63-18）。
  */
 class GoogleSettingsController extends Controller
 {
@@ -59,7 +57,6 @@ class GoogleSettingsController extends Controller
             'latestRuns'       => $this->runs->latestForBlog($blog->id),
             'recentRuns'       => $this->runs->recentForBlog($blog->id, 30),
             'counts'           => $this->metrics->counts($blog->id),
-            'queued'           => Cache::has(GoogleFetchJob::queuedKey($blog->id)),
             'blogHost'         => parse_url($blog->home, PHP_URL_HOST),
         ]);
     }
@@ -114,22 +111,5 @@ class GoogleSettingsController extends Controller
         $this->connection->disconnect($account);
 
         return redirect()->route('google.settings')->with('status', "Googleアカウント（{$account->email}）の接続を解除しました。このアカウントを使う対応先の設定も解除しました（取得済みのデータは残ります）。");
-    }
-
-    /**
-     * 手動での取得（Jobとして登録する）
-     */
-    public function fetch(Request $request)
-    {
-        $blog = $this->selectedBlog();
-
-        if ($this->accounts->propertiesForBlog($blog->id)->isEmpty()) {
-            return back()->withErrors(['google' => '対応先が設定されていません。']);
-        }
-
-        Cache::put(GoogleFetchJob::queuedKey($blog->id), now()->toIso8601String(), 86400);
-        GoogleFetchJob::dispatch($blog->id, SyncTrigger::Manual, $request->user()?->id);
-
-        return redirect()->route('google.settings')->with('status', 'Googleのデータの取得を開始しました。初めての取得は時間がかかることがあります。');
     }
 }

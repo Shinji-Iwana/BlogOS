@@ -435,13 +435,34 @@ class GoogleIntegrationTest extends TestCase
             ->assertSee('Organic Search');
     }
 
-    public function test_manual_fetch_is_queued(): void
+    public function test_fetch_from_run_now_is_recorded_as_manual(): void
     {
         \Illuminate\Support\Facades\Queue::fake();
         $this->configureAll($this->connectAccount());
 
-        $this->actingAs($this->user)->post(route('google.fetch'), ['selected_blog_id' => $this->blog->id])->assertRedirect(route('google.settings'));
+        // Google連携の画面には、取得の欄を出さない（メニューの「設定 → 即時実行 → Googleとの同期」で取得する。D-63-18）
+        $this->actingAs($this->user)->get(route('google.settings'))->assertOk()->assertDontSee('今すぐ取得する')->assertDontSee('<h2>取得</h2>', false);
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('google.fetch'));
 
-        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GoogleFetchJob::class, fn ($job) => $job->blogId === $this->blog->id && $job->trigger === SyncTrigger::Manual);
+        // メニューの即時実行は、取得の記録の契機が手動（送った人も残す）。定期実行は定期
+        $recorder = app(\App\Services\Schedule\ScheduledTaskService::class);
+        $recorder->run('google:fetch', 'manual', $this->user->id);
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GoogleFetchJob::class, fn ($job) => $job->blogId === $this->blog->id && $job->trigger === SyncTrigger::Manual && $job->userId === $this->user->id);
+        $recorder->run('google:fetch', 'scheduled');
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\GoogleFetchJob::class, fn ($job) => $job->trigger === SyncTrigger::Scheduled && $job->userId === null);
+
+        // 設定のポップアップの説明に、取得の範囲を出す
+        $this->actingAs($this->user)->get(route('home'))->assertSee('直近の数日は毎回取得し直します。初めての取得では、約16か月前から取得します。');
+    }
+
+    public function test_sync_from_run_now_is_recorded_as_manual(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $recorder = app(\App\Services\Schedule\ScheduledTaskService::class);
+        $recorder->run('blogs:sync', 'manual', $this->user->id);
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SyncBlogJob::class, fn ($job) => $job->blogId === $this->blog->id && $job->trigger === SyncTrigger::Manual && $job->userId === $this->user->id);
+        $recorder->run('blogs:sync', 'scheduled');
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SyncBlogJob::class, fn ($job) => $job->trigger === SyncTrigger::Scheduled);
     }
 }

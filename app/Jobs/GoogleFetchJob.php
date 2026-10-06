@@ -10,7 +10,6 @@ use App\Services\Google\GoogleFetchService;
 use App\Services\Sync\SyncAlreadyRunningException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -31,15 +30,8 @@ class GoogleFetchJob implements ShouldQueue
     ) {
     }
 
-    public static function queuedKey(int $blogId): string
-    {
-        return "blogos:google:queued:{$blogId}";
-    }
-
     public function handle(BlogRepository $blogs, GoogleFetchService $service): void
     {
-        Cache::forget(self::queuedKey($this->blogId));
-
         // 定期実行から登録された取得は、終わったときに定期実行の記録（D-44）に件数を加える
         app(ScheduledTaskService::class)->trackJob(function () use ($blogs, $service) {
             $blog = $blogs->findById($this->blogId);

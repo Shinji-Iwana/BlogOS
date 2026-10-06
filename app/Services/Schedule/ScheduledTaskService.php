@@ -2,6 +2,7 @@
 
 namespace App\Services\Schedule;
 
+use App\Enums\SyncTrigger;
 use App\Models\ScheduledTaskRun;
 use App\Models\ScheduledTaskSetting;
 use App\Support\ScheduledTasks;
@@ -26,6 +27,11 @@ use Throwable;
 class ScheduledTaskService
 {
     public const CONTEXT_KEY = 'scheduled_task_run_id';
+
+    // 実行中の記録のきっかけ（scheduled・manual）と、即時実行を送った人（D-63-18）
+    public const CONTEXT_TRIGGER = 'scheduled_task_trigger';
+
+    public const CONTEXT_USER = 'scheduled_task_user_id';
 
     /**
      * 定期実行の設定（画面で変えたもの。なければ既定）
@@ -139,7 +145,7 @@ class ScheduledTaskService
             'requested_by'  => $userId,
         ]);
 
-        Context::add(self::CONTEXT_KEY, $run->id);
+        Context::add([self::CONTEXT_KEY => $run->id, self::CONTEXT_TRIGGER => $trigger, self::CONTEXT_USER => $userId]);
         $output = new BufferedOutput();
         $error = null;
         try {
@@ -151,7 +157,7 @@ class ScheduledTaskService
             report($e);
             $error = $e->getMessage();
         } finally {
-            Context::forget(self::CONTEXT_KEY);
+            Context::forget([self::CONTEXT_KEY, self::CONTEXT_TRIGGER, self::CONTEXT_USER]);
         }
 
         $text = trim($output->fetch());
@@ -167,6 +173,24 @@ class ScheduledTaskService
         $this->apply($run->id, ['processed_count' => $processed], -1, $error, $text !== '' ? $text : null, prepend: true);
 
         return $run->fresh();
+    }
+
+    /**
+     * コマンドが登録する処理の契機（同期・Google の取得の記録に残す）。メニューの即時実行なら手動、それ以外は定期（D-63-18）
+     */
+    public function syncTrigger(): SyncTrigger
+    {
+        return Context::get(self::CONTEXT_TRIGGER) === 'manual' ? SyncTrigger::Manual : SyncTrigger::Scheduled;
+    }
+
+    /**
+     * メニューの即時実行を送った人（定期実行なら null）
+     */
+    public function requestedBy(): ?int
+    {
+        $userId = Context::get(self::CONTEXT_USER);
+
+        return $userId !== null ? (int) $userId : null;
     }
 
     /**

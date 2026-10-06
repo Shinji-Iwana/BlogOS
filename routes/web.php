@@ -309,7 +309,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
         Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
-        Route::post('/google/fetch', [GoogleSettingsController::class, 'fetch'])->name('google.fetch');
         Route::post('/google/index-status', [GoogleIndexController::class, 'run'])->name('google.index-status.run');
     });
 });

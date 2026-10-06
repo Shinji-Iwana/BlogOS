@@ -46,7 +46,8 @@ class FetchGoogleData extends Command
             if (! $immediate) {
                 // 定期実行の記録（D-44）は、Queue の取得が終わったときに閉じる
                 $recorder->addPendingJob();
-                GoogleFetchJob::dispatch($blog->id, SyncTrigger::Scheduled);
+                // メニューの即時実行なら、取得の記録の契機は手動（D-63-18）
+                GoogleFetchJob::dispatch($blog->id, $recorder->syncTrigger(), $recorder->requestedBy());
                 $this->info("[取得を登録しました] {$blog->home}");
 
                 continue;

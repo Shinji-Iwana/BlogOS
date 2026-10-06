@@ -153,17 +153,7 @@
         </section>
     @endforeach
 
-    {{-- 取得 --}}
-    </section>
-    <section class="panel">
-    <h2>取得</h2>
-    <p>毎日、日本時間5:00に取得します（直近の数日は毎回取得し直します）。初めての取得では、約16か月前から取得します。</p>
-    <form method="POST" action="{{ route('google.fetch') }}">
-        @csrf
-        @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit" @disabled($queued || $properties->isEmpty())>今すぐ取得する</button>
-        @if ($queued)（開始待ちです）@endif
-    </form>
+    {{-- 取得は、定期実行とメニューの「設定 → 即時実行 → Googleとの同期」で行う（D-63-18） --}}
     </section>
 
     <section class="panel">

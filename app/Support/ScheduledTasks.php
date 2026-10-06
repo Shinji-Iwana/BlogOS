@@ -13,6 +13,7 @@ namespace App\Support;
  * - menu_label：メニューとポップアップの題名での名前（label と違う名前にする場合だけ。利用者の指定。D-63）
  * - modal_view：設定のポップアップの View（なければ scheduled-tasks/modal。記事の再評価は ai/settings/reevaluation-modal。D-64）
  * - counts：処理件数・変更件数が何を数えたものか
+ * - tip：設定のポップアップの説明（?）に加える文（D-63-18）
  */
 class ScheduledTasks
 {
@@ -53,6 +54,8 @@ class ScheduledTasks
             'frequency'   => 'daily', 'weekday' => null, 'time' => '05:00',
             'after'       => ['blogs:sync'], 'can_disable' => true, 'manual' => true,
             'menu_label'  => 'Googleとの同期',
+            // 以前は Google連携の画面の「取得」の欄にあった（D-63-18）
+            'tip'         => '直近の数日は毎回取得し直します。初めての取得では、約16か月前から取得します。',
             'counts'      => '処理件数：取得した行数',
         ],
         'google:inspect-index' => [

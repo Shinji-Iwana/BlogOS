@@ -36,7 +36,8 @@ class SyncBlogs extends Command
             } else {
                 // 定期実行の記録（D-44）は、Queue の同期が終わったときに閉じる
                 $recorder->addPendingJob();
-                $dispatcher->dispatch($blog->id, SyncTrigger::Scheduled);
+                // メニューの即時実行なら、同期の記録の契機は手動（D-63-18）
+                $dispatcher->dispatch($blog->id, $recorder->syncTrigger(), $recorder->requestedBy());
                 $this->info("[同期を登録しました] {$blog->home}");
             }
             $count++;
