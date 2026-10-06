@@ -39,14 +39,26 @@
     gap: 16px;
 }
 
-/* BlogOS の文字 */
+/* BlogOS の文字。ヘッダーの高さを変えずに、行の高さいっぱいまで大きくする。
+   行の高さは、これまでの文字（20px × 行間 1.7 ＝ 34px）とブログ名のボタン（約34px）で決まっているため、34px に固定する */
 .site-title {
     font-family: var(--im-font-logo);
-    font-size: 20px;
+    font-size: 30px;
+    line-height: 34px;
     font-weight: 700;
     letter-spacing: 0.14em;
     color: var(--im-cyan-bright);
     text-shadow: var(--im-glow-text);
+}
+
+/* 狭い画面：ブログ名のボタンの場所を残すため、大きくしすぎない */
+@media (max-width: 640px) {
+
+    .site-title {
+        font-size: 22px;
+        letter-spacing: 0.1em;
+    }
+
 }
 
 .site-title:hover {
