@@ -101,9 +101,9 @@ class ThemeTest extends TestCase
 
         // 「設定」の左に「履歴」。その中の「WordPressとの同期」で、同期の履歴の画面を開く（D-69）
         $html = $this->get(route('settings'))->getContent();
-        $this->assertMatchesRegularExpression('/HISTORY<\/span>\s*<span class="site-menu-label">履歴<\/span>.*?href="' . preg_quote(route('database.sync-runs.index'), '/') . '"\s*>WordPressとの同期<\/a>.*?SETTING<\/span>/s', $html);
-        // 「設定」の右に「情報」。その中の「WordPress」で、WordPress情報の画面を開く（D-63-11）
-        $this->assertMatchesRegularExpression('/SETTING<\/span>.*?INFO<\/span>\s*<span class="site-menu-label">情報<\/span>.*?href="' . preg_quote(route('wordpress-updates.index'), '/') . '"\s*>WordPress<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('wp-api.home'), '/') . '"\s*>WordPress API<\/a>/s', $html);
+        $this->assertMatchesRegularExpression('/HISTORY<\/span>\s*<span class="site-menu-label">履歴<\/span>.*?href="' . preg_quote(route('database.sync-runs.index'), '/') . '"\s*>WordPressとの同期履歴<\/a>.*?SETTING<\/span>/s', $html);
+        // 「設定」の右に「情報」。その中の「WordPress情報」で、WordPress情報の画面を開く（D-63-11・D-63-15）
+        $this->assertMatchesRegularExpression('/SETTING<\/span>.*?INFO<\/span>\s*<span class="site-menu-label">情報<\/span>.*?href="' . preg_quote(route('wordpress-updates.index'), '/') . '"\s*>WordPress情報<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('wp-api.home'), '/') . '"\s*>WordPress API情報<\/a>/s', $html);
         // 設定の画面には、WordPress API情報の欄を出さない（D-63-12）
         $this->assertStringNotContainsString(route('wp-api.home'), explode('<main', $html, 2)[1] ?? '');
         \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);

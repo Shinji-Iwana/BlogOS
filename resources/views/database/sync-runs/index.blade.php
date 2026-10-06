@@ -1,5 +1,5 @@
 {{--
-    WordPressとの同期履歴（sync_runs・sync_run_resources。メニューの「履歴 → WordPressとの同期」）
+    WordPressとの同期履歴（sync_runs・sync_run_resources。メニューの「履歴 → WordPressとの同期履歴」）
     実行ごとに、実行時の情報だけを並べ、押すと対象ごとの表が開く（初めは全て閉じる。details）
 --}}
 

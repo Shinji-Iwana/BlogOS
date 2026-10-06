@@ -18,12 +18,12 @@ class MenuItems
      * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string, children?: list<array>}>}>
      */
     public const GROUPS = [
-        // 履歴（D-69）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
+        // 履歴（D-69。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
-            ['label' => 'WordPressとの同期', 'route' => 'database.sync-runs.index'],
-            ['label' => '定期実行', 'route' => 'scheduled-tasks.runs'],
+            ['label' => 'WordPressとの同期履歴', 'route' => 'database.sync-runs.index'],
+            ['label' => '定期実行履歴', 'route' => 'scheduled-tasks.runs'],
             // ログイン履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
-            ['label' => 'ログイン', 'route' => 'database.login-histories.index'],
+            ['label' => 'ログイン履歴', 'route' => 'database.login-histories.index'],
         ]],
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
             // AI の設定（下の階層。D-61）
@@ -41,11 +41,11 @@ class MenuItems
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
         ]],
-        // 情報（D-63-11）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
+        // 情報（D-63-11。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [
-            ['label' => 'WordPress', 'route' => 'wordpress-updates.index'],
+            ['label' => 'WordPress情報', 'route' => 'wordpress-updates.index'],
             // WordPress API情報（D-63-12。以前は設定の画面とトップページの「管理」から開いた）
-            ['label' => 'WordPress API', 'route' => 'wp-api.home'],
+            ['label' => 'WordPress API情報', 'route' => 'wp-api.home'],
         ]],
     ];
 

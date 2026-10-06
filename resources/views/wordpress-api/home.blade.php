@@ -1,5 +1,5 @@
 {{--
-    WordPress API情報：エンドポイント一覧（D-11-05。メニューの「情報 → WordPress API」。D-63-12）
+    WordPress API情報：エンドポイント一覧（D-11-05。メニューの「情報 → WordPress API情報」。D-63-12）
 
     選択中のブログのWordPress APIを、その場で呼び出して確認する。取得結果はDBに保存しない。
 --}}

@@ -96,7 +96,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）
-    // 定期実行履歴（メニューの「履歴 → 定期実行」。D-63-08）
+    // 定期実行履歴（メニューの「履歴 → 定期実行履歴」。D-63-08）
     Route::get('/scheduled-tasks/runs', [ScheduledTaskController::class, 'runs'])->name('scheduled-tasks.runs');
     Route::put('/scheduled-tasks/{key}', [ScheduledTaskController::class, 'update'])->where('key', '[a-z:-]+')->name('scheduled-tasks.update');
     Route::post('/scheduled-tasks/{key}/run', [ScheduledTaskController::class, 'run'])->where('key', '[a-z:-]+')->name('scheduled-tasks.run');

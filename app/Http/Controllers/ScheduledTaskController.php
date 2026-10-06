@@ -29,7 +29,7 @@ class ScheduledTaskController extends Controller
 
 
     /**
-     * 定期実行履歴（メニューの「履歴 → 定期実行」。定期実行ごとにしぼり込める。D-63-08）
+     * 定期実行履歴（メニューの「履歴 → 定期実行履歴」。定期実行ごとにしぼり込める。D-63-08）
      */
     public function runs(Request $request)
     {

@@ -100,8 +100,8 @@ class ScheduledTaskTest extends TestCase
         \App\Models\ScheduledTaskRun::create(['task_key' => 'google:fetch', 'trigger' => 'scheduled', 'status' => 'failed', 'started_at' => now(), 'finished_at' => now(), 'pending_jobs' => 0, 'error' => 'テスト']);
         $this->get(route('home'))->assertSee('<a href="' . route('scheduled-tasks.runs') . '">定期実行履歴</a>', false);
 
-        // 定期実行履歴（メニューの「履歴 → 定期実行」）：定期実行ごとにしぼり込める
-        $this->get(route('home'))->assertSee('href="' . route('scheduled-tasks.runs') . '" >定期実行</a>', false);
+        // 定期実行履歴（メニューの「履歴 → 定期実行履歴」）：定期実行ごとにしぼり込める
+        $this->get(route('home'))->assertSee('href="' . route('scheduled-tasks.runs') . '" >定期実行履歴</a>', false);
         ScheduledTaskRun::create(['task_key' => 'model:prune', 'trigger' => 'scheduled', 'status' => 'succeeded', 'started_at' => now(), 'processed_count' => 777]);
         $this->get(route('scheduled-tasks.runs', ['task' => 'blogs:sync']))->assertOk()
             ->assertSee('<h1>定期実行履歴', false)

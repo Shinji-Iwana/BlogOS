@@ -1,5 +1,5 @@
 {{--
-    WordPress情報：WordPress 本体・プラグイン・テーマの更新（D-38。メニューの「情報 → WordPress」。D-63-11）
+    WordPress情報：WordPress 本体・プラグイン・テーマの更新（D-38。メニューの「情報 → WordPress情報」。D-63-11）
 --}}
 
 @extends('layouts.app')
