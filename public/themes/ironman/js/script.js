@@ -222,11 +222,58 @@
         window.addEventListener('resize', () => dialogs.forEach(place));
     }
 
+    /**
+     * ヘッダーの右端の今の日時（.site-clock。日本時間）を、1秒ごとに進める。最初の値はサーバーが入れている
+     */
+    function startClock() {
+        const clock = document.querySelector('.site-clock');
+        if (!clock) {
+            return;
+        }
+
+        const date = clock.querySelector('.site-clock-date');
+        const time = clock.querySelector('.site-clock-time');
+        let format;
+        try {
+            format = new Intl.DateTimeFormat('en-CA', {
+                timeZone: clock.dataset.timezone || 'Asia/Tokyo',
+                year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+            });
+        } catch (e) {
+            return;
+        }
+
+        // 時刻は1文字ずつ同じ幅の枠（.clock-char）に入れる（数字の幅で文字が揺れないように。css/components/header.css）
+        const chars = (text) => Array.from(text).map((char) => {
+            const span = document.createElement('span');
+            span.className = char === ':' ? 'clock-char clock-sep' : 'clock-char';
+            span.textContent = char;
+
+            return span;
+        });
+
+        const tick = () => {
+            const parts = Object.fromEntries(format.formatToParts(new Date()).map((part) => [part.type, part.value]));
+            date.textContent = `${parts.year}-${parts.month}-${parts.day} ${String(parts.weekday).toUpperCase()}`;
+            time.replaceChildren(...chars(`${parts.hour}:${parts.minute}:${parts.second}`));
+        };
+
+        tick();
+        // 秒の変わり目に合わせて進める
+        window.setTimeout(() => {
+            tick();
+            window.setInterval(tick, 1000);
+        }, 1000 - (Date.now() % 1000));
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', startGridFlow);
         document.addEventListener('DOMContentLoaded', startModalFlow);
+        document.addEventListener('DOMContentLoaded', startClock);
     } else {
         startGridFlow();
         startModalFlow();
+        startClock();
     }
 })();

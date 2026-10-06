@@ -148,6 +148,17 @@
     @endforeach
 </nav>
 
+{{-- 今の日時（日本時間）。ヘッダーとメニューバーの右に、2つの行にまたがって置く（3行：札・日付と曜日・時刻）。
+     ironman テーマで表示し、テーマの JavaScript が1秒ごとに進める。blank では出さない --}}
+@php
+    $clockNow = now(config('blogos.display_timezone'));
+@endphp
+<div class="site-clock" data-timezone="{{ config('blogos.display_timezone') }}" role="timer" aria-label="今の日時（日本時間）">
+    <span class="site-clock-label">SYSTEM TIME</span>
+    <span class="site-clock-date">{{ $clockNow->format('Y-m-d') }} {{ strtoupper($clockNow->format('D')) }}</span>
+    <span class="site-clock-time">{{ $clockNow->format('H:i:s') }}</span>
+</div>
+
 </div>
 
 

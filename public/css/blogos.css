@@ -157,6 +157,11 @@ table.data.data-compact > * > tr > td {
     margin: 0;
 }
 
+/* ヘッダーの右端の今の日時：ironman テーマだけで表示する（themes/ironman/css/components/header.css） */
+.site-clock {
+    display: none;
+}
+
 .logout-button {
     display: inline-flex;
     align-items: center;

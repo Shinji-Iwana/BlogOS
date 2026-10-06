@@ -99,6 +99,8 @@ class ThemeTest extends TestCase
         foreach ([route('scheduled-tasks.runs'), route('scheduled-tasks.runs')] as $url) {
             $this->get($url)->assertOk()
                 ->assertSee('class="site-menu"', false)
+                // ヘッダーの右端の今の日時（日本時間。ironman テーマで表示する）
+                ->assertSee('<span class="site-clock-label">SYSTEM TIME</span>', false)
                 ->assertSee('SETTING')
                 // 押すとテーマ切替ポップアップを開く（D-57）
                 ->assertSee('data-modal-open="theme-switch-modal"', false)

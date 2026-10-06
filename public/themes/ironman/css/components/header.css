@@ -86,6 +86,130 @@
 
 
 /* ==========================================================
+   右端の今の日時（SYSTEM TIME）
+   ----------------------------------------------------------
+   上の帯を2列にし、左にヘッダーとメニューバー（2行）、右にその2行にまたがって今の日時を置く（ヘッダーを高くしないため）。
+   今の日時は3行（札・日付と曜日・時刻）。左を細い線で区切る。時刻は js/script.js（startClock）が1秒ごとに進める。
+   ========================================================== */
+
+.site-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    /* 帯の下の線は、メニューバーの下（components/menu.css）ではなく帯全体に引き、今の日時の下まで続ける。
+       光の線（.site-menu::after）は、この線の上に重なる */
+    border-bottom: 1px solid var(--im-line-strong);
+}
+
+.site-top > .site-header {
+    grid-column: 1;
+    grid-row: 1;
+    /* 右端のログアウトのボタンと、今の日時の枠の間を詰める（狭い画面では今の日時を出さないため、元の余白に戻す） */
+    padding-right: 10px;
+}
+
+.site-top > .site-menu {
+    grid-column: 1;
+    grid-row: 2;
+    border-bottom: 0;
+}
+
+/* パネルと同じく、四隅を斜めに削った枠で囲む（components/panel.css と同じ作り：形は clip-path、枠の線は ::after の八角形の輪）。
+   幅は固定する（時刻の数字で幅が変わり、帯が動いて見えないように） */
+.site-clock {
+    --clock-cut: 8px;
+
+    position: relative;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    box-sizing: border-box;
+    width: 152px;
+    margin: 6px 20px 6px 6px;
+    padding: 6px 12px;
+    background: linear-gradient(180deg, rgba(102, 217, 255, 0.11), rgba(102, 217, 255, 0.04));
+    box-shadow: inset 0 0 16px rgba(102, 217, 255, 0.1);
+    line-height: 1.15;
+    white-space: nowrap;
+    clip-path: polygon(
+        var(--clock-cut) 0, calc(100% - var(--clock-cut)) 0, 100% var(--clock-cut), 100% calc(100% - var(--clock-cut)),
+        calc(100% - var(--clock-cut)) 100%, var(--clock-cut) 100%, 0 calc(100% - var(--clock-cut)), 0 var(--clock-cut));
+}
+
+/* 枠の線（左上と右下の角は明るくする。パネルと同じ） */
+.site-clock::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(var(--im-cyan), var(--im-cyan)) 0 0 / 28px 28px no-repeat,
+        linear-gradient(var(--im-cyan), var(--im-cyan)) 100% 100% / 28px 28px no-repeat,
+        var(--im-line-strong);
+    clip-path: polygon(evenodd,
+        var(--clock-cut) 0, calc(100% - var(--clock-cut)) 0, 100% var(--clock-cut), 100% calc(100% - var(--clock-cut)),
+        calc(100% - var(--clock-cut)) 100%, var(--clock-cut) 100%, 0 calc(100% - var(--clock-cut)), 0 var(--clock-cut), var(--clock-cut) 0,
+        calc(var(--clock-cut) + 0.5px) 1px, calc(100% - var(--clock-cut) - 0.5px) 1px, calc(100% - 1px) calc(var(--clock-cut) + 0.5px),
+        calc(100% - 1px) calc(100% - var(--clock-cut) - 0.5px), calc(100% - var(--clock-cut) - 0.5px) calc(100% - 1px),
+        calc(var(--clock-cut) + 0.5px) calc(100% - 1px), 1px calc(100% - var(--clock-cut) - 0.5px), 1px calc(var(--clock-cut) + 0.5px),
+        calc(var(--clock-cut) + 0.5px) 1px);
+    pointer-events: none;
+}
+
+/* 時刻の数字は1文字ずつ同じ幅の枠に入れる（js/script.js。字体の数字の幅が違っても、文字が揺れないように） */
+.site-clock-time .clock-char {
+    display: inline-block;
+    width: 0.78em;
+    text-align: center;
+}
+
+.site-clock-time .clock-sep {
+    width: 0.42em;
+}
+
+.site-clock-label {
+    font-family: var(--im-font-logo);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--im-cyan);
+}
+
+.site-clock-date {
+    font-family: var(--im-font-hud);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--im-text-dim, var(--im-text));
+}
+
+.site-clock-time {
+    font-family: var(--im-font-logo);
+    font-size: 22px;
+    font-weight: 700;
+    /* 1文字ずつ同じ幅の枠に入れるため、字間は付けない */
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--im-cyan-bright);
+    text-shadow: var(--im-glow-text);
+}
+
+/* 狭い画面では出さない（ブログ名のボタンの場所を残す） */
+@media (max-width: 640px) {
+
+    .site-clock {
+        display: none;
+    }
+
+    .site-top > .site-header {
+        padding-right: 16px;
+    }
+
+}
+
+
+/* ==========================================================
    ブログ切替のポップアップ
    ========================================================== */
 
