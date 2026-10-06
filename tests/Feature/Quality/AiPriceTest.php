@@ -179,7 +179,17 @@ class AiPriceTest extends TestCase
         // 画面：照合した日時と、確認待ちの名前
         $this->get(route('ai.settings.edit'))->assertOk()
             ->assertSee('gpt-transcribe 1分あたり')
-            ->assertSee('文字の入力 $0.6・音声の出力 $16', false);
+            ->assertSee('文字の入力 $0.6・音声の出力 $16', false)
+            ->assertDontSee('<th>確認した人</th>', false);
+
+        // 変更の記録は、画面「OpenAI API料金表との同期履歴」（D-63-27）。ブログを選んでいなくても開ける
+        $this->blog->update(['is_selected' => false]);
+        $this->get(route('ai.prices.history'))->assertOk()
+            ->assertSee('<h1>OpenAI API料金表との同期履歴', false)
+            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertSee('<th>確認した人</th>', false)
+            ->assertSee('gpt-4o-mini-tts 音声の出力')
+            ->assertSee('（自動）');
     }
 
     public function test_check_can_be_run_from_screen(): void

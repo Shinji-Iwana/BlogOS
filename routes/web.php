@@ -211,6 +211,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/ai/batches/create', [AiBatchController::class, 'create'])->name('ai.batches.create');
     Route::get('/ai/batches/{id}', [AiBatchController::class, 'show'])->whereNumber('id')->name('ai.batches.show');
     Route::get('/ai/settings', [AiSettingsController::class, 'edit'])->name('ai.settings.edit');
+    // OpenAI API料金表との同期履歴（メニューの「履歴 → OpenAI API料金表との同期履歴」。全ブログ共通。D-63-27）
+    Route::get('/ai/prices/history', [AiPriceController::class, 'history'])->name('ai.prices.history');
     Route::get('/ai/credits', [AiCreditController::class, 'index'])->name('ai.credits.index');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {

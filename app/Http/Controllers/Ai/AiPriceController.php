@@ -20,6 +20,18 @@ class AiPriceController extends Controller
     ) {
     }
 
+    /**
+     * OpenAI API料金表との同期履歴（料金表の変更の記録。メニューの「履歴 → OpenAI API料金表との同期履歴」。
+     * 以前はAIの設定の画面の「料金表の変更の記録」。全ブログ共通のため、ブログを選んでいなくても開ける。D-63-27）
+     */
+    public function history()
+    {
+        return view('ai.prices.history', [
+            'priceHistory'     => $this->prices->recentChanges(200),
+            'latestPriceCheck' => $this->prices->latestCheck(),
+        ]);
+    }
+
     public function check()
     {
         $result = $this->service->check();

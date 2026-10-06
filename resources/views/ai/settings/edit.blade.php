@@ -158,26 +158,8 @@
         @endif
     </form>
 
-    @if ($priceHistory->isNotEmpty())
-        <details style="margin-top:8px;">
-            <summary>料金表の変更の記録（新しい順、{{ $priceHistory->count() }}件）</summary>
-            <table class="data">
-                <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th><th>状態</th><th>確認した人</th></tr></thead>
-                <tbody>
-                    @foreach ($priceHistory as $change)
-                        <tr>
-                            <td>{{ \App\Support\DisplayTime::format($change->decided_at ?? $change->created_at) }}</td>
-                            <td>{{ \App\Services\Ai\AiPriceCheckService::label($change->price_key, $change->field) }}</td>
-                            <td>{{ $change->old_value ?? '-' }}</td>
-                            <td>{{ $change->new_value }}</td>
-                            <td>{{ $change->status->label() }}</td>
-                            <td>{{ $change->decider?->name ?? '（自動）' }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </details>
-    @endif
+    {{-- 料金表の変更の記録は、画面「OpenAI API料金表との同期履歴」に分けた（D-63-27） --}}
+    <p class="text-muted">料金表の変更の記録は、メニューの「履歴 → <a href="{{ route('ai.prices.history') }}">OpenAI API料金表との同期履歴</a>」にあります。</p>
     </section>
 
     <section class="panel">

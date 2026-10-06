@@ -51,7 +51,6 @@ class AiSettingsController extends Controller
             'imagePriceModels' => $this->apiPolicy->imageModels(),
             'storedPrices'     => $this->priceRepository->all(),
             'pendingPrices'    => $this->priceRepository->pending(),
-            'priceHistory'     => $this->priceRepository->recentChanges(10),
             'latestPriceCheck' => $this->priceRepository->latestCheck(),
         ]);
     }
