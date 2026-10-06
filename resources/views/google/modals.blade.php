@@ -143,6 +143,10 @@
                         @include('partials.selected-blog-field')
                         <input type="hidden" name="_form" value="{{ $googleModalId }}">
 
+                        {{-- ポップアップの幅に収まるよう、ボタンとアカウントの選択は行を分ける --}}
+                        <p>
+                            <button type="button" class="btn-secondary" data-google-candidates="{{ route('google.candidates', ['service' => $service->value]) }}">候補を読み込む</button>
+                        </p>
                         <p>
                             <label>アカウント
                                 <select name="google_account_id">
@@ -151,7 +155,6 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <button type="button" class="btn-secondary" data-google-candidates="{{ route('google.candidates', ['service' => $service->value]) }}">候補を読み込む</button>
                         </p>
                         <p data-google-candidates-result hidden>
                             <label>候補
@@ -179,9 +182,11 @@
                         @endif
 
                         @if ($googleRun)
+                            {{-- 「最後の取得：」・日時と結果・期間と行数の3行 --}}
                             <p class="text-muted">
-                                最後の取得：{{ \App\Support\DisplayTime::format($googleRun->started_at) }}・{{ $googleRun->status->label() }}・{{ $googleRun->date_from?->toDateString() }}〜{{ $googleRun->date_to?->toDateString() }}・{{ $googleRun->row_count }}行
-                                @if ($googleRun->message)・{{ $googleRun->message }}@endif
+                                最後の取得：<br>
+                                {{ \App\Support\DisplayTime::format($googleRun->started_at) }}・{{ $googleRun->status->label() }}@if ($googleRun->message)（{{ $googleRun->message }}）@endif<br>
+                                {{ $googleRun->date_from?->toDateString() }}〜{{ $googleRun->date_to?->toDateString() }}・{{ $googleRun->row_count }}行
                             </p>
                         @endif
 
