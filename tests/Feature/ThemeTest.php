@@ -85,6 +85,14 @@ class ThemeTest extends TestCase
             ->assertSee('トップページへ');
     }
 
+    public function test_menu_groups_are_in_the_order_set_by_the_user(): void
+    {
+        // 履歴・設定の中の順（D-63-26）
+        $groups = collect(\App\Support\MenuItems::GROUPS)->keyBy('key');
+        $this->assertSame(['ログイン履歴', 'ブログ情報の同期履歴', 'WordPressとの同期履歴', 'Googleとの同期履歴', '定期実行履歴'], array_column($groups['history']['links'], 'label'));
+        $this->assertSame(['画面のテーマ', 'ブログ', 'Google', 'OpenAI', 'アフィリエイト提携先を登録', '即時実行', '定期実行'], array_column($groups['setting']['links'], 'label'));
+    }
+
     public function test_menu_bar_links_to_theme_setting_on_every_page(): void
     {
         // ヘッダーの下のメニューバー（D-56）：どの画面からでも「画面のテーマ」へ

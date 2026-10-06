@@ -402,7 +402,7 @@ class GoogleIntegrationTest extends TestCase
 
         // メニューの「設定 → Google」の下に、アカウント・GA4・Search Console・AdSense のポップアップ（D-63-19）
         $html = $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?<summary>Google<\/summary>.*?data-modal-open="google-account-modal" >アカウント<\/a>.*?data-modal-open="google-ga4-modal" >Google Analytics 4<\/a>.*?data-modal-open="google-search-console-modal" >Search Console<\/a>.*?data-modal-open="google-adsense-modal" >AdSense<\/a>.*?<summary>即時実行<\/summary>/s', $html);
+        $this->assertMatchesRegularExpression('/<summary>ブログ<\/summary>.*?<summary>Google<\/summary>.*?data-modal-open="google-account-modal" >アカウント<\/a>.*?data-modal-open="google-ga4-modal" >Google Analytics 4<\/a>.*?data-modal-open="google-search-console-modal" >Search Console<\/a>.*?data-modal-open="google-adsense-modal" >AdSense<\/a>.*?<summary>OpenAI<\/summary>/s', $html);
         $this->assertStringContainsString('owner@example.com', $html);
         $this->assertStringNotContainsString('valid-token', $html);
         foreach (['google-account-modal', 'google-ga4-modal', 'google-search-console-modal', 'google-adsense-modal'] as $id) {

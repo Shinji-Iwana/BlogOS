@@ -18,39 +18,19 @@ class MenuItems
      * @var list<array{key: string, code: string, label: string, links: list<array{label: string, route?: string, params?: array, fragment?: string, modal?: string, children?: list<array>}>}>
      */
     public const GROUPS = [
-        // 履歴（D-69。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
+        // 履歴（D-69。項目の名前は画面の名前と同じ。D-63-15。順は D-63-26）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
-            ['label' => 'WordPressとの同期履歴', 'route' => 'database.sync-runs.index'],
-            // Googleとの同期履歴（D-63-19。以前は画面「Google連携」の取得の記録）
-            ['label' => 'Googleとの同期履歴', 'route' => 'google.fetch-runs.index'],
-            ['label' => '定期実行履歴', 'route' => 'scheduled-tasks.runs'],
             // ログイン履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
             ['label' => 'ログイン履歴', 'route' => 'database.login-histories.index'],
             // ブログ情報の同期履歴（D-63-16。以前はトップページの「管理」の「ブログ変更履歴一覧」から開いた）
             ['label' => 'ブログ情報の同期履歴', 'route' => 'database-blog-history-list'],
+            ['label' => 'WordPressとの同期履歴', 'route' => 'database.sync-runs.index'],
+            // Googleとの同期履歴（D-63-19。以前は画面「Google連携」の取得の記録）
+            ['label' => 'Googleとの同期履歴', 'route' => 'google.fetch-runs.index'],
+            ['label' => '定期実行履歴', 'route' => 'scheduled-tasks.runs'],
         ]],
+        // 設定（順は D-63-26）
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
-            // OpenAI の設定（下の階層。D-61。名前は D-63-24）
-            ['label' => 'OpenAI', 'children' => [
-                // 押すと残高・課金の登録ポップアップを開く（画面は移らない。D-62）
-                ['label' => 'OpenAIの画面で見た残高を登録', 'modal' => 'credit-balance-modal'],
-                ['label' => '課金額を登録', 'modal' => 'credit-purchase-modal'],
-                // 押すと音声操作ポップアップを開く（画面は移らない）
-                ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
-            ]],
-            // Google連携（下の階層。押すとポップアップを開く。以前は画面「Google連携」。D-63-19）
-            ['label' => 'Google', 'children' => [
-                ['label' => 'アカウント', 'modal' => 'google-account-modal'],
-                ['label' => 'Google Analytics 4', 'modal' => 'google-ga4-modal'],
-                ['label' => 'Search Console', 'modal' => 'google-search-console-modal'],
-                ['label' => 'AdSense', 'modal' => 'google-adsense-modal'],
-            ]],
-            // 即時実行（下の階層。項目は ScheduledTasks::runNowKeys()。押すと、確認してから定期実行を今すぐ Queue に登録する。D-63-09）
-            ['label' => '即時実行', 'children' => 'run-now'],
-            // 定期実行の設定（下の階層。項目は ScheduledTasks::MENU。押すと、いつ・有効の設定のポップアップを開く。D-63）
-            ['label' => '定期実行', 'children' => 'scheduled-tasks'],
-            // 押すとアフィリエイト提携先の登録ポップアップを開く（以前は画面「アフィリエイトのプログラム」の欄。D-63-20）
-            ['label' => 'アフィリエイト提携先を登録', 'modal' => 'affiliate-program-modal'],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
             // ブログ（下の階層。押すとポップアップを開く。D-63-22）
@@ -60,6 +40,27 @@ class MenuItems
                 // 選択中のブログの認証情報（以前は画面「認証情報」）
                 ['label' => '認証情報', 'modal' => 'blog-credential-modal'],
             ]],
+            // Google連携（下の階層。押すとポップアップを開く。以前は画面「Google連携」。D-63-19）
+            ['label' => 'Google', 'children' => [
+                ['label' => 'アカウント', 'modal' => 'google-account-modal'],
+                ['label' => 'Google Analytics 4', 'modal' => 'google-ga4-modal'],
+                ['label' => 'Search Console', 'modal' => 'google-search-console-modal'],
+                ['label' => 'AdSense', 'modal' => 'google-adsense-modal'],
+            ]],
+            // OpenAI の設定（下の階層。D-61。名前は D-63-24）
+            ['label' => 'OpenAI', 'children' => [
+                // 押すと残高・課金の登録ポップアップを開く（画面は移らない。D-62）
+                ['label' => 'OpenAIの画面で見た残高を登録', 'modal' => 'credit-balance-modal'],
+                ['label' => '課金額を登録', 'modal' => 'credit-purchase-modal'],
+                // 押すと音声操作ポップアップを開く（画面は移らない）
+                ['label' => '音声操作', 'modal' => 'voice-settings-modal'],
+            ]],
+            // 押すとアフィリエイト提携先の登録ポップアップを開く（以前は画面「アフィリエイトのプログラム」の欄。D-63-20）
+            ['label' => 'アフィリエイト提携先を登録', 'modal' => 'affiliate-program-modal'],
+            // 即時実行（下の階層。項目は ScheduledTasks::runNowKeys()。押すと、確認してから定期実行を今すぐ Queue に登録する。D-63-09）
+            ['label' => '即時実行', 'children' => 'run-now'],
+            // 定期実行の設定（下の階層。項目は ScheduledTasks::MENU。押すと、いつ・有効の設定のポップアップを開く。D-63）
+            ['label' => '定期実行', 'children' => 'scheduled-tasks'],
         ]],
         // 情報（D-63-11。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [

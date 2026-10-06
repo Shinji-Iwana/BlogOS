@@ -100,9 +100,10 @@ class ScheduledTasks
 
     /**
      * メニューの「設定 → 定期実行」に出す定期実行（この順。押すと、いつ・有効の設定のポップアップを開く。D-63）。
-     * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）
+     * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）。
+     * 「設定 → 即時実行」も、この順（D-63-25）
      */
-    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'ai:auto-reevaluate', 'affiliate:check-links', 'materials:check', 'ai:check-prices', 'model:prune'];
+    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune'];
 
     /**
      * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。
