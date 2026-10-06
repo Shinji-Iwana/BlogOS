@@ -45,7 +45,12 @@
             @if ($priceNotice['failed'])<strong class="text-error">公式のページから読み取れなかった料金があります。</strong>@endif
             @if ($priceNotice['pending'])値下がりの確認待ちが{{ $priceNotice['pending'] }}件あります。@endif
             @if ($priceNotice['applied'])直近7日に{{ $priceNotice['applied'] }}件の料金を変更しました。@endif
-            <a href="{{ route('ai.settings.edit') }}#prices">料金表を確認する</a>
+            {{-- 値下がりの確認待ちはAIの設定の画面、それ以外は画面「OpenAI API料金表情報」（D-63-28） --}}
+            @if ($priceNotice['pending'])
+                <a href="{{ route('ai.settings.edit') }}#prices">値下がりを確認する</a>
+            @else
+                <a href="{{ route('ai.prices.index') }}">料金表を確認する</a>
+            @endif
         </p>
     @endif
 

@@ -45,11 +45,7 @@ class AiSettingsController extends Controller
             // 今日の時点で、自動の再評価の対象になる記事（有効・無効にかかわらず表示する）
             'targets'    => $this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation),
             'remaining'  => $this->autoService->remainingToday($blog),
-            // API実行の料金表（全ブログ共通。D-31-03）
-            'priceModels'      => $this->apiPolicy->models(),
-            'webSearchPrice'   => $this->apiPolicy->webSearch()['cost_per_call'],
-            'imagePriceModels' => $this->apiPolicy->imageModels(),
-            'storedPrices'     => $this->priceRepository->all(),
+            // API実行の料金表の値下がり（確認待ち。全ブログ共通。D-31-03）。料金表は画面「OpenAI API料金表情報」（D-63-28）
             'pendingPrices'    => $this->priceRepository->pending(),
             'latestPriceCheck' => $this->priceRepository->latestCheck(),
         ]);

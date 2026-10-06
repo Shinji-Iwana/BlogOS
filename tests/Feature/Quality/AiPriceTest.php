@@ -176,14 +176,25 @@ class AiPriceTest extends TestCase
         $this->assertSame(12.0, $prices->realtime('gpt-realtime-2.1-mini')['audio_input']);
         $this->assertSame(0.0045, $prices->transcribePerMinute('gpt-transcribe'));
 
-        // 画面：照合した日時と、確認待ちの名前
+        // AIの設定の画面：値下がりの確認待ちだけ（料金表・変更の記録・今すぐ照合は出さない。D-63-27・D-63-28）
         $this->get(route('ai.settings.edit'))->assertOk()
             ->assertSee('gpt-transcribe 1分あたり')
+            ->assertDontSee('文字の入力 $0.6・音声の出力 $16', false)
+            ->assertDontSee('<th>確認した人</th>', false)
+            ->assertDontSee('今すぐ公式のページと照合する');
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('ai.prices.check'));
+
+        // 料金表は、画面「OpenAI API料金表情報」（D-63-28）。ブログを選んでいなくても開ける。メニューの「情報」の「WordPress API情報」の下
+        $this->blog->update(['is_selected' => false]);
+        $html = $this->get(route('ai.prices.index'))->assertOk()
+            ->assertSee('<h1>OpenAI API料金表情報</h1>', false)
+            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
             ->assertSee('文字の入力 $0.6・音声の出力 $16', false)
-            ->assertDontSee('<th>確認した人</th>', false);
+            ->assertSee('<h2>音声の操作のモデル</h2>', false)
+            ->getContent();
+        $this->assertMatchesRegularExpression('/>WordPress API情報<\/a><\/li>\s*<li><a href="' . preg_quote(route('ai.prices.index'), '/') . '"\s*>OpenAI API料金表情報<\/a>/', $html);
 
         // 変更の記録は、画面「OpenAI API料金表との同期履歴」（D-63-27）。ブログを選んでいなくても開ける
-        $this->blog->update(['is_selected' => false]);
         $this->get(route('ai.prices.history'))->assertOk()
             ->assertSee('<h1>OpenAI API料金表との同期履歴', false)
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
@@ -192,12 +203,4 @@ class AiPriceTest extends TestCase
             ->assertSee('（自動）');
     }
 
-    public function test_check_can_be_run_from_screen(): void
-    {
-        $this->fakePages(['0.10', '0.01', '0.125', '0.50']);
-
-        $this->post(route('ai.prices.check'), ['selected_blog_id' => $this->blog->id])
-            ->assertRedirect(route('ai.settings.edit'))
-            ->assertSessionHas('status', fn ($status) => str_contains($status, '料金表は公式のページと同じです。'));
-    }
 }

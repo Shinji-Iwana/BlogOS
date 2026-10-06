@@ -120,6 +120,7 @@ class PagesSmokeTest extends TestCase
             'batch revision not indexed' => ['ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']],
             'question bank create'    => ['materials.create', ['kind' => 'question_bank']],
             'ai settings'             => ['ai.settings.edit'],
+            'ai prices'               => ['ai.prices.index'],
         ];
     }
 

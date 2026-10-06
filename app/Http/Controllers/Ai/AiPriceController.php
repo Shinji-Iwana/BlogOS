@@ -4,20 +4,35 @@ namespace App\Http\Controllers\Ai;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\AiPriceRepository;
-use App\Services\Ai\AiPriceCheckService;
+use App\Services\Ai\AiApiPolicy;
 use Illuminate\Http\Request;
 
 /**
- * API実行の料金表（D-31-03）：今すぐ照合する、値下がりを確認して反映する・反映しない。
+ * API実行の料金表（D-31-03）：料金表・変更の記録の画面と、値下がりを確認して反映する・反映しない。
  *
- * 料金表は全ブログ共通（OpenAIのAPIキーが共通のため）。画面はAIの設定の中に表示する。
+ * 料金表は全ブログ共通（OpenAIのAPIキーが共通のため）。照合は、定期実行とメニューの「設定 → 即時実行 → OpenAI API料金表との同期」
+ * （AIの設定の画面の「今すぐ公式のページと照合する」はなくした。D-63-28）。値下がりの確認待ちは、AIの設定の画面に表示する。
  */
 class AiPriceController extends Controller
 {
     public function __construct(
         protected AiPriceRepository $prices,
-        protected AiPriceCheckService $service,
     ) {
+    }
+
+    /**
+     * OpenAI API料金表情報（メニューの「情報 → OpenAI API料金表情報」。以前はAIの設定の画面の「API実行の料金表」。
+     * 全ブログ共通のため、ブログを選んでいなくても開ける。D-63-28）
+     */
+    public function index(AiApiPolicy $apiPolicy)
+    {
+        return view('ai.prices.index', [
+            'priceModels'      => $apiPolicy->models(),
+            'webSearchPrice'   => $apiPolicy->webSearch()['cost_per_call'],
+            'imagePriceModels' => $apiPolicy->imageModels(),
+            'storedPrices'     => $this->prices->all(),
+            'latestPriceCheck' => $this->prices->latestCheck(),
+        ]);
     }
 
     /**
@@ -30,17 +45,6 @@ class AiPriceController extends Controller
             'priceHistory'     => $this->prices->recentChanges(200),
             'latestPriceCheck' => $this->prices->latestCheck(),
         ]);
-    }
-
-    public function check()
-    {
-        $result = $this->service->check();
-
-        $message = $result['status'] === 'failed'
-            ? '照合できなかった料金があります（下の「最後の照合」を確認してください）。'
-            : ($result['applied'] + $result['pending'] === 0 ? '料金表は公式のページと同じです。' : "値上がり（自動で反映）{$result['applied']}件・値下がり（確認待ち）{$result['pending']}件がありました。");
-
-        return redirect()->route('ai.settings.edit')->with('status', "料金表を公式のページと照合しました。{$message}");
     }
 
     public function apply(Request $request, int $id)

@@ -213,6 +213,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/ai/settings', [AiSettingsController::class, 'edit'])->name('ai.settings.edit');
     // OpenAI API料金表との同期履歴（メニューの「履歴 → OpenAI API料金表との同期履歴」。全ブログ共通。D-63-27）
     Route::get('/ai/prices/history', [AiPriceController::class, 'history'])->name('ai.prices.history');
+    // OpenAI API料金表情報（メニューの「情報 → OpenAI API料金表情報」。全ブログ共通。D-63-28）
+    Route::get('/ai/prices', [AiPriceController::class, 'index'])->name('ai.prices.index');
     Route::get('/ai/credits', [AiCreditController::class, 'index'])->name('ai.credits.index');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
@@ -232,7 +234,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/ai/credits/purchase', [AiCreditController::class, 'storePurchase'])->name('ai.credits.purchase');
         Route::delete('/ai/credits/{id}', [AiCreditController::class, 'destroy'])->whereNumber('id')->name('ai.credits.destroy');
         // API実行の料金表（D-31-03）
-        Route::post('/ai/prices/check', [AiPriceController::class, 'check'])->name('ai.prices.check');
         Route::post('/ai/prices/changes/{id}/apply', [AiPriceController::class, 'apply'])->whereNumber('id')->name('ai.prices.apply');
         Route::post('/ai/prices/changes/{id}/reject', [AiPriceController::class, 'reject'])->whereNumber('id')->name('ai.prices.reject');
     });
