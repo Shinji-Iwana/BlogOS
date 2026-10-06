@@ -96,7 +96,8 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString('[同期] https://blog.example.test：成功', $run->output);
         $this->assertNotNull($run->peak_memory_mb);
 
-        // トップページの定期実行のパネルから、定期実行の履歴へ（D-63-10）
+        // トップページの定期実行のパネルから、定期実行の履歴へ（D-63-10。前回が失敗した定期実行があるとき）
+        \App\Models\ScheduledTaskRun::create(['task_key' => 'google:fetch', 'trigger' => 'scheduled', 'status' => 'failed', 'started_at' => now(), 'finished_at' => now(), 'pending_jobs' => 0, 'error' => 'テスト']);
         $this->get(route('home'))->assertSee('<a href="' . route('scheduled-tasks.runs') . '">定期実行の履歴</a>', false);
 
         // 定期実行の履歴（メニューの「履歴 → 定期実行」）：定期実行ごとにしぼり込める

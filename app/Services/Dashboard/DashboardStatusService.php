@@ -122,7 +122,7 @@ class DashboardStatusService
 
     protected function wordpress(array $notice): array
     {
-        $panel = ['key' => 'wordpress', 'code' => 'WORDPRESS', 'label' => 'WordPress', 'url' => route('wordpress-updates.index'), 'link' => 'WordPress の更新を確認する'];
+        $panel = ['key' => 'wordpress', 'code' => 'WORDPRESS', 'label' => 'WordPress', 'url' => route('wordpress-updates.index'), 'link' => 'WordPress情報'];
         $lines = array_values(array_filter([
             $notice['closed'] > 0 ? "公開停止のプラグイン {$notice['closed']}件" : null,
             $notice['updates'] > 0 ? "更新 {$notice['updates']}件" : null,

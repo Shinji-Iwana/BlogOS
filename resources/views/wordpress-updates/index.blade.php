@@ -1,12 +1,12 @@
 {{--
-    WordPress 本体・プラグイン・テーマの更新（D-38）
+    WordPress情報：WordPress 本体・プラグイン・テーマの更新（D-38。メニューの「情報 → WordPress」。D-63-11）
 --}}
 
 @extends('layouts.app')
 
 @section('content')
 
-    <h1>WordPress の更新</h1>
+    <h1>WordPress情報</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ $adminUrl }}" target="_blank" rel="noopener noreferrer">WordPress の更新の画面を開く</a></p>
 

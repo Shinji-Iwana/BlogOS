@@ -102,8 +102,16 @@ class ThemeTest extends TestCase
         // 「設定」の左に「履歴」。その中の「WordPressとの同期」で、同期の履歴の画面を開く（D-69）
         $html = $this->get(route('settings'))->getContent();
         $this->assertMatchesRegularExpression('/HISTORY<\/span>\s*<span class="site-menu-label">履歴<\/span>.*?href="' . preg_quote(route('database.sync-runs.index'), '/') . '"\s*>WordPressとの同期<\/a>.*?SETTING<\/span>/s', $html);
+        // 「設定」の右に「情報」。その中の「WordPress」で、WordPress情報の画面を開く（D-63-11）
+        $this->assertMatchesRegularExpression('/SETTING<\/span>.*?INFO<\/span>\s*<span class="site-menu-label">情報<\/span>.*?href="' . preg_quote(route('wordpress-updates.index'), '/') . '"\s*>WordPress<\/a>/s', $html);
         \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
         $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期の履歴</h1>', false);
+        $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報</h1>', false);
+
+        // トップページの「管理」には、WordPress情報・定期実行の履歴の入口を出さない（メニューから開く。D-63-11）
+        $routes = array_column(array_merge(...array_column(\App\Support\DashboardLinks::GROUPS, 'links')), 'route');
+        $this->assertNotContains('wordpress-updates.index', $routes);
+        $this->assertNotContains('scheduled-tasks.runs', $routes);
     }
 
     public function test_unknown_theme_is_rejected_and_falls_back_to_default(): void

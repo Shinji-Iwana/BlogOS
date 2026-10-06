@@ -80,7 +80,7 @@
         <p class="text-error">
             WordPress：@if ($wordpressNotice['updates'])更新が{{ $wordpressNotice['updates'] }}件あります。@endif
             @if ($wordpressNotice['closed'])公開停止になったプラグインが{{ $wordpressNotice['closed'] }}件あります。@endif
-            <a href="{{ route('wordpress-updates.index') }}">WordPress の更新を確認する</a>
+            <a href="{{ route('wordpress-updates.index') }}">WordPress情報</a>
         </p>
     @endif
 

@@ -39,6 +39,10 @@ class MenuItems
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
         ]],
+        // 情報（D-63-11）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
+        ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [
+            ['label' => 'WordPress', 'route' => 'wordpress-updates.index'],
+        ]],
     ];
 
     /**
