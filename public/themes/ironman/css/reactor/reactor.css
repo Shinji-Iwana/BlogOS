@@ -36,8 +36,6 @@
     --reactor-spin-e: 25s;
     --reactor-spin-f: 34s;
 
-    /* コアの背面のコイル（形 2）の回転の速さ（逆向き） */
-    --reactor-spin-core: 40s;
 
     width: clamp(240px, 30vw, 340px);
     aspect-ratio: 1 / 1;
@@ -66,7 +64,6 @@
     --reactor-spin-d: 6s;
     --reactor-spin-e: 8s;
     --reactor-spin-f: 11s;
-    --reactor-spin-core: 10s;
 }
 
 .reactor-svg {

@@ -7,7 +7,7 @@
    ・光（コア・三角・中心・コイルの窓・金属に映る光）は、ゆっくり脈打つ（--reactor-pulse）
    ・コイルの中の電気は、円に沿って流れ、ときどき明滅する（--reactor-flow）
    ・周りの HUD の円は、ゆっくり回る（--reactor-spin-a・b。逆向きに2つ）
-   ・形 2 のコアの背面のコイルは、逆向き（反時計回り）に回る（--reactor-spin-core）
+   ・形 2 のコアの背面のコイルは、金属は回さず、中の電気を外側のコイルと逆向きに流す
    ・速さは reactor/reactor.css の変数で、状態ごとに変える
    ========================================================== */
 
@@ -131,8 +131,13 @@
     transform-origin: 200px 200px;
 }
 
-.reactor-core-coils {
-    animation: reactorSpin var(--reactor-spin-core) linear infinite reverse;
+/* 形 2 のコアの背面のコイル：金属は回さず、中の電気を外側のコイルと逆向きに流す（D-49-06） */
+.reactor-core-coils .reactor-coil-spark-a use {
+    animation-direction: reverse;
+}
+
+.reactor-core-coils .reactor-coil-spark-b use {
+    animation-direction: reverse, normal;
 }
 
 .reactor-hud-a {
