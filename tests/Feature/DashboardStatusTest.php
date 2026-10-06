@@ -45,6 +45,12 @@ class DashboardStatusTest extends TestCase
         $normal = $this->panels($this->data());
         $this->assertSame('normal', $service->overall($normal));
         $this->assertSame(['error' => 0, 'warn' => 0], $service->counts($normal));
+        // パネルのリンクの文言
+        $this->assertSame(['WordPressとの同期履歴', '定期実行履歴', 'WordPress情報'], [
+            collect($normal)->firstWhere('key', 'sync')['link'],
+            collect($normal)->firstWhere('key', 'schedule')['link'],
+            collect($normal)->firstWhere('key', 'wordpress')['link'],
+        ]);
 
         // WordPress の更新は注意、AI の残高が少ないのも注意 → 金
         $warning = $this->panels($this->data(['wordpressNotice' => ['updates' => 2, 'closed' => 0]]), 'warning');

@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('database.sync-runs.index') }}">WordPressとの同期の履歴</a>
+        ・<a href="{{ route('database.sync-runs.index') }}">WordPressとの同期履歴</a>
     </p>
 
     <table class="data">

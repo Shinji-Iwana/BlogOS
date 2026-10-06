@@ -100,7 +100,7 @@ class LoginHistoryTest extends TestCase
         $this->actingAs($user)
             ->get(route('database.login-histories.index'))
             ->assertOk()
-            ->assertSee('<h1>ログインの履歴</h1>', false)
+            ->assertSee('<h1>ログイン履歴</h1>', false)
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
             ->assertDontSee('設定ページに戻る');
 

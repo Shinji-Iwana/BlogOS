@@ -55,7 +55,7 @@ class DashboardLinks
         ['key' => 'system', 'code' => 'SYSTEM', 'label' => '管理', 'links' => [
             // 以前はヘッダーの「BlogOS」の横にあった（D-60）
             ['label' => '設定', 'route' => 'settings', 'blog' => false],
-            // WordPress情報はメニューの「情報 → WordPress」、定期実行の履歴は「履歴 → 定期実行」から開く（D-63-11）。WordPress API情報は「情報 → WordPress API」（D-63-12）
+            // WordPress情報はメニューの「情報 → WordPress」、定期実行履歴は「履歴 → 定期実行」から開く（D-63-11）。WordPress API情報は「情報 → WordPress API」（D-63-12）
             ['label' => 'ブログを登録する', 'route' => 'blogs.create', 'blog' => false],
             ['label' => 'ブログ一覧', 'route' => 'database-blog-list', 'blog' => false],
             ['label' => 'ブログ変更履歴一覧', 'route' => 'database-blog-history-list', 'blog' => false],

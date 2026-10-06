@@ -22,7 +22,7 @@ class MenuItems
         ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
             ['label' => 'WordPressとの同期', 'route' => 'database.sync-runs.index'],
             ['label' => '定期実行', 'route' => 'scheduled-tasks.runs'],
-            // ログインの履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
+            // ログイン履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
             ['label' => 'ログイン', 'route' => 'database.login-histories.index'],
         ]],
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [

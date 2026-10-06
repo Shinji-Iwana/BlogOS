@@ -63,7 +63,7 @@
             定期実行：
             @if ($scheduleNotice['stopped'])26時間以上、定期実行が動いていません（サーバーの cron を確認してください）。@endif
             @if (! empty($scheduleNotice['failed']))前回が失敗した定期実行があります（{{ implode('、', $scheduleNotice['failed']) }}）。@endif
-            <a href="{{ route('scheduled-tasks.runs') }}">定期実行の履歴</a>
+            <a href="{{ route('scheduled-tasks.runs') }}">定期実行履歴</a>
         </p>
     @endif
 

@@ -29,7 +29,7 @@ class ScheduledTaskController extends Controller
 
 
     /**
-     * 定期実行の履歴（メニューの「履歴 → 定期実行」。定期実行ごとにしぼり込める。D-63-08）
+     * 定期実行履歴（メニューの「履歴 → 定期実行」。定期実行ごとにしぼり込める。D-63-08）
      */
     public function runs(Request $request)
     {
@@ -110,7 +110,7 @@ class ScheduledTaskController extends Controller
 
         RunScheduledTaskJob::dispatch($key, $request->user()?->id);
 
-        // メニューの即時実行から送る（D-63-09）。結果は、定期実行の履歴で見る
-        return back()->with('status', '「' . ScheduledTasks::menuLabel($key) . '」を Queue に登録しました（結果は、しばらくしてから「定期実行の履歴」で確認できます）。');
+        // メニューの即時実行から送る（D-63-09）。結果は、定期実行履歴で見る
+        return back()->with('status', '「' . ScheduledTasks::menuLabel($key) . '」を Queue に登録しました（結果は、しばらくしてから「定期実行履歴」で確認できます）。');
     }
 }

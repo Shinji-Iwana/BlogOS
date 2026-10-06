@@ -1,5 +1,5 @@
 {{--
-    定期実行の履歴（scheduled_task_runs。メニューの「履歴 → 定期実行」。D-63-08）
+    定期実行履歴（scheduled_task_runs。メニューの「履歴 → 定期実行」。D-63-08）
     定期実行ごとにしぼり込める（以前は画面「定期実行」の下の「実行の記録」と、各行の「記録を見る」）
 --}}
 
@@ -13,7 +13,7 @@
         use App\Support\ScheduledTasks;
     @endphp
 
-    <h1>定期実行の履歴 @include('partials.tip', ['tip' => '実行の記録は、1年で削除します。'])</h1>
+    <h1>定期実行履歴 @include('partials.tip', ['tip' => '実行の記録は、1年で削除します。'])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 

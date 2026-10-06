@@ -77,7 +77,7 @@ class DashboardStatusService
 
     protected function sync(?array $status): array
     {
-        $panel = ['key' => 'sync', 'code' => 'SYNC', 'label' => '同期', 'url' => route('database.sync-runs.index'), 'link' => 'WordPressとの同期の履歴'];
+        $panel = ['key' => 'sync', 'code' => 'SYNC', 'label' => '同期', 'url' => route('database.sync-runs.index'), 'link' => 'WordPressとの同期履歴'];
         if ($status === null) {
             return $this->none('sync', 'SYNC', '同期');
         }
@@ -108,7 +108,7 @@ class DashboardStatusService
 
     protected function schedule(array $notice): array
     {
-        $panel = ['key' => 'schedule', 'code' => 'SCHEDULE', 'label' => '定期実行', 'url' => route('scheduled-tasks.runs'), 'link' => '定期実行の履歴'];
+        $panel = ['key' => 'schedule', 'code' => 'SCHEDULE', 'label' => '定期実行', 'url' => route('scheduled-tasks.runs'), 'link' => '定期実行履歴'];
 
         if ($notice['stopped']) {
             return $panel + ['state' => self::ERROR, 'value' => '停止の疑い', 'lines' => ['26時間以上動いていません（cron を確認）']];
