@@ -181,6 +181,113 @@ a.button-link:focus-visible {
 }
 
 
+/* ==========================================================
+   ボタンの形：パネルと同じく、四隅を斜めに削った形（八角形）
+   ----------------------------------------------------------
+   ・背景（::before）と枠の線（::after。八角形の輪）を、ボタンの後ろに描く。ボタン自体は切らないため、
+     マウスを乗せたときの光（drop-shadow）も八角形に沿って出る
+   ・色は変数で決める：--btn-fill（背景）・--btn-line（枠の線）・--btn-glow（光）。
+     枠の線の太さは --btn-bw（主な操作の金の縁取りは 2px。補助・取り消せない操作は 1px）
+   ・ヘッダーのアイコンのボタン（ログアウト・音声操作）と、ブログ切替のボタンは、今の形のまま
+   ========================================================== */
+
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button),
+a.button-link {
+    --btn-fill: linear-gradient(180deg, var(--im-red-mid), var(--im-red-deep));
+    --btn-line: var(--im-gold-deep);
+    --btn-glow: rgba(242, 194, 91, 0.45);
+    --btn-bw: 2px;
+    --btn-cut: 7px;
+
+    position: relative;
+    isolation: isolate;
+    background: none;
+    border: var(--btn-bw) solid transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button)::before,
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button)::after,
+a.button-link::before,
+a.button-link::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--btn-bw));
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* 背景 */
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button)::before,
+a.button-link::before {
+    background: var(--btn-fill);
+    clip-path: polygon(
+        var(--btn-cut) 0, calc(100% - var(--btn-cut)) 0, 100% var(--btn-cut), 100% calc(100% - var(--btn-cut)),
+        calc(100% - var(--btn-cut)) 100%, var(--btn-cut) 100%, 0 calc(100% - var(--btn-cut)), 0 var(--btn-cut));
+}
+
+/* 枠の線（外の八角形から、線の太さだけ内側の八角形を抜いた輪） */
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button)::after,
+a.button-link::after {
+    background: var(--btn-line);
+    transition: background var(--im-ease);
+    clip-path: polygon(evenodd,
+        var(--btn-cut) 0, calc(100% - var(--btn-cut)) 0, 100% var(--btn-cut), 100% calc(100% - var(--btn-cut)),
+        calc(100% - var(--btn-cut)) 100%, var(--btn-cut) 100%, 0 calc(100% - var(--btn-cut)), 0 var(--btn-cut), var(--btn-cut) 0,
+        calc(var(--btn-cut) + var(--btn-bw) * 0.41) var(--btn-bw), calc(100% - var(--btn-cut) - var(--btn-bw) * 0.41) var(--btn-bw),
+        calc(100% - var(--btn-bw)) calc(var(--btn-cut) + var(--btn-bw) * 0.41), calc(100% - var(--btn-bw)) calc(100% - var(--btn-cut) - var(--btn-bw) * 0.41),
+        calc(100% - var(--btn-cut) - var(--btn-bw) * 0.41) calc(100% - var(--btn-bw)), calc(var(--btn-cut) + var(--btn-bw) * 0.41) calc(100% - var(--btn-bw)),
+        var(--btn-bw) calc(100% - var(--btn-cut) - var(--btn-bw) * 0.41), var(--btn-bw) calc(var(--btn-cut) + var(--btn-bw) * 0.41),
+        calc(var(--btn-cut) + var(--btn-bw) * 0.41) var(--btn-bw));
+}
+
+/* マウスを乗せたとき：枠の線を明るくし、八角形に沿って光らせる */
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
+button:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible,
+a.button-link:hover,
+a.button-link:focus-visible {
+    --btn-line: var(--im-gold);
+    border-color: transparent;
+    box-shadow: none;
+    filter: brightness(1.15) drop-shadow(0 0 6px var(--btn-glow));
+}
+
+/* 補助の操作（HUD の青白い線） */
+button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
+    --btn-fill: rgba(102, 217, 255, 0.06);
+    --btn-line: var(--im-line-strong);
+    --btn-glow: rgba(102, 217, 255, 0.45);
+    --btn-bw: 1px;
+}
+
+button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
+button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible {
+    --btn-line: var(--im-cyan);
+    filter: drop-shadow(0 0 6px var(--btn-glow));
+}
+
+/* 取り消せない・壊す操作（赤い線と赤い文字） */
+button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
+    --btn-fill: transparent;
+    --btn-line: rgba(255, 90, 82, 0.6);
+    --btn-glow: rgba(255, 90, 82, 0.4);
+    --btn-bw: 1px;
+}
+
+button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
+button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible {
+    --btn-fill: rgba(255, 90, 82, 0.18);
+    --btn-line: var(--im-red);
+    filter: drop-shadow(0 0 6px var(--btn-glow));
+}
+
+/* 押せないボタンは、マウスを乗せても光らせない（種類ごとのマウスを乗せたときの指定より優先する） */
+button:disabled:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
+    filter: none !important;
+}
+
+
 /* 定期実行のポップアップの「前回」が失敗のとき（D-63-06） */
 .schedule-run-failed {
     color: var(--im-red);
