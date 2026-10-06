@@ -57,6 +57,10 @@ class DashboardStatusTest extends TestCase
         $this->assertSame('warning', $service->overall($warning));
         $this->assertSame(['error' => 0, 'warn' => 2], $service->counts($warning));
 
+        // OpenAI API料金表の行（トップページのお知らせと同じ書き出し。D-63-29）
+        $pricePanels = $this->panels($this->data(['priceNotice' => ['pending' => 2, 'failed' => true, 'applied' => 0]]));
+        $this->assertSame(['OpenAI API料金表：読み取れなかった料金あり', 'OpenAI API料金表：値下がりの確認待ち 2件'], collect($pricePanels)->firstWhere('key', 'credit')['lines']);
+
         // リンク切れは要対応 → 赤
         $critical = $this->panels($this->data(['brokenLinks' => 3]));
         $this->assertSame('critical', $service->overall($critical));

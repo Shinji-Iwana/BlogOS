@@ -154,7 +154,7 @@ class AiPriceTest extends TestCase
         $this->assertSame(0, AiPriceChange::count());
         $this->assertSame(0.20, AiPrice::where('price_key', 'gpt-6-sol')->value('cached_input') + 0.0);
 
-        $this->get(route('home'))->assertOk()->assertSee('公式のページから読み取れなかった料金があります。');
+        $this->get(route('home'))->assertOk()->assertSee('OpenAI API料金表：')->assertSee('公式のページから読み取れなかった料金があります。');
         $this->get(route('ai.settings.edit'))->assertOk()->assertSee('読み取れなかった料金があります');
     }
 

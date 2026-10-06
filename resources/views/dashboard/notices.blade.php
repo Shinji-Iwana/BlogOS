@@ -41,7 +41,7 @@
     {{-- API実行の料金表のお知らせ（D-31-03） --}}
     @if ($selectedBlog && ($priceNotice['pending'] || $priceNotice['failed'] || $priceNotice['applied']))
         <p class="text-warn">
-            AIの料金表：
+            OpenAI API料金表：
             @if ($priceNotice['failed'])<strong class="text-error">公式のページから読み取れなかった料金があります。</strong>@endif
             @if ($priceNotice['pending'])値下がりの確認待ちが{{ $priceNotice['pending'] }}件あります。@endif
             @if ($priceNotice['applied'])直近7日に{{ $priceNotice['applied'] }}件の料金を変更しました。@endif

@@ -143,8 +143,8 @@ class DashboardStatusService
         }
 
         $lines = array_values(array_filter([
-            $prices['failed'] ? '料金表：読み取れなかった料金あり' : null,
-            $prices['pending'] ? "料金表：値下がりの確認待ち {$prices['pending']}件" : null,
+            $prices['failed'] ? 'OpenAI API料金表：読み取れなかった料金あり' : null,
+            $prices['pending'] ? "OpenAI API料金表：値下がりの確認待ち {$prices['pending']}件" : null,
         ]));
         $value = $credit['balance'] !== null ? '$' . number_format($credit['balance'], 2) : '未登録';
         $state = match (true) {
