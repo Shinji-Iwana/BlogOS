@@ -101,8 +101,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::put('/scheduled-tasks/{key}', [ScheduledTaskController::class, 'update'])->where('key', '[a-z:-]+')->name('scheduled-tasks.update');
     Route::post('/scheduled-tasks/{key}/run', [ScheduledTaskController::class, 'run'])->where('key', '[a-z:-]+')->name('scheduled-tasks.run');
 
-    // ブログの登録（WORDPRESS_API 29章）
-    Route::get('/blogs/create', [BlogRegistrationController::class, 'create'])->name('blogs.create');
+    // ブログの登録（WORDPRESS_API 29章）。入力は、メニューの「設定 → ブログを登録」のポップアップ（D-63-21）
     Route::post('/blogs', [BlogRegistrationController::class, 'store'])->name('blogs.store');
 
     // 選択中のブログの認証情報（D-03-02、D-03-03）

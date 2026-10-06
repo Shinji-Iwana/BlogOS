@@ -53,6 +53,8 @@ class MenuItems
             ['label' => 'アフィリエイト提携先を登録', 'modal' => 'affiliate-program-modal'],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
+            // 押すとブログの登録ポップアップを開く（以前は画面「ブログ登録」。D-63-21）
+            ['label' => 'ブログを登録', 'modal' => 'blog-register-modal'],
         ]],
         // 情報（D-63-11。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [

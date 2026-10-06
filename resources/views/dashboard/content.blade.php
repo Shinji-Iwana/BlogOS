@@ -16,7 +16,8 @@
 
     {{-- ブログが1件も登録されていない場合は、ブログ登録へ誘導する（DEVELOPMENT_RULES 15章） --}}
     <p>登録されているブログがありません。</p>
-    <p><a href="{{ route('blogs.create') }}">ブログを登録する</a></p>
+    {{-- 押すと、メニューの「設定 → ブログを登録」と同じポップアップを開く（D-63-21） --}}
+    <p><a href="#" data-modal-open="blog-register-modal">ブログを登録する</a></p>
 
 @endif
 

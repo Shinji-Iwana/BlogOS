@@ -152,4 +152,23 @@ class BlogRegistrationTest extends TestCase
 
         $this->assertNull(session()->getOldInput('application_password'));
     }
+
+    public function test_registration_popup_is_in_menu_and_stays_open_with_errors(): void
+    {
+        $this->fakeWordPress(usersMeStatus: 401);
+
+        // メニューの「設定」の「画面のテーマ」の下に「ブログを登録」。押すとポップアップを開く（D-63-21）
+        $html = $this->actingAs($this->user)->get(route('settings'))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/data-modal-open="theme-switch-modal" >画面のテーマ<\/a><\/li>\s*<li><a href="#"\s+data-modal-open="blog-register-modal" >ブログを登録<\/a>/', $html);
+        $this->assertMatchesRegularExpression('/id="blog-register-modal".*?<h2>\s*ブログを登録/s', $html);
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('blogs.create'));
+
+        // WordPress を確認できなければ、開いていた画面に戻り、ポップアップを開いたままにして誤りを出す（パスワードは入れ直す）
+        $this->actingAs($this->user)->from(route('settings'))->post(route('blogs.store'), [
+            '_form' => 'blog-register', 'url' => 'https://blog.example.test/', 'username' => 'admin', 'application_password' => 'abcd efgh ijkl mnop',
+        ])->assertRedirect(route('settings'));
+        $html = $this->actingAs($this->user)->get(route('settings'))->getContent();
+        $this->assertMatchesRegularExpression('/id="blog-register-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?class="text-error".*?value="https:\/\/blog.example.test\/"/s', $html);
+        $this->assertStringNotContainsString('abcd efgh', $html);
+    }
 }

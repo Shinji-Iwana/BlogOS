@@ -14,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * ブログの登録（BLOGOS_WORDPRESS_API.md 29章）。
+ *
+ * 入力は、メニューの「設定 → ブログを登録」のポップアップ（blogs/create-modal。以前は画面「ブログ登録」。D-63-21）。
  */
 class BlogRegistrationController extends Controller
 {
@@ -21,13 +23,6 @@ class BlogRegistrationController extends Controller
         protected BlogRegistrationService $registrationService,
         protected SyncDispatcher $syncDispatcher,
     ) {
-    }
-
-    public function create()
-    {
-        return view('blogs.create', [
-            'qualityProfiles' => QualityProfiles::available(),
-        ]);
     }
 
     public function store(Request $request)

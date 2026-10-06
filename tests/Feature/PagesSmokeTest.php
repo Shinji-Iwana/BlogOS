@@ -87,7 +87,6 @@ class PagesSmokeTest extends TestCase
             'settings'                => ['settings'],
             'db blog list'            => ['database-blog-list'],
             'db blog history list'    => ['database-blog-history-list'],
-            'blog registration'       => ['blogs.create'],
             'blog credentials'        => ['blogs.credentials.edit'],
             'site search'             => ['api-site-search'],
             'login histories'         => ['database.login-histories.index'],
