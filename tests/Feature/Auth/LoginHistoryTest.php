@@ -100,6 +100,13 @@ class LoginHistoryTest extends TestCase
         $this->actingAs($user)
             ->get(route('database.login-histories.index'))
             ->assertOk()
-            ->assertSee('ログイン履歴');
+            ->assertSee('<h1>ログインの履歴</h1>', false)
+            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertDontSee('設定ページに戻る');
+
+        // メニューの「履歴」の「定期実行」の下に「ログイン」。設定の画面には、セキュリティの欄を出さない（D-63-13）
+        $html = $this->get(route('settings'))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/>定期実行<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('database.login-histories.index'), '/') . '"\s*>ログイン<\/a>/', $html);
+        $this->assertStringNotContainsString('<h2>セキュリティ</h2>', $html);
     }
 }
