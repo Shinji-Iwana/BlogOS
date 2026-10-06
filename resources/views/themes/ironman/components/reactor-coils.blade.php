@@ -25,14 +25,14 @@
             <use href="#{{ $rid }}-coil-lines" transform="rotate({{ $i * 36 }} 200 200)"/>
         @endforeach
     </g>
-    <g class="reactor-coil-spark-a" fill="none" filter="url(#{{ $rid }}-neon)">
+    <g class="reactor-coil-spark-a" fill="none">
         @foreach (range(0, 9) as $i)
-            <use href="#{{ $rid }}-coil-lines" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.37, 2) }}s"/>
+            <use href="#{{ $rid }}-coil-lines" filter="url(#{{ $rid }}-neon)" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.37, 2) }}s"/>
         @endforeach
     </g>
-    <g class="reactor-coil-spark-b" fill="none" filter="url(#{{ $rid }}-neon)">
+    <g class="reactor-coil-spark-b" fill="none">
         @foreach (range(0, 9) as $i)
-            <use href="#{{ $rid }}-coil-lines" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.61, 2) }}s"/>
+            <use href="#{{ $rid }}-coil-lines" filter="url(#{{ $rid }}-neon)" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.61, 2) }}s"/>
         @endforeach
     </g>
     {{-- 窓のガラス・上下の棒・左右の留め金・ねじ --}}

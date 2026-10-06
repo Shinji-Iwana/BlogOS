@@ -6,6 +6,7 @@
    ・金属（外枠・ボルト・コイルの枠・内側の輪）は動かさない
    ・光（コア・三角・中心・コイルの窓・金属に映る光）は、ゆっくり脈打つ（--reactor-pulse）
    ・コイルの中の電気は、円に沿って流れ、ときどき明滅する（--reactor-flow）
+   ・コイルの中の電気と周りの HUD の円も、三角のコアと同じ間合いで脈打つ（--reactor-pulse）
    ・周りの HUD の円は、ゆっくり回る（--reactor-spin-a・b。逆向きに2つ）
    ・形 2 のコアの背面のコイルは、金属は回さず、中の電気を外側のコイルと逆向きに流す
    ・速さは reactor/reactor.css の変数で、状態ごとに変える
@@ -111,6 +112,47 @@
     animation: reactorGlow var(--reactor-pulse) ease-in-out infinite;
 }
 
+/* 電気（コイルの中の電気・周りの HUD の円）も、三角のコアと同じ間合いで脈打つ。
+   コイルの電気は、にじみ（SVG の filter neon）を線ごとに付けているため、まとまり（g）の明るさを CSS の filter で変えられる。
+   暗いときはほとんど消え、明るいときは強く光る（変化が分かるよう、HUD の円より幅を大きくする） */
+@keyframes reactorElectricPulse {
+
+    0%,
+    100% {
+        opacity: 0.15;
+        filter: brightness(0.7) saturate(1) drop-shadow(0 0 0 var(--reactor-glow));
+    }
+
+    /* 明るさを上げすぎると白に近づくため、明るさは控えめにし、色の濃さと状態の色の光で目立たせる */
+    35% {
+        opacity: 1;
+        filter: brightness(1.25) saturate(1.8) drop-shadow(0 0 4px var(--reactor-glow));
+    }
+
+}
+
+@keyframes reactorHudPulse {
+
+    0%,
+    100% {
+        opacity: 0.45;
+        filter: brightness(0.9) saturate(1) drop-shadow(0 0 0 var(--reactor-glow));
+    }
+
+    /* コイルの電気と同じく、明るさは控えめにし、色の濃さと状態の色の光で目立たせる（白っぽくしない） */
+    35% {
+        opacity: 1;
+        filter: brightness(1.15) saturate(1.8) drop-shadow(0 0 3px var(--reactor-glow));
+    }
+
+}
+
+.reactor-coil-base,
+.reactor-coil-spark-a,
+.reactor-coil-spark-b {
+    animation: reactorElectricPulse var(--reactor-pulse) ease-in-out infinite;
+}
+
 /* コイルは1つずつずらして脈打つ（ずらす時間は SVG の style="animation-delay"） */
 .reactor-coil-lights use {
     animation: reactorPulse var(--reactor-pulse) ease-in-out infinite;
@@ -140,27 +182,40 @@
     animation-direction: reverse, normal;
 }
 
+/* 回りながら、三角のコアと同じ間合いで脈打つ（reactorHudPulse） */
 .reactor-hud-a {
-    animation: reactorSpin var(--reactor-spin-a) linear infinite;
+    animation:
+        reactorSpin var(--reactor-spin-a) linear infinite,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
 
 .reactor-hud-b {
-    animation: reactorSpin var(--reactor-spin-b) linear infinite reverse;
+    animation:
+        reactorSpin var(--reactor-spin-b) linear infinite reverse,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
 
 /* 外側に広がる電子の輪：右回り・左回りを交互にする（b が左回りのため、c は右回りから） */
 .reactor-hud-c {
-    animation: reactorSpin var(--reactor-spin-c) linear infinite;
+    animation:
+        reactorSpin var(--reactor-spin-c) linear infinite,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
 
 .reactor-hud-d {
-    animation: reactorSpin var(--reactor-spin-d) linear infinite reverse;
+    animation:
+        reactorSpin var(--reactor-spin-d) linear infinite reverse,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
 
 .reactor-hud-e {
-    animation: reactorSpin var(--reactor-spin-e) linear infinite;
+    animation:
+        reactorSpin var(--reactor-spin-e) linear infinite,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
 
 .reactor-hud-f {
-    animation: reactorSpin var(--reactor-spin-f) linear infinite reverse;
+    animation:
+        reactorSpin var(--reactor-spin-f) linear infinite reverse,
+        reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
