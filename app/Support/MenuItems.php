@@ -49,6 +49,8 @@ class MenuItems
             ['label' => '即時実行', 'children' => 'run-now'],
             // 定期実行の設定（下の階層。項目は ScheduledTasks::MENU。押すと、いつ・有効の設定のポップアップを開く。D-63）
             ['label' => '定期実行', 'children' => 'scheduled-tasks'],
+            // 押すとアフィリエイト提携先の登録ポップアップを開く（以前は画面「アフィリエイトのプログラム」の欄。D-63-20）
+            ['label' => 'アフィリエイト提携先を登録', 'modal' => 'affiliate-program-modal'],
             // 押すとテーマ切替ポップアップを開く（画面は移らない。D-57）
             ['label' => '画面のテーマ', 'modal' => 'theme-switch-modal'],
         ]],

@@ -45,7 +45,7 @@ class AffiliateProgramController extends Controller
     }
 
     /**
-     * プログラムを手で登録する（もしもの広告ID（p_id）、または識別子）
+     * プログラムを手で登録する（もしもの広告ID（p_id）、または識別子。メニューの「設定 → アフィリエイト提携先を登録」。D-63-20）
      */
     public function store(Request $request)
     {
@@ -73,7 +73,8 @@ class AffiliateProgramController extends Controller
         ]);
         $this->programs->forget($blog->id);
 
-        return redirect()->route('materials.programs.index')->with('status', "プログラム「{$validated['name']}」を登録しました。");
+        // メニューのポップアップから登録する。開いていた画面に戻り、ポップアップを開いて結果を出す（D-63-20）
+        return back()->with('status', "プログラム「{$validated['name']}」を登録しました。")->with('affiliate_program_modal', true);
     }
 
     public function update(Request $request, int $id)

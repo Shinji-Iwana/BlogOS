@@ -17,6 +17,7 @@
     <p class="text-muted">
         ASP（もしもアフィリエイトなど）で提携している広告と、その状態です。状態が「申請中・否認・提携終了」のプログラムのリンクは、記事で紹介に使いません（AIの教材の候補から外します）。
         「未確認」は、記事のリンクから自動で登録したもので、今の記事を止めないよう使える扱いにしています。ASP の管理画面で状態を確かめて、直してください。
+        まだ記事で使っていないプログラムは、メニューの「設定 → <a href="#" data-modal-open="affiliate-program-modal">アフィリエイト提携先を登録</a>」で登録できます。
     </p>
 
     <form method="POST" action="{{ route('materials.programs.register') }}" style="margin-bottom:8px;">
@@ -126,41 +127,5 @@
             </table>
         </div>
     @endif
-
-    <section class="panel">
-    <h2>プログラムを登録する</h2>
-    <p class="text-muted">まだ記事で使っていないプログラム（申請中・否認を含む）を登録します。もしもアフィリエイトの広告IDは、リンクの <code>p_id=</code> の数字です。</p>
-    <form method="POST" action="{{ route('materials.programs.store') }}">
-        @csrf
-        @include('partials.selected-blog-field')
-        <p>
-            ASP
-            <select name="asp">
-                <option value="moshimo" @selected(old('asp') === 'moshimo')>もしもアフィリエイト</option>
-                <option value="a8" @selected(old('asp') === 'a8')>A8.net</option>
-                <option value="other" @selected(old('asp') === 'other')>その他</option>
-            </select>
-            広告ID <input type="text" name="external_id" value="{{ old('external_id') }}" style="width:100px;">
-            名前 <input type="text" name="name" value="{{ old('name') }}" style="width:260px;">
-        </p>
-        <p>
-            教材の種類
-            <select name="material_kind">
-                <option value="">（決めない）</option>
-                @foreach (\App\Enums\MaterialKind::cases() as $option)
-                    <option value="{{ $option->value }}" @selected(old('material_kind') === $option->value)>{{ $option->label() }}</option>
-                @endforeach
-            </select>
-            状態
-            <select name="status">
-                @foreach (\App\Enums\AffiliateProgramStatus::cases() as $option)
-                    <option value="{{ $option->value }}" @selected(old('status', 'active') === $option->value)>{{ $option->label() }}</option>
-                @endforeach
-            </select>
-        </p>
-        <p>メモ <input type="text" name="memo" value="{{ old('memo') }}" style="width:400px;"></p>
-        <p><button type="submit">登録する</button></p>
-    </form>
-    </section>
 
 @endsection
