@@ -170,7 +170,7 @@ class AiCreditTest extends TestCase
     }
     public function test_balance_and_purchase_are_registered_from_menu_popups(): void
     {
-        // メニューの「設定 → AI」に2つの項目があり、それぞれポップアップを開く。日時の欄には今が入っている（D-62）
+        // メニューの「設定 → OpenAI」に2つの項目があり、それぞれポップアップを開く。日時の欄には今が入っている（D-62）
         $this->travelTo(now()->setTime(12, 34));
         $home = $this->get(route('home'))->assertOk()
             ->assertSee('data-modal-open="credit-balance-modal"', false)
@@ -179,6 +179,9 @@ class AiCreditTest extends TestCase
             ->assertSee('id="credit-purchase-modal"', false)
             ->getContent();
         $this->assertStringContainsString('value="' . now(config('blogos.display_timezone'))->format('Y-m-d\TH:i') . '"', $home);
+        // メニューの名前は「OpenAI」「課金額を登録」（D-63-24）。ポップアップの題名も同じ
+        $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?data-modal-open="credit-purchase-modal" >課金額を登録<\/a>/s', $home);
+        $this->assertMatchesRegularExpression('/id="credit-purchase-modal".*?<h2>\s*課金額を登録/s', $home);
         // 「AIの費用と残高」の画面には、もう登録の欄はない
         $this->get(route('ai.credits.index'))->assertOk()->assertDontSee('<h2>登録する</h2>', false)->assertDontSee('空なら今');
 

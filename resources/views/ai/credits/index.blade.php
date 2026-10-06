@@ -1,6 +1,6 @@
 {{--
     AIの費用と残高（全ブログ共通。D-31-04）：OpenAI の残高の見込み、OpenAI の画面と比べるための日ごとの記録、登録の記録
-    残高・課金の登録は、メニューの「設定 → AI」のポップアップ（ai/credits/modals。D-62）
+    残高・課金の登録は、メニューの「設定 → OpenAI」のポップアップ（ai/credits/modals。D-62）
 --}}
 
 @extends('layouts.app')
@@ -20,16 +20,16 @@
 
     <p class="text-muted">
         OpenAI の API は前払い（チャージした残高から引かれる）です。BlogOS は OpenAI の残高を直接取得できないため、
-        OpenAI の画面で見た残高と、課金した額を登録し（メニューの「設定 → AI」の
+        OpenAI の画面で見た残高と、課金した額を登録し（メニューの「設定 → OpenAI」の
         「<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」
-        「<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-purchase-modal">課金した額を登録</a>」）、その後のAPI実行の費用の目安を引いて、残高を見込みます。
+        「<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-purchase-modal">課金額を登録</a>」）、その後のAPI実行の費用の目安を引いて、残高を見込みます。
         見込みが ${{ number_format($status['warning'], 2) }} 以下になったら画面で知らせ、足りなくなる見込みならAPI実行を止めます（${{ number_format($status['reserve'], 2) }} は、見込みのずれに備えて残します）。
     </p>
 
     <section class="panel">
     <h2>残高の見込み</h2>
     @if ($status['base'] === null)
-        <p>まだ残高が登録されていません。メニューの「設定 → AI →<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」から登録してください。</p>
+        <p>まだ残高が登録されていません。メニューの「設定 → OpenAI →<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」から登録してください。</p>
     @else
         <table class="data">
             <tr><th style="text-align:left;">最後に登録した残高</th><td>${{ number_format($status['base']->amount, 2) }}（{{ \App\Support\DisplayTime::format($status['base']->occurred_at) }}）</td></tr>

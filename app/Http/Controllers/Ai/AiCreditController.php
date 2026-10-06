@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * AIの費用と残高（全ブログ共通。D-31-04）。
  *
- * OpenAI の画面で見た残高と、課金した額を登録する（メニューの「設定 → AI」のポップアップ。ai/credits/modals。D-62）。
+ * OpenAI の画面で見た残高と、課金した額を登録する（メニューの「設定 → OpenAI」のポップアップ。ai/credits/modals。D-62）。
  * BlogOS の日ごと・モデルごとの記録を、OpenAI の Usage の画面と比べられるように表示する。
  * 処理ごと（品質診断・記事改修など）・きっかけごとの内訳も出す（何に費用がかかっているかを見るため。D-66）。
  */

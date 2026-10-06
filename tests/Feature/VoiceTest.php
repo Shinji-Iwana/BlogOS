@@ -233,7 +233,7 @@ class VoiceTest extends TestCase
         $this->assertSame('gpt-realtime-2.1', app(VoiceSettings::class)->realtimeModel());
         $this->put(route('voice.settings.update'), ['enabled' => '1', 'mode' => 'x', 'voice' => 'onyx'])->assertSessionHasErrors('mode');
 
-        // 設定はメニューの「AI → 音声操作」のポップアップにある。AIの設定の画面には、もうない（D-61）
+        // 設定はメニューの「設定 → OpenAI → 音声操作」のポップアップにある。AIの設定の画面には、もうない（D-61）
         $this->get(route('home'))->assertOk()
             ->assertSee('data-modal-open="voice-settings-modal"', false)
             ->assertSee('id="voice-settings-modal"', false)

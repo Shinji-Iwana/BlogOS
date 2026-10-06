@@ -1,7 +1,7 @@
 {{--
     音声操作ポップアップ（D-61。以前は画面「AIの設定」の「音声の操作」の欄。D-58）
 
-    メニューの「設定 → AI → 音声操作」を押した場合に表示する（data-modal-open="voice-settings-modal"。layouts/header から読み込む）。
+    メニューの「設定 → OpenAI → 音声操作」を押した場合に表示する（data-modal-open="voice-settings-modal"。layouts/header から読み込む）。
     テーマ切替・ブログ切替のポップアップと同じ形。BlogOS 全体の設定（system_settings の voice.*）。
     保存した後は、開いていた画面に戻る。入力の誤りで戻ったときは、ポップアップを開いたままにして誤りを出す。
     説明は、各項目の「?」のツールチップに出す（data-tip。public/js/blogos.js。D-61-02）。

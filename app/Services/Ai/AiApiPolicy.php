@@ -288,7 +288,7 @@ class AiApiPolicy
         $credit = $this->credits->status();
         if ($credit['balance'] !== null && $credit['balance'] - $max < $credit['reserve']) {
             throw new AiApiUnavailableException(sprintf(
-                'OpenAI の残高が足りなくなる見込みのため、実行しません（残高の見込み $%.2f − 今回の最大 $%.2f ＜ 残しておく額 $%.2f）。OpenAI の画面（Billing）で残高を確認し、課金した場合は、BlogOS の「AIの費用と残高」に課金した額を登録してください。見込みと実際の残高が違う場合は、実際の残高を登録してください。',
+                'OpenAI の残高が足りなくなる見込みのため、実行しません（残高の見込み $%.2f − 今回の最大 $%.2f ＜ 残しておく額 $%.2f）。OpenAI の画面（Billing）で残高を確認し、課金した場合は、BlogOS のメニューの「設定 → OpenAI → 課金額を登録」で課金した額を登録してください。見込みと実際の残高が違う場合は、実際の残高を登録してください。',
                 $credit['balance'],
                 $max,
                 $credit['reserve']

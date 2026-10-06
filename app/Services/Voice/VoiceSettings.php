@@ -8,7 +8,7 @@ use App\Services\Ai\AiApiPolicy;
 /**
  * 音声の操作の設定（D-58）。BlogOS 全体の設定（system_settings の voice.*）。
  *
- * メニューの「AI → 音声操作」のポップアップ（voice/settings-modal。D-61）で変える。行がなければ config/blogos.php の voice の初期値。
+ * メニューの「設定 → OpenAI → 音声操作」のポップアップ（voice/settings-modal。D-61）で変える。行がなければ config/blogos.php の voice の初期値。
  */
 class VoiceSettings
 {

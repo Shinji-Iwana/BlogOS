@@ -1,7 +1,7 @@
 {{--
     残高・課金の登録ポップアップ（D-62。以前は画面「AIの費用と残高」の「登録する」の欄。D-31-04）
 
-    メニューの「設定 → AI → OpenAIの画面で見た残高を登録」「課金した額を登録」を押した場合に表示する
+    メニューの「設定 → OpenAI → OpenAIの画面で見た残高を登録」「課金額を登録」を押した場合に表示する
     （data-modal-open="credit-balance-modal"・"credit-purchase-modal"。layouts/header から読み込む）。
     テーマ切替・音声操作のポップアップと同じ形。説明は、各項目の「?」のツールチップに出す（partials/tip）。
     日時の欄は、ポップアップを開いた時刻（日本時間）を初めから入れる（data-default-now。layouts/header の JavaScript）。
@@ -19,7 +19,7 @@
             'submit' => '残高を登録する',
         ],
         'purchase' => [
-            'title'  => '課金した額を登録',
+            'title'  => '課金額を登録',
             'route'  => 'ai.credits.purchase',
             'tip'    => "OpenAI で課金した額を登録すると、残高の見込みに加えます。\n課金の直後に残高も見た場合は、「OpenAIの画面で見た残高を登録」だけでもかまいません。",
             'amount' => ['label' => '課金した額（米ドル）', 'tip' => '残高に加わった額（税を除く）。'],

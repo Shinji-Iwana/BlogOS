@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
  * 音声の操作（ジャービス。D-58）。
  *
  * turn：ブラウザで録音した1回の発言を受け取り、聞き取った文字・返事・返事の声（MP3）・画面を移る URL を JSON で返す。
- * updateSettings：メニューの「AI → 音声操作」のポップアップ（BlogOS 全体の設定。D-61）。
+ * updateSettings：メニューの「設定 → OpenAI → 音声操作」のポップアップ（BlogOS 全体の設定。D-61）。
  */
 class VoiceController extends Controller
 {
