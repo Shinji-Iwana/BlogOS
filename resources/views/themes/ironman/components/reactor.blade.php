@@ -29,8 +29,20 @@
         . ' L' . $pt($r1, $to) . ' A' . $r1 . ',' . $r1 . ' 0 0 0 ' . $pt($r1, $from) . ' Z';
     // 小さな円（ねじ。半径 $r・角度 $deg の位置に、大きさ $size）
     $dot = fn (float $r, float $deg, float $size) => sprintf('<circle cx="%.2f" cy="%.2f" r="%s"/>', 200 + $r * sin(deg2rad($deg)), 200 - $r * cos(deg2rad($deg)), $size);
-    // 正三角形（下向き。中心から頂点までの距離 $r）
-    $triangle = fn (float $r) => 'M' . $pt($r, 180) . ' L' . $pt($r, 300) . ' L' . $pt($r, 60) . ' Z';
+    // 正三角形（下向き。中心から頂点までの距離 $r）。角は C 面取りする（各頂点から、辺の長さの $chamfer の位置で斜めに切る）
+    $chamfer = 0.17;
+    $triangle = function (float $r) use ($chamfer) {
+        $corners = array_map(fn ($deg) => [200 + $r * sin(deg2rad($deg)), 200 - $r * cos(deg2rad($deg))], [180, 300, 60]);
+        $points = [];
+        foreach ($corners as $i => [$x, $y]) {
+            [$px, $py] = $corners[($i + 2) % 3];
+            [$nx, $ny] = $corners[($i + 1) % 3];
+            $points[] = sprintf('%.2f,%.2f', $x + ($px - $x) * $chamfer, $y + ($py - $y) * $chamfer);
+            $points[] = sprintf('%.2f,%.2f', $x + ($nx - $x) * $chamfer, $y + ($ny - $y) * $chamfer);
+        }
+
+        return 'M' . implode(' L', $points) . ' Z';
+    };
 @endphp
 <div class="reactor" data-state="{{ $reactorState ?? 'normal' }}" @if ($reactorBusy ?? false) data-busy="1" @endif>
     <svg class="reactor-svg" viewBox="0 0 400 400" role="img" aria-label="アークリアクター">
@@ -244,23 +256,25 @@
 
         {{-- ===== 金属で縁取った三角のコア（Mark VI） ===== --}}
         {{-- 三角の後ろに広がる光 --}}
-        <path class="reactor-tri" d="{{ $triangle(59) }}" fill="none" stroke-width="30" stroke-linejoin="round" style="stroke: var(--reactor-glow)" opacity="0.5" filter="url(#{{ $rid }}-blur-strong)"/>
+        <path class="reactor-tri" d="{{ $triangle(77) }}" fill="none" stroke-width="30" stroke-linejoin="round" style="stroke: var(--reactor-glow)" opacity="0.5" filter="url(#{{ $rid }}-blur-strong)"/>
         @if ($variant === 2)
-            {{-- 形 2：コアの一番外側の三角の金属（外 97・内 71。辺の太さ 13 は、コアを囲む金属の輪と同じ）。頂点を、コアを囲む金属の輪に、留め具でつなぐ --}}
-            <path d="{{ $triangle(97) }} {{ $triangle(71) }}" fill="url(#{{ $rid }}-chrome-b)" fill-rule="evenodd" stroke="#020304" stroke-width="1" stroke-linejoin="round"/>
+            {{-- 形 2：コアの一番外側の三角の金属（外 122・内 109。細い金属の枠。辺の太さ 6.5）。
+                 角は面取りし、面取りした面を、コアを囲む金属の輪（半径 84〜98）の上に乗せて、留め具でつなぐ
+                 （面の中央が半径 122×(1−1.5×0.17)≒91 になる大きさ） --}}
+            <path d="{{ $triangle(122) }} {{ $triangle(109) }}" fill="url(#{{ $rid }}-chrome-b)" fill-rule="evenodd" stroke="#020304" stroke-width="1" stroke-linejoin="round"/>
             <g fill="url(#{{ $rid }}-chrome-a)" stroke="#020304" stroke-width="0.8">
                 @foreach ([180, 300, 60] as $deg)
                     {!! $dot(91, $deg, 4.6) !!}
                 @endforeach
             </g>
         @endif
-        {{-- 金属の縁（外 80・内 38） --}}
-        <path d="{{ $triangle(80) }} {{ $triangle(38) }}" fill="url(#{{ $rid }}-chrome-c)" fill-rule="evenodd" stroke="#020304" stroke-width="1" stroke-linejoin="round"/>
-        {{-- 光る帯（外 71・内 47）と、帯の中を通る明るい線（暗くしすぎない脈打ち） --}}
+        {{-- 金属の縁（外 104・内 50） --}}
+        <path d="{{ $triangle(104) }} {{ $triangle(50) }}" fill="url(#{{ $rid }}-chrome-c)" fill-rule="evenodd" stroke="#020304" stroke-width="1" stroke-linejoin="round"/>
+        {{-- 光る帯（外 92・内 61）と、帯の中を通る明るい線（暗くしすぎない脈打ち） --}}
         <g class="reactor-tri">
-            <path d="{{ $triangle(71) }} {{ $triangle(47) }}" fill="url(#{{ $rid }}-tri)" fill-rule="evenodd" stroke-linejoin="round" filter="url(#{{ $rid }}-blur-strong)"/>
-            <path d="{{ $triangle(59) }}" fill="none" stroke-width="4" stroke-linejoin="round" style="stroke: var(--reactor-bright)" filter="url(#{{ $rid }}-neon)"/>
-            <path d="{{ $triangle(59) }}" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
+            <path d="{{ $triangle(92) }} {{ $triangle(61) }}" fill="url(#{{ $rid }}-tri)" fill-rule="evenodd" stroke-linejoin="round" filter="url(#{{ $rid }}-blur-strong)"/>
+            <path d="{{ $triangle(77) }}" fill="none" stroke-width="4" stroke-linejoin="round" style="stroke: var(--reactor-bright)" filter="url(#{{ $rid }}-neon)"/>
+            <path d="{{ $triangle(77) }}" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
         </g>
 
         {{-- ===== 金属の輪で囲んだ中心の光 ===== --}}
