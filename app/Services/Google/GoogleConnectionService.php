@@ -5,6 +5,7 @@ namespace App\Services\Google;
 use App\Clients\Google\GoogleApiClient;
 use App\Clients\Google\GoogleApiException;
 use App\Clients\Google\GoogleOAuthClient;
+use App\Enums\GoogleService;
 use App\Models\GoogleAccount;
 use App\Repositories\GoogleAccountRepository;
 
@@ -66,6 +67,26 @@ class GoogleConnectionService
             'search_console' => $this->collect(fn () => $this->searchConsoleSites($client)),
             'adsense'        => $this->collect(fn () => $this->adsenseAccounts($client)),
         ];
+    }
+
+    /**
+     * 1つのサービスの対応先の候補（メニューの「設定 → Google」のポップアップの「候補を読み込む」。D-63-19）
+     *
+     * @return array{items: array<int, array{resource_name: string, display_name: string, domains?: array<int, string>}>, error: string|null}
+     */
+    public function candidatesFor(GoogleAccount $account, GoogleService $service): array
+    {
+        try {
+            $client = $this->tokens->clientFor($account);
+        } catch (GoogleApiException $e) {
+            return ['items' => [], 'error' => $e->getMessage()];
+        }
+
+        return match ($service) {
+            GoogleService::Ga4           => $this->collect(fn () => $this->ga4Properties($client)),
+            GoogleService::SearchConsole => $this->collect(fn () => $this->searchConsoleSites($client)),
+            GoogleService::Adsense       => $this->collect(fn () => $this->adsenseAccounts($client)),
+        };
     }
 
     protected function collect(callable $callback): array

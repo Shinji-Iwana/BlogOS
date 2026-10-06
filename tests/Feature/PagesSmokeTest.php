@@ -114,6 +114,7 @@ class PagesSmokeTest extends TestCase
             'affiliate programs'      => ['materials.programs.index'],
             'article titles'          => ['articles.titles'],
             'google index status'     => ['google.index-status'],
+            'google fetch runs'       => ['google.fetch-runs.index'],
             'wordpress updates'       => ['wordpress-updates.index'],
             'link switch'             => ['drafts.link-switch'],
             'topic planning'          => ['topics.index'],

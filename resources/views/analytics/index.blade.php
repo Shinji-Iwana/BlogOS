@@ -12,7 +12,6 @@
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('google.settings') }}">Google連携の設定</a>
     </p>
 
     <p>

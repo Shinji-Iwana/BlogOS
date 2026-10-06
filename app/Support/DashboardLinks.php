@@ -50,7 +50,7 @@ class DashboardLinks
             ['label' => '記事の実績と次にやること', 'route' => 'analytics.performance', 'blog' => true],
             ['label' => 'AdSense（推定収益額・残高・広告ユニット）', 'route' => 'analytics.adsense', 'blog' => true],
             ['label' => 'インデックスの登録状態', 'route' => 'google.index-status', 'blog' => true],
-            ['label' => 'Google連携の設定', 'route' => 'google.settings', 'blog' => true],
+            // Google連携の設定は、メニューの「設定 → Google」のポップアップ（D-63-19）
         ]],
         ['key' => 'system', 'code' => 'SYSTEM', 'label' => '管理', 'links' => [
             // 以前はヘッダーの「BlogOS」の横にあった（D-60）

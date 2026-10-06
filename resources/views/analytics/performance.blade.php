@@ -13,7 +13,7 @@
     @include('partials.flash')
 
     @if ($period === null)
-        <p>Google のデータがまだありません。<a href="{{ route('google.settings') }}">Google連携の設定</a>で取得してください。</p>
+        <p>Google のデータがまだありません。メニューの「設定 → Google」で対応先を選ぶと、毎日の定期実行で取得します（すぐ取得するときは、メニューの「設定 → 即時実行 → Googleとの同期」）。</p>
     @else
         <p class="text-muted">
             Search Console・GA4 の数字（{{ $period['from']->toDateString() }}〜{{ $period['to']->toDateString() }}。前の期間 {{ $period['previous_from']->toDateString() }}〜{{ $period['previous_to']->toDateString() }} と比べる）と、品質評価を並べ、決まった規則で次にやることを出します。

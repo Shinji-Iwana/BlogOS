@@ -17,7 +17,7 @@
     @include('partials.flash')
 
     @unless ($configured)
-        <p class="text-error">Search Console のプロパティが設定されていません。<a href="{{ route('google.settings') }}">Google連携の設定</a>で選んでください。</p>
+        <p class="text-error">Search Console のプロパティが設定されていません。メニューの「設定 → Google → <a href="#" data-modal-open="google-search-console-modal">Search Console</a>」で選んでください。</p>
     @else
         <p class="text-muted">
             Search Console の URL 検査で、公開中の記事が Google に登録されているかを調べます（毎日 05:30 に、まだ調べていない記事・反映で変わった記事・前に調べてから日数が過ぎた記事を調べます）。

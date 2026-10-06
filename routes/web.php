@@ -293,7 +293,11 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     });
 
     // Google連携（D-21-01、D-21-07）と分析
-    Route::get('/google', [GoogleSettingsController::class, 'index'])->name('google.settings');
+    // Googleとの同期履歴（メニューの「履歴 → Googleとの同期履歴」）。接続と対応先は、メニューの「設定 → Google」のポップアップ（D-63-19）
+    Route::get('/google/fetch-runs', [GoogleSettingsController::class, 'runs'])->name('google.fetch-runs.index');
+    Route::get('/google/candidates/{service}', [GoogleSettingsController::class, 'candidates'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.candidates');
+    // 接続の解除は、ブログを選んでいなくてもできる
+    Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
     Route::get('/google/index-status', [GoogleIndexController::class, 'index'])->name('google.index-status');
     Route::get('/wordpress-updates', [WordPressUpdateController::class, 'index'])->name('wordpress-updates.index');
     Route::get('/google/oauth/redirect', [GoogleOAuthController::class, 'redirect'])->name('google.oauth.redirect');
@@ -308,7 +312,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::put('/google/properties/{service}', [GoogleSettingsController::class, 'updateProperty'])->whereIn('service', ['ga4', 'search_console', 'adsense'])->name('google.properties.update');
-        Route::delete('/google/accounts/{id}', [GoogleSettingsController::class, 'destroyAccount'])->whereNumber('id')->name('google.accounts.destroy');
         Route::post('/google/index-status', [GoogleIndexController::class, 'run'])->name('google.index-status.run');
     });
 });

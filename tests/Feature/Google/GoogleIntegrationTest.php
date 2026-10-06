@@ -226,12 +226,14 @@ class GoogleIntegrationTest extends TestCase
         $this->actingAs($this->user)->get(route('google.oauth.callback', ['state' => 'wrong', 'code' => 'x']))->assertSessionHasErrors('google');
         $this->assertSame(0, GoogleAccount::count());
 
-        $response = $this->actingAs($this->user)->get('/google/oauth/redirect');
+        // 接続を始めた画面（ここでは分析の画面）に戻り、アカウントのポップアップを開く（D-63-19）
+        $response = $this->actingAs($this->user)->from(route('analytics.index'))->get('/google/oauth/redirect');
         parse_str(parse_url($response->headers->get('Location'), PHP_URL_QUERY), $params);
 
         // 試作のときに登録したリダイレクトURIでも受け付ける
         $this->actingAs($this->user)->get('/adsense/oauth/callback?' . http_build_query(['state' => $params['state'], 'code' => 'auth-code']))
-            ->assertRedirect(route('google.settings'));
+            ->assertRedirect(route('analytics.index'))
+            ->assertSessionHas('google_modal', 'google-account-modal');
 
         $account = GoogleAccount::sole();
         $this->assertSame('owner@example.com', $account->email);
@@ -398,25 +400,39 @@ class GoogleIntegrationTest extends TestCase
     {
         $account = $this->connectAccount();
 
-        $this->actingAs($this->user)->get(route('google.settings'))->assertOk()->assertSee('owner@example.com')->assertDontSee('valid-token');
-        $this->actingAs($this->user)->get(route('google.settings', ['candidates' => $account->id]))
-            ->assertOk()
-            ->assertSee('properties/123')
-            ->assertSee('sc-domain:blog.example.test')
-            ->assertSee('accounts/pub-111');
+        // メニューの「設定 → Google」の下に、アカウント・GA4・Search Console・AdSense のポップアップ（D-63-19）
+        $html = $this->actingAs($this->user)->get(route('settings'))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<summary>AI<\/summary>.*?<summary>Google<\/summary>.*?data-modal-open="google-account-modal" >アカウント<\/a>.*?data-modal-open="google-ga4-modal" >Google Analytics 4<\/a>.*?data-modal-open="google-search-console-modal" >Search Console<\/a>.*?data-modal-open="google-adsense-modal" >AdSense<\/a>.*?<summary>即時実行<\/summary>/s', $html);
+        $this->assertStringContainsString('owner@example.com', $html);
+        $this->assertStringNotContainsString('valid-token', $html);
+        foreach (['google-account-modal', 'google-ga4-modal', 'google-search-console-modal', 'google-adsense-modal'] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $html);
+        }
 
-        $this->actingAs($this->user)->put(route('google.properties.update', ['service' => 'ga4']), [
-            'selected_blog_id' => $this->blog->id, 'google_account_id' => $account->id, 'resource_name' => '123',
-        ])->assertSessionHasErrors('resource_name');
+        // 候補は、ポップアップの「候補を読み込む」で、サービスごとに読む
+        $this->actingAs($this->user)->getJson(route('google.candidates', ['service' => 'ga4', 'account' => $account->id]))
+            ->assertOk()->assertJsonPath('items.0.resource_name', 'properties/123')->assertJsonPath('error', null);
+        $this->actingAs($this->user)->getJson(route('google.candidates', ['service' => 'search_console', 'account' => $account->id]))
+            ->assertOk()->assertJsonFragment(['resource_name' => 'sc-domain:blog.example.test']);
+        $this->actingAs($this->user)->getJson(route('google.candidates', ['service' => 'adsense', 'account' => $account->id]))
+            ->assertOk()->assertJsonPath('items.0.resource_name', 'accounts/pub-111')->assertJsonPath('items.0.domain', 'blog.example.test');
 
-        $this->actingAs($this->user)->put(route('google.properties.update', ['service' => 'ga4']), [
+        // 入力の誤りは、開いていた画面に戻り、ポップアップを開いて誤りを出す
+        $this->actingAs($this->user)->from(route('analytics.index'))->put(route('google.properties.update', ['service' => 'ga4']), [
+            'selected_blog_id' => $this->blog->id, '_form' => 'google-ga4-modal', 'google_account_id' => $account->id, 'resource_name' => '123',
+        ])->assertRedirect(route('analytics.index'))->assertSessionHasErrors('resource_name');
+        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-autoopen/', $this->actingAs($this->user)->get(route('analytics.index'))->getContent());
+
+        $this->actingAs($this->user)->from(route('analytics.index'))->put(route('google.properties.update', ['service' => 'ga4']), [
             'selected_blog_id' => $this->blog->id, 'google_account_id' => $account->id, 'resource_name' => 'properties/123', 'display_name' => 'si-note',
-        ])->assertSessionHasNoErrors();
+        ])->assertSessionHasNoErrors()->assertRedirect(route('analytics.index'))->assertSessionHas('google_modal', 'google-ga4-modal');
         $this->assertSame('properties/123', BlogGoogleProperty::sole()->resource_name);
+        $after = $this->actingAs($this->user)->get(route('analytics.index'))->getContent();
+        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?Google Analytics 4の対応先を保存しました/s', $after);
 
-        // 接続の解除で、対応先の設定も解除する
-        $this->actingAs($this->user)->delete(route('google.accounts.destroy', ['id' => $account->id]), ['selected_blog_id' => $this->blog->id])
-            ->assertRedirect(route('google.settings'));
+        // 接続の解除で、対応先の設定も解除する（ブログを選んでいなくてもできる）
+        $this->actingAs($this->user)->from(route('settings'))->delete(route('google.accounts.destroy', ['id' => $account->id]))
+            ->assertRedirect(route('settings'))->assertSessionHas('google_modal', 'google-account-modal');
         $this->assertSame(0, GoogleAccount::count());
         $this->assertSame(0, BlogGoogleProperty::count());
     }
@@ -440,9 +456,11 @@ class GoogleIntegrationTest extends TestCase
         \Illuminate\Support\Facades\Queue::fake();
         $this->configureAll($this->connectAccount());
 
-        // Google連携の画面には、取得の欄を出さない（メニューの「設定 → 即時実行 → Googleとの同期」で取得する。D-63-18）
-        $this->actingAs($this->user)->get(route('google.settings'))->assertOk()->assertDontSee('今すぐ取得する')->assertDontSee('<h2>取得</h2>', false);
+        // 取得の欄はない（メニューの「設定 → 即時実行 → Googleとの同期」で取得する。D-63-18）。Googleとの同期履歴は、取得の記録と行数だけ（D-63-19）
+        $this->actingAs($this->user)->get(route('google.fetch-runs.index'))->assertOk()
+            ->assertSee('<h1>Googleとの同期履歴</h1>', false)->assertSee('取得の記録')->assertDontSee('今すぐ取得する')->assertDontSee('このブログの対応先');
         $this->assertFalse(\Illuminate\Support\Facades\Route::has('google.fetch'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('google.settings'));
 
         // メニューの即時実行は、取得の記録の契機が手動（送った人も残す）。定期実行は定期
         $recorder = app(\App\Services\Schedule\ScheduledTaskService::class);

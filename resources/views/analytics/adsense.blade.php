@@ -16,11 +16,10 @@
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>
         ・<a href="{{ route('analytics.index') }}">分析</a>
-        ・<a href="{{ route('google.settings') }}">Google連携の設定</a>
     </p>
 
     @if ($property === null)
-        <p class="text-warn">このブログには、AdSense がつながっていません。<a href="{{ route('google.settings') }}">Google連携の設定</a>で、AdSense のアカウントを選んでください。</p>
+        <p class="text-warn">このブログには、AdSense がつながっていません。メニューの「設定 → Google → <a href="#" data-modal-open="google-adsense-modal">AdSense</a>」で、AdSense のアカウントを選んでください。</p>
     @else
         @php
             $currency = $report['currency'];

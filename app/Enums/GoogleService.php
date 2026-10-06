@@ -21,6 +21,14 @@ enum GoogleService: string
     }
 
     /**
+     * メニューの「設定 → Google」の、対応先のポップアップの id（google/modals。D-63-19）
+     */
+    public function modalId(): string
+    {
+        return 'google-' . str_replace('_', '-', $this->value) . '-modal';
+    }
+
+    /**
      * 取得の失敗を sync_issues に記録するときの resource_type
      */
     public function issueResourceType(): string
