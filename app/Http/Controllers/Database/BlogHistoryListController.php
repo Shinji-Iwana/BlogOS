@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\BlogHistoryRepository;
 
 /**
- * ブログ変更履歴一覧（DB確認画面）。
+ * ブログ情報の同期履歴（DB確認画面。D-63-16）。
  *
  * blogs（BlogOS側の情報）の履歴と、blog_settings（WordPressのサイト設定）の履歴を表示する。
  */

@@ -24,6 +24,8 @@ class MenuItems
             ['label' => '定期実行履歴', 'route' => 'scheduled-tasks.runs'],
             // ログイン履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
             ['label' => 'ログイン履歴', 'route' => 'database.login-histories.index'],
+            // ブログ情報の同期履歴（D-63-16。以前はトップページの「管理」の「ブログ変更履歴一覧」から開いた）
+            ['label' => 'ブログ情報の同期履歴', 'route' => 'database-blog-history-list'],
         ]],
         ['key' => 'setting', 'code' => 'SETTING', 'label' => '設定', 'links' => [
             // AI の設定（下の階層。D-61）
