@@ -8,7 +8,7 @@ use App\Services\Quality\ScoreCalculator;
 use Tests\TestCase;
 
 /**
- * 品質基準の読み込みと点数の計算（resources/quality/common/scoring.md 2.0.0。D-47）。実際の品質基準のファイルを読む。
+ * 品質基準の読み込みと点数の計算（resources/quality/common/scoring.md 2.1.0。D-47）。実際の品質基準のファイルを読む。
  */
 class QualityStandardTest extends TestCase
 {
@@ -16,8 +16,8 @@ class QualityStandardTest extends TestCase
     {
         $standard = app(QualityStandardLoader::class)->load('si-note');
 
-        $this->assertSame('2.0.0', $standard->commonVersion);
-        $this->assertSame('2.0.0', $standard->profileVersion);
+        $this->assertSame('2.1.0', $standard->commonVersion);
+        $this->assertSame('2.1.0', $standard->profileVersion);
         $this->assertCount(5, $standard->required);
         $this->assertFalse($standard->required['req.verified']['ai']);
 

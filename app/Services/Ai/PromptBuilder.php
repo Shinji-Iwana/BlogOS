@@ -93,6 +93,11 @@ class PromptBuilder
             'shortfalls'       => $this->findings->describe($article, $draft, $standard),
             // 編集案の品質診断で確かめる、前回の改修の指摘（D-47）
             'previous_findings' => $mode === AiMode::QualityDiagnosis ? $this->findings->checkList($draft) : '（なし）',
+            // 編集案の品質診断：前回の判定（直していない所の判定が揺れないように）と、本文の画像の目印の中身（D-70）
+            'previous_judgments' => $mode === AiMode::QualityDiagnosis && $draft !== null ? $this->findings->previousJudgments($article, $draft, $standard) : '（なし）',
+            'image_details'    => $mode === AiMode::QualityDiagnosis && $draft !== null ? $this->imageDetails($blog, (string) $draft->content_raw) : '（本文に画像の目印はありません）',
+            // 情報の時点の年月（html-rules.md 3-16。D-70）
+            'today'            => now(config('blogos.display_timezone'))->format('Y年n月'),
             'parameters'       => $this->parameters($parameters),
             'article_list'     => $this->articleList($blog),
             // この記事の内部リンクの問題（D-42）
@@ -329,5 +334,23 @@ class PromptBuilder
 
         return $images->map(fn (Image $image) => "- [[画像:{$image->id}]] {$image->kind->label()}「{$image->title}」" . ($image->alt ? "（alt：{$image->alt}）" : '')
             . ($image->media_id ? '・WordPress に登録済み' : '・未登録'))->implode("\n");
+    }
+
+    /**
+     * 品質診断に渡す、本文の画像の目印の中身（D-70）。目印のままでは図が見えず、図の項目を判定できないため、
+     * 種類・題名・何を描くか・alt と、作ったかどうかを渡す
+     */
+    protected function imageDetails(Blog $blog, string $content): string
+    {
+        preg_match_all('/\[\[画像:(\d+)\]\]/u', $content, $matches);
+        $images = $matches[1] === [] ? collect() : Image::where('blog_id', $blog->id)->whereIn('id', array_map('intval', $matches[1]))->orderBy('id')->get();
+        if ($images->isEmpty()) {
+            return '（本文に画像の目印はありません）';
+        }
+
+        return $images->map(fn (Image $image) => "- [[画像:{$image->id}]] {$image->kind->label()}「{$image->title}」"
+            . ($image->hasFile() ? '（作成済み）' : '（作成中。BlogOS が内容のとおりに作る）')
+            . (filled($image->description) ? "\n  - 描く内容：" . preg_replace('/\s+/u', ' ', $image->description) : '')
+            . (filled($image->alt) ? "\n  - alt：{$image->alt}" : ''))->implode("\n");
     }
 }

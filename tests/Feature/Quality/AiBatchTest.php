@@ -321,7 +321,9 @@ class AiBatchTest extends TestCase
 
         $draft = ArticleDraft::sole();
         $this->assertSame($this->posts[1]->id, $draft->post_id);
-        $this->assertSame('改修した記事', $draft->title_raw);
+        // タイトルの指摘がない評価なので、AI の出力のタイトルではなく、今のタイトルのまま（D-70）
+        $this->assertSame('記事1', $draft->title_raw);
+        $this->assertStringContainsString('改修', $draft->content_raw);
         $this->assertSame(AiBatchStatus::Completed, AiBatch::sole()->status);
 
         // 改修で選べない対象（まだ評価していない記事）は選べない。全ての記事・インデックス未登録の記事は選べる（D-37）
@@ -508,15 +510,18 @@ class AiBatchTest extends TestCase
     {
         $standard = app(QualityStandardLoader::class)->load('si-note');
         $diagnoses = 0;
+        $revisions = 0;
         $judgments = function (array $keys, float $ratio) {
             $good = (int) floor(count($keys) * $ratio);
 
             return array_combine($keys, array_map(fn ($index) => $index < $good ? ['judgment' => '○', 'comment' => '十分'] : ['judgment' => '△', 'comment' => '一部不足'], array_keys($keys)));
         };
 
-        Http::fake(['api.openai.com/v1/responses' => function (Request $request) use ($standard, $goodRatios, &$diagnoses, $judgments) {
+        Http::fake(['api.openai.com/v1/responses' => function (Request $request) use ($standard, $goodRatios, &$diagnoses, &$revisions, $judgments) {
             if (str_contains($request['input'], '=== 本文 ===')) {
-                $text = "=== タイトル ===\n改修した記事\n=== 本文 ===\n<p>改修した本文</p>";
+                // 回ごとに本文を変える（前の版に戻したかを確かめるため）
+                $revisions++;
+                $text = "=== タイトル ===\n改修した記事\n=== 本文 ===\n<p>改修した本文{$revisions}</p>";
             } else {
                 $ratio = $goodRatios[min($diagnoses, count($goodRatios) - 1)];
                 $diagnoses++;
@@ -592,6 +597,58 @@ class AiBatchTest extends TestCase
 
         $revision = AiBatch::where('purpose', 'revision')->sole();
         $this->assertStringContainsString('改修しても点数が上がらなかったため、繰り返しを止めました。', $revision->items()->sole()->message);
+    }
+
+    public function test_auto_reevaluation_restores_the_previous_version_when_the_score_drops(): void
+    {
+        // 1回目の改修で上がり、2回目の改修で下がる
+        $this->fakeImprovingOpenAi([0.0, 0.4, 0.2]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(3);
+
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+
+        // 2回目で止め、編集案を1回目の版（点数の高い方）に戻す（D-70）
+        $rounds = AiBatch::where('purpose', 'revision')->orderBy('id')->get();
+        $this->assertCount(2, $rounds);
+        $first = $rounds[0]->items()->sole();
+        $second = $rounds[1]->items()->sole();
+        $this->assertStringContainsString('編集案を前の版', $second->message);
+        $draft = ArticleDraft::sole();
+        $this->assertSame('<p>改修した本文1</p>', trim(preg_replace('/\s+/', ' ', strip_tags($draft->content_raw, '<p>'))));
+        $this->assertSame($first->ai_generation_id, $draft->ai_generation_id);
+        $this->assertFalse((bool) $draft->human_edited);
+
+        // 2回目の診断の指示文には、前回の判定と本文の画像を渡す（D-70）
+        $diagnosis = \App\Models\AiGeneration::find($second->diagnosis_generation_id);
+        $this->assertStringContainsString('# 前回の判定', $diagnosis->input);
+        $this->assertStringContainsString('点。この評価を基に改修した）', $diagnosis->input);
+        $this->assertMatchesRegularExpression('/^- intent\.main（.+）：(○|△) — /mu', $diagnosis->input);
+        $this->assertStringContainsString('（本文に画像の目印はありません）', $diagnosis->input);
+    }
+
+    public function test_draft_diagnosis_prompt_shows_what_the_image_markers_are(): void
+    {
+        // 編集案の本文の [[画像:ID]] は、診断から見えるように、種類・題名・描く内容・alt を渡す（D-70）
+        $draft = app(\App\Services\Articles\DraftService::class)->createFromArticle($this->posts[1], \App\Enums\RevisionScope::Minor, $this->user->id, null);
+        $image = \App\Models\Image::create(['blog_id' => $this->blog->id, 'kind' => 'diagram', 'status' => 'draft', 'title' => '処理の流れ', 'description' => '入力から出力までの3つの段階を矢印でつなぐ', 'alt' => '入力・処理・出力の流れの図']);
+        $draft->forceFill(['content_raw' => "<p>流れは次のとおりです。</p>\n[[画像:{$image->id}]]"])->save();
+
+        $prompt = app(\App\Services\Ai\PromptBuilder::class)->build(\App\Enums\AiMode::QualityDiagnosis, $this->blog, $this->posts[1], $draft->fresh(), [], null)['prompt'];
+        $this->assertStringContainsString("- [[画像:{$image->id}]] 図解「処理の流れ」（作成中。BlogOS が内容のとおりに作る）\n  - 描く内容：入力から出力までの3つの段階を矢印でつなぐ\n  - alt：入力・処理・出力の流れの図", $prompt);
+        $this->assertStringContainsString('目印であることを理由に、図の項目', $prompt);
+    }
+
+    public function test_orphan_only_failure_is_not_revised_and_not_a_finding(): void
+    {
+        // 点数は基準以上で、満たさない必須条件は「孤立記事でない」だけ → 記事の改修では直せないため、改修しない（D-70）
+        $standard = app(QualityStandardLoader::class)->load('si-note');
+        $evaluation = app(\App\Services\Quality\EvaluationService::class)->save($this->blog, $this->posts[1], \App\Enums\EvaluatorType::Ai,
+            array_map(fn () => \App\Enums\Judgment::Good, $standard->allItems()) + ['req.not_orphan' => \App\Enums\Judgment::Bad]
+                + array_map(fn () => \App\Enums\Judgment::NeedsHuman, array_diff_key($standard->required, ['req.not_orphan' => 1])),
+            [], '要改善', null, $this->user->id);
+        $this->assertFalse((bool) $evaluation->required_conditions_passed);
+        $this->assertSame([], array_column(app(\App\Services\Quality\RevisionFindingService::class)->collect($this->posts[1], null)['findings'], 'item_key'));
     }
 
     public function test_auto_reevaluation_diagnoses_existing_drafts(): void

@@ -10,6 +10,7 @@ use App\Enums\RevisionScope;
 use App\Models\AiGeneration;
 use App\Models\ArticleDraft;
 use App\Models\Blog;
+use App\Models\Histories\ArticleDraftHistory;
 use App\Models\Page;
 use App\Models\Post;
 use App\Repositories\AiGenerationRepository;
@@ -109,6 +110,35 @@ class DraftService
 
         $this->drafts->update($draft, array_intersect_key($values, array_flip(self::EDITABLE_COLUMNS)) + ['ai_generation_id' => $generation->id], ChangeSource::Ai, $userId);
         $this->drafts->setAiEditStats($draft, false, 0.0);
+    }
+
+    /**
+     * AI の改修で上書きした編集案を、その改修の前の版に戻す（記事の再評価の繰り返しで、点数が下がった回。D-70）。
+     * 変更の記録（article_draft_histories）の、その改修の変更から戻す。戻せた場合は true
+     *
+     * @throws PushException
+     */
+    public function restoreBeforeAiOutput(ArticleDraft $draft, int $generationId, ?int $userId): bool
+    {
+        $this->ensureEditable($draft);
+
+        $changeSetId = ArticleDraftHistory::where('article_draft_id', $draft->id)->where('field', 'ai_generation_id')
+            ->where('new_value', (string) $generationId)->latest('id')->value('change_set_id');
+        if ($changeSetId === null) {
+            return false;
+        }
+
+        $values = ArticleDraftHistory::where('change_set_id', $changeSetId)
+            ->whereIn('field', ['title_raw', 'content_raw', 'excerpt_raw', 'meta_description', 'ai_generation_id'])
+            ->pluck('old_value', 'field')->all();
+        if (! isset($values['ai_generation_id'])) {
+            return false;
+        }
+
+        $this->drafts->update($draft, $values, ChangeSource::Ai, $userId);
+        $this->drafts->setAiEditStats($draft, false, 0.0);
+
+        return true;
     }
 
     /**

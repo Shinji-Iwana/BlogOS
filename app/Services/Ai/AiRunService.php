@@ -437,10 +437,17 @@ class AiRunService
         // 指摘ごとの対応（D-47）
         app(RevisionFindingService::class)->applyResponses($generation, $draft, $this->parser->findingResponses($sections['指摘への対応'] ?? null));
 
+        // タイトル・メタディスクリプションは、その指摘を渡したときだけ変える。指摘がなければ今のまま（基準を満たしているものを崩さないため。D-70）。
+        // 指摘を記録していない改修（評価がない記事など）は、これまでどおり AI の出力を使う
+        $findingKeys = \App\Models\RevisionFinding::where('ai_generation_id', $generation->id)->pluck('item_key')->all();
+        $hasEvaluation = $findingKeys !== [] || app(RevisionFindingService::class)->collect($generation->post ?? $generation->page, $generation->draft)['evaluation'] !== null;
+        $keepTitle = $hasEvaluation && filled($draft->title_raw) && array_intersect($findingKeys, ['seo.title_keyword', 'seo.title_appeal', 'seo.title_form']) === [];
+        $keepMeta = $hasEvaluation && filled($draft->meta_description) && ! in_array('seo.meta_description', $findingKeys, true);
+
         $this->applyArticleOutput($draft, $sections, [
-            'title_raw'        => $sections['タイトル'],
+            'title_raw'        => $keepTitle ? $draft->title_raw : $sections['タイトル'],
             'excerpt_raw'      => $sections['抜粋'] ?? $draft->excerpt_raw,
-            'meta_description' => $sections['メタディスクリプション'] ?? $draft->meta_description,
+            'meta_description' => $keepMeta ? $draft->meta_description : ($sections['メタディスクリプション'] ?? $draft->meta_description),
         ], $generation, $userId);
     }
 

@@ -22,6 +22,12 @@ use Illuminate\Support\Collection;
  */
 class RevisionFindingService
 {
+    /**
+     * その記事の改修では直せないため、改修の指摘に入れない項目（D-70）。
+     * req.not_orphan はほかの記事からこの記事へのリンクが要る（ロードマップの編集案で直す）
+     */
+    public const NOT_FIXABLE_BY_REVISION = ['req.not_orphan'];
+
     public function __construct(
         protected ArticleEvaluationRepository $evaluations,
         protected QualityStandardLoader $loader,
@@ -42,7 +48,7 @@ class RevisionFindingService
 
         $findings = [];
         foreach ($evaluation->details->sortBy('id') as $detail) {
-            if (! in_array($detail->judgment, [Judgment::Partial, Judgment::Bad], true)) {
+            if (! in_array($detail->judgment, [Judgment::Partial, Judgment::Bad], true) || in_array($detail->item_key, self::NOT_FIXABLE_BY_REVISION, true)) {
                 continue;
             }
             $findings[] = [
@@ -138,6 +144,29 @@ class RevisionFindingService
             . ($finding->fix ? "\n  - どう直すか：{$finding->fix}" : '')
             . ($finding->response_status ? "\n  - 改修での対応：" . (RevisionFinding::RESPONSES[$finding->response_status] ?? $finding->response_status) . ($finding->response_note ? "（{$finding->response_note}）" : '') : ''))
             ->implode("\n");
+    }
+
+    /**
+     * 編集案の品質診断に渡す、改修の元にした評価の判定（D-70）。直していない所の判定が、診断のたびに揺れないようにする
+     */
+    public function previousJudgments(Post|Page|null $article, ArticleDraft $draft, QualityStandard $standard): string
+    {
+        $sourceId = $this->latestFor($draft)->first()?->source_evaluation_id;
+        $evaluation = $sourceId !== null ? ArticleEvaluation::with('details')->find($sourceId) : $this->collect($article, $draft)['evaluation'];
+        if ($evaluation === null) {
+            return '（なし）';
+        }
+
+        $lines = ["（{$evaluation->created_at?->format('Y-m-d')} の評価：" . ($evaluation->score ?? '-') . '点。この評価を基に改修した）'];
+        foreach ($evaluation->details->sortBy('id') as $detail) {
+            if ($detail->judgment === Judgment::NeedsHuman) {
+                continue;
+            }
+            $label = $standard->allItems()[$detail->item_key]['label'] ?? $standard->required[$detail->item_key]['label'] ?? '';
+            $lines[] = "- {$detail->item_key}（{$label}）：{$detail->judgment->label()}" . ($detail->comment ? ' — ' . mb_substr(preg_replace('/\s+/u', ' ', $detail->comment), 0, 120) : '');
+        }
+
+        return implode("\n", $lines);
     }
 
     /**

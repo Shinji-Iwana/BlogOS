@@ -375,8 +375,15 @@ class AiBatchService
                 continue;
             }
 
+            // 点数が下がった回は、編集案を前の版に戻す（前の回の編集案を上書きした回だけ。1回目は記事が元のため戻さない。D-70）
+            if ($item->score_before !== null && (float) $evaluation->score < (float) $item->score_before && $this->restorePreviousVersion($item)) {
+                $this->batches->updateItem($item, ['message' => trim(($item->message ?? '') . " 改修で点数が下がった（{$item->score_before}点 → {$evaluation->score}点）ため、編集案を前の版（{$item->score_before}点）に戻し、繰り返しを止めました。人が確認してください。")]);
+
+                continue;
+            }
+
             $note = match (true) {
-                (float) $evaluation->score >= $belowScore && $evaluation->required_conditions_passed !== false => null,
+                (float) $evaluation->score >= $belowScore && $this->requirementsPassedOrUnfixable($evaluation) => null,
                 $item->score_before !== null && (float) $evaluation->score <= (float) $item->score_before   => '改修しても点数が上がらなかったため、繰り返しを止めました。人が確認してください。',
                 $round >= $maxRounds                                                                          => "上限の{$maxRounds}回まで改修しましたが、基準に届きませんでした。人が確認してください。",
                 default                                                                                       => false,
@@ -422,6 +429,38 @@ class AiBatchService
     }
 
     /**
+     * 改修した回の前の版に、編集案を戻す（前の回の編集案を改修した回だけ。人が手を入れた編集案は戻さない）
+     */
+    protected function restorePreviousVersion(AiBatchItem $item): bool
+    {
+        $draft = $item->generation?->draft;
+        if ($draft === null || ! self::autoRevisable($draft) || ! $draft->state->isActive()) {
+            return false;
+        }
+
+        try {
+            return app(\App\Services\Articles\DraftService::class)->restoreBeforeAiOutput($draft, (int) $item->ai_generation_id, $item->batch->requested_by);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
+
+    /**
+     * 必須条件を満たすか、満たさないのが記事の改修では直せない条件だけか（req.not_orphan。ロードマップで直す。D-70）
+     */
+    protected function requirementsPassedOrUnfixable(ArticleEvaluation $evaluation): bool
+    {
+        if ($evaluation->required_conditions_passed !== false) {
+            return true;
+        }
+
+        return $evaluation->details()->where('item_key', 'like', 'req.%')->where('judgment', \App\Enums\Judgment::Bad->value)
+            ->whereNotIn('item_key', \App\Services\Quality\RevisionFindingService::NOT_FIXABLE_BY_REVISION)->doesntExist();
+    }
+
+    /**
      * 品質診断の結果、基準に満たなかった記事（点数が基準未満、または必須条件を満たさない）の編集案を作る。
      * 費用の上限・取り消しで止まった品質診断では行わない。登録できなかった理由は、元のまとめて実行に残す
      */
@@ -441,7 +480,8 @@ class AiBatchService
             if ($evaluation === null || $article === null) {
                 continue;
             }
-            if (($evaluation->score !== null && $evaluation->score < $belowScore) || $evaluation->required_conditions_passed === false) {
+            // 記事の改修では直せない必須条件（孤立記事でない）だけを満たさない記事は、改修しない（ロードマップで直す。D-70）
+            if (($evaluation->score !== null && $evaluation->score < $belowScore) || ! $this->requirementsPassedOrUnfixable($evaluation)) {
                 // 編集案を診断した場合（記事の再評価。D-65）：AI が作ったままの編集案は、その編集案を改修する。人が手を入れた編集案は改修しない
                 if ($evaluation->article_draft_id !== null) {
                     $draft = ArticleDraft::find($evaluation->article_draft_id);
