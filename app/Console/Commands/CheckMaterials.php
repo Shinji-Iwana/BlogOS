@@ -31,7 +31,7 @@ class CheckMaterials extends Command
                 continue;
             }
 
-            $label = "{$blog->display_name}（#{$blog->id}・教材の定期チェック：" . ($settings->forBlog($blog)->material_check_enabled ? '有効' : '無効') . '）';
+            $label = "{$blog->display_name}（#{$blog->id}・教材情報の同期：" . ($settings->forBlog($blog)->material_check_enabled ? '有効' : '無効') . '）';
 
             if ($this->option('dry-run')) {
                 $due = $service->due($blog);

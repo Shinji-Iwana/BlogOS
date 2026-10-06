@@ -32,11 +32,11 @@ class ScheduledTasks
             'counts'      => '処理件数：削除した件数',
         ],
         'ai:check-prices' => [
-            'label'       => 'AI の料金表の照合',
+            'label'       => 'AI料金表の同期',
             'description' => 'API 実行の料金表を、OpenAI の公式のページと照合する（値上がりは自動で反映、値下がりは人が確認）',
             'frequency'   => 'daily', 'weekday' => null, 'time' => '04:30',
             'after'       => [], 'can_disable' => true, 'manual' => true,
-            'menu_label'  => 'AI料金表の照合',
+            'menu_label'  => 'AI料金表の同期',
             'counts'      => '変更件数：値上がり（反映）と値下がり（確認待ち）の件数',
         ],
         'wordpress:check-updates' => [
@@ -74,13 +74,13 @@ class ScheduledTasks
             'counts'      => '処理件数：まとめて実行に登録した記事の数（処理は「まとめて実行」で行う）',
         ],
         'materials:check' => [
-            'label'       => '教材の定期チェック',
+            'label'       => '教材情報の同期',
             'description' => '前回の調査から期間が過ぎた教材を、AI で調べ直す（AI の設定で有効にしたブログだけ。料金がかかる）',
             'frequency'   => 'daily', 'weekday' => null, 'time' => '06:30',
             'after'       => ['blogs:sync'], 'can_disable' => false, 'manual' => false,
             // 有効・無効は、ブログごとの AI の設定（blog_ai_settings のこの列）で決める。メニューのポップアップで変える（D-63-03）
             'blog_setting' => 'material_check_enabled',
-            'menu_label'  => '教材の照合',
+            'menu_label'  => '教材情報の同期',
             'counts'      => '処理件数：調査を始めた教材の数（処理は AI の実行で行う）',
         ],
         'affiliate:check-links' => [
