@@ -82,7 +82,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
 
     Route::post('/blog-switch', [BlogSwitchController::class, 'switch'])->name('blog-switch');
 
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    // 画面「設定」（/settings）はなくした。設定はメニューの「設定」のポップアップ（D-63-23）
     // 音声の操作（ジャービス。D-58）。1分あたりの回数に上限を付ける
     Route::post('/voice/turn', [\App\Http\Controllers\VoiceController::class, 'turn'])->middleware('throttle:' . (int) config('blogos.voice.turns_per_minute', 10) . ',1')->name('voice.turn');
     Route::post('/voice/reset', [\App\Http\Controllers\VoiceController::class, 'reset'])->name('voice.reset');
@@ -104,8 +104,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // ブログの登録（WORDPRESS_API 29章）。入力は、メニューの「設定 → ブログを登録」のポップアップ（D-63-21）
     Route::post('/blogs', [BlogRegistrationController::class, 'store'])->name('blogs.store');
 
-    // 選択中のブログの認証情報（D-03-02、D-03-03）
-    Route::get('/blogs/credentials', [BlogCredentialController::class, 'edit'])->name('blogs.credentials.edit');
+    // 選択中のブログの認証情報（D-03-02、D-03-03）。入力は、メニューの「設定 → ブログ → 認証情報」のポップアップ（D-63-22）
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
         Route::put('/blogs/credentials', [BlogCredentialController::class, 'update'])->name('blogs.credentials.update');

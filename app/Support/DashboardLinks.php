@@ -53,8 +53,7 @@ class DashboardLinks
             // Google連携の設定は、メニューの「設定 → Google」のポップアップ（D-63-19）
         ]],
         ['key' => 'system', 'code' => 'SYSTEM', 'label' => '管理', 'links' => [
-            // 以前はヘッダーの「BlogOS」の横にあった（D-60）
-            ['label' => '設定', 'route' => 'settings', 'blog' => false],
+            // 画面「設定」はなくした（D-63-23。以前はヘッダーの「BlogOS」の横にあった。D-60）
             // WordPress情報はメニューの「情報 → WordPress情報」、定期実行履歴は「履歴 → 定期実行履歴」から開く（D-63-11）。WordPress API情報は「情報 → WordPress API情報」（D-63-12）、ブログ情報の同期履歴は「履歴 → ブログ情報の同期履歴」（D-63-16）
             // ブログの登録は、メニューの「設定 → ブログを登録」のポップアップ（D-63-21）
             ['label' => 'ブログ一覧', 'route' => 'database-blog-list', 'blog' => false],

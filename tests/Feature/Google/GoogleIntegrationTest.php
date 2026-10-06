@@ -401,7 +401,7 @@ class GoogleIntegrationTest extends TestCase
         $account = $this->connectAccount();
 
         // メニューの「設定 → Google」の下に、アカウント・GA4・Search Console・AdSense のポップアップ（D-63-19）
-        $html = $this->actingAs($this->user)->get(route('settings'))->assertOk()->getContent();
+        $html = $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<summary>AI<\/summary>.*?<summary>Google<\/summary>.*?data-modal-open="google-account-modal" >アカウント<\/a>.*?data-modal-open="google-ga4-modal" >Google Analytics 4<\/a>.*?data-modal-open="google-search-console-modal" >Search Console<\/a>.*?data-modal-open="google-adsense-modal" >AdSense<\/a>.*?<summary>即時実行<\/summary>/s', $html);
         $this->assertStringContainsString('owner@example.com', $html);
         $this->assertStringNotContainsString('valid-token', $html);
@@ -431,8 +431,8 @@ class GoogleIntegrationTest extends TestCase
         $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?Google Analytics 4の対応先を保存しました/s', $after);
 
         // 接続の解除で、対応先の設定も解除する（ブログを選んでいなくてもできる）
-        $this->actingAs($this->user)->from(route('settings'))->delete(route('google.accounts.destroy', ['id' => $account->id]))
-            ->assertRedirect(route('settings'))->assertSessionHas('google_modal', 'google-account-modal');
+        $this->actingAs($this->user)->from(route('scheduled-tasks.runs'))->delete(route('google.accounts.destroy', ['id' => $account->id]))
+            ->assertRedirect(route('scheduled-tasks.runs'))->assertSessionHas('google_modal', 'google-account-modal');
         $this->assertSame(0, GoogleAccount::count());
         $this->assertSame(0, BlogGoogleProperty::count());
     }

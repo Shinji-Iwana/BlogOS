@@ -105,7 +105,7 @@ class LoginHistoryTest extends TestCase
             ->assertDontSee('設定ページに戻る');
 
         // メニューの「履歴」の「定期実行」の下に「ログイン」。設定の画面には、セキュリティの欄を出さない（D-63-13）
-        $html = $this->get(route('settings'))->assertOk()->getContent();
+        $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/>定期実行履歴<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('database.login-histories.index'), '/') . '"\s*>ログイン履歴<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('database-blog-history-list'), '/') . '"\s*>ブログ情報の同期履歴<\/a>/', $html);
         // ブログ情報の同期履歴（D-63-16）。トップページの「管理」には入口を出さない
         $this->get(route('database-blog-history-list'))->assertOk()->assertSee('<h1>ブログ情報の同期履歴</h1>', false);

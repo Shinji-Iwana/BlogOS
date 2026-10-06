@@ -29,7 +29,7 @@ class ThemeTest extends TestCase
             ->assertSee('class="theme-blank"', false)
             ->assertDontSee('reactor-core', false);
 
-        $this->get(route('settings'))->assertOk()->assertSee('画面のテーマ')->assertSee('ironman')->assertDontSee('（制作中）');
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('画面のテーマ')->assertSee('ironman')->assertDontSee('（制作中）');
     }
 
     public function test_switching_to_ironman_overrides_only_its_own_views(): void
@@ -47,7 +47,7 @@ class ThemeTest extends TestCase
             ->assertSee('ブログを登録する');
 
         // 上書きしていない画面は共通の画面のまま、CSS だけ ironman
-        $this->get(route('settings'))->assertOk()->assertSee('/themes/ironman/css/components/table.css?v=', false)->assertSee('画面のテーマ');
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('/themes/ironman/css/components/table.css?v=', false)->assertSee('画面のテーマ');
     }
 
     public function test_login_page_uses_the_selected_theme(): void
@@ -88,7 +88,7 @@ class ThemeTest extends TestCase
     public function test_menu_bar_links_to_theme_setting_on_every_page(): void
     {
         // ヘッダーの下のメニューバー（D-56）：どの画面からでも「画面のテーマ」へ
-        foreach ([route('settings'), route('scheduled-tasks.runs')] as $url) {
+        foreach ([route('scheduled-tasks.runs'), route('scheduled-tasks.runs')] as $url) {
             $this->get($url)->assertOk()
                 ->assertSee('class="site-menu"', false)
                 ->assertSee('SETTING')
@@ -96,11 +96,13 @@ class ThemeTest extends TestCase
                 ->assertSee('data-modal-open="theme-switch-modal"', false)
                 ->assertSee('id="theme-switch-modal"', false);
         }
-        // 設定の画面には、画面のテーマの欄を出さない（D-57）
-        $this->get(route('settings'))->assertDontSee('テーマを切り替える')->assertDontSee('data-code="THEME"', false);
+        // 画面「設定」はなくした（D-63-23）。トップページの入口の「管理」にも出さない
+        $this->get('/settings')->assertNotFound();
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('settings'));
+        $this->assertNotContains('settings', array_column(array_merge(...array_column(\App\Support\DashboardLinks::GROUPS, 'links')), 'route'));
 
         // 「設定」の左に「履歴」。その中の「WordPressとの同期」で、同期の履歴の画面を開く（D-69）
-        $html = $this->get(route('settings'))->getContent();
+        $html = $this->get(route('scheduled-tasks.runs'))->getContent();
         $this->assertMatchesRegularExpression('/HISTORY<\/span>\s*<span class="site-menu-label">履歴<\/span>.*?href="' . preg_quote(route('database.sync-runs.index'), '/') . '"\s*>WordPressとの同期履歴<\/a>.*?SETTING<\/span>/s', $html);
         // 「設定」の右に「情報」。その中の「WordPress情報」で、WordPress情報の画面を開く（D-63-11・D-63-15）
         $this->assertMatchesRegularExpression('/SETTING<\/span>.*?INFO<\/span>\s*<span class="site-menu-label">情報<\/span>.*?href="' . preg_quote(route('wordpress-updates.index'), '/') . '"\s*>WordPress情報<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('wp-api.home'), '/') . '"\s*>WordPress API情報<\/a>/s', $html);

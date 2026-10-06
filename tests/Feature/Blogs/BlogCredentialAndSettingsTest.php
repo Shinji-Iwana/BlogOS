@@ -40,13 +40,16 @@ class BlogCredentialAndSettingsTest extends TestCase
     {
         Http::fake(['https://blog.example.test/wp-json/wp/v2/users/me*' => Http::response(['name' => 'admin'])]);
 
-        $this->actingAs($this->user)
+        // 開いていた画面に戻り、認証情報のポップアップを開いて結果を出す（D-63-22）
+        $this->actingAs($this->user)->from(route('scheduled-tasks.runs'))
             ->put(route('blogs.credentials.update'), [
                 'selected_blog_id'     => $this->blog->id,
+                '_form'                => 'blog-credential',
                 'username'             => 'admin',
                 'application_password' => 'new secret',
             ])
-            ->assertRedirect(route('blogs.credentials.edit'));
+            ->assertRedirect(route('scheduled-tasks.runs'));
+        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?認証情報を更新しました/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
 
         $this->assertSame('new secret', BlogCredential::sole()->secret);
         Http::assertSent(fn ($request) => $request->hasHeader('Authorization'));
@@ -58,9 +61,13 @@ class BlogCredentialAndSettingsTest extends TestCase
             'blog_id' => $this->blog->id, 'username' => 'admin', 'secret' => 'visible-secret-value',
         ]);
 
+        // 認証情報は、メニューの「設定 → ブログ → 認証情報」のポップアップ（画面「認証情報」はなくした。D-63-22）
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('blogs.credentials.edit'));
         $this->actingAs($this->user)
-            ->get(route('blogs.credentials.edit'))
+            ->get(route('scheduled-tasks.runs'))
             ->assertOk()
+            ->assertSee('id="blog-credential-modal"', false)
+            ->assertSee('設定済み（ユーザー名：admin）')
             ->assertDontSee('visible-secret-value');
     }
 
@@ -87,9 +94,11 @@ class BlogCredentialAndSettingsTest extends TestCase
         ]);
         Http::fake(['https://blog.example.test/wp-json/wp/v2/users/me*' => Http::response([], 401)]);
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->user)->from(route('scheduled-tasks.runs'))
             ->post(route('blogs.credentials.verify'), ['selected_blog_id' => $this->blog->id])
-            ->assertSessionHasErrors('verify');
+            ->assertRedirect(route('scheduled-tasks.runs'));
+        // 失敗も、ポップアップを開いて出す
+        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?class="text-error"/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
 
         $credential = BlogCredential::sole();
         $this->assertNotNull($credential->last_failed_at);

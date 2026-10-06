@@ -6,22 +6,14 @@ use App\Services\ThemeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/**
+ * 設定。画面「設定」はなくした（中身はメニューの「設定」のポップアップに移った。D-63-23）。
+ */
 class SettingsController extends Controller
 {
     public function __construct(
         protected ThemeService $themes
     ) {
-    }
-
-    /**
-     * 設定画面（各確認画面への入口）。画面のテーマは、ヘッダーのテーマ切替ポップアップで切り替える（D-57）。
-     *
-     * 対象のブログは選択中のブログとし、URLには含めない（BLOGOS_DECISIONS.md D-02-05）。
-     * 選択中のブログは ShareCurrentBlog が全画面に共有している。
-     */
-    public function index()
-    {
-        return view('settings');
     }
 
     /**

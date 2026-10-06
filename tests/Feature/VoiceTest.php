@@ -259,7 +259,7 @@ class VoiceTest extends TestCase
         $this->assertMatchesRegularExpression('/id="voice-settings-modal"[^>]*data-modal-autoopen/', $html);
 
         // 誤りがなければ、開かない
-        $this->assertDoesNotMatchRegularExpression('/id="voice-settings-modal"[^>]*data-modal-autoopen/', $this->get(route('settings'))->getContent());
+        $this->assertDoesNotMatchRegularExpression('/id="voice-settings-modal"[^>]*data-modal-autoopen/', $this->get(route('scheduled-tasks.runs'))->getContent());
     }
 
     public function test_realtime_session_gives_an_ephemeral_key_with_tools(): void
@@ -332,7 +332,7 @@ class VoiceTest extends TestCase
             ->assertSee('data-home-url="' . route('home') . '"', false);
 
         // トップページ以外：リンクは、ふつうに画面を移る
-        $this->get(route('settings'))->assertOk()->assertDontSee('data-drawer-links', false);
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertDontSee('data-drawer-links', false);
 
         // 声で「閉じて」：パネルを閉じる（close）
         $closed = app(VoiceTools::class)->call('close_screen', [], $this->blog);

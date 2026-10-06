@@ -84,10 +84,8 @@ class PagesSmokeTest extends TestCase
     {
         return [
             'dashboard'               => ['home'],
-            'settings'                => ['settings'],
             'db blog list'            => ['database-blog-list'],
             'db blog history list'    => ['database-blog-history-list'],
-            'blog credentials'        => ['blogs.credentials.edit'],
             'site search'             => ['api-site-search'],
             'login histories'         => ['database.login-histories.index'],
             'wp api home'             => ['wp-api.home'],

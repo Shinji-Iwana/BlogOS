@@ -156,27 +156,27 @@ class AffiliateProgramTest extends TestCase
     public function test_program_can_be_registered_by_hand(): void
     {
         // メニューの「設定」の「画面のテーマ」の上に「アフィリエイト提携先を登録」。押すとポップアップを開く（D-63-20）
-        $html = $this->get(route('settings'))->assertOk()->getContent();
+        $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<summary>定期実行<\/summary>.*?data-modal-open="affiliate-program-modal" >アフィリエイト提携先を登録<\/a><\/li>\s*<li><a href="#"\s+data-modal-open="theme-switch-modal"/s', $html);
         $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2>\s*アフィリエイト提携先を登録/s', $html);
         // 画面「アフィリエイトのプログラム」には、登録の欄を出さない
         $this->get(route('materials.programs.index'))->assertOk()->assertDontSee('<h2>プログラムを登録する</h2>', false);
 
         // 登録すると、開いていた画面に戻り、ポップアップを開いて結果を出す
-        $this->from(route('settings'))->post(route('materials.programs.store'), $this->selected([
+        $this->from(route('scheduled-tasks.runs'))->post(route('materials.programs.store'), $this->selected([
             '_form' => 'affiliate-program', 'asp' => 'moshimo', 'external_id' => '9999', 'name' => 'CodeCamp（もしも）', 'material_kind' => 'school', 'status' => 'applying',
-        ]))->assertRedirect(route('settings'))->assertSessionHas('affiliate_program_modal', true);
-        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?プログラム「CodeCamp（もしも）」を登録しました/s', $this->get(route('settings'))->getContent());
+        ]))->assertRedirect(route('scheduled-tasks.runs'))->assertSessionHas('affiliate_program_modal', true);
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?プログラム「CodeCamp（もしも）」を登録しました/s', $this->get(route('scheduled-tasks.runs'))->getContent());
 
         $program = AffiliateProgram::where('program_key', 'moshimo:9999')->sole();
         $this->assertSame(AffiliateProgramStatus::Applying, $program->status);
         $this->assertFalse($program->isUsable());
 
         // 同じプログラムは二重に登録しない
-        $this->from(route('settings'))->post(route('materials.programs.store'), $this->selected(['_form' => 'affiliate-program', 'asp' => 'moshimo', 'external_id' => '9999', 'name' => '重複', 'status' => 'active']))
-            ->assertRedirect(route('settings'));
+        $this->from(route('scheduled-tasks.runs'))->post(route('materials.programs.store'), $this->selected(['_form' => 'affiliate-program', 'asp' => 'moshimo', 'external_id' => '9999', 'name' => '重複', 'status' => 'active']))
+            ->assertRedirect(route('scheduled-tasks.runs'));
         // 入力の誤りは、ポップアップを開いたままにして、誤りと入力した値を出す
-        $html = $this->get(route('settings'))->getContent();
+        $html = $this->get(route('scheduled-tasks.runs'))->getContent();
         $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?登録済みです.*?value="重複"/s', $html);
     }
 }
