@@ -161,9 +161,72 @@
         window.requestAnimationFrame(frame);
     }
 
+    /**
+     * ポップアップ（.blog-switch-dialog）の枠の線と、枠を流れる電気（css/components/header.css の .modal-flow）
+     *
+     * ポップアップは中身が縦に動くため、SVG はポップアップの中ではなく、後ろの暗い面（ポップアップの親）に置き、
+     * ポップアップの位置と大きさに合わせる。開いたとき（大きさが変わったとき）と、画面の大きさが変わったときに合わせ直す。
+     */
+    function startModalFlow() {
+        const SVG = 'http://www.w3.org/2000/svg';
+        const dialogs = document.querySelectorAll('.blog-switch-dialog');
+        if (dialogs.length === 0) {
+            return;
+        }
+
+        const outline = (width, height, cut) => {
+            const i = 0.5;
+            const c = Math.min(cut, width / 2, height / 2);
+
+            return [`M${c} ${i}`, `L${width - c} ${i}`, `L${width - i} ${c}`, `L${width - i} ${height - c}`,
+                `L${width - c} ${height - i}`, `L${c} ${height - i}`, `L${i} ${height - c}`, `L${i} ${c}`, 'Z'].join(' ');
+        };
+
+        const place = (dialog) => {
+            const svg = dialog.modalFlow;
+            const rect = dialog.getBoundingClientRect();
+            if (rect.width === 0) {
+                return;
+            }
+            const parent = dialog.parentElement.getBoundingClientRect();
+            const cut = parseFloat(getComputedStyle(dialog).getPropertyValue('--modal-cut')) || 16;
+
+            svg.style.left = `${rect.left - parent.left}px`;
+            svg.style.top = `${rect.top - parent.top}px`;
+            svg.style.width = `${rect.width}px`;
+            svg.style.height = `${rect.height}px`;
+            svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+            svg.querySelectorAll('path').forEach((path) => path.setAttribute('d', outline(rect.width, rect.height, cut)));
+        };
+
+        const observer = 'ResizeObserver' in window ? new ResizeObserver((entries) => entries.forEach((entry) => place(entry.target))) : null;
+
+        dialogs.forEach((dialog) => {
+            const svg = document.createElementNS(SVG, 'svg');
+            svg.setAttribute('class', 'modal-flow');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            ['modal-flow-outline', 'modal-flow-line', 'modal-flow-dots'].forEach((name) => {
+                const path = document.createElementNS(SVG, 'path');
+                path.setAttribute('class', name);
+                svg.appendChild(path);
+            });
+            dialog.after(svg);
+            dialog.modalFlow = svg;
+
+            if (observer) {
+                observer.observe(dialog);
+            }
+        });
+
+        window.addEventListener('resize', () => dialogs.forEach(place));
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', startGridFlow);
+        document.addEventListener('DOMContentLoaded', startModalFlow);
     } else {
         startGridFlow();
+        startModalFlow();
     }
 })();

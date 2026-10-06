@@ -95,13 +95,71 @@
     background: rgba(0, 4, 10, 0.72);
 }
 
+/* 形はパネルと同じく四隅を斜めに削った形（--modal-cut）。すりガラスは残す。
+   枠の線と、枠を流れる電気は、js/script.js（startModalFlow）がポップアップの上に重ねる SVG（.modal-flow）で描く
+   （ポップアップは中身が縦に動くため、ポップアップの中ではなく、後ろの暗い面に置いて位置を合わせる） */
 .blog-switch-dialog {
+    --modal-cut: 16px;
+
     background: linear-gradient(180deg, rgba(102, 217, 255, 0.11), rgba(102, 217, 255, 0.04));
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    border: 1px solid var(--im-line-strong);
-    border-radius: 2px;
-    box-shadow: 0 0 32px rgba(102, 217, 255, 0.2);
+    border: 1px solid transparent;
+    border-radius: 0;
+    box-shadow: inset 0 0 28px rgba(102, 217, 255, 0.12);
+    clip-path: polygon(
+        var(--modal-cut) 0, calc(100% - var(--modal-cut)) 0, 100% var(--modal-cut), 100% calc(100% - var(--modal-cut)),
+        calc(100% - var(--modal-cut)) 100%, var(--modal-cut) 100%, 0 calc(100% - var(--modal-cut)), 0 var(--modal-cut));
+}
+
+.modal-flow {
+    position: absolute;
+    overflow: visible;
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px rgba(102, 217, 255, 0.25));
+}
+
+.modal-flow path {
+    fill: none;
+    stroke: var(--im-cyan);
+    stroke-linejoin: round;
+}
+
+/* 枠の線 */
+.modal-flow-outline {
+    stroke-width: 1;
+    opacity: 0.55;
+}
+
+/* 枠を流れる電気（パネルと同じ：長さの違う光の線と、逆向きに流れる細かい点） */
+.modal-flow-line {
+    stroke-width: 1.6;
+    stroke-dasharray: 120 14 36 14 60 30 8 26 50 30;
+    filter: drop-shadow(0 0 3px var(--im-cyan));
+    animation: modalFlowLine 6s linear infinite;
+}
+
+.modal-flow-dots {
+    stroke-width: 2.4;
+    stroke-dasharray: 1 7;
+    opacity: 0.45;
+    animation: modalFlowDots 4s linear infinite reverse;
+}
+
+@keyframes modalFlowLine {
+
+    to {
+        stroke-dashoffset: -388;
+    }
+
+}
+
+@keyframes modalFlowDots {
+
+    to {
+        stroke-dashoffset: -64;
+    }
+
 }
 
 .blog-switch-dialog h2 {
