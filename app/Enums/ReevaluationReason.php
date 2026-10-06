@@ -16,6 +16,9 @@ enum ReevaluationReason: string
     // 2. 品質基準・AI実行テンプレートのバージョンが変わった
     case Version = 'version';
 
+    // 2-2. 記事の再評価の目標の点数が上がった（前の目標に届いて止まった編集案を、新しい目標まで改修し直す。D-70-07）
+    case RaisedTarget = 'raised_target';
+
     // 3. この記事へのリンクの数が変わった
     case Links = 'links';
 
@@ -31,6 +34,7 @@ enum ReevaluationReason: string
             self::Unevaluated => '未評価',
             self::Changed     => '記事の更新',
             self::Version     => '品質基準・テンプレートの更新',
+            self::RaisedTarget => '目標の点数の引き上げ',
             self::Links       => 'この記事へのリンクの増減',
             self::Traffic     => 'アクセスの減少',
             self::Periodic    => '定期的な見直し',

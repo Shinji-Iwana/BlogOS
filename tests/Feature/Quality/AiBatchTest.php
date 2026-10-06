@@ -556,7 +556,7 @@ class AiBatchTest extends TestCase
 
     public function test_auto_reevaluation_repeats_revision_up_to_the_limit(): void
     {
-        // 診断のたびに点数が上がるが、基準（90点）には届かない
+        // 診断のたびに点数が上がるが、基準（95点）には届かない
         $this->fakeImprovingOpenAi([0.0, 0.2, 0.4, 0.6, 0.8]);
         $this->onlyFirstPostNeedsReevaluation();
         $this->enableAutoReevaluation(3);
@@ -680,5 +680,36 @@ class AiBatchTest extends TestCase
         $this->assertSame(AiBatchItemStatus::Succeeded, $revision->items()->sole()->status);
         $this->assertSame($draft->id, AiGeneration::find($revision->items()->sole()->ai_generation_id)->article_draft_id);
         $this->assertSame(1, ArticleDraft::count());
+    }
+
+    public function test_unchanged_ai_draft_below_the_target_is_reevaluated_again(): void
+    {
+        // 前の目標（90点）に届いて止まった編集案（90〜94点）を、目標を 95点に上げた後に、改修し直す（D-70-07）。
+        // 診断の点数は、○ の割合（残りは △）で決まる
+        config(['blogos.ai.acceptance_score' => 90]);
+        $this->fakeImprovingOpenAi([0.0, 0.75, 0.75, 0.95]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(3);
+
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $draft = ArticleDraft::sole();
+        $this->assertSame(1, AiBatch::where('purpose', 'revision')->count());
+        $first = (float) ArticleEvaluation::where('article_draft_id', $draft->id)->latest('id')->value('score');
+        $this->assertTrue($first >= 90 && $first < 95, "1回目の改修の後の点数：{$first}");
+
+        // 目標を上げる：記事に再評価の理由がなくても、編集案を診断し直して改修する（先に回す）
+        config(['blogos.ai.acceptance_score' => 95]);
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $diagnosis = AiBatch::where('purpose', 'quality_diagnosis')->latest('id')->first();
+        $this->assertSame(\App\Enums\ReevaluationReason::RaisedTarget->value, $diagnosis->items()->sole()->reason?->value ?? $diagnosis->items()->sole()->reason);
+        $this->assertSame(2, AiBatch::where('purpose', 'revision')->count());
+        $this->assertSame(1, ArticleDraft::count());
+        $this->assertGreaterThanOrEqual(95, (float) ArticleEvaluation::where('article_draft_id', $draft->id)->latest('id')->value('score'));
+
+        // 新しい目標に届いた編集案は、翌日は対象にしない
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $this->assertSame(2, AiBatch::where('purpose', 'quality_diagnosis')->count());
     }
 }

@@ -6,7 +6,11 @@ use App\Enums\AiBatchTarget;
 use App\Enums\AiBatchTrigger;
 use App\Enums\AiMode;
 use App\Enums\RevisionScope;
+use App\Enums\ReevaluationReason;
 use App\Models\AiBatch;
+use App\Models\AiBatchItem;
+use App\Models\ArticleDraft;
+use App\Models\ArticleEvaluation;
 use App\Models\Blog;
 use App\Models\Page;
 use App\Models\Post;
@@ -54,6 +58,16 @@ class AutoReevaluationService
             $this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation),
             fn (array $row) => ! $this->draftUnchangedSinceDiagnosis($row['article']),
         ));
+        // 目標の点数が上がった：前の目標に届いて止まった編集案を、新しい目標まで改修し直す（記事に再評価の理由がなくても。D-70-07）。
+        // あと少しで目標に届く編集案のため、1日の上限の中で先に回す
+        if ($setting->auto_revision_enabled) {
+            $raised = [];
+            foreach ($this->raisedTargetArticles($blog) as $article) {
+                $raised[$article::class . ':' . $article->id] = ['article' => $article, 'evaluation' => null, 'reason' => ReevaluationReason::RaisedTarget, 'tier' => 0, 'priority_notes' => ['目標の点数の引き上げ'], 'impressions' => 0];
+            }
+            $others = array_values(array_filter($targets, fn (array $row) => ! isset($raised[$row['article']::class . ':' . $row['article']->id])));
+            $targets = array_merge(array_values($raised), $others);
+        }
         $targets = array_slice($targets, 0, $remaining);
         if ($targets === []) {
             return null;
@@ -77,7 +91,8 @@ class AutoReevaluationService
     }
 
     /**
-     * 作業中の編集案があり、その編集案を最後に診断した後、編集案が変わっていないか
+     * 作業中の編集案があり、その編集案を最後に診断した後、編集案が変わっていないか。
+     * ただし、目標の点数が上がって改修し直す編集案（stoppedBelowRaisedTarget）は、変わっていなくても対象にする（D-70-07）
      */
     protected function draftUnchangedSinceDiagnosis(Post|Page $article): bool
     {
@@ -86,8 +101,50 @@ class AutoReevaluationService
             return false;
         }
         $evaluation = $this->evaluations->latestFor($article, $draft);
+        if ($evaluation === null || $draft->updated_at === null || $evaluation->created_at < $draft->updated_at) {
+            return false;
+        }
 
-        return $evaluation !== null && $draft->updated_at !== null && $evaluation->created_at >= $draft->updated_at;
+        return ! $this->stoppedBelowRaisedTarget($draft, $evaluation);
+    }
+
+    /**
+     * 前の目標の点数に届いて繰り返しが止まったが、今の目標（acceptance_score）には届いていない、AI が作ったままの編集案か（D-70-07）。
+     * その回のまとめて実行の目標（target_parameters の below_score）以上で止まった場合だけ。点数が上がらない・上限の回数・前の版に戻した、
+     * で止まった編集案は、毎日同じ費用をかけ続けないため、改修し直さない（編集案が変われば、ふだんどおり診断し直す）
+     */
+    protected function stoppedBelowRaisedTarget(ArticleDraft $draft, ArticleEvaluation $evaluation): bool
+    {
+        if ($evaluation->score === null || (float) $evaluation->score >= (float) config('blogos.ai.acceptance_score') || ! AiBatchService::autoRevisable($draft)) {
+            return false;
+        }
+
+        $item = AiBatchItem::with('batch')->where('diagnosis_generation_id', $evaluation->ai_generation_id)->latest('id')->first();
+        $belowScore = $item?->batch?->target_parameters['below_score'] ?? null;
+
+        return $belowScore !== null && (float) $evaluation->score >= (float) $belowScore;
+    }
+
+    /**
+     * 目標の点数が上がって、改修し直す編集案の記事
+     *
+     * @return list<Post|Page>
+     */
+    protected function raisedTargetArticles(Blog $blog): array
+    {
+        $articles = [];
+        foreach (ArticleDraft::where('blog_id', $blog->id)->where('origin', \App\Enums\DraftOrigin::Ai)->where('human_edited', false)->get() as $draft) {
+            $article = $draft->article();
+            if ($article === null || ! $draft->state->isActive() || $article->status !== 'publish') {
+                continue;
+            }
+            $evaluation = $this->evaluations->latestFor($article, $draft);
+            if ($evaluation !== null && ($draft->updated_at === null || $evaluation->created_at >= $draft->updated_at) && $this->stoppedBelowRaisedTarget($draft, $evaluation)) {
+                $articles[] = $article;
+            }
+        }
+
+        return $articles;
     }
 
     /**
