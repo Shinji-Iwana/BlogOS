@@ -32,11 +32,11 @@ class ScheduledTasks
             'counts'      => '処理件数：削除した件数',
         ],
         'ai:check-prices' => [
-            'label'       => 'AI料金表の同期',
+            'label'       => 'API料金表の同期',
             'description' => 'API 実行の料金表を、OpenAI の公式のページと照合する（値上がりは自動で反映、値下がりは人が確認）',
             'frequency'   => 'daily', 'weekday' => null, 'time' => '04:30',
             'after'       => [], 'can_disable' => true, 'manual' => true,
-            'menu_label'  => 'AI料金表の同期',
+            'menu_label'  => 'API料金表の同期',
             'counts'      => '変更件数：値上がり（反映）と値下がり（確認待ち）の件数',
         ],
         'wordpress:check-updates' => [

@@ -122,7 +122,7 @@ class ScheduledTaskTest extends TestCase
 
         $this->assertSame('failed', $run->status);
         $this->assertStringContainsString('終了コード 1', $run->error);
-        $this->get(route('home'))->assertOk()->assertSee('前回が失敗した定期実行があります（AI料金表の同期）');
+        $this->get(route('home'))->assertOk()->assertSee('前回が失敗した定期実行があります（API料金表の同期）');
 
         // 26時間以上、定期実行が動いていなければ、cron の停止を知らせる
         ScheduledTaskRun::query()->update(['started_at' => now()->subHours(30)]);
@@ -177,7 +177,7 @@ class ScheduledTaskTest extends TestCase
     {
         // メニューの「設定 → 定期実行」に6つ（D-63）。料金がかかる2つと、提携先のリンクの確認は、まだ出さない
         $html = $this->get(route('home'))->assertOk()->getContent();
-        foreach (['blogs-sync' => 'WordPressとの同期', 'model-prune' => '古い記録の削除', 'ai-check-prices' => 'AI料金表の同期',
+        foreach (['blogs-sync' => 'WordPressとの同期', 'model-prune' => '古い記録の削除', 'ai-check-prices' => 'API料金表の同期',
             'wordpress-check-updates' => 'WordPressの更新確認', 'google-fetch' => 'Googleとの同期', 'google-inspect-index' => 'Googleのインデックス確認'] as $id => $label) {
             $this->assertStringContainsString("data-modal-open=\"scheduled-{$id}-modal\" >{$label}</a>", $html);
             $this->assertStringContainsString("id=\"scheduled-{$id}-modal\"", $html);
@@ -202,9 +202,9 @@ class ScheduledTaskTest extends TestCase
     {
         $blog = Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
 
-        // メニューの「定期実行」の「AI料金表の同期」の上に「教材情報の同期」（教材の定期チェック）。有効は、選択中のブログの設定（D-63-03）
+        // メニューの「定期実行」の「API料金表の同期」の上に「教材情報の同期」（教材の定期チェック）。有効は、選択中のブログの設定（D-63-03）
         $html = $this->get(route('home'))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/>Googleのインデックス確認<\/a>.*?>教材情報の同期<\/a>.*?>AI料金表の同期<\/a>/s', $html);
+        $this->assertMatchesRegularExpression('/>Googleのインデックス確認<\/a>.*?>教材情報の同期<\/a>.*?>API料金表の同期<\/a>/s', $html);
         preg_match('/id="scheduled-materials-check-modal".*?<\/form>/s', $html, $modal);
         $this->assertStringContainsString(route('scheduled-tasks.update-blog', ['key' => 'materials:check']), $modal[0]);
         $this->assertStringContainsString('name="enabled" value="1" > 有効（Example Blog）', $modal[0]);
@@ -263,7 +263,7 @@ class ScheduledTaskTest extends TestCase
         // 今すぐ実行のある定期実行を全て、メニューの「定期実行」と同じ順に出す（料金がかかる2つは出さない）
         preg_match('/>即時実行<\/summary>(.*?)<\/ul>/s', $html, $runNow);
         preg_match_all('/data-menu-confirm="[^"]*">([^<]+)<\/a>/', $runNow[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'アフィリエイト提携先との同期', 'AI料金表の同期', '古い記録の削除'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'アフィリエイト提携先との同期', 'API料金表の同期', '古い記録の削除'], $labels[1]);
 
         // 開いていた画面に戻り、Queue に登録する
         $this->from(route('drafts.index'))->post($url)->assertRedirect(route('drafts.index'))
