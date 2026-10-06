@@ -2,7 +2,7 @@
    background.css
    ----------------------------------------------------------
    役割：
-   ・画面全体の背景（黒い背景、上からのかすかな青い光、HUD の格子）
+   ・画面全体の背景（黒い背景、上からのかすかな青い光、HUD の格子、格子を流れる電気）
    ========================================================== */
 
 body {
@@ -14,4 +14,14 @@ body {
         repeating-linear-gradient(0deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px),
         repeating-linear-gradient(90deg, rgba(102, 217, 255, 0.035) 0 1px, transparent 1px 48px);
     background-attachment: fixed;
+}
+
+/* 格子を流れる電気（js/script.js が置く canvas）。本文の後ろに、画面に固定して置く */
+.grid-flow {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
