@@ -1,7 +1,7 @@
 {{--
     サーバー情報（メニューの「情報 → サーバー情報」。D-71）
 
-    BlogOS が動いているサーバーの今の状態（サーバーの負荷・DB・古い記録の削除・キュー・ファイルの容量）を、開いたときに読み取って出す。
+    BlogOS が動いているサーバーの今の状態（サーバーの基本情報・DB・古い記録の削除・キュー・ファイルの容量）を、開いたときに読み取って出す。
     読み取るだけで、DB への書き込み・削除はしない。全ブログ共通のため、ブログを選んでいなくても開ける。
 --}}
 
@@ -22,8 +22,6 @@
 
             return number_format($bytes) . ' B';
         };
-        $load = $server['load'];
-        $cpus = $server['cpus'];
     @endphp
 
     <h1>サーバー情報</h1>
@@ -47,38 +45,10 @@
             <tr><th>サーバー番号</th><td>{{ $machine['server_number'] ?? '読み取れない' }}</td></tr>
             <tr><th>ホスト名</th><td>{{ $machine['hostname'] ?? '読み取れない' }}</td></tr>
             <tr><th>IPアドレス</th><td>{{ $machine['ip'] ?? '読み取れない' }}</td></tr>
+            <tr><th>PHP</th><td>{{ $machine['php_version'] }}</td></tr>
         </tbody>
     </table>
     <p class="text-muted">サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読みます。</p>
-    </section>
-
-    <section class="panel">
-    <h2>サーバーの負荷</h2>
-    <table class="data">
-        <tbody>
-            <tr>
-                <th>ロードアベレージ</th>
-                <td>
-                    @if ($load)
-                        直近1分 {{ number_format($load[0], 2) }}・5分 {{ number_format($load[1], 2) }}・15分 {{ number_format($load[2], 2) }}
-                        @if ($cpus)
-                            （CPU {{ $cpus }}個。1個あたり 直近5分 {{ number_format($load[1] / $cpus, 2) }}）
-                        @endif
-                    @else
-                        読み取れない（このサーバーでは使えない）
-                    @endif
-                </td>
-            </tr>
-            <tr><th>PHP</th><td>{{ $server['php_version'] }}（{{ $server['os'] }}）</td></tr>
-            <tr><th>PHP が使えるメモリの上限</th><td>{{ $server['memory_limit'] }}（この画面を作るのに使ったメモリ：{{ $size($server['peak_memory']) }}）</td></tr>
-            <tr><th>画面の処理の時間の上限</th><td>{{ $server['max_execution_time'] === '0' ? 'なし' : $server['max_execution_time'] . '秒' }}</td></tr>
-        </tbody>
-    </table>
-    <p class="text-muted">
-        ロードアベレージは、処理を待っている仕事の数の平均です。CPU 1個あたりで 1 を超えると、処理が待たされ始めます。
-        XServer は共用のサーバーのため、同じサーバーのほかの利用者の分も含みます（BlogOS だけの負荷ではありません）。
-        画面のアニメーションは見ている人のブラウザで動くため、サーバーの負荷にはなりません。
-    </p>
     </section>
 
     <section class="panel">

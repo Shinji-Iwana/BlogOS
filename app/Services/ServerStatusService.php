@@ -43,9 +43,10 @@ class ServerStatusService
      * サーバーの基本情報（XServer のサーバーパネルの「サーバー情報」に近いもの）。読めないものは null。
      * サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読む
      *
-     * OS・CPU・メモリーは、サーバーパネルの表示と合わないため出さない（D-71-03）
+     * OS・CPU・メモリーは、サーバーパネルの表示と合わないため出さない（D-71-03）。
+     * サーバーの負荷（ロードアベレージ・PHP のメモリと時間の上限）も、共用のサーバー全体の値で意味が薄いため出さない（D-71-05）
      *
-     * @return array{server_number: string|null, hostname: string|null, ip: string|null}
+     * @return array{server_number: string|null, hostname: string|null, ip: string|null, php_version: string}
      */
     public function machine(): array
     {
@@ -55,26 +56,7 @@ class ServerStatusService
             'server_number' => $hostname && preg_match('/^(sv\d+)\./i', $hostname, $match) ? $match[1] : null,
             'hostname'      => $hostname,
             'ip'            => $this->ipAddress($hostname),
-        ];
-    }
-
-    /**
-     * サーバーと PHP
-     *
-     * @return array{php_version: string, os: string, load: array{0: float, 1: float, 2: float}|null, cpus: int|null, memory_limit: string, max_execution_time: string, peak_memory: int}
-     */
-    public function server(): array
-    {
-        $load = function_exists('sys_getloadavg') ? @sys_getloadavg() : false;
-
-        return [
-            'php_version'        => PHP_VERSION,
-            'os'                 => PHP_OS_FAMILY,
-            'load'               => is_array($load) ? $load : null,
-            'cpus'               => $this->cpuCount(),
-            'memory_limit'       => (string) ini_get('memory_limit'),
-            'max_execution_time' => (string) ini_get('max_execution_time'),
-            'peak_memory'        => memory_get_peak_usage(true),
+            'php_version'   => PHP_VERSION,
         ];
     }
 
@@ -261,17 +243,6 @@ class ServerStatusService
     }
 
     /**
-     * CPU の数（ロードアベレージの目安に使う。読めないときは null）
-     */
-    protected function cpuCount(): ?int
-    {
-        $cpuinfo = $this->readProc('/proc/cpuinfo');
-        $count = $cpuinfo ? preg_match_all('/^processor\s*:/m', $cpuinfo) : 0;
-
-        return $count > 0 ? $count : null;
-    }
-
-    /**
      * サーバーの IP アドレス（画面を開いたときの受け口。なければホスト名から引く）
      */
     protected function ipAddress(?string $hostname): ?string
@@ -286,14 +257,6 @@ class ServerStatusService
         $resolved = $this->safe(fn () => gethostbyname($hostname));
 
         return $resolved && filter_var($resolved, FILTER_VALIDATE_IP) ? $resolved : null;
-    }
-
-    /**
-     * サーバーの情報のファイルを読む（読めないとき・制限で開けないときは null）
-     */
-    protected function readProc(string $path): ?string
-    {
-        return $this->safe(fn () => @is_readable($path) ? (@file_get_contents($path) ?: null) : null);
     }
 
     /**

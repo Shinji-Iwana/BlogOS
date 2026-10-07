@@ -26,7 +26,7 @@ class ServerStatusTest extends TestCase
             ->get(route('server.index'))
             ->assertOk()
             ->assertSee('サーバーの基本情報')
-            ->assertSee('サーバーの負荷')
+            ->assertDontSee('サーバーの負荷')
             ->assertSee('scheduled_task_runs')
             ->assertSee('default 1件');
 

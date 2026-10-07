@@ -14,7 +14,6 @@ class ServerStatusController extends Controller
     {
         return view('server.index', [
             'machine'  => $status->machine(),
-            'server'   => $status->server(),
             'database' => $status->database(),
             'others'   => $status->otherDatabases(),
             'prunable' => $status->prunable(),
