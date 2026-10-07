@@ -641,6 +641,10 @@ class AiBatchTest extends TestCase
         $prompt = app(\App\Services\Ai\PromptBuilder::class)->build(\App\Enums\AiMode::QualityDiagnosis, $this->blog, $this->posts[1], $draft->fresh(), [], null)['prompt'];
         $this->assertStringContainsString("- [[画像:{$image->id}]] 図解「処理の流れ」（作成中。BlogOS が内容のとおりに作る）\n  - 描く内容：入力から出力までの3つの段階を矢印でつなぐ\n  - alt：入力・処理・出力の流れの図", $prompt);
         $this->assertStringContainsString('目印であることを理由に、図の項目', $prompt);
+        // BlogOS が入れる部分・用語の説明・追加の検索が要らない、の判定の仕方（D-70-09）
+        $this->assertStringContainsString('BlogOS が入れる部分（広告を含むことの表示 `pr-note`', $prompt);
+        $this->assertStringContainsString('実際に動かした結果・確認した環境・公式情報と照らし合わせた結果がないことは、この項目の理由にしないでください', $prompt);
+        $this->assertStringContainsString('説明の対象にしない箇所', $prompt);
     }
 
     public function test_orphan_only_failure_is_not_revised_and_not_a_finding(): void
