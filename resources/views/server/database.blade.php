@@ -1,4 +1,4 @@
-{{-- サーバー情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71） --}}
+{{-- XServer情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71） --}}
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
 <table class="data">
     <tbody>

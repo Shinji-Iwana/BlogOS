@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\ServerStatusService;
 
 /**
- * サーバー情報（メニューの「情報 → サーバー情報」。D-71）。読み取るだけで、DB への書き込み・削除はしない。
+ * XServer情報（メニューの「情報 → XServer情報」。D-71）。読み取るだけで、DB への書き込み・削除はしない。
  * 全ブログ共通のため、ブログを選んでいなくても開ける。
  */
 class ServerStatusController extends Controller

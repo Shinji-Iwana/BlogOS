@@ -305,11 +305,11 @@ return [
      * 方式 c：録音 → 聞き取り（文字にする）→ 文章の AI が判断して BlogOS の道具を呼ぶ → 返事を声にする、を順番に行う。
      * 方式 d・e（リアルタイム会話）は段階3で加える。使う方式・声・話し方は、画面「AIの設定」の「音声」で選ぶ（system_settings）。
      */
-    // サーバー情報（D-71）。DB の容量の上限（MB）。MySQL からは読み取れないため、XServer のサーバーパネル（データベース → MySQL設定）の値を入れる。
+    // XServer情報（D-71）。DB の容量の上限（MB）。MySQL からは読み取れないため、XServer のサーバーパネル（データベース → MySQL設定）の値を入れる。
     // 空にすると、使用率を出さない
     'server' => [
         'db_capacity_mb' => env('BLOGOS_DB_CAPACITY_MB', 5000),
-        // XServer のサーバーパネル（ログインの画面）。サーバー情報の画面にリンクを出す
+        // XServer のサーバーパネル（ログインの画面）。XServer情報の画面にリンクを出す
         'panel_url' => env('BLOGOS_SERVER_PANEL_URL', 'https://secure.xserver.ne.jp/xapanel/login/xserver/server/'),
     ],
 

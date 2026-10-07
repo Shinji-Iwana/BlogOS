@@ -66,13 +66,13 @@ class MenuItems
         ]],
         // 情報（D-63-11。項目の名前は画面の名前と同じ。D-63-15）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'info', 'code' => 'INFO', 'label' => '情報', 'links' => [
+            // XServer情報（D-71。以前の名前は「サーバー情報」。サーバーの基本情報・DB・古い記録の削除・キュー・ファイルの容量）
+            ['label' => 'XServer情報', 'route' => 'server.index'],
             ['label' => 'WordPress情報', 'route' => 'wordpress-updates.index'],
             // WordPress API情報（D-63-12。以前は設定の画面とトップページの「管理」から開いた）
             ['label' => 'WordPress API情報', 'route' => 'wp-api.home'],
             // OpenAI API料金表情報（D-63-28。以前はAIの設定の画面の「API実行の料金表」）
             ['label' => 'OpenAI API料金表情報', 'route' => 'ai.prices.index'],
-            // サーバー情報（D-71。サーバーの負荷・DB・古い記録の削除・キュー・ファイルの容量）
-            ['label' => 'サーバー情報', 'route' => 'server.index'],
         ]],
     ];
 

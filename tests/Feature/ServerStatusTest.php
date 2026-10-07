@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * サーバー情報（D-71）：読み取るだけで、DB を変えない
+ * XServer情報（D-71）：読み取るだけで、DB を変えない
  */
 class ServerStatusTest extends TestCase
 {
