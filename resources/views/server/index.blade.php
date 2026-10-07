@@ -82,46 +82,38 @@
     </section>
 
     <section class="panel">
-    <h2>DB</h2>
-    <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
-    <table class="data">
-        <tbody>
-            <tr>
-                <th>使用率</th>
-                <td>
-                    @if ($database['usage_ratio'] !== null)
-                        <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ number_format($database['total_bytes'] / 1024 ** 2, 1) }} MB ／ 上限 {{ number_format($database['capacity_bytes'] / 1024 ** 2) }} MB）
-                    @else
-                        上限を設定していない（設定の BLOGOS_DB_CAPACITY_MB）
-                    @endif
-                </td>
-            </tr>
-            <tr><th>データと索引</th><td>{{ $size($database['total_bytes']) }}</td></tr>
-        </tbody>
-    </table>
-    <details>
-        <summary>テーブルごとの件数と容量（容量の大きい順）</summary>
-        <div style="overflow-x:auto;">
-        <table class="data">
-            <thead><tr><th>テーブル</th><th>件数</th><th>容量（データと索引）</th></tr></thead>
-            <tbody>
-                @foreach ($database['tables'] as $table)
-                    <tr>
-                        <td>{{ $table['name'] }}</td>
-                        <td style="text-align:right;">{{ number_format($table['rows']) }}</td>
-                        <td style="text-align:right;">{{ $size($table['bytes']) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-        </div>
-    </details>
+    <h2>DB（BlogOS）</h2>
+    @include('server.database', ['database' => $database, 'size' => $size])
     <p class="text-muted">
         使用率は、データと索引の合計を上限で割って計算します（XServer のサーバーパネル（データベース → MySQL設定）の値とほぼ同じです）。
         上限は MySQL から読み取れないため、サーバーパネルの値（{{ config('blogos.server.db_capacity_mb') ?: '-' }} MB）を設定に入れています。
         記録を削除しても、MySQL の管理情報の容量はすぐには小さくならないことがあります。
     </p>
     </section>
+
+    {{-- WordPress の DB（BlogOS の DB のユーザーにアクセス権がある DB。読むだけ。D-71-04） --}}
+    @forelse ($others as $other)
+        <section class="panel">
+        <h2>
+            DB（{{ $other['blog'] ? 'WordPress：' . $other['blog']->display_name : ($other['home'] ? 'WordPress' : 'ほかの DB') }}）
+            @if ($other['blog'] && $other['blog']->id === ($selectedBlog?->id))
+                <span class="text-muted">選択中のブログ</span>
+            @endif
+        </h2>
+        @if ($other['home'])
+            <p class="text-muted">サイトの URL：{{ $other['home'] }}{{ $other['blog'] ? '' : '（BlogOS に登録していないサイト）' }}</p>
+        @endif
+        @include('server.database', ['database' => $other['database'], 'size' => $size])
+        </section>
+    @empty
+        <section class="panel">
+        <h2>DB（WordPress）</h2>
+        <p class="text-muted">
+            BlogOS から見える WordPress の DB はありません。出すには、XServer のサーバーパネル（データベース → MySQL設定）で、WordPress の DB の「ユーザー設定」から、アクセス権所有ユーザーに BlogOS の DB のユーザーを足してください。
+            BlogOS は読むだけで、WordPress の DB を書き換えません。
+        </p>
+        </section>
+    @endforelse
 
     <section class="panel">
     <h2>古い記録の削除</h2>

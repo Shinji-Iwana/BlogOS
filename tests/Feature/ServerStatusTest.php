@@ -56,6 +56,38 @@ class ServerStatusTest extends TestCase
         $this->assertEqualsWithDelta($database['total_bytes'] / (5000 * 1024 * 1024), $database['usage_ratio'], 0.000001);
     }
 
+    public function test_other_database_is_read_and_matched_to_blog(): void
+    {
+        $schema = 'blogos_testing_wp';
+        try {
+            DB::statement("create database if not exists `{$schema}`");
+        } catch (\Throwable) {
+            $this->markTestSkipped('テスト用の DB を作れない');
+        }
+
+        try {
+            DB::statement("create table `{$schema}`.`wp_options` (option_id int primary key auto_increment, option_name varchar(191), option_value text)");
+            DB::table("{$schema}.wp_options")->insert([
+                ['option_name' => 'home', 'option_value' => 'https://blog.example.test'],
+                ['option_name' => 'blogname', 'option_value' => 'テスト'],
+            ]);
+            $blog = \App\Models\Blog::create(['display_name' => 'テストのブログ', 'home' => 'http://blog.example.test/', 'is_selected' => true]);
+
+            $other = collect(app(ServerStatusService::class)->otherDatabases())->first(fn ($item) => $item['database']['name'] === $schema);
+
+            $this->assertNotNull($other);
+            $this->assertSame('https://blog.example.test', $other['home']);
+            $this->assertTrue($blog->is($other['blog']));
+            $this->assertSame([['name' => 'wp_options', 'rows' => 2]], array_map(fn ($table) => ['name' => $table['name'], 'rows' => $table['rows']], $other['database']['tables']));
+
+            // 読むだけで、WordPress の DB を変えない
+            $this->actingAs(User::factory()->create())->get(route('server.index'))->assertOk()->assertSee('WordPress：' . $blog->display_name);
+            $this->assertSame(2, DB::table("{$schema}.wp_options")->count());
+        } finally {
+            DB::statement("drop database if exists `{$schema}`");
+        }
+    }
+
     public function test_usage_ratio_is_not_shown_without_capacity(): void
     {
         config(['blogos.server.db_capacity_mb' => null]);

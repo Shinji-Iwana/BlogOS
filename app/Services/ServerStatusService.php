@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AiGeneration;
+use App\Models\Blog;
 use App\Models\AiPriceCheck;
 use App\Models\GoogleFetchRun;
 use App\Models\ScheduledTaskRun;
@@ -78,21 +79,23 @@ class ServerStatusService
     }
 
     /**
-     * DB の全体と、テーブルごとの件数・容量（容量の大きい順）
+     * DB の全体と、テーブルごとの件数・容量（容量の大きい順）。$schema を省くと BlogOS の DB
      *
      * 容量は、データと索引の合計（XServer のサーバーパネルの値とほぼ同じ）。使用率は、これを上限（設定）で割る
      *
      * @return array{version: string, name: string, total_bytes: int, capacity_bytes: int|null, usage_ratio: float|null, tables: list<array{name: string, rows: int, bytes: int}>}
      */
-    public function database(): array
+    public function database(?string $schema = null): array
     {
+        $schema ??= (string) DB::getDatabaseName();
+
         $tables = collect(DB::select(
-            'select TABLE_NAME as name, DATA_LENGTH + INDEX_LENGTH as bytes from information_schema.TABLES where TABLE_SCHEMA = database() and TABLE_TYPE = ?',
-            ['BASE TABLE'],
+            'select TABLE_NAME as name, DATA_LENGTH + INDEX_LENGTH as bytes from information_schema.TABLES where TABLE_SCHEMA = ? and TABLE_TYPE = ?',
+            [$schema, 'BASE TABLE'],
         ))->map(fn ($table) => [
             'name'  => $table->name,
             // 件数は数える（information_schema の TABLE_ROWS は、InnoDB では目安の値のため）
-            'rows'  => DB::table($table->name)->count(),
+            'rows'  => DB::table($schema . '.' . $table->name)->count(),
             'bytes' => (int) $table->bytes,
         ])->sortByDesc('bytes')->values()->all();
 
@@ -102,12 +105,72 @@ class ServerStatusService
 
         return [
             'version'        => (string) DB::scalar('select version()'),
-            'name'           => (string) DB::getDatabaseName(),
+            'name'           => $schema,
             'total_bytes'    => $total,
             'capacity_bytes' => $capacity,
             'usage_ratio'    => $capacity ? $total / $capacity : null,
             'tables'         => $tables,
         ];
+    }
+
+    /**
+     * BlogOS の DB のユーザーにアクセス権がある、ほかの DB（WordPress の DB。D-71-04）。
+     * XServer のサーバーパネルで、WordPress の DB のアクセス権所有ユーザーに BlogOS の DB のユーザーを足すと見える。
+     * 権限の上では書き換えられるが、ここでは読むだけ（select）にする。
+     * WordPress の DB なら、設定（options の home）の URL から、登録しているブログを探す
+     *
+     * @return list<array{database: array, home: string|null, blog: \App\Models\Blog|null}>
+     */
+    public function otherDatabases(): array
+    {
+        $own = (string) DB::getDatabaseName();
+        $schemas = collect(DB::select('select SCHEMA_NAME as name from information_schema.SCHEMATA'))
+            ->pluck('name')
+            ->reject(fn (string $name) => $name === $own || in_array(strtolower($name), ['information_schema', 'mysql', 'performance_schema', 'sys'], true))
+            ->sort()
+            ->values();
+
+        $blogs = Blog::all();
+
+        return $schemas->map(function (string $schema) use ($blogs) {
+            $home = $this->wordPressHome($schema);
+
+            return [
+                'database' => $this->database($schema),
+                'home'     => $home,
+                'blog'     => $home ? $blogs->first(fn (Blog $blog) => $this->sameSite($blog->home, $home)) : null,
+            ];
+        })->all();
+    }
+
+    /**
+     * WordPress の DB の、サイトの URL（options の home。WordPress でなければ null）
+     */
+    protected function wordPressHome(string $schema): ?string
+    {
+        $optionTables = collect(DB::select(
+            'select TABLE_NAME as name from information_schema.COLUMNS where TABLE_SCHEMA = ? and TABLE_NAME like ? and COLUMN_NAME = ?',
+            [$schema, '%options', 'option_name'],
+        ))->pluck('name');
+
+        foreach ($optionTables as $table) {
+            $home = $this->safe(fn () => DB::table($schema . '.' . $table)->where('option_name', 'home')->value('option_value'));
+            if (is_string($home) && $home !== '') {
+                return $home;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 同じサイトの URL か（http と https・末尾の / の違いは問わない）
+     */
+    protected function sameSite(?string $a, string $b): bool
+    {
+        $normalize = fn (?string $url) => rtrim(strtolower((string) preg_replace('#^https?://#i', '', trim((string) $url))), '/');
+
+        return $a !== null && $normalize($a) === $normalize($b);
     }
 
     /**

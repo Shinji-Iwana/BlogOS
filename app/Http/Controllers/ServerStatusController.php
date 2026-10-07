@@ -16,6 +16,7 @@ class ServerStatusController extends Controller
             'machine'  => $status->machine(),
             'server'   => $status->server(),
             'database' => $status->database(),
+            'others'   => $status->otherDatabases(),
             'prunable' => $status->prunable(),
             'queue'    => $status->queue(),
             'files'    => $status->files(),
