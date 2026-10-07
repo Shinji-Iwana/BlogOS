@@ -580,6 +580,10 @@ class AiBatchTest extends TestCase
             ->expectsOutputToContain('3回目：1件')->expectsOutputToContain("post:{$post} 1回目：")->assertSuccessful();
         $this->artisan('blogos:report-revision-rounds', ['--article' => "post:{$post}"])->expectsOutputToContain('■ 3回目')
             ->expectsOutputToContain('判定が変わった項目')->expectsOutputToContain('本文の変更の記録')->assertSuccessful();
+        // 項目ごとの、判定の理由と改修での対応（D-70-08）
+        $this->artisan('blogos:report-revision-rounds', ['--items' => 'mon.reason'])
+            ->expectsOutputToContain('■ mon.reason：最後の診断の判定')->expectsOutputToContain("post:{$post}（3回目")
+            ->expectsOutputToContain('    理由：一部不足')->expectsOutputToContain('    改修での対応：')->assertSuccessful();
         $this->assertSame(1, ArticleDraft::count());
 
         // 1日の上限には、最初の診断だけを数える

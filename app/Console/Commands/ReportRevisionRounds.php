@@ -11,13 +11,16 @@ use Illuminate\Support\Facades\DB;
  *
  * 点数が上がらない原因を調べるために作った（D-63-30）。表示するもの：
  * - 全体：回ごとの点数の上がり下がり、判定が下がった・上がった項目、最後の診断で ○ にならなかった項目（95点を阻んでいる項目）
+ * - --items：項目ごとの、最後の診断の判定の理由・指摘と、改修で直さなかった理由（D-70-08）
  * - --article：1記事の回ごとの点数・判定が変わった項目・指摘への対応と確かめた結果・編集案の目印の数と、図・リンク・教材の項目の判定の理由
  */
 class ReportRevisionRounds extends Command
 {
     protected $signature = 'blogos:report-revision-rounds
         {--days=30 : 何日前からの記事の再評価を見るか}
-        {--article= : 1記事だけを詳しく見る（post:12 または page:3）}';
+        {--article= : 1記事だけを詳しく見る（post:12 または page:3）}
+        {--items= : 項目ごとに、最後の診断の判定の理由・指摘と、改修で直さなかった理由を並べる（例：reader.terms,intent.no_extra_search）}
+        {--limit=15 : --items で出す記事の数（項目ごと）}';
 
     protected $description = '記事の再評価の繰り返し（改修と編集案の診断）の結果を表示する（読み取りだけ）';
 
@@ -31,6 +34,12 @@ class ReportRevisionRounds extends Command
         $chains = $this->chains();
         if ($chains->isEmpty()) {
             $this->info('対象の記事の再評価（繰り返しのある改修）がありません。--days を増やしてください。');
+
+            return self::SUCCESS;
+        }
+
+        if ($this->option('items')) {
+            $this->items($chains, array_values(array_filter(array_map('trim', explode(',', (string) $this->option('items'))))));
 
             return self::SUCCESS;
         }
@@ -180,6 +189,56 @@ class ReportRevisionRounds extends Command
         $this->line('■ 記事ごと（回：改修前 → 改修後。1記事を詳しく見るときは --article=post:12）');
         foreach ($chains as $key => $items) {
             $this->line("  {$key} " . $items->map(fn ($item) => "{$item->round}回目：" . ($item->score_before ?? '-') . '→' . ($item->evaluation->score ?? '-') . "（編集案 #" . ($item->draft_id ?? '-') . '）')->implode('　'));
+        }
+    }
+
+    /**
+     * 項目ごとに、最後の診断で ○ にならなかった記事の、判定の理由・指摘（どこが・何が足りないか・どう直すか）と、
+     * その項目を改修でどう扱ったか（直した・一部直した・直さなかったと、その理由）を並べる（D-70-08）
+     *
+     * @param Collection<string, Collection<int, object>> $chains
+     * @param list<string> $keys
+     */
+    protected function items(Collection $chains, array $keys): void
+    {
+        $limit = max(1, (int) $this->option('limit'));
+        $cut = fn (?string $text, int $length = 220) => $text === null || $text === '' ? '-' : mb_substr(preg_replace('/\s+/u', ' ', $text), 0, $length);
+
+        foreach ($keys as $itemKey) {
+            $rows = [];
+            $judgments = [];
+            foreach ($chains as $key => $items) {
+                $last = $items->last(fn ($item) => $item->evaluation !== null);
+                if ($last === null) {
+                    continue;
+                }
+                $detail = DB::table('article_evaluation_details')->where('article_evaluation_id', $last->evaluation->id)->where('item_key', $itemKey)->first();
+                if ($detail === null) {
+                    continue;
+                }
+                $judgments[$detail->judgment] = ($judgments[$detail->judgment] ?? 0) + 1;
+                if (! in_array($detail->judgment, ['partial', 'bad'], true)) {
+                    continue;
+                }
+                $finding = DB::table('revision_findings')->where('ai_generation_id', $last->ai_generation_id)->where('item_key', $itemKey)->first();
+                $rows[] = [$key, $last, $detail, $finding];
+            }
+
+            $this->newLine();
+            $this->info("■ {$itemKey}：最後の診断の判定　" . collect($judgments)->map(fn ($n, $j) => (self::JUDGMENTS[$j] ?? $j) . " {$n}件")->implode('・'));
+            foreach (array_slice($rows, 0, $limit) as [$key, $last, $detail, $finding]) {
+                $this->line("  {$key}（{$last->round}回目・{$last->evaluation->score}点）" . (self::JUDGMENTS[$detail->judgment] ?? $detail->judgment));
+                $this->line('    理由：' . $cut($detail->comment));
+                $this->line('    どこが：' . $cut($detail->location, 120));
+                $this->line('    何が足りないか：' . $cut($detail->problem));
+                $this->line('    どう直すか：' . $cut($detail->fix));
+                if ($finding !== null) {
+                    $this->line('    改修での対応：' . ($finding->response_status ?? '-') . '（' . $cut($finding->response_note, 160) . '）');
+                }
+            }
+            if (count($rows) > $limit) {
+                $this->line('  ほか ' . (count($rows) - $limit) . '記事（--limit で増やせます）');
+            }
         }
     }
 
