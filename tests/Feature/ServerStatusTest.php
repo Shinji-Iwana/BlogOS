@@ -51,9 +51,8 @@ class ServerStatusTest extends TestCase
 
         $this->assertContains('scheduled_task_runs', array_column($database['tables'], 'name'));
         $this->assertGreaterThan(0, $database['total_bytes']);
-        $this->assertGreaterThanOrEqual($database['total_bytes'], $database['file_bytes']);
         $this->assertSame(5000 * 1024 * 1024, $database['capacity_bytes']);
-        $this->assertEqualsWithDelta($database['file_bytes'] / (5000 * 1024 * 1024), $database['usage_ratio'], 0.000001);
+        $this->assertEqualsWithDelta($database['total_bytes'] / (5000 * 1024 * 1024), $database['usage_ratio'], 0.000001);
     }
 
     public function test_usage_ratio_is_not_shown_without_capacity(): void

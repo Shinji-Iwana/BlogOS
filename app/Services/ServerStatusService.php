@@ -61,27 +61,23 @@ class ServerStatusService
     /**
      * DB の全体と、テーブルごとの件数・容量（容量の大きい順）
      *
-     * 容量は、データと索引（bytes）と、確保済みの空き場所（free。記録を削除した跡など）。XServer のサーバーパネルの値は、ファイルの大きさのため、
-     * 両方を足したもの（file_bytes）に近い。テーブルごとのファイルでない場合（innodb_file_per_table が無効）は、空き場所が全テーブル共通の値になるため足さない
+     * 容量は、データと索引の合計（XServer のサーバーパネルの値とほぼ同じ）。使用率は、これを上限（設定）で割る
      *
-     * @return array{version: string, name: string, total_bytes: int, free_bytes: int|null, file_bytes: int, capacity_bytes: int|null, usage_ratio: float|null, tables: list<array{name: string, rows: int, bytes: int, free: int}>}
+     * @return array{version: string, name: string, total_bytes: int, capacity_bytes: int|null, usage_ratio: float|null, tables: list<array{name: string, rows: int, bytes: int}>}
      */
     public function database(): array
     {
         $tables = collect(DB::select(
-            'select TABLE_NAME as name, DATA_LENGTH + INDEX_LENGTH as bytes, DATA_FREE as free from information_schema.TABLES where TABLE_SCHEMA = database() and TABLE_TYPE = ?',
+            'select TABLE_NAME as name, DATA_LENGTH + INDEX_LENGTH as bytes from information_schema.TABLES where TABLE_SCHEMA = database() and TABLE_TYPE = ?',
             ['BASE TABLE'],
         ))->map(fn ($table) => [
             'name'  => $table->name,
             // 件数は数える（information_schema の TABLE_ROWS は、InnoDB では目安の値のため）
             'rows'  => DB::table($table->name)->count(),
             'bytes' => (int) $table->bytes,
-            'free'  => (int) $table->free,
         ])->sortByDesc('bytes')->values()->all();
 
         $total = array_sum(array_column($tables, 'bytes'));
-        $free = $this->filePerTable() ? array_sum(array_column($tables, 'free')) : null;
-        $file = $total + (int) $free;
         $capacityMb = (int) config('blogos.server.db_capacity_mb');
         $capacity = $capacityMb > 0 ? $capacityMb * 1024 * 1024 : null;
 
@@ -89,24 +85,10 @@ class ServerStatusService
             'version'        => (string) DB::scalar('select version()'),
             'name'           => (string) DB::getDatabaseName(),
             'total_bytes'    => $total,
-            'free_bytes'     => $free,
-            'file_bytes'     => $file,
             'capacity_bytes' => $capacity,
-            'usage_ratio'    => $capacity ? $file / $capacity : null,
+            'usage_ratio'    => $capacity ? $total / $capacity : null,
             'tables'         => $tables,
         ];
-    }
-
-    /**
-     * テーブルごとに別のファイルか（innodb_file_per_table。読めないときは、別とみなさない）
-     */
-    protected function filePerTable(): bool
-    {
-        try {
-            return in_array(strtoupper((string) DB::scalar('select @@innodb_file_per_table')), ['1', 'ON'], true);
-        } catch (Throwable) {
-            return false;
-        }
     }
 
     /**

@@ -73,28 +73,26 @@
                 <th>使用率</th>
                 <td>
                     @if ($database['usage_ratio'] !== null)
-                        <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ $size($database['file_bytes']) }} ／ 上限 {{ $size($database['capacity_bytes']) }}）
+                        <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ $size($database['total_bytes']) }} ／ 上限 {{ $size($database['capacity_bytes']) }}）
                     @else
                         上限を設定していない（設定の BLOGOS_DB_CAPACITY_MB）
                     @endif
                 </td>
             </tr>
             <tr><th>データと索引</th><td>{{ $size($database['total_bytes']) }}</td></tr>
-            <tr><th>確保済みの空き場所</th><td>{{ $database['free_bytes'] === null ? '読み取れない（テーブルごとのファイルでない）' : $size($database['free_bytes']) }}</td></tr>
         </tbody>
     </table>
     <details>
         <summary>テーブルごとの件数と容量（容量の大きい順）</summary>
         <div style="overflow-x:auto;">
         <table class="data">
-            <thead><tr><th>テーブル</th><th>件数</th><th>容量（データと索引）</th><th>確保済みの空き場所</th></tr></thead>
+            <thead><tr><th>テーブル</th><th>件数</th><th>容量（データと索引）</th></tr></thead>
             <tbody>
                 @foreach ($database['tables'] as $table)
                     <tr>
                         <td>{{ $table['name'] }}</td>
                         <td style="text-align:right;">{{ number_format($table['rows']) }}</td>
                         <td style="text-align:right;">{{ $size($table['bytes']) }}</td>
-                        <td style="text-align:right;">{{ $size($table['free']) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -102,9 +100,9 @@
         </div>
     </details>
     <p class="text-muted">
-        使用率は、データと索引に、確保済みの空き場所（記録を削除した跡など。MySQL が次の記録に使う）を足した容量で計算します。XServer のサーバーパネル（データベース → MySQL設定）の値は、DB のファイルの大きさのため、こちらに近くなります（ファイルの管理の分だけ、少し違うことがあります）。
-        記録を削除しても、確保済みの空き場所になるだけで、ファイルはすぐには小さくなりません。
+        使用率は、データと索引の合計を上限で割って計算します（XServer のサーバーパネル（データベース → MySQL設定）の値とほぼ同じです）。
         上限は MySQL から読み取れないため、サーバーパネルの値（{{ config('blogos.server.db_capacity_mb') ?: '-' }} MB）を設定に入れています。
+        記録を削除しても、MySQL の管理情報の容量はすぐには小さくならないことがあります。
     </p>
     </section>
 
