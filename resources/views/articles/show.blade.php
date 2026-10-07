@@ -424,8 +424,8 @@
                     <tr>
                         <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
                         <td>{{ $history->field }}</td>
-                        <td>{{ \Illuminate\Support\Str::limit((string) $history->old_value, 200) }}</td>
-                        <td>{{ \Illuminate\Support\Str::limit((string) $history->new_value, 200) }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit((string) \App\Support\DisplayTime::value($history->field, $history->old_value), 200) }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit((string) \App\Support\DisplayTime::value($history->field, $history->new_value), 200) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="4">ありません。</td></tr>

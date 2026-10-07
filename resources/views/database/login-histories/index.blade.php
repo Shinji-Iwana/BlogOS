@@ -40,7 +40,7 @@
             <tbody>
                 @forelse ($histories as $history)
                     <tr>
-                        <td>{{ $history->occurred_at }}</td>
+                        <td>{{ \App\Support\DisplayTime::format($history->occurred_at) }}</td>
                         <td>
                             @switch ($history->event)
                                 @case (\App\Enums\LoginEvent::LoginSucceeded)

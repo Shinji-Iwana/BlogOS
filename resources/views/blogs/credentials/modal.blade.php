@@ -59,7 +59,7 @@
                     @endif
                 </p>
                 @if ($blogCredential->last_failed_at)
-                    <p>最後の失敗：{{ $blogCredential->last_failed_at }}（{{ $blogCredential->last_error }}）</p>
+                    <p>最後の失敗：{{ \App\Support\DisplayTime::format($blogCredential->last_failed_at) }}（{{ $blogCredential->last_error }}）</p>
                 @endif
 
                 <form method="POST" action="{{ route('blogs.credentials.verify') }}">

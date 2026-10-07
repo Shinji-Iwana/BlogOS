@@ -84,12 +84,13 @@
             <h3>レスポンスヘッダー</h3>
             <details>
                 <summary>表示する</summary>
-                <pre style="white-space:pre-wrap; word-break:break-all;">@foreach ($result['headers'] as $name => $values){{ $name }}: {{ implode(', ', $values) }}
+                <pre style="white-space:pre-wrap; word-break:break-all;">@foreach (\App\Support\DisplayTime::apiHeaders($result['headers']) as $name => $values){{ $name }}: {{ implode(', ', $values) }}
 @endforeach</pre>
             </details>
 
             <h3>レスポンス本文（JSON）</h3>
-            <pre class="code-block" style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; padding:8px;">{{ $result['body'] !== null ? json_encode($result['body'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
+            <p class="text-muted">日時は、日本時間に直して出します（直した値に「（日本時間）」を付けます）。</p>
+            <pre class="code-block" style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; padding:8px;">{{ $result['body'] !== null ? json_encode(\App\Support\DisplayTime::apiBody($result['body']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
         @endif
     </section>
 

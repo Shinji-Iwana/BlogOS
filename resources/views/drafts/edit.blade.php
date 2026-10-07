@@ -315,8 +315,8 @@
                         <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
                         <td>{{ $history->source->value }}{{ $history->wordpress_push_operation_id ? '（反映 #' . $history->wordpress_push_operation_id . '）' : '' }}</td>
                         <td>{{ $history->field }}</td>
-                        <td>{{ \Illuminate\Support\Str::limit((string) $history->old_value, 150) }}</td>
-                        <td>{{ \Illuminate\Support\Str::limit((string) $history->new_value, 150) }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit((string) \App\Support\DisplayTime::value($history->field, $history->old_value), 150) }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit((string) \App\Support\DisplayTime::value($history->field, $history->new_value), 150) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="5">ありません。</td></tr>

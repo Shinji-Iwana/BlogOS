@@ -50,9 +50,9 @@
                 <tr><th>ホームURL</th><td>{{ $blog->home }}</td></tr>
                 <tr><th>品質基準</th><td>{{ $blog->quality_profile ?? '（未設定）' }}</td></tr>
                 <tr><th>選択中</th><td>{{ $blog->is_selected ? '○' : '' }}</td></tr>
-                <tr><th>アーカイブ日時</th><td>{{ $blog->archived_at }}</td></tr>
-                <tr><th>登録日時</th><td>{{ $blog->created_at }}</td></tr>
-                <tr><th>更新日時</th><td>{{ $blog->updated_at }}</td></tr>
+                <tr><th>アーカイブ日時</th><td>{{ \App\Support\DisplayTime::format($blog->archived_at) }}</td></tr>
+                <tr><th>登録日時</th><td>{{ \App\Support\DisplayTime::format($blog->created_at) }}</td></tr>
+                <tr><th>更新日時</th><td>{{ \App\Support\DisplayTime::format($blog->updated_at) }}</td></tr>
             </table>
         </section>
 
@@ -63,8 +63,8 @@
                     <tr><th>方式</th><td>{{ $credential->auth_type }}</td></tr>
                     <tr><th>ユーザー名</th><td>{{ $credential->username }}</td></tr>
                     <tr><th>Application Password</th><td>設定済み（表示しません）</td></tr>
-                    <tr><th>最終確認日時</th><td>{{ $credential->verified_at }}</td></tr>
-                    <tr><th>最後の失敗</th><td>{{ $credential->last_failed_at }} {{ $credential->last_error }}</td></tr>
+                    <tr><th>最終確認日時</th><td>{{ \App\Support\DisplayTime::format($credential->verified_at) }}</td></tr>
+                    <tr><th>最後の失敗</th><td>{{ \App\Support\DisplayTime::format($credential->last_failed_at) }} {{ $credential->last_error }}</td></tr>
                 </table>
             @else
                 <p>未設定です。</p>
@@ -82,7 +82,7 @@
                         <tr>
                             <td>{{ $setting->key }}</td>
                             <td>{{ $setting->value }}</td>
-                            <td>{{ $setting->synced_at }}</td>
+                            <td>{{ \App\Support\DisplayTime::format($setting->synced_at) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="3">まだ取得していません。</td></tr>

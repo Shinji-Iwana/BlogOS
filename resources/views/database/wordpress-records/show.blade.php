@@ -28,6 +28,10 @@
         <table class="data">
             <tbody>
                 @foreach ($record->getAttributes() as $column => $value)
+                    @php
+                        // _at・_gmt の日時は日本時間で出す（D-72-04）
+                        $value = \App\Support\DisplayTime::value($column, $value);
+                    @endphp
                     <tr>
                         <th style="text-align:left; vertical-align:top;">{{ $column }}</th>
                         <td>
@@ -94,14 +98,17 @@
                         <td>{{ $history->sync_run_id ? '#' . $history->sync_run_id : '' }}</td>
                         <td>{{ $history->field }}</td>
                         @foreach (['old_value', 'new_value'] as $valueColumn)
+                            @php
+                                $shown = \App\Support\DisplayTime::value($history->field, $history->{$valueColumn});
+                            @endphp
                             <td>
-                                @if ($history->{$valueColumn} !== null && mb_strlen($history->{$valueColumn}) > 200)
+                                @if ($shown !== null && mb_strlen($shown) > 200)
                                     <details>
-                                        <summary>{{ \Illuminate\Support\Str::limit($history->{$valueColumn}, 80) }}</summary>
-                                        <pre style="white-space:pre-wrap; word-break:break-all;">{{ $history->{$valueColumn} }}</pre>
+                                        <summary>{{ \Illuminate\Support\Str::limit($shown, 80) }}</summary>
+                                        <pre style="white-space:pre-wrap; word-break:break-all;">{{ $shown }}</pre>
                                     </details>
                                 @else
-                                    {{ $history->{$valueColumn} }}
+                                    {{ $shown }}
                                 @endif
                             </td>
                         @endforeach

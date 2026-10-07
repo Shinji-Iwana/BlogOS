@@ -35,8 +35,8 @@
                         <td><a href="{{ $blog->home }}" target="_blank" rel="noopener">{{ $blog->home }}</a></td>
                         <td>{{ $blog->quality_profile ?? '（未設定）' }}</td>
                         <td>{{ $blog->is_selected ? '○' : '' }}</td>
-                        <td>{{ $blog->archived_at }}</td>
-                        <td>{{ $blog->created_at }}</td>
+                        <td>{{ \App\Support\DisplayTime::format($blog->archived_at) }}</td>
+                        <td>{{ \App\Support\DisplayTime::format($blog->created_at) }}</td>
                     </tr>
                 @empty
                     <tr>
