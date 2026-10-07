@@ -42,22 +42,18 @@ class ServerStatusService
      * サーバーの基本情報（XServer のサーバーパネルの「サーバー情報」に近いもの）。読めないものは null。
      * サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読む
      *
-     * @return array{server_number: string|null, hostname: string|null, ip: string|null, os: string|null, cpu_model: string|null, cpus: int|null, memory_bytes: int|null}
+     * OS・CPU・メモリーは、サーバーパネルの表示と合わないため出さない（D-71-03）
+     *
+     * @return array{server_number: string|null, hostname: string|null, ip: string|null}
      */
     public function machine(): array
     {
         $hostname = $this->safe(fn () => gethostname() ?: null);
-        $cpuinfo = $this->readProc('/proc/cpuinfo');
-        $meminfo = $this->readProc('/proc/meminfo');
 
         return [
             'server_number' => $hostname && preg_match('/^(sv\d+)\./i', $hostname, $match) ? $match[1] : null,
             'hostname'      => $hostname,
             'ip'            => $this->ipAddress($hostname),
-            'os'            => $this->osName(),
-            'cpu_model'     => $cpuinfo && preg_match('/^model name\s*:\s*(.+)$/m', $cpuinfo, $match) ? trim($match[1]) : null,
-            'cpus'          => $this->cpuCount(),
-            'memory_bytes'  => $meminfo && preg_match('/^MemTotal:\s*(\d+)\s*kB/m', $meminfo, $match) ? (int) $match[1] * 1024 : null,
         ];
     }
 
@@ -227,19 +223,6 @@ class ServerStatusService
         $resolved = $this->safe(fn () => gethostbyname($hostname));
 
         return $resolved && filter_var($resolved, FILTER_VALIDATE_IP) ? $resolved : null;
-    }
-
-    /**
-     * OS の名前（/etc/os-release の PRETTY_NAME。なければ php_uname）
-     */
-    protected function osName(): ?string
-    {
-        $release = $this->readProc('/etc/os-release');
-        if ($release && preg_match('/^PRETTY_NAME="?([^"\n]+)"?$/m', $release, $match)) {
-            return trim($match[1]);
-        }
-
-        return $this->safe(fn () => function_exists('php_uname') ? php_uname('s') . ' ' . php_uname('r') : null) ?: PHP_OS_FAMILY;
     }
 
     /**

@@ -309,6 +309,8 @@ return [
     // 空にすると、使用率を出さない
     'server' => [
         'db_capacity_mb' => env('BLOGOS_DB_CAPACITY_MB', 5000),
+        // XServer のサーバーパネル（ログインの画面）。サーバー情報の画面にリンクを出す
+        'panel_url' => env('BLOGOS_SERVER_PANEL_URL', 'https://secure.xserver.ne.jp/xapanel/login/xserver/server/'),
     ],
 
     'voice' => [
