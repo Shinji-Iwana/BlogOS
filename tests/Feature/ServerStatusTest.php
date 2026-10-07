@@ -25,6 +25,8 @@ class ServerStatusTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get(route('server.index'))
             ->assertOk()
+            ->assertSee('<h1>XServer情報 <span class="tip"', false)
+            ->assertSee('最後の読み取り：')
             ->assertSee('サーバーの基本情報')
             ->assertDontSee('サーバーの負荷')
             ->assertSee('scheduled_task_runs')

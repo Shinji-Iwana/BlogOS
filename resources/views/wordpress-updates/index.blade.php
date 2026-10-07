@@ -6,29 +6,32 @@
 
 @section('content')
 
-    <h1>WordPress情報</h1>
+    <h1>WordPress情報 @include('partials.tip', ['tip' => "選択中のブログの WordPress 本体・プラグイン・テーマのバージョンを、WordPress.org の最新のバージョンと比べます（毎日、定期実行で自動で確認します。すぐ確認するときは、メニューの「設定 → 即時実行 → WordPressの更新確認」）。\n更新は BlogOS からは行いません。WordPress の管理画面の「更新」で行ってください（更新の前に、バックアップがあることを確認してください）。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ $adminUrl }}" target="_blank" rel="noopener noreferrer">WordPress の更新の画面を開く</a></p>
+    <p><a href="{{ route('home') }}">トップページに戻る</a> ／ <a href="{{ $adminUrl }}" target="_blank" rel="noopener noreferrer">WordPress の更新の画面を開く</a></p>
 
     @include('partials.flash')
 
-    <p class="text-muted">
-        WordPress 本体・プラグイン・テーマのバージョンを、WordPress.org の最新のバージョンと比べます（毎日、定期実行で自動で確認します。すぐ確認するときは、メニューの「設定 → 即時実行 → WordPressの更新確認」）。
-        更新は BlogOS からは行いません。WordPress の管理画面の「更新」で行ってください（更新の前に、バックアップがあることを確認してください）。
-        最後に確認した日時：{{ $checkedAt ? \App\Support\DisplayTime::format($checkedAt) : '未確認' }}
-    </p>
+    {{-- 最後の確認：定期実行・即時実行の記録（なければ、確認した日時） --}}
+    @include('partials.history-last', ['label' => '最後の確認', 'at' => $latestRun?->started_at ?? $checkedAt, 'result' => $latestRun?->statusLabel() ?? ($checkedAt ? '成功' : null)])
 
-
-    @if ($components->isEmpty())
-        <p>まだ確認していません。</p>
+    {{-- 本体・プラグイン・テーマを、それぞれのパネルに分ける --}}
+    @foreach (\App\Models\WordPressComponent::TYPE_LABELS as $type => $typeLabel)
+    @php
+        $typeComponents = $components->where('type', $type);
+    @endphp
+    <section class="panel">
+    <h2>{{ $typeLabel }}</h2>
+    @if ($typeComponents->isEmpty())
+        <p>{{ $components->isEmpty() ? 'まだ確認していません。' : 'ありません。' }}</p>
     @else
+        <p>表示件数：{{ $typeComponents->count() }}件</p>
         <div style="overflow-x:auto;">
             <table class="data">
-                <thead><tr><th>種類</th><th>名前</th><th>状態</th><th>インストール中</th><th>最新</th><th>必要な PHP</th><th>お知らせ</th></tr></thead>
+                <thead><tr><th>名前</th><th>状態</th><th>インストール中</th><th>最新</th><th>必要な PHP</th><th>お知らせ</th></tr></thead>
                 <tbody>
-                    @foreach ($components as $component)
+                    @foreach ($typeComponents as $component)
                         <tr>
-                            <td>{{ \App\Models\WordPressComponent::TYPE_LABELS[$component->type] ?? $component->type }}</td>
                             <td>{{ $component->name }}<br><span class="text-muted">{{ $component->slug }}</span></td>
                             <td>{{ ['active' => '有効', 'inactive' => '無効'][$component->status] ?? '' }}</td>
                             <td>{{ $component->installed_version ?? '不明' }}</td>
@@ -53,5 +56,7 @@
             </table>
         </div>
     @endif
+    </section>
+    @endforeach
 
 @endsection

@@ -24,7 +24,7 @@
         };
     @endphp
 
-    <h1>XServer情報</h1>
+    <h1>XServer情報 @include('partials.tip', ['tip' => "BlogOS が動いているサーバーの、今の状態です（この画面を開いたときに読み取ります。料金はかかりません）。\n読み取るだけで、DB への書き込み・削除はしません。契約上のディスクの残りと、CPU・メモリーの使用量は読み取れないため、XServer のサーバーパネルで確認してください。"])</h1>
 
     <p>
         <a href="{{ route('home') }}">トップページに戻る</a>
@@ -33,32 +33,23 @@
         @endif
     </p>
 
-    <p class="text-muted">
-        BlogOS が動いているサーバーの、今の状態です（この画面を開いたときに読み取ります。{{ \App\Support\DisplayTime::format(now()) }}）。
-        読み取るだけで、DB への書き込み・削除はしません。契約上のディスクの残りは読み取れないため、XServer のサーバーパネルで確認してください。
-    </p>
+    @include('partials.history-last', ['label' => '最後の読み取り', 'at' => now(), 'result' => '成功'])
 
     <section class="panel">
     <h2>サーバーの基本情報</h2>
     <table class="data">
         <tbody>
-            <tr><th>サーバー番号</th><td>{{ $machine['server_number'] ?? '読み取れない' }}</td></tr>
+            <tr><th>サーバー番号 @include('partials.tip', ['tip' => 'ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読みます。'])</th><td>{{ $machine['server_number'] ?? '読み取れない' }}</td></tr>
             <tr><th>ホスト名</th><td>{{ $machine['hostname'] ?? '読み取れない' }}</td></tr>
             <tr><th>IPアドレス</th><td>{{ $machine['ip'] ?? '読み取れない' }}</td></tr>
             <tr><th>PHP</th><td>{{ $machine['php_version'] }}</td></tr>
         </tbody>
     </table>
-    <p class="text-muted">サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読みます。</p>
     </section>
 
     <section class="panel">
     <h2>DB（BlogOS）</h2>
     @include('server.database', ['database' => $database, 'size' => $size])
-    <p class="text-muted">
-        使用率は、データと索引の合計を上限で割って計算します（XServer のサーバーパネル（データベース → MySQL設定）の値とほぼ同じです）。
-        上限は MySQL から読み取れないため、サーバーパネルの値（{{ config('blogos.server.db_capacity_mb') ?: '-' }} MB）を設定に入れています。
-        記録を削除しても、MySQL の管理情報の容量はすぐには小さくならないことがあります。
-    </p>
     </section>
 
     {{-- WordPress の DB（BlogOS の DB のユーザーにアクセス権がある DB。読むだけ。D-71-04） --}}
@@ -86,8 +77,7 @@
     @endforelse
 
     <section class="panel">
-    <h2>古い記録の削除</h2>
-    <p class="text-muted">定期実行の「古い記録の削除」が消す記録です。「今削除の対象」が 0 なら、削除は働いています（次の定期実行で消える分だけが残ります）。</p>
+    <h2>古い記録の削除 @include('partials.tip', ['tip' => "定期実行の「古い記録の削除」が消す記録です。「今削除の対象」が 0 なら、削除は働いています（次の定期実行で消える分だけが残ります）。\n実行の記録は、メニューの「履歴 → 定期実行履歴」にあります。"])</h2>
     <div style="overflow-x:auto;">
     <table class="data">
         <thead><tr><th>記録</th><th>削除する条件</th><th>件数</th><th>一番古い記録</th><th>今削除の対象</th></tr></thead>
@@ -104,11 +94,10 @@
         </tbody>
     </table>
     </div>
-    <p class="text-muted">実行の記録は、メニューの「履歴 → <a href="{{ route('scheduled-tasks.runs') }}">定期実行履歴</a>」にあります。</p>
     </section>
 
     <section class="panel">
-    <h2>キュー</h2>
+    <h2>キュー @include('partials.tip', ['tip' => '待っている処理が減らない・一番古いものが古いままの場合は、queue:work が止まっている可能性があります。'])</h2>
     <table class="data">
         <tbody>
             <tr>
@@ -135,11 +124,10 @@
             </tr>
         </tbody>
     </table>
-    <p class="text-muted">待っている処理が減らない・一番古いものが古いままの場合は、queue:work が止まっている可能性があります。</p>
     </section>
 
     <section class="panel">
-    <h2>ファイル</h2>
+    <h2>ファイル @include('partials.tip', ['tip' => 'BlogOS のフォルダの中だけです。'])</h2>
     <table class="data">
         <thead><tr><th>フォルダ</th><th>容量</th><th>ファイルの数</th></tr></thead>
         <tbody>
@@ -152,7 +140,6 @@
             @endforeach
         </tbody>
     </table>
-    <p class="text-muted">BlogOS のフォルダの中だけです。</p>
     </section>
 
 @endsection

@@ -13,8 +13,8 @@
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @if ($selectedBlog)
-        <p>対象のブログ：{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</p>
-
+        <section class="panel">
+        <h2>対象のブログ：{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</h2>
         <ul>
             @foreach ($resources as $key => $definition)
                 <li>
@@ -23,6 +23,7 @@
                 </li>
             @endforeach
         </ul>
+        </section>
     @else
         <p>ブログが選択されていません。</p>
     @endif

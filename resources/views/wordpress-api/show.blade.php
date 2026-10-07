@@ -12,7 +12,7 @@
     <h1>WordPress API情報：{{ $definition['label'] }}@if ($id) （{{ $id }}）@endif</h1>
 
     <p>
-        <a href="{{ route('wp-api.home') }}">エンドポイント一覧に戻る</a>
+        <a href="{{ route('wp-api.home') }}">WordPress API情報に戻る</a>
         @if ($id)
             ／ <a href="{{ route('wp-api.resources.index', $resource) }}">{{ $definition['label'] }}の一覧に戻る</a>
         @endif

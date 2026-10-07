@@ -120,7 +120,7 @@ class ThemeTest extends TestCase
         $this->assertStringNotContainsString(route('wp-api.home'), explode('<main', $html, 2)[1] ?? '');
         \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
         $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期履歴 <span class="tip"', false);
-        $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報</h1>', false);
+        $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報 <span class="tip"', false)->assertSee('<h2>WordPress 本体</h2>', false)->assertSee('<h2>プラグイン</h2>', false)->assertSee('<h2>テーマ</h2>', false);
         $this->get(route('wp-api.home'))->assertOk()->assertSee('<h1>WordPress API情報</h1>', false)
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)->assertDontSee('設定ページに戻る');
 

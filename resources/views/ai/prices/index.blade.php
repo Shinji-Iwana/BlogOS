@@ -9,19 +9,11 @@
 
 @section('content')
 
-    <h1>OpenAI API料金表情報</h1>
+    <h1>OpenAI API料金表情報 @include('partials.tip', ['tip' => "費用の目安と月の上限の判定に使う料金です（全ブログ共通）。毎日、定期実行で OpenAI の公式のページと照合します（AIは使わないため、料金はかかりません。すぐ照合するときは、メニューの「設定 → 即時実行 → OpenAI API料金表との同期」）。\n値上がりは自動で反映し、値下がりは AIの設定の画面で確認してから反映します。実際の請求は OpenAI の画面で確認してください。\n変更の記録は、メニューの「履歴 → OpenAI API料金表との同期履歴」にあります。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    <p class="text-muted">
-        費用の目安と月の上限の判定に使う料金です（全ブログ共通）。毎日、定期実行で OpenAI の公式のページと照合します（AIは使わないため、料金はかかりません。すぐ照合するときは、メニューの「設定 → 即時実行 → OpenAI API料金表との同期」）。
-        値上がりは自動で反映し、値下がりは <a href="{{ route('ai.settings.edit') }}#prices">AIの設定</a>の画面で確認してから反映します。実際の請求はOpenAIの画面で確認してください。
-        変更の記録は、メニューの「履歴 → <a href="{{ route('ai.prices.history') }}">OpenAI API料金表との同期履歴</a>」にあります。
-    </p>
-
-    @if ($latestPriceCheck)
-        <p class="text-muted">最後の照合：{{ \App\Support\DisplayTime::format($latestPriceCheck->created_at) }}（{{ $latestPriceCheck->succeeded() ? '照合できた' : '読み取れなかった料金あり' }}）</p>
-    @endif
+    @include('partials.history-last', ['label' => '最後の照合', 'at' => $latestPriceCheck?->created_at, 'result' => $latestPriceCheck ? ($latestPriceCheck->succeeded() ? '成功' : '一部失敗') : null])
 
     @if ($latestPriceCheck && ! $latestPriceCheck->succeeded())
         <div class="text-error">
@@ -31,7 +23,7 @@
     @endif
 
     <section class="panel">
-    <h2>文章・画像のモデルと Web 検索</h2>
+    <h2>文章・画像のモデルと Web 検索 @include('partials.tip', ['tip' => '料金は1Mトークンあたりの米ドル（標準の処理）。キャッシュされていない入力は、キャッシュの書き込みの料金で計算します。'])</h2>
     <div style="overflow-x:auto;">
     <table class="data">
         <thead><tr><th>モデル</th><th>入力</th><th>キャッシュ済みの入力</th><th>キャッシュの書き込み</th><th>出力</th><th>長い入力</th><th>公式のページと照合した日時</th></tr></thead>
@@ -62,13 +54,12 @@
         </tbody>
     </table>
     </div>
-    <p class="text-muted">料金は1Mトークンあたりの米ドル（標準の処理）。キャッシュされていない入力は、キャッシュの書き込みの料金で計算します。</p>
 
     </section>
 
     <section class="panel">
     {{-- 音声の操作のモデルの料金（D-58・D-68。料金表の値で、毎日の公式のページとの照合の対象。D-68-02） --}}
-    <h2>音声の操作のモデル</h2>
+    <h2>音声の操作のモデル @include('partials.tip', ['tip' => '方式 A の判断（' . config('blogos.voice.text_model') . "）は、上の表の文章のモデルの料金で計算します。\n音声の操作のモデルの料金も、ほかのモデルと同じく毎日公式のページと照合します（聞き取りとリアルタイム会話は料金のページ、返事の声はモデルのページ）。"])</h2>
     @php
         $voice = config('blogos.voice');
         $voicePrices = app(\App\Services\Voice\VoicePrices::class);
@@ -114,10 +105,6 @@
         </tbody>
     </table>
     </div>
-    <p class="text-muted">
-        方式 A の判断（{{ $voice['text_model'] }}）は、上の表の文章のモデルの料金で計算します。
-        音声の操作のモデルの料金も、ほかのモデルと同じく毎日公式のページと照合します（聞き取りとリアルタイム会話は料金のページ、返事の声はモデルのページ）。
-    </p>
     </section>
 
 @endsection

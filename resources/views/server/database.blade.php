@@ -3,7 +3,7 @@
 <table class="data">
     <tbody>
         <tr>
-            <th>使用率</th>
+            <th>使用率 @include('partials.tip', ['tip' => "データと索引の合計を上限で割って計算します（XServer のサーバーパネル（データベース → MySQL設定）の値とほぼ同じです）。\n上限は MySQL から読み取れないため、サーバーパネルの値（" . (config('blogos.server.db_capacity_mb') ?: '-') . " MB）を設定に入れています。\n記録を削除しても、MySQL の管理情報の容量はすぐには小さくならないことがあります。"])</th>
             <td>
                 @if ($database['usage_ratio'] !== null)
                     <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ number_format($database['total_bytes'] / 1024 ** 2, 1) }} MB ／ 上限 {{ number_format($database['capacity_bytes'] / 1024 ** 2) }} MB）
