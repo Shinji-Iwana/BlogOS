@@ -65,6 +65,19 @@
     color: #fff;
 }
 
+/* 「WELCOME TO」：右端の今の日時の札（SYSTEM TIME）と同じ大きさ・書体 */
+.site-welcome {
+    gap: 10px;
+}
+
+.site-welcome-label {
+    font-family: var(--im-font-logo);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--im-cyan);
+}
+
 /* ブログ名のボタン（HUD の札） */
 .blog-switch-button {
     padding: 4px 14px;

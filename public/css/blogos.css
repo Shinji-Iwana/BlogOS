@@ -144,6 +144,30 @@ table.data.data-compact > * > tr > td {
     font-weight: bold;
 }
 
+/* BlogOS の右：「WELCOME TO」と、選択中のブログ名のボタン */
+.site-welcome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.site-welcome-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+}
+
+/* 狭い画面：ブログ名のボタンの場所を残すため、「WELCOME TO」を出さない */
+@media (max-width: 640px) {
+
+    .site-welcome-label {
+        display: none;
+    }
+
+}
+
 
 /* ヘッダーの右側：ブログ名のボタンと、ログアウトのアイコン（D-54） */
 .site-header-right {
