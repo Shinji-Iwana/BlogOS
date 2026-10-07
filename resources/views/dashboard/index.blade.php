@@ -10,4 +10,7 @@
 
     @include('dashboard.content')
 
+    {{-- 未確認のお知らせのポップアップ（D-74） --}}
+    @include('notices.popup')
+
 @endsection

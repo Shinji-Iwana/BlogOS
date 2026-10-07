@@ -98,7 +98,9 @@ class ScheduledTaskTest extends TestCase
 
         // トップページの定期実行のパネルから、定期実行履歴へ（D-63-10。前回が失敗した定期実行があるとき）
         \App\Models\ScheduledTaskRun::create(['task_key' => 'google:fetch', 'trigger' => 'scheduled', 'status' => 'failed', 'started_at' => now(), 'finished_at' => now(), 'pending_jobs' => 0, 'error' => 'テスト']);
-        $this->get(route('home'))->assertSee('<a href="' . route('scheduled-tasks.runs') . '">定期実行履歴</a>', false);
+        // 前回が失敗した定期実行のお知らせは、お知らせの画面に出し、定期実行履歴へのリンクを付ける（D-74）
+        $this->get(route('home'))->assertOk();
+        $this->get(route('notices.index'))->assertSee('<a href="' . route('scheduled-tasks.runs') . '">定期実行履歴</a>', false);
 
         // 定期実行履歴（メニューの「履歴 → 定期実行履歴」）：定期実行ごとにしぼり込める
         $this->get(route('home'))->assertSee('href="' . route('scheduled-tasks.runs') . '" >定期実行履歴</a>', false);
@@ -123,11 +125,13 @@ class ScheduledTaskTest extends TestCase
 
         $this->assertSame('failed', $run->status);
         $this->assertStringContainsString('終了コード 1', $run->error);
-        $this->get(route('home'))->assertOk()->assertSee('前回が失敗した定期実行があります（OpenAI API料金表との同期）');
+        // お知らせは、トップページを開いたとき・定期実行が終わったときに記録し、お知らせの画面に出す（D-74）
+        $this->get(route('notices.index'))->assertOk()->assertSee('前回が失敗した定期実行があります（OpenAI API料金表との同期）');
 
         // 26時間以上、定期実行が動いていなければ、cron の停止を知らせる
         ScheduledTaskRun::query()->update(['started_at' => now()->subHours(30)]);
-        $this->get(route('home'))->assertSee('26時間以上、定期実行が動いていません');
+        $this->get(route('home'))->assertOk();
+        $this->get(route('notices.index'))->assertSee('26時間以上、定期実行が動いていません');
     }
 
     public function test_run_now_dispatches_job_except_for_paid_tasks(): void

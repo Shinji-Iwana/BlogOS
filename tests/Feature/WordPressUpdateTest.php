@@ -64,7 +64,9 @@ class WordPressUpdateTest extends TestCase
             ->assertDontSee('今すぐ確認する')
             ->assertSee('WordPress.org で公開停止になっています')
             ->assertSee('無効のまま残っています');
-        $this->get(route('home'))->assertOk()->assertSee('更新が2件あります')->assertSee('公開停止になったプラグインが1件あります')
+        // お知らせは、トップページを開いたときに記録し、お知らせの画面に出す（D-74）
+        $this->get(route('home'))->assertOk();
+        $this->get(route('notices.index'))->assertOk()->assertSee('更新が2件あります')->assertSee('公開停止になったプラグインが1件あります')
             ->assertSee('<a href="' . route('wordpress-updates.index') . '">WordPress情報</a>', false);
 
         // 削除したプラグインは、次の確認で消える

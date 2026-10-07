@@ -63,10 +63,29 @@
     {{-- ==========================================================
          ヘッダー右側
          ----------------------------------------------------------
-         マイクと、ログアウトのアイコンを置く（ブログ名ボタンは左側に移した）。
+         お知らせ・マイクと、ログアウトのアイコンを置く（ブログ名ボタンは左側に移した）。
          ========================================================== --}}
 
     <div class="site-header-right">
+
+        {{-- お知らせ（ベル。押すとお知らせの画面を開く。トップページでは、横の画面のパネルに開く。D-74）。
+             右上の数は、変動も解消もしていない、未確認のお知らせの数（AppServiceProvider の View Composer が渡す） --}}
+        <span class="notice-wrap" @if (request()->routeIs('home')) data-drawer-links @endif>
+            <a
+                href="{{ route('notices.index') }}"
+                class="notice-button"
+                title="お知らせ{{ $noticeCount > 0 ? '（未確認 ' . $noticeCount . '件）' : '' }}"
+                aria-label="お知らせ{{ $noticeCount > 0 ? '（未確認 ' . $noticeCount . '件）' : '' }}"
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+            </a>
+            @if ($noticeCount > 0)
+                <span class="notice-badge" aria-hidden="true">{{ $noticeCount > 99 ? '99+' : $noticeCount }}</span>
+            @endif
+        </span>
 
         {{-- 音声の操作（マイク。押して話し、もう一度押すか少し黙ると送る。D-58）。有効にしているときだけ --}}
         @if (app(\App\Services\Voice\VoiceSettings::class)->available())

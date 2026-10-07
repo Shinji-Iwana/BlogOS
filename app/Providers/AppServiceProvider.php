@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
+use App\Services\Notices\NoticeService;
 use App\Services\ThemeService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Console\ServeCommand;
@@ -50,6 +51,11 @@ class AppServiceProvider extends ServiceProvider
 
         // 一覧のページ送り。標準の部品は Tailwind CSS 前提で、テーマに CSS がないと矢印の画像が大きく崩れるため、文字だけの部品にする
         Paginator::defaultView('partials.pagination');
+
+        // ヘッダーのお知らせのボタンの数（変動も解消もしていない、未確認のお知らせ。D-74）
+        View::composer('layouts.header', function ($view) {
+            $view->with('noticeCount', app(NoticeService::class)->openCount());
+        });
 
         // OpenAI の残高の見込みのお知らせ（D-31-04）。表示する画面ごとに、Controller から渡さなくてよいようにする
         View::composer(['partials.ai-credit-notice', 'partials.ai-cost-line'], function ($view) {

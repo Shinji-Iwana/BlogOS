@@ -449,6 +449,81 @@ table.data.stacked td[data-label=""]::before {
    音声の操作（D-58）：ヘッダーのマイクのボタンと、会話の欄
    ========================================================== */
 
+/* お知らせのボタン（D-74）。右上に、変動も解消もしていない未確認のお知らせの数を出す（スマートフォンのアプリの通知のように） */
+.notice-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.notice-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    color: inherit;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.notice-badge {
+    position: absolute;
+    top: -7px;
+    right: -9px;
+    z-index: 2;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: #e0245e;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 18px;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* お知らせの画面の一覧：行をお知らせの色で囲む（D-74） */
+.notice-list tr.notice-row > td {
+    border-top: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+}
+
+.notice-list tr.notice-row > td:first-child {
+    border-left: 3px solid currentColor;
+}
+
+.notice-list tr.notice-row > td:last-child {
+    border-right: 1px solid currentColor;
+}
+
+.notice-list tr.notice-error > td {
+    border-color: #c00;
+    background: #fff5f5;
+}
+
+.notice-list tr.notice-warn > td {
+    border-color: #b8860b;
+    background: #fffbea;
+}
+
+/* 変動・解消したお知らせ（今は続いていない）は、少し薄くする */
+.notice-list tr.notice-closed > td {
+    opacity: 0.7;
+}
+
+.notice-tag {
+    display: inline-block;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
 .voice-button {
     display: inline-flex;
     align-items: center;
@@ -875,4 +950,14 @@ details.sync-run[open] > summary {
 
 .schedule-run-failed {
     color: #c00;
+}
+
+/* 未確認のお知らせのポップアップ（notices/popup。D-74） */
+.notice-popup-list {
+    margin: 8px 0;
+    padding-left: 18px;
+}
+
+.notice-popup-list li {
+    margin: 0 0 4px;
 }

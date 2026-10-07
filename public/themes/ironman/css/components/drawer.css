@@ -87,7 +87,7 @@ body.voice-speaking .screen-drawer-signal {
 @media (min-width: 769px) {
 
     body.drawer-open .hud-statusbar,
-    body.drawer-open .hud-notices,
+    body.drawer-open .hud-messages,
     body.drawer-open .hud-links,
     body.drawer-open .hud-panels,
     body.drawer-open .hud-connectors {

@@ -1,7 +1,9 @@
 {{--
-    トップページのお知らせ（入力エラー・処理結果・ブログを選んでいないときの案内・同期・要対応と注意のお知らせ。D-49-07）
+    トップページのその場限りの表示（入力エラー・処理結果・ブログを選んでいないときの案内・同期。D-49-07）
 
     共通の dashboard/content と、テーマのトップページから読み込む。
+    要対応・注意のお知らせ（OpenAI の残高・料金表・リンクの切り替え・定期実行・リンク切れ・WordPress の更新・アフィリエイト）は、
+    記録してお知らせの画面に出す（D-74。App\Services\Notices\NoticeService）。ここには出さない。
     受け取る値（任意）：$withSync（false なら同期の欄を出さない。ironman は状態のパネルに出すため）
 --}}
 
@@ -23,78 +25,10 @@
     @if (session('status'))
         <p class="text-ok">{{ session('status') }}</p>
     @endif
-    {{-- メニューの即時実行など、トップページから送った処理の誤り（例：実行中。D-63-09） --}}
-    @foreach ($errors->all() as $message)
-        <p class="text-error">{{ $message }}</p>
-    @endforeach
 
     {{-- 同期（テーマが別の場所に出す場合は、$withSync = false で読み込む） --}}
     @if ($selectedBlog && ($withSync ?? true))
         @include('partials.sync-status')
-    @endif
-
-    {{-- OpenAI の残高の見込みのお知らせ（D-31-04） --}}
-    @if ($selectedBlog)
-        @include('partials.ai-credit-notice')
-    @endif
-
-    {{-- API実行の料金表のお知らせ（D-31-03） --}}
-    @if ($selectedBlog && ($priceNotice['pending'] || $priceNotice['failed'] || $priceNotice['applied']))
-        <p class="text-warn">
-            OpenAI API料金表：
-            @if ($priceNotice['failed'])<strong class="text-error">公式のページから読み取れなかった料金があります。</strong>@endif
-            @if ($priceNotice['pending'])値下がりの確認待ちが{{ $priceNotice['pending'] }}件あります。@endif
-            @if ($priceNotice['applied'])直近7日に{{ $priceNotice['applied'] }}件の料金を変更しました。@endif
-            {{-- 値下がりの確認待ちはAIの設定の画面、それ以外は画面「OpenAI API料金表情報」（D-63-28） --}}
-            @if ($priceNotice['pending'])
-                <a href="{{ route('ai.settings.edit') }}#prices">値下がりを確認する</a>
-            @else
-                <a href="{{ route('ai.prices.index') }}">料金表を確認する</a>
-            @endif
-        </p>
-    @endif
-
-    {{-- 公開された記事へのリンクの切り替え（D-39） --}}
-    @if (($linkSwitchDrafts ?? 0) > 0)
-        <p class="text-warn">
-            リンクの切り替え・修正の編集案が{{ $linkSwitchDrafts }}件あります（公開された記事へのリンク、古い URL など）。
-            <a href="{{ route('drafts.link-switch') }}">確認して反映する</a>
-        </p>
-    @endif
-
-    {{-- 定期実行（D-44） --}}
-    @if (($scheduleNotice['stopped'] ?? false) || ! empty($scheduleNotice['failed']))
-        <p class="text-error">
-            定期実行：
-            @if ($scheduleNotice['stopped'])26時間以上、定期実行が動いていません（サーバーの cron を確認してください）。@endif
-            @if (! empty($scheduleNotice['failed']))前回が失敗した定期実行があります（{{ implode('、', $scheduleNotice['failed']) }}）。@endif
-            <a href="{{ route('scheduled-tasks.runs') }}">定期実行履歴</a>
-        </p>
-    @endif
-
-    {{-- 内部リンクの確認（D-42） --}}
-    @if (($brokenLinks ?? 0) > 0)
-        <p class="text-error">
-            内部リンク：リンク切れが{{ $brokenLinks }}件あります。
-            <a href="{{ route('links.check') }}#broken">内部リンクを確認する</a>
-        </p>
-    @endif
-
-    {{-- WordPress の更新（D-38） --}}
-    @if (($wordpressNotice['updates'] ?? 0) > 0 || ($wordpressNotice['closed'] ?? 0) > 0)
-        <p class="text-error">
-            WordPress：@if ($wordpressNotice['updates'])更新が{{ $wordpressNotice['updates'] }}件あります。@endif
-            @if ($wordpressNotice['closed'])公開停止になったプラグインが{{ $wordpressNotice['closed'] }}件あります。@endif
-            <a href="{{ route('wordpress-updates.index') }}">WordPress情報</a>
-        </p>
-    @endif
-
-    {{-- アフィリエイトのリンクの確認（D-33-09） --}}
-    @if (($affiliateSuspects ?? 0) > 0)
-        <p class="text-error">
-            アフィリエイトのリンク：提携終了の疑いがあるプログラムが{{ $affiliateSuspects }}件あります。
-            <a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラムを確認する</a>
-        </p>
     @endif
 
 @endif

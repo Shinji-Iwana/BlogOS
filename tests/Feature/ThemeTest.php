@@ -97,7 +97,7 @@ class ThemeTest extends TestCase
     {
         // 履歴・設定の中の順（D-63-26）
         $groups = collect(\App\Support\MenuItems::GROUPS)->keyBy('key');
-        $this->assertSame(['ログイン履歴', 'ブログ情報の同期履歴', 'WordPressとの同期履歴', 'Googleとの同期履歴', 'OpenAI API料金表との同期履歴', '定期実行履歴'], array_column($groups['history']['links'], 'label'));
+        $this->assertSame(['お知らせ', 'ログイン履歴', 'ブログ情報の同期履歴', 'WordPressとの同期履歴', 'Googleとの同期履歴', 'OpenAI API料金表との同期履歴', '定期実行履歴'], array_column($groups['history']['links'], 'label'));
         $this->assertSame(['画面のテーマ', 'ブログ', 'Google', 'OpenAI', 'アフィリエイト提携先を登録', '即時実行', '定期実行'], array_column($groups['setting']['links'], 'label'));
     }
 

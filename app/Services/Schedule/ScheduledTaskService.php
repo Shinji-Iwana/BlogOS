@@ -5,6 +5,7 @@ namespace App\Services\Schedule;
 use App\Enums\SyncTrigger;
 use App\Models\ScheduledTaskRun;
 use App\Models\ScheduledTaskSetting;
+use App\Services\Notices\NoticeService;
 use App\Support\ScheduledTasks;
 use Carbon\CarbonImmutable;
 use Cron\CronExpression;
@@ -261,7 +262,8 @@ class ScheduledTaskService
      */
     protected function apply(int $runId, array $counts, int $pendingDelta, ?string $error, ?string $line, bool $prepend = false): void
     {
-        DB::transaction(function () use ($runId, $counts, $pendingDelta, $error, $line, $prepend) {
+        $finished = false;
+        DB::transaction(function () use ($runId, $counts, $pendingDelta, $error, $line, $prepend, &$finished) {
             $run = ScheduledTaskRun::lockForUpdate()->find($runId);
             if ($run === null) {
                 return;
@@ -284,9 +286,19 @@ class ScheduledTaskService
                 $run->finished_at = now();
                 $run->duration_seconds = (int) $run->started_at->diffInSeconds($run->finished_at);
                 $run->status = $run->error !== null ? 'failed' : 'succeeded';
+                $finished = true;
             }
             $run->save();
         });
+
+        // 定期実行が終わったら、お知らせの記録を更新する（D-74。お知らせの失敗で、定期実行の記録を止めない）
+        if ($finished) {
+            try {
+                app(NoticeService::class)->refresh();
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
     }
 
     /**

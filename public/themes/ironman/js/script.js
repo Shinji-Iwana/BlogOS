@@ -419,7 +419,7 @@
      */
     function startHoverFlow() {
         const SVG = 'http://www.w3.org/2000/svg';
-        const targets = document.querySelectorAll('.blog-switch-button, .site-header .logout-button, .site-header .voice-button, .site-menu-group > summary');
+        const targets = document.querySelectorAll('.blog-switch-button, .site-header .logout-button, .site-header .voice-button, .site-header .notice-button, .site-menu-group > summary');
         if (targets.length === 0) {
             return;
         }

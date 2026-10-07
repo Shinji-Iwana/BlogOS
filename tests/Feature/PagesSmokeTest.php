@@ -122,6 +122,7 @@ class PagesSmokeTest extends TestCase
             'ai settings'             => ['ai.settings.edit'],
             'ai prices'               => ['ai.prices.index'],
             'server status'           => ['server.index'],
+            'notices'                 => ['notices.index'],
         ];
     }
 

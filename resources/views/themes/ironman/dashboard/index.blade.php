@@ -5,7 +5,8 @@
     ・上：SYSTEM STATUS の帯（全体の状態・要対応と注意の数。選択中のブログはヘッダーに出ている）
     ・中：アークリアクター（全体の状態の色。同期の実行中は HUD の円が速く回る）と、左右に3つずつ状態のパネル。
       パソコンの幅では、アークリアクターから、マウスを乗せているパネル（状態のパネル・入口のパネル）へ線を出す（js/dashboard/connectors.js。D-73-03）
-    ・下：お知らせ（共通の dashboard/notices。同期はパネルに出すため除く）と、種類ごとの入口のパネル
+    ・一番上：その場限りの表示（共通の dashboard/notices。操作の結果・入力の誤りなど。要対応・注意のお知らせは、お知らせの画面に移した。D-74）
+    ・下：種類ごとの入口のパネル
 --}}
 
 @extends('layouts.app')
@@ -23,6 +24,12 @@
         @php
             $stateLabels = ['normal' => 'ALL SYSTEMS NORMAL', 'warning' => 'CAUTION', 'critical' => 'ALERT'];
         @endphp
+
+        {{-- その場限りの表示（操作の結果・入力の誤り・ブログを選んでいないときの案内。同期は状態のパネルに出すため除く）。
+             要対応・注意のお知らせは、お知らせの画面に移した（D-74） --}}
+        <div class="hud-messages">
+            @include('dashboard.notices', ['withSync' => false])
+        </div>
 
         {{-- SYSTEM STATUS の帯 --}}
         <div class="hud-statusbar" data-state="{{ $systemState }}">
@@ -62,11 +69,6 @@
             </div>
         </div>
 
-        {{-- お知らせ（同期は状態のパネルに出すため除く） --}}
-        <div class="hud-notices">
-            @include('dashboard.notices', ['withSync' => false])
-        </div>
-
         {{-- 種類ごとの入口 --}}
         <div class="hud-links">
             @foreach ($linkGroups as $group)
@@ -91,6 +93,9 @@
         @endif
 
         <script src="{{ app(\App\Services\ThemeService::class)->assetUrl('js/dashboard/connectors.js') }}" defer></script>
+
+        {{-- 未確認のお知らせのポップアップ（D-74） --}}
+        @include('notices.popup')
         {{-- パネルの枠を流れる電気は、全画面共通の js/script.js（startPanelFlow） --}}
 
     @endif

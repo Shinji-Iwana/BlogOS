@@ -519,3 +519,18 @@
 .animation-settings-list li label {
     display: inline;
 }
+
+
+/* ==========================================================
+   未確認のお知らせのポップアップ（notices/popup。D-74）
+   ========================================================== */
+
+.notice-popup-list {
+    margin: 8px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.notice-popup-list li {
+    margin: 0 0 6px;
+}

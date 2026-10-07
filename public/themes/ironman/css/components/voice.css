@@ -9,7 +9,8 @@
      聞いている間は光が速く脈打ち、考えている間は HUD の円が速く回り、話している間は強く脈打つ
    ========================================================== */
 
-.site-header button.voice-button {
+.site-header button.voice-button,
+.site-header a.notice-button {
     padding: 5px 9px;
     color: var(--im-cyan);
     background: rgba(102, 217, 255, 0.06);
@@ -20,7 +21,9 @@
 }
 
 .site-header button.voice-button:hover,
-.site-header button.voice-button:focus-visible {
+.site-header a.notice-button:hover,
+.site-header button.voice-button:focus-visible,
+.site-header a.notice-button:focus-visible {
     color: var(--im-cyan-bright);
     background: rgba(102, 217, 255, 0.14);
     box-shadow: var(--im-glow);
@@ -109,7 +112,7 @@ body.voice-speaking .reactor {
 
 
 /* ==========================================================
-   ヘッダーのアイコンのボタン（音声操作・ログアウト）の形
+   ヘッダーのアイコンのボタン（お知らせ・音声操作・ログアウト）の形
    ----------------------------------------------------------
    ブログ名のボタン（components/header.css）と同じく、四隅を斜めに削った形にし、マウスを乗せると枠を電気が流れる
    （流れる電気の SVG（.hover-flow）は js/script.js の startHoverFlow が置く）。
@@ -118,7 +121,8 @@ body.voice-speaking .reactor {
    ========================================================== */
 
 .site-header button.logout-button,
-.site-header button.voice-button {
+.site-header button.voice-button,
+.site-header a.notice-button {
     --hover-cut: 6px;
 
     position: relative;
@@ -132,7 +136,8 @@ body.voice-speaking .reactor {
 
 /* 枠の線（八角形の輪） */
 .site-header button.logout-button::after,
-.site-header button.voice-button::after {
+.site-header button.voice-button::after,
+.site-header a.notice-button::after {
     content: "";
     position: absolute;
     inset: -1px;
@@ -150,7 +155,9 @@ body.voice-speaking .reactor {
 
 /* マウスを乗せたとき：形で切るため外側の光は出せない。内側を光らせ、枠を電気が流れる */
 .site-header button.voice-button:hover,
-.site-header button.voice-button:focus-visible {
+.site-header a.notice-button:hover,
+.site-header button.voice-button:focus-visible,
+.site-header a.notice-button:focus-visible {
     --hover-line: var(--im-cyan);
     border-color: transparent;
     box-shadow: inset 0 0 14px rgba(102, 217, 255, 0.3);
@@ -177,6 +184,8 @@ body.voice-listening .site-header button.voice-button {
 .site-header button.logout-button:focus-visible > .hover-flow,
 .site-header button.voice-button:hover > .hover-flow,
 .site-header button.voice-button:focus-visible > .hover-flow,
+.site-header a.notice-button:hover > .hover-flow,
+.site-header a.notice-button:focus-visible > .hover-flow,
 body.voice-listening .site-header button.voice-button > .hover-flow {
     opacity: 1;
 }
@@ -185,6 +194,36 @@ body.voice-listening .site-header button.voice-button > .hover-flow {
 .site-header button.logout-button:focus-visible > .hover-flow path,
 .site-header button.voice-button:hover > .hover-flow path,
 .site-header button.voice-button:focus-visible > .hover-flow path,
+.site-header a.notice-button:hover > .hover-flow path,
+.site-header a.notice-button:focus-visible > .hover-flow path,
 body.voice-listening .site-header button.voice-button > .hover-flow path {
     animation-play-state: running;
+}
+
+
+/* ==========================================================
+   お知らせのボタンの数（D-74）
+   ----------------------------------------------------------
+   ボタンは形で切るため、数はボタンの外（.notice-wrap）に置き、右上に重ねる。要対応の赤で光らせる
+   ========================================================== */
+
+.site-header .notice-wrap {
+    display: inline-flex;
+}
+
+.site-header a.notice-button {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.site-header .notice-badge {
+    top: -7px;
+    right: -8px;
+    font-family: var(--im-font-hud);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: var(--im-red);
+    box-shadow: 0 0 8px rgba(255, 90, 82, 0.7);
 }
