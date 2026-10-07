@@ -88,8 +88,7 @@
         @endif
 
         <script src="{{ app(\App\Services\ThemeService::class)->assetUrl('js/dashboard/connectors.js') }}" defer></script>
-        {{-- パネルの枠を流れる電気（マウスを乗せたときだけ） --}}
-        <script src="{{ app(\App\Services\ThemeService::class)->assetUrl('js/dashboard/panel-flow.js') }}" defer></script>
+        {{-- パネルの枠を流れる電気は、全画面共通の js/script.js（startPanelFlow） --}}
 
     @endif
 

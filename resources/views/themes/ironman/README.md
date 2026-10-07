@@ -25,7 +25,7 @@
 | `css/reactor/reactor.css` | アークリアクターの大きさと、状態ごとの光の色（変数） |
 | `css/animation/` | 動き（`reactor.css`：光の脈打ちと HUD の円の回転、`page.css`：ページを開いたときの表示） |
 | `css/accessibility.css` | 動きを減らす設定への対応（最後に読み込む） |
-| `public/themes/ironman/js/` | `script.js` が入口（今は読み込むものはない）。`dashboard/connectors.js`：トップページで、アークリアクターから状態のパネルへ線を引く（パソコンの幅だけ。トップページの View から読み込む）。`dashboard/panel-flow.js`：トップページのパネルの枠に、マウスを乗せたときに流れる電気の線を置く |
+| `public/themes/ironman/js/` | `script.js` が入口（今は読み込むものはない）。`dashboard/connectors.js`：トップページで、アークリアクターから状態のパネルへ線を引く（パソコンの幅だけ。トップページの View から読み込む）。パネルの枠に、マウスを乗せたときに流れる電気の線は `script.js`（startPanelFlow。全画面の .hud-panel・.panel） |
 | `public/themes/ironman/images/arc-reactor.png` | アークリアクターの完成のイメージ（参考画像。画面では使わない） |
 
 ## 進み具合

@@ -359,13 +359,63 @@
         });
     }
 
+    /**
+     * パネル（トップページの .hud-panel と、各画面の .panel）の枠を流れる電気。マウスを乗せたときだけ見える。
+     * パネルごとに、枠（四隅を削った八角形。css/components/panel.css の --hud-cut）に沿った線の SVG（.hud-panel-flow）を置く。
+     * 見せ方・流れは css/components/panel.css。パネルの大きさが変わったら、描き直す
+     * （以前はトップページだけの js/dashboard/panel-flow.js。トップページの横の画面のパネルの中・全画面の各画面でも動かす）
+     */
+    function startPanelFlow() {
+        const SVG = 'http://www.w3.org/2000/svg';
+        const panels = document.querySelectorAll('.hud-panel, .panel');
+        if (panels.length === 0) {
+            return;
+        }
+
+        const draw = (panel) => {
+            const svg = panel.querySelector(':scope > .hud-panel-flow');
+            const width = panel.offsetWidth;
+            const height = panel.offsetHeight;
+            const cut = Math.min(parseFloat(getComputedStyle(panel).getPropertyValue('--hud-cut')) || 12, width / 2, height / 2);
+            const i = 1;
+
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            const d = [`M${cut} ${i}`, `L${width - cut} ${i}`, `L${width - i} ${cut}`, `L${width - i} ${height - cut}`,
+                `L${width - cut} ${height - i}`, `L${cut} ${height - i}`, `L${i} ${height - cut}`, `L${i} ${cut}`, 'Z'].join(' ');
+            svg.querySelectorAll('path').forEach((path) => path.setAttribute('d', d));
+        };
+
+        const observer = 'ResizeObserver' in window ? new ResizeObserver((entries) => entries.forEach((entry) => draw(entry.target))) : null;
+
+        panels.forEach((panel) => {
+            const svg = document.createElementNS(SVG, 'svg');
+            svg.setAttribute('class', 'hud-panel-flow');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            // アークリアクターの周りの電子の輪と同じく、長さの違う光の線と、細かい点の2本を重ねる（CSS で流し方を変える）
+            ['hud-panel-flow-line', 'hud-panel-flow-dots'].forEach((name) => {
+                const path = document.createElementNS(SVG, 'path');
+                path.setAttribute('class', name);
+                svg.appendChild(path);
+            });
+            panel.appendChild(svg);
+
+            draw(panel);
+            if (observer) {
+                observer.observe(panel);
+            }
+        });
+    }
+
     if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startPanelFlow);
         document.addEventListener('DOMContentLoaded', startMenuFlow);
         document.addEventListener('DOMContentLoaded', startGridFlow);
         document.addEventListener('DOMContentLoaded', startModalFlow);
         document.addEventListener('DOMContentLoaded', startClock);
         document.addEventListener('DOMContentLoaded', startHoverFlow);
     } else {
+        startPanelFlow();
         startMenuFlow();
         startGridFlow();
         startModalFlow();
