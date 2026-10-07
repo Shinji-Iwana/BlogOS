@@ -458,14 +458,16 @@
     }
 
     /**
-     * パネル（トップページの .hud-panel と、各画面の .panel）の枠を流れる電気。マウスを乗せたときだけ見える。
+     * トップページのパネル（.hud-panel）の枠を流れる電気。マウスを乗せたときだけ見える。
      * パネルごとに、枠（四隅を削った八角形。css/components/panel.css の --hud-cut）に沿った線の SVG（.hud-panel-flow）を置く。
      * 見せ方・流れは css/components/panel.css。パネルの大きさが変わったら、描き直す
-     * （以前はトップページだけの js/dashboard/panel-flow.js。トップページの横の画面のパネルの中・全画面の各画面でも動かす）
+     * （各画面のパネル（.panel）にも流していたが、Safari で重くなったため、トップページだけに戻した。D-73-04）
      */
     function startPanelFlow() {
         const SVG = 'http://www.w3.org/2000/svg';
-        const panels = document.querySelectorAll('.hud-panel, .panel');
+        // トップページのパネル（.hud-panel）だけ。各画面のパネル（.panel）は、表を含む大きなパネルで Safari（iPad・Mac）の動きが
+        // 著しく重くなったため、設定にかかわらず流さない（全画面・トップページの横の画面のパネルの中とも。D-73-04）
+        const panels = document.querySelectorAll('.hud-panel');
         if (panels.length === 0) {
             return;
         }

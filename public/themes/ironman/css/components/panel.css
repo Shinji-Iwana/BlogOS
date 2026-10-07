@@ -109,21 +109,20 @@
 
 
 /* ==========================================================
-   マウスを乗せたパネル（トップページのパネルと、各画面の .panel で共通）
+   マウスを乗せたパネル（トップページのパネル .hud-panel だけ）
    ----------------------------------------------------------
    背景がうっすら光り（ボタンと同じ考え方）、枠を電気が流れる（アークリアクターからパネルへの線と同じ流れ方）。
    枠の線の SVG（.hud-panel-flow）は js/script.js（startPanelFlow）が置く。
+   各画面のパネル（.panel）は、表を含む大きなパネルで Safari（iPad・Mac）の動きが重くなったため、背景の光も枠の電気も付けない
+   （全画面・トップページの横の画面のパネルの中とも。D-73-04）
    ========================================================== */
 
-.hud-panel,
-.panel {
+.hud-panel {
     transition: background var(--im-ease), box-shadow var(--im-ease);
 }
 
 .hud-panel:hover,
-.hud-panel:focus-within,
-.panel:hover,
-.panel:focus-within {
+.hud-panel:focus-within {
     background:
         linear-gradient(180deg,
             color-mix(in srgb, var(--hud-accent) 20%, transparent) 0%,
@@ -183,16 +182,12 @@
 }
 
 .hud-panel:hover > .hud-panel-flow,
-.hud-panel:focus-within > .hud-panel-flow,
-.panel:hover > .hud-panel-flow,
-.panel:focus-within > .hud-panel-flow {
+.hud-panel:focus-within > .hud-panel-flow {
     opacity: 1;
 }
 
 .hud-panel:hover > .hud-panel-flow path,
-.hud-panel:focus-within > .hud-panel-flow path,
-.panel:hover > .hud-panel-flow path,
-.panel:focus-within > .hud-panel-flow path {
+.hud-panel:focus-within > .hud-panel-flow path {
     animation-play-state: running;
 }
 
