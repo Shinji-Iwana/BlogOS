@@ -13,6 +13,7 @@ class ServerStatusController extends Controller
     public function index(ServerStatusService $status)
     {
         return view('server.index', [
+            'machine'  => $status->machine(),
             'server'   => $status->server(),
             'database' => $status->database(),
             'prunable' => $status->prunable(),

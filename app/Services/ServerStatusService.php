@@ -39,6 +39,29 @@ class ServerStatusService
     ];
 
     /**
+     * サーバーの基本情報（XServer のサーバーパネルの「サーバー情報」に近いもの）。読めないものは null。
+     * サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読む
+     *
+     * @return array{server_number: string|null, hostname: string|null, ip: string|null, os: string|null, cpu_model: string|null, cpus: int|null, memory_bytes: int|null}
+     */
+    public function machine(): array
+    {
+        $hostname = $this->safe(fn () => gethostname() ?: null);
+        $cpuinfo = $this->readProc('/proc/cpuinfo');
+        $meminfo = $this->readProc('/proc/meminfo');
+
+        return [
+            'server_number' => $hostname && preg_match('/^(sv\d+)\./i', $hostname, $match) ? $match[1] : null,
+            'hostname'      => $hostname,
+            'ip'            => $this->ipAddress($hostname),
+            'os'            => $this->osName(),
+            'cpu_model'     => $cpuinfo && preg_match('/^model name\s*:\s*(.+)$/m', $cpuinfo, $match) ? trim($match[1]) : null,
+            'cpus'          => $this->cpuCount(),
+            'memory_bytes'  => $meminfo && preg_match('/^MemTotal:\s*(\d+)\s*kB/m', $meminfo, $match) ? (int) $match[1] * 1024 : null,
+        ];
+    }
+
+    /**
      * サーバーと PHP
      *
      * @return array{php_version: string, os: string, load: array{0: float, 1: float, 2: float}|null, cpus: int|null, memory_limit: string, max_execution_time: string, peak_memory: int}
@@ -183,15 +206,59 @@ class ServerStatusService
      */
     protected function cpuCount(): ?int
     {
-        try {
-            if (@is_readable('/proc/cpuinfo')) {
-                $count = preg_match_all('/^processor\s*:/m', (string) @file_get_contents('/proc/cpuinfo'));
+        $cpuinfo = $this->readProc('/proc/cpuinfo');
+        $count = $cpuinfo ? preg_match_all('/^processor\s*:/m', $cpuinfo) : 0;
 
-                return $count > 0 ? $count : null;
-            }
-        } catch (Throwable) {
+        return $count > 0 ? $count : null;
+    }
+
+    /**
+     * サーバーの IP アドレス（画面を開いたときの受け口。なければホスト名から引く）
+     */
+    protected function ipAddress(?string $hostname): ?string
+    {
+        $ip = request()->server('SERVER_ADDR');
+        if (is_string($ip) && filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+        if ($hostname === null) {
+            return null;
+        }
+        $resolved = $this->safe(fn () => gethostbyname($hostname));
+
+        return $resolved && filter_var($resolved, FILTER_VALIDATE_IP) ? $resolved : null;
+    }
+
+    /**
+     * OS の名前（/etc/os-release の PRETTY_NAME。なければ php_uname）
+     */
+    protected function osName(): ?string
+    {
+        $release = $this->readProc('/etc/os-release');
+        if ($release && preg_match('/^PRETTY_NAME="?([^"\n]+)"?$/m', $release, $match)) {
+            return trim($match[1]);
         }
 
-        return null;
+        return $this->safe(fn () => function_exists('php_uname') ? php_uname('s') . ' ' . php_uname('r') : null) ?: PHP_OS_FAMILY;
+    }
+
+    /**
+     * サーバーの情報のファイルを読む（読めないとき・制限で開けないときは null）
+     */
+    protected function readProc(string $path): ?string
+    {
+        return $this->safe(fn () => @is_readable($path) ? (@file_get_contents($path) ?: null) : null);
+    }
+
+    /**
+     * 例外・警告で止めずに値を読む
+     */
+    protected function safe(callable $read): mixed
+    {
+        try {
+            return $read();
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

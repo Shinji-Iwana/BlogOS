@@ -36,6 +36,30 @@
     </p>
 
     <section class="panel">
+    <h2>サーバーの基本情報</h2>
+    <table class="data">
+        <tbody>
+            <tr><th>サーバー番号</th><td>{{ $machine['server_number'] ?? '読み取れない' }}</td></tr>
+            <tr><th>ホスト名</th><td>{{ $machine['hostname'] ?? '読み取れない' }}</td></tr>
+            <tr><th>IPアドレス</th><td>{{ $machine['ip'] ?? '読み取れない' }}</td></tr>
+            <tr><th>OS</th><td>{{ $machine['os'] ?? '読み取れない' }}</td></tr>
+            <tr>
+                <th>CPU</th>
+                <td>
+                    @if ($machine['cpu_model'] || $machine['cpus'])
+                        {{ $machine['cpu_model'] ?? '' }}{{ $machine['cpus'] ? '（' . $machine['cpus'] . '個）' : '' }}
+                    @else
+                        読み取れない
+                    @endif
+                </td>
+            </tr>
+            <tr><th>メモリー</th><td>{{ $machine['memory_bytes'] ? number_format($machine['memory_bytes'] / 1024 ** 3, 1) . ' GB' : '読み取れない' }}</td></tr>
+        </tbody>
+    </table>
+    <p class="text-muted">サーバー番号は、ホスト名の先頭（例：sv12345.xserver.jp の sv12345）から読みます。CPU とメモリーは、共用のサーバー全体の値です（BlogOS が使える量ではありません）。</p>
+    </section>
+
+    <section class="panel">
     <h2>サーバーの負荷</h2>
     <table class="data">
         <tbody>
