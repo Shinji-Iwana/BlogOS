@@ -16,7 +16,7 @@
 
     <section class="panel">
     <h2>ログインの記録</h2>
-    <p>表示件数：{{ $histories->count() }}件（新しい順、最大{{ $limit }}件）</p>
+    @include('partials.history-count', ['paginator' => $histories])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead>
@@ -62,6 +62,7 @@
             </tbody>
         </table>
     </div>
+    {{ $histories->links() }}
     </section>
 
 @endsection

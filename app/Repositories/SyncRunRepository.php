@@ -7,7 +7,7 @@ use App\Enums\SyncTrigger;
 use App\Models\Blog;
 use App\Models\SyncRun;
 use App\Models\SyncRunResource;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class SyncRunRepository
 {
@@ -79,14 +79,13 @@ class SyncRunRepository
         return SyncRun::where('blog_id', $blogId)->where('status', SyncStatus::Running)->exists();
     }
 
-    public function recentForBlog(int $blogId, int $limit = 50): Collection
+    public function paginateForBlog(int $blogId, int $perPage): LengthAwarePaginator
     {
         return SyncRun::with('resources')
             ->where('blog_id', $blogId)
             ->orderByDesc('started_at')
             ->orderByDesc('id')
-            ->limit($limit)
-            ->get();
+            ->paginate($perPage);
     }
 
     /**

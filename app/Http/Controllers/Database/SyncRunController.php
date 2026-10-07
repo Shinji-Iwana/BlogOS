@@ -5,15 +5,13 @@ namespace App\Http\Controllers\Database;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogRepository;
 use App\Repositories\SyncRunRepository;
+use App\Support\HistoryPage;
 
 /**
  * 同期の記録（sync_runs・sync_run_resources）のDB確認画面。
  */
 class SyncRunController extends Controller
 {
-    /** 表示する最大の件数 */
-    public const LIMIT = 100;
-
     public function __construct(
         protected BlogRepository $blogRepository,
         protected SyncRunRepository $syncRunRepository,
@@ -27,8 +25,7 @@ class SyncRunController extends Controller
 
         return view('database.sync-runs.index', [
             'blog' => $blog,
-            'runs'  => $this->syncRunRepository->recentForBlog($blog->id, self::LIMIT),
-            'limit' => self::LIMIT,
+            'runs' => $this->syncRunRepository->paginateForBlog($blog->id, HistoryPage::PER_PAGE),
         ]);
     }
 }

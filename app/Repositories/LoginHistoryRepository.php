@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Enums\LoginEvent;
 use App\Models\LoginHistory;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class LoginHistoryRepository
 {
@@ -31,13 +31,13 @@ class LoginHistoryRepository
     }
 
     /**
-     * 新しい順に取得する（確認画面用）。
+     * 新しい順に、ページに分けて取得する（確認画面用）。
      */
-    public function getLatest(int $limit = 100): Collection
+    public function paginateLatest(int $perPage): LengthAwarePaginator
     {
         return LoginHistory::with('user')
             ->orderByDesc('occurred_at')
-            ->limit($limit)
-            ->get();
+            ->orderByDesc('id')
+            ->paginate($perPage);
     }
 }

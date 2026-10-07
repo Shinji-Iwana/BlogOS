@@ -13,7 +13,7 @@
 
     <section class="panel">
     <h2>同期の記録</h2>
-    <p>表示件数：{{ $runs->count() }}件（新しい順、最大{{ $limit }}件）</p>
+    @include('partials.history-count', ['paginator' => $runs])
 
     @forelse ($runs as $run)
         <details class="sync-run">
@@ -63,6 +63,7 @@
     @empty
         <p>記録はありません。</p>
     @endforelse
+    {{ $runs->links() }}
     </section>
 
 @endsection

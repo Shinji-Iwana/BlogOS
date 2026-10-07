@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Models\BlogHistory;
 use App\Models\BlogSettingHistory;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BlogHistoryRepository
 {
@@ -20,15 +20,14 @@ class BlogHistoryRepository
     ];
 
     /**
-     * blogs の変更履歴（新しい順）
+     * blogs の変更履歴（新しい順。ページに分ける）
      */
-    public function getAll(?int $limit = null): Collection
+    public function paginate(int $perPage, string $pageName = 'page'): LengthAwarePaginator
     {
         return BlogHistory::with(['blog', 'user'])
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
-            ->when($limit !== null, fn ($query) => $query->limit($limit))
-            ->get();
+            ->paginate($perPage, ['*'], $pageName);
     }
 
     public function findById(int $id): ?BlogHistory
@@ -37,14 +36,13 @@ class BlogHistoryRepository
     }
 
     /**
-     * blog_settings（WordPressのサイト設定）の変更履歴（新しい順）
+     * blog_settings（WordPressのサイト設定）の変更履歴（新しい順。ページに分ける）
      */
-    public function getSettingHistories(?int $limit = null): Collection
+    public function paginateSettingHistories(int $perPage, string $pageName = 'page'): LengthAwarePaginator
     {
         return BlogSettingHistory::with(['blog', 'setting'])
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
-            ->when($limit !== null, fn ($query) => $query->limit($limit))
-            ->get();
+            ->paginate($perPage, ['*'], $pageName);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Database;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\LoginHistoryService;
+use App\Support\HistoryPage;
 
 /**
  * ログイン履歴の確認画面（BLOGOS_DECISIONS.md D-17-03）。
@@ -12,9 +13,6 @@ use App\Services\Auth\LoginHistoryService;
  */
 class LoginHistoryController extends Controller
 {
-    /** 表示する最大の件数 */
-    public const LIMIT = 200;
-
     public function __construct(
         protected LoginHistoryService $loginHistoryService
     ) {
@@ -22,11 +20,8 @@ class LoginHistoryController extends Controller
 
     public function index()
     {
-        $histories = $this->loginHistoryService->getLatest(self::LIMIT);
-
         return view('database.login-histories.index', [
-            'histories' => $histories,
-            'limit'     => self::LIMIT,
+            'histories' => $this->loginHistoryService->paginateLatest(HistoryPage::PER_PAGE),
         ]);
     }
 }

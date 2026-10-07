@@ -7,6 +7,7 @@ use App\Jobs\RunScheduledTaskJob;
 use App\Models\ScheduledTaskRun;
 use App\Repositories\BlogAiSettingRepository;
 use App\Services\Schedule\ScheduledTaskService;
+use App\Support\HistoryPage;
 use App\Support\ScheduledTasks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -20,9 +21,6 @@ use Illuminate\Validation\Rule;
 class ScheduledTaskController extends Controller
 {
     use UsesSelectedBlog;
-
-    /** 定期実行履歴の1ページに出す最大の件数 */
-    public const RUNS_PER_PAGE = 50;
 
     public function __construct(
         protected ScheduledTaskService $service,
@@ -40,9 +38,8 @@ class ScheduledTaskController extends Controller
 
         return view('scheduled-tasks.runs', [
             'runs'   => ScheduledTaskRun::with('requester:id,name')->when($key !== null, fn ($q) => $q->where('task_key', $key))
-                ->latest('started_at')->latest('id')->paginate(self::RUNS_PER_PAGE)->withQueryString(),
+                ->latest('started_at')->latest('id')->paginate(HistoryPage::PER_PAGE)->withQueryString(),
             'filter' => $key,
-            'limit'  => self::RUNS_PER_PAGE,
         ]);
     }
 

@@ -102,7 +102,7 @@ class LoginHistoryTest extends TestCase
             ->assertOk()
             ->assertSee('<h1>ログイン履歴 <span class="tip"', false)
             ->assertSee('<h2>ログインの記録</h2>', false)
-            ->assertSee('件（新しい順、最大200件）')
+            ->assertSee('件（新しい順、最大50件。全')
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
             ->assertDontSee('設定ページに戻る');
 

@@ -18,7 +18,7 @@
 
     <section class="panel">
     <h2>料金表の変更の記録</h2>
-    <p>表示件数：{{ $priceHistory->count() }}件（新しい順、最大{{ $limit }}件）</p>
+    @include('partials.history-count', ['paginator' => $priceHistory])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th><th>状態</th><th>確認した人</th></tr></thead>
@@ -38,6 +38,7 @@
             </tbody>
         </table>
     </div>
+    {{ $priceHistory->links() }}
     </section>
 
 @endsection

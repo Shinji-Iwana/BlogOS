@@ -33,7 +33,7 @@
 
     <section class="panel">
     <h2>実行の記録</h2>
-    <p>表示件数：{{ $runs->count() }}件（新しい順、最大{{ $limit }}件。全{{ number_format($runs->total()) }}件をページに分けて表示）</p>
+    @include('partials.history-count', ['paginator' => $runs])
 
     @if ($runs->isEmpty())
         <p>記録はまだありません。</p>

@@ -42,8 +42,7 @@ class AiPriceController extends Controller
     public function history()
     {
         return view('ai.prices.history', [
-            'priceHistory'     => $this->prices->recentChanges(200),
-            'limit'            => 200,
+            'priceHistory'     => $this->prices->paginateChanges(\App\Support\HistoryPage::PER_PAGE),
             'latestPriceCheck' => $this->prices->latestCheck(),
         ]);
     }

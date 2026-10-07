@@ -4,7 +4,7 @@ namespace App\Services\Auth;
 
 use App\Enums\LoginEvent;
 use App\Repositories\LoginHistoryRepository;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
 /**
@@ -41,11 +41,11 @@ class LoginHistoryService
     }
 
     /**
-     * 確認画面用に、新しい順で取得する。
+     * 確認画面用に、新しい順で、ページに分けて取得する。
      */
-    public function getLatest(int $limit = 100): Collection
+    public function paginateLatest(int $perPage): LengthAwarePaginator
     {
-        return $this->loginHistoryRepository->getLatest($limit);
+        return $this->loginHistoryRepository->paginateLatest($perPage);
     }
 
     protected function record(LoginEvent $event, Request $request, ?int $userId): void

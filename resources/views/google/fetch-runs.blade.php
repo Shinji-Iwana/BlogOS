@@ -16,7 +16,7 @@
 
     <section class="panel">
     <h2>取得の記録</h2>
-    <p>表示件数：{{ $recentRuns->count() }}件（新しい順、最大{{ $limit }}件）</p>
+    @include('partials.history-count', ['paginator' => $recentRuns])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>サービス</th><th>契機</th><th>結果</th><th>期間</th><th>行数</th><th>メッセージ</th></tr></thead>
@@ -42,6 +42,7 @@
             </tbody>
         </table>
     </div>
+    {{ $recentRuns->links() }}
     </section>
 
     <section class="panel">

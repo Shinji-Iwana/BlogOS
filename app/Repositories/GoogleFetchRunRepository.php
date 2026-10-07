@@ -6,6 +6,7 @@ use App\Enums\GoogleService;
 use App\Enums\SyncStatus;
 use App\Enums\SyncTrigger;
 use App\Models\GoogleFetchRun;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -52,10 +53,10 @@ class GoogleFetchRunRepository
     }
 
     /**
-     * @return Collection<int, GoogleFetchRun>
+     * @return LengthAwarePaginator<int, GoogleFetchRun>（新しい順。ページに分ける）
      */
-    public function recentForBlog(int $blogId, int $limit = 100): Collection
+    public function paginateForBlog(int $blogId, int $perPage): LengthAwarePaginator
     {
-        return GoogleFetchRun::where('blog_id', $blogId)->orderByDesc('id')->limit($limit)->get();
+        return GoogleFetchRun::where('blog_id', $blogId)->orderByDesc('id')->paginate($perPage);
     }
 }

@@ -15,7 +15,7 @@
 
     <section class="panel">
         <h2>BlogOS側の情報（blog_histories）</h2>
-        <p>表示件数：{{ $histories->count() }}件（新しい順、最大{{ $limit }}件）</p>
+        @include('partials.history-count', ['paginator' => $histories])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>
@@ -42,11 +42,12 @@
                 </tbody>
             </table>
         </div>
+        {{ $histories->links() }}
     </section>
 
     <section class="panel">
         <h2>WordPressのサイト設定（blog_setting_histories）</h2>
-        <p>表示件数：{{ $settingHistories->count() }}件（新しい順、最大{{ $limit }}件）</p>
+        @include('partials.history-count', ['paginator' => $settingHistories])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>
@@ -73,6 +74,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $settingHistories->links() }}
     </section>
 
 @endsection

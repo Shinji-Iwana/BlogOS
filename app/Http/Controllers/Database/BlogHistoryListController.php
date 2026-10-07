@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Database;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogHistoryRepository;
+use App\Support\HistoryPage;
 
 /**
  * ブログ情報の同期履歴（DB確認画面。D-63-16）。
@@ -12,9 +13,6 @@ use App\Repositories\BlogHistoryRepository;
  */
 class BlogHistoryListController extends Controller
 {
-    /** 表示する最大の件数（表ごと） */
-    public const LIMIT = 200;
-
     public function __construct(
         protected BlogHistoryRepository $blogHistoryRepository
     ) {
@@ -22,13 +20,10 @@ class BlogHistoryListController extends Controller
 
     public function index()
     {
-        $histories = $this->blogHistoryRepository->getAll(self::LIMIT);
-        $settingHistories = $this->blogHistoryRepository->getSettingHistories(self::LIMIT);
-
+        // 2つの表は、別々にページを送る（ページの番号の名前を分ける）
         return view('database.blog-history-list', [
-            'histories'        => $histories,
-            'settingHistories' => $settingHistories,
-            'limit'            => self::LIMIT,
+            'histories'        => $this->blogHistoryRepository->paginate(HistoryPage::PER_PAGE, 'page')->withQueryString(),
+            'settingHistories' => $this->blogHistoryRepository->paginateSettingHistories(HistoryPage::PER_PAGE, 'settings_page')->withQueryString(),
         ]);
     }
 }

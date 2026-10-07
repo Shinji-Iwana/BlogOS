@@ -6,6 +6,7 @@ use App\Enums\AiPriceChangeStatus;
 use App\Models\AiPrice;
 use App\Models\AiPriceChange;
 use App\Models\AiPriceCheck;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -107,11 +108,13 @@ class AiPriceRepository
     }
 
     /**
-     * @return Collection<int, AiPriceChange>
+     * 反映・反映しないを決めた変更（新しい順。ページに分ける）
+     *
+     * @return LengthAwarePaginator<int, AiPriceChange>
      */
-    public function recentChanges(int $limit = 30): Collection
+    public function paginateChanges(int $perPage): LengthAwarePaginator
     {
-        return AiPriceChange::with('decider:id,name')->where('status', '!=', AiPriceChangeStatus::Pending)->latest('id')->limit($limit)->get();
+        return AiPriceChange::with('decider:id,name')->where('status', '!=', AiPriceChangeStatus::Pending)->latest('id')->paginate($perPage);
     }
 
     /**

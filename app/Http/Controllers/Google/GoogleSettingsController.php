@@ -48,8 +48,7 @@ class GoogleSettingsController extends Controller
         $blog = $this->selectedBlog();
 
         return view('google.fetch-runs', [
-            'recentRuns' => $this->runs->recentForBlog($blog->id, 30),
-            'limit'      => 30,
+            'recentRuns' => $this->runs->paginateForBlog($blog->id, \App\Support\HistoryPage::PER_PAGE),
             'counts'     => $this->metrics->counts($blog->id),
         ]);
     }
