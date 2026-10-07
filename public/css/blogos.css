@@ -966,3 +966,75 @@ details.sync-run[open] > summary {
 .notice-actions {
     text-align: right;
 }
+
+/* 画面のテーマのポップアップ：テーマの選択欄（説明はテーマ名の「?」）と、ironman の欄の中のアニメーションの設定（D-73-02） */
+.theme-option {
+    cursor: default;
+}
+
+.theme-option-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.theme-option-head label {
+    cursor: pointer;
+}
+
+.animation-settings {
+    margin: 10px 0 0 24px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+}
+
+.animation-settings-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.animation-settings-all {
+    display: inline-flex;
+    gap: 6px;
+    font-weight: normal;
+}
+
+.animation-settings fieldset {
+    margin: 0 0 8px;
+    padding: 6px 10px;
+}
+
+.animation-settings label {
+    display: inline;
+}
+
+.animation-settings-reactor > label,
+.animation-settings-when label,
+.animation-settings-line {
+    display: block;
+    margin: 3px 0;
+}
+
+.animation-settings-when {
+    margin-left: 24px;
+}
+
+.animation-settings-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.animation-settings-list li {
+    margin: 3px 0;
+}
+
+/* ironman を選んでいないときは、変えられない */
+.animation-settings.is-disabled {
+    opacity: 0.5;
+}

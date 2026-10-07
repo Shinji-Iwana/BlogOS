@@ -302,8 +302,8 @@
      メニューの「画面のテーマ」を押した場合に表示する。
      data-modal-open="theme-switch-modal" を付けた要素で開く。ブログ切替ポップアップと同じ形。
 
-     表示内容：テーマの名前・説明、選択用radio（使用中のテーマを選択済み）、切替ボタン、キャンセルボタン。
-     切り替えた後は、開いていた画面に戻る。
+     表示内容：テーマの名前（説明は「?」）、選択用radio（使用中のテーマを選択済み）、ironman の欄の中のアニメーションの設定、切替ボタン、キャンセルボタン。
+     切り替えた後は、開いていた画面に戻る。アニメーションの設定は、ironman を選んで「切替」を押したときに保存する（D-73-02）。
      ============================================================== --}}
 
 {{-- 1行の @php(...) と @php … @endphp を同じ画面に混ぜると、Blade が読み違えるため、ブロックで書く --}}
@@ -334,29 +334,32 @@
 
             @foreach ($headerThemes->available() as $key => $theme)
 
-                <label
-                    class="blog-switch-option"
+                {{-- テーマの選択欄。説明はテーマ名の「?」に出す。ironman の欄には、アニメーションの設定を入れる（D-73-02） --}}
+                <div
+                    class="blog-switch-option theme-option"
                 >
 
-                    <input
-                        type="radio"
-                        name="theme"
-                        value="{{ $key }}"
-                        @checked($key === $headerThemes->current())
-                    >
+                    <div class="theme-option-head">
+                        <label>
+                            <input
+                                type="radio"
+                                name="theme"
+                                value="{{ $key }}"
+                                @checked($key === $headerThemes->current())
+                            >
+                            <strong>
+                                {{ $theme['label'] }}
+                            </strong>
+                            @if (($theme['status'] ?? '') === 'wip')（制作中）@endif
+                        </label>
+                        @include('partials.tip', ['tip' => $theme['description']])
+                    </div>
 
-                    <strong>
-                        {{ $theme['label'] }}
-                    </strong>
-                    @if (($theme['status'] ?? '') === 'wip')（制作中）@endif
+                    @if ($key === 'ironman')
+                        @include('themes.ironman.components.animation-settings')
+                    @endif
 
-                    <br>
-
-                    <span>
-                        {{ $theme['description'] }}
-                    </span>
-
-                </label>
+                </div>
 
             @endforeach
 
@@ -383,11 +386,6 @@
             </div>
 
         </form>
-
-        {{-- アニメーションの設定（ironman だけ。このブラウザに保存し、すぐ反映する。D-73-02） --}}
-        @if ($headerThemes->current() === 'ironman')
-            @include('themes.ironman.components.animation-settings')
-        @endif
 
     </div>
 

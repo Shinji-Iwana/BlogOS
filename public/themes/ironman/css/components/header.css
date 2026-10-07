@@ -417,8 +417,10 @@
     transition: background var(--im-ease), border-color var(--im-ease);
 }
 
+/* 選んでいるテーマの欄（中のアニメーションの設定のチェックでは光らせない） */
 .blog-switch-option:hover,
-.blog-switch-option:has(input:checked) {
+.blog-switch-option:has(input:checked):not(.theme-option),
+.theme-option:has(input[name="theme"]:checked) {
     background: rgba(102, 217, 255, 0.08);
     border-color: var(--im-line-strong);
 }
@@ -476,48 +478,18 @@
    アニメーションの設定（画面のテーマのポップアップの中。themes/ironman/components/animation-settings。D-73-02）
    ========================================================== */
 
-.animation-settings {
-    margin-top: 18px;
-    padding-top: 12px;
-    border-top: 1px solid var(--im-line-faint);
-}
-
-.animation-settings h3 {
-    margin: 0 0 8px;
-    font-size: 15px;
-}
-
+/* 並び方は public/css/blogos.css。ここでは色だけ ironman に合わせる */
+.animation-settings,
 .animation-settings fieldset {
-    margin: 0 0 10px;
-    padding: 8px 12px;
-    border: 1px solid var(--im-line-faint);
+    border-color: var(--im-line-faint);
 }
 
 .animation-settings legend {
     padding: 0 6px;
 }
 
-.animation-settings label {
-    display: block;
-    margin: 3px 0;
-}
-
-.animation-settings-when {
-    margin-left: 24px;
-}
-
 .animation-settings-when label:has(input:disabled) {
     opacity: 0.5;
-}
-
-.animation-settings-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.animation-settings-list li label {
-    display: inline;
 }
 
 

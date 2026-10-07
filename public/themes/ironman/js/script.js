@@ -50,7 +50,7 @@
      * 値は on／off（アークリアクターは always／when／off）。保存していない名前は、初めの値（ANIMATION_DEFAULTS）。
      * 止める見た目は css/accessibility.css、JavaScript で動かすもの（背景の格子の光・時計・アークリアクター・線）は、
      * 変わったときの知らせ（blogos:animations）で切り替える。ほかのタブ・横の画面のパネルの中（iframe）は、storage の知らせで写す。
-     * 設定の欄は、設定 → 画面のテーマのポップアップ（themes/ironman/components/animation-settings）
+     * 設定の欄は、設定 → 画面のテーマのポップアップの ironman の欄（themes/ironman/components/animation-settings。「切替」で保存する）
      */
     const ANIMATION_STORAGE = 'blogos.animations';
     const ANIMATION_DEFAULTS = {
@@ -105,61 +105,13 @@
     function startAnimationSettings() {
         applyAnimations(readAnimations());
 
-        // ほかのタブ・横の画面のパネルの中（同じ保存先）で変えたとき
+        // ほかのタブ・横の画面のパネルの中（同じ保存先）で変えたとき（「切替」で保存して、開いている画面は読み込み直す）
         window.addEventListener('storage', (event) => {
             if (event.key === ANIMATION_STORAGE) {
                 applyAnimations(readAnimations());
             }
         });
-
-        const form = document.getElementById('animation-settings');
-        if (!form) {
-            return;
-        }
-        const radios = form.querySelectorAll('input[name="anim-reactor"]');
-        const boxes = form.querySelectorAll('input[data-anim-key]');
-
-        const show = (settings) => {
-            radios.forEach((radio) => { radio.checked = radio.value === settings.reactor; });
-            boxes.forEach((box) => {
-                box.checked = settings[box.dataset.animKey] !== 'off';
-                // 動かす条件は、「次のときだけ動かす」を選んでいるときだけ選べる
-                if (box.dataset.animKey.startsWith('reactor-')) {
-                    box.disabled = settings.reactor !== 'when';
-                }
-            });
-        };
-        const save = (settings) => {
-            try {
-                window.localStorage.setItem(ANIMATION_STORAGE, JSON.stringify(settings));
-            } catch (e) {
-                // 保存できないブラウザでは、この画面の間だけ反映する
-            }
-            applyAnimations(settings);
-            show(settings);
-        };
-        const collect = () => {
-            const settings = readAnimations();
-            radios.forEach((radio) => { if (radio.checked) { settings.reactor = radio.value; } });
-            boxes.forEach((box) => { settings[box.dataset.animKey] = box.checked ? 'on' : 'off'; });
-
-            return settings;
-        };
-
-        show(readAnimations());
-        form.addEventListener('change', () => save(collect()));
-        form.querySelectorAll('[data-anim-all]').forEach((button) => button.addEventListener('click', () => {
-            const value = button.dataset.animAll;
-            const settings = { ...ANIMATION_DEFAULTS };
-            Object.keys(settings).forEach((key) => {
-                if (!key.startsWith('reactor')) {
-                    settings[key] = value;
-                }
-            });
-            settings.reactor = value === 'on' ? 'always' : 'off';
-            save(settings);
-        }));
-        document.addEventListener('blogos:animations', () => show(readAnimations()));
+        // 設定の欄（読み込み・保存）は、どのテーマでも開けるよう、欄の部品（themes/ironman/components/animation-settings）の JavaScript で行う
     }
 
     /**
