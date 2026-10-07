@@ -13,6 +13,8 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
+    @include('partials.history-last', ['label' => '最後の同期', 'at' => $latestSync?->started_at, 'result' => $latestSync?->status->label()])
+
     <section class="panel">
         <h2>BlogOS側の情報（blog_histories）</h2>
         @include('partials.history-count', ['paginator' => $histories])

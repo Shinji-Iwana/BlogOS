@@ -25,7 +25,8 @@ class SyncRunController extends Controller
 
         return view('database.sync-runs.index', [
             'blog' => $blog,
-            'runs' => $this->syncRunRepository->paginateForBlog($blog->id, HistoryPage::PER_PAGE),
+            'runs'   => $this->syncRunRepository->paginateForBlog($blog->id, HistoryPage::PER_PAGE),
+            'latest' => $this->syncRunRepository->latestForBlog($blog->id),
         ]);
     }
 }

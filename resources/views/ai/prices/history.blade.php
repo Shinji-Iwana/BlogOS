@@ -12,9 +12,7 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    @if ($latestPriceCheck)
-        <p class="text-muted">最後の照合：{{ \App\Support\DisplayTime::format($latestPriceCheck->created_at) }}（{{ $latestPriceCheck->succeeded() ? '照合できた' : '読み取れなかった料金あり' }}）</p>
-    @endif
+    @include('partials.history-last', ['label' => '最後の照合', 'at' => $latestPriceCheck?->created_at, 'result' => $latestPriceCheck ? ($latestPriceCheck->succeeded() ? '成功' : '一部失敗') : null])
 
     <section class="panel">
     <h2>料金表の変更の記録</h2>

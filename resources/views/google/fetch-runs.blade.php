@@ -12,6 +12,8 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
+    @include('partials.history-last', ['label' => '最後の取得', 'at' => $latest?->started_at, 'result' => $latest ? $latest->service->label() . '・' . $latest->status->label() : null])
+
     @include('partials.flash')
 
     <section class="panel">

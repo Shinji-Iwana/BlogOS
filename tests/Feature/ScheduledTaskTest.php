@@ -106,10 +106,11 @@ class ScheduledTaskTest extends TestCase
         $this->get(route('scheduled-tasks.runs', ['task' => 'blogs:sync']))->assertOk()
             ->assertSee('<h1>定期実行履歴', false)
             ->assertSee('1年で削除します')
+            ->assertSee('最後の実行：' . \App\Support\DisplayTime::format($run->started_at) . '（WordPressとの同期・')
             ->assertSee('<option value="blogs:sync" selected>WordPressとの同期</option>', false)
             ->assertSee('<td>' . number_format($run->processed_count) . '</td>', false)
             ->assertDontSee('<td>777</td>', false);
-        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('<td>777</td>', false);
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('<td>777</td>', false)->assertSee('（古い記録の削除・');
     }
 
     public function test_failed_run_is_recorded_and_shown_on_dashboard(): void

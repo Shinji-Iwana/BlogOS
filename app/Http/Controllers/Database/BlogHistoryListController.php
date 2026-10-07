@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Database;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogHistoryRepository;
+use App\Repositories\BlogRepository;
+use App\Repositories\SyncRunRepository;
 use App\Support\HistoryPage;
 
 /**
@@ -18,12 +20,14 @@ class BlogHistoryListController extends Controller
     ) {
     }
 
-    public function index()
+    public function index(BlogRepository $blogs, SyncRunRepository $syncRuns)
     {
         // 2つの表は、別々にページを送る（ページの番号の名前を分ける）
         return view('database.blog-history-list', [
             'histories'        => $this->blogHistoryRepository->paginate(HistoryPage::PER_PAGE, 'page')->withQueryString(),
             'settingHistories' => $this->blogHistoryRepository->paginateSettingHistories(HistoryPage::PER_PAGE, 'settings_page')->withQueryString(),
+            // サイト設定は、WordPress との同期で取り込む（選択中のブログの最後の同期）
+            'latestSync'       => ($blog = $blogs->findSelected()) ? $syncRuns->latestForBlog($blog->id) : null,
         ]);
     }
 }

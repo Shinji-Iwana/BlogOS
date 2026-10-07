@@ -49,6 +49,8 @@ class GoogleSettingsController extends Controller
 
         return view('google.fetch-runs', [
             'recentRuns' => $this->runs->paginateForBlog($blog->id, \App\Support\HistoryPage::PER_PAGE),
+            // 最後の取得（サービスごとの最新のうち、一番新しいもの）
+            'latest'     => $this->runs->latestForBlog($blog->id)->sortByDesc('id')->first(),
             'counts'     => $this->metrics->counts($blog->id),
         ]);
     }

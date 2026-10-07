@@ -41,6 +41,14 @@ class LoginHistoryService
     }
 
     /**
+     * 一番新しい記録（確認画面の「最後の記録」）
+     */
+    public function latest(): ?\App\Models\LoginHistory
+    {
+        return $this->loginHistoryRepository->latest();
+    }
+
+    /**
      * 確認画面用に、新しい順で、ページに分けて取得する。
      */
     public function paginateLatest(int $perPage): LengthAwarePaginator

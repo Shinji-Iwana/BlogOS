@@ -31,6 +31,14 @@ class LoginHistoryRepository
     }
 
     /**
+     * 一番新しい記録（確認画面の「最後の記録」）
+     */
+    public function latest(): ?LoginHistory
+    {
+        return LoginHistory::orderByDesc('occurred_at')->orderByDesc('id')->first();
+    }
+
+    /**
      * 新しい順に、ページに分けて取得する（確認画面用）。
      */
     public function paginateLatest(int $perPage): LengthAwarePaginator

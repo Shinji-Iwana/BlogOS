@@ -17,6 +17,8 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
+    @include('partials.history-last', ['label' => '最後の実行', 'at' => $latest?->started_at, 'result' => $latest ? (ScheduledTasks::get($latest->task_key) ? ScheduledTasks::menuLabel($latest->task_key) : $latest->label()) . '・' . $latest->statusLabel() : null])
+
     {{-- 絞り込み条件：定期実行（選ぶと、すぐしぼり込む） --}}
     <form method="GET" action="{{ route('scheduled-tasks.runs') }}" class="filter-form">
         <label>定期実行：

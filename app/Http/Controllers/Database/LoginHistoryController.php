@@ -22,6 +22,7 @@ class LoginHistoryController extends Controller
     {
         return view('database.login-histories.index', [
             'histories' => $this->loginHistoryService->paginateLatest(HistoryPage::PER_PAGE),
+            'latest'    => $this->loginHistoryService->latest(),
         ]);
     }
 }

@@ -11,6 +11,8 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
+    @include('partials.history-last', ['label' => '最後の同期', 'at' => $latest?->started_at, 'result' => $latest?->status->label()])
+
     <section class="panel">
     <h2>同期の記録</h2>
     @include('partials.history-count', ['paginator' => $runs])

@@ -14,6 +14,14 @@
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
+    @include('partials.history-last', ['label' => '最後の記録', 'at' => $latest?->occurred_at, 'result' => match ($latest?->event) {
+        \App\Enums\LoginEvent::LoginSucceeded => 'ログイン成功',
+        \App\Enums\LoginEvent::LoginFailed => 'ログイン失敗',
+        \App\Enums\LoginEvent::LoginLocked => 'ログイン停止中の試行',
+        \App\Enums\LoginEvent::Logout => 'ログアウト',
+        default => null,
+    }])
+
     <section class="panel">
     <h2>ログインの記録</h2>
     @include('partials.history-count', ['paginator' => $histories])
