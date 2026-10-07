@@ -73,7 +73,7 @@
                 <th>使用率</th>
                 <td>
                     @if ($database['usage_ratio'] !== null)
-                        <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ $size($database['total_bytes']) }} ／ 上限 {{ $size($database['capacity_bytes']) }}）
+                        <strong>{{ number_format($database['usage_ratio'] * 100, 1) }}%</strong>（{{ number_format($database['total_bytes'] / 1024 ** 2, 1) }} MB ／ 上限 {{ number_format($database['capacity_bytes'] / 1024 ** 2) }} MB）
                     @else
                         上限を設定していない（設定の BLOGOS_DB_CAPACITY_MB）
                     @endif
