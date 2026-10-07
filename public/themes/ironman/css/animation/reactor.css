@@ -86,9 +86,9 @@
 
 }
 
+/* 重ねた SVG（.reactor-layer）に付けるため、ふくらむ中心は SVG の箱の真ん中（reactor/reactor.css。D-73-01） */
 .reactor-core-glow,
 .reactor-center {
-    transform-origin: 200px 200px;
     animation: reactorCorePulse var(--reactor-pulse) ease-in-out infinite;
 }
 
@@ -168,7 +168,8 @@
         reactorFlicker 1.3s steps(1) infinite;
 }
 
-.reactor-hud,
+/* HUD の円は、重ねた SVG（.reactor-layer）ごと、SVG の箱の真ん中で回す（reactor/reactor.css。D-73-01。
+   以前の SVG の中の座標（200px 200px）での指定は、Safari で拡大すると中心がずれていた） */
 .reactor-core-coils {
     transform-origin: 200px 200px;
 }

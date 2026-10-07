@@ -44,8 +44,15 @@
         return 'M' . implode(' L', $points) . ' Z';
     };
 @endphp
-<div class="reactor" data-state="{{ $reactorState ?? 'normal' }}" @if ($reactorBusy ?? false) data-busy="1" @endif>
-    <svg class="reactor-svg" viewBox="0 0 400 400" role="img" aria-label="アークリアクター">
+{{--
+    重ねた SVG（D-73-01）：
+    1枚の SVG の中で一部が動くと、ブラウザは SVG 全体（にじみの計算を含む）を描き直す。そのため、同じ大きさの SVG（.reactor-layer）を
+    下から順に重ね、動かない金属は動く部分の上下に分けて置き、回転・脈打ちは重ねた SVG そのものに付ける（ブラウザが描き直さずに動かせる）。
+    描く中身・色・重なりの順は、1枚のときと同じ。部品（<defs>）は、一番下の .reactor-svg に置き、ほかの SVG からも使う。
+    描き直しが残るのは、線の模様が流れるコイルの電気と、コイルの窓の光（コイルごとにずらして脈打つ）と、形 2 のコアの背面のコイル
+--}}
+<div class="reactor" data-state="{{ $reactorState ?? 'normal' }}" @if ($reactorBusy ?? false) data-busy="1" @endif role="img" aria-label="アークリアクター">
+    <svg class="reactor-layer reactor-svg" viewBox="0 0 400 400" aria-hidden="true">
 
         <defs>
             {{-- 鏡面の金属：暗い地に、鋭い白い映り込みの帯。輪ごとに向きを変え、映り込みがそろわないようにする --}}
@@ -165,36 +172,40 @@
             <path id="{{ $rid }}-seam-light" d="M{{ $pt(166, 18.7) }} L{{ $pt(176, 18.7) }}"/>
             <circle id="{{ $rid }}-bolt" cx="200" cy="{{ 200 - 160.5 }}" r="2.4"/>
         </defs>
+    </svg>
 
-        {{-- 周りに広がる光 --}}
-        <circle class="reactor-halo" cx="200" cy="200" r="199" fill="url(#{{ $rid }}-halo)"/>
+    {{-- 周りに広がる光（脈打つ） --}}
+    <svg class="reactor-layer reactor-halo" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="199" fill="url(#{{ $rid }}-halo)"/>
+    </svg>
 
-        {{-- HUD の円（ゆっくり回る。金属ではない） --}}
-        <g class="reactor-hud reactor-hud-a">
-            <circle cx="200" cy="200" r="197" fill="none" stroke-width="1.5" stroke-dasharray="70 18 140 24 40 30 160 40"/>
-        </g>
-        <g class="reactor-hud reactor-hud-b">
-            <circle cx="200" cy="200" r="190.5" fill="none" stroke-width="4" stroke-dasharray="1 5" opacity="0.5"/>
-            <circle cx="200" cy="200" r="186.5" fill="none" stroke-width="1" stroke-dasharray="4 10" opacity="0.55"/>
-        </g>
-        {{-- 外側に広がる電子の輪（4本。左回り・右回りを交互にし、外ほど薄く・遅くする。リアクターの枠の外にはみ出して描く） --}}
-        <g class="reactor-hud reactor-hud-ring reactor-hud-c">
-            <circle cx="200" cy="200" r="206" fill="none" stroke-width="1" stroke-dasharray="120 14 36 14 60 30" opacity="0.6"/>
-            <circle cx="200" cy="200" r="210" fill="none" stroke-width="3" stroke-dasharray="1 7" opacity="0.35"/>
-        </g>
-        <g class="reactor-hud reactor-hud-ring reactor-hud-d">
-            <circle cx="200" cy="200" r="219" fill="none" stroke-width="2" stroke-dasharray="40 26 8 26 180 50" opacity="0.5"/>
-        </g>
-        <g class="reactor-hud reactor-hud-ring reactor-hud-e">
-            <circle cx="200" cy="200" r="229" fill="none" stroke-width="1" stroke-dasharray="6 6" opacity="0.4"/>
-            <circle cx="200" cy="200" r="233" fill="none" stroke-width="1.2" stroke-dasharray="220 40 90 60" opacity="0.45"/>
-        </g>
-        <g class="reactor-hud reactor-hud-ring reactor-hud-f">
-            <circle cx="200" cy="200" r="243" fill="none" stroke-width="0.8" stroke-dasharray="300 24 60 24 140 80" opacity="0.3"/>
-            <circle cx="200" cy="200" r="243" fill="none" stroke-width="5" stroke-dasharray="2 46" opacity="0.4"/>
-        </g>
+    {{-- HUD の円（ゆっくり回る。金属ではない） --}}
+    <svg class="reactor-layer reactor-hud reactor-hud-a" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="197" fill="none" stroke-width="1.5" stroke-dasharray="70 18 140 24 40 30 160 40"/>
+    </svg>
+    <svg class="reactor-layer reactor-hud reactor-hud-b" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="190.5" fill="none" stroke-width="4" stroke-dasharray="1 5" opacity="0.5"/>
+        <circle cx="200" cy="200" r="186.5" fill="none" stroke-width="1" stroke-dasharray="4 10" opacity="0.55"/>
+    </svg>
+    {{-- 外側に広がる電子の輪（4本。左回り・右回りを交互にし、外ほど薄く・遅くする。リアクターの枠の外にはみ出して描く） --}}
+    <svg class="reactor-layer reactor-hud reactor-hud-ring reactor-hud-c" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="206" fill="none" stroke-width="1" stroke-dasharray="120 14 36 14 60 30" opacity="0.6"/>
+        <circle cx="200" cy="200" r="210" fill="none" stroke-width="3" stroke-dasharray="1 7" opacity="0.35"/>
+    </svg>
+    <svg class="reactor-layer reactor-hud reactor-hud-ring reactor-hud-d" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="219" fill="none" stroke-width="2" stroke-dasharray="40 26 8 26 180 50" opacity="0.5"/>
+    </svg>
+    <svg class="reactor-layer reactor-hud reactor-hud-ring reactor-hud-e" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="229" fill="none" stroke-width="1" stroke-dasharray="6 6" opacity="0.4"/>
+        <circle cx="200" cy="200" r="233" fill="none" stroke-width="1.2" stroke-dasharray="220 40 90 60" opacity="0.45"/>
+    </svg>
+    <svg class="reactor-layer reactor-hud reactor-hud-ring reactor-hud-f" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="243" fill="none" stroke-width="0.8" stroke-dasharray="300 24 60 24 140 80" opacity="0.3"/>
+        <circle cx="200" cy="200" r="243" fill="none" stroke-width="5" stroke-dasharray="2 46" opacity="0.4"/>
+    </svg>
 
-        {{-- ===== 段になった鋼の外枠（半径 147〜182） ===== --}}
+    {{-- ===== 段になった鋼の外枠（半径 147〜182。動かない） ===== --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         <circle cx="200" cy="200" r="182" fill="#030405"/>
         {{-- 外の縁 --}}
         <circle cx="200" cy="200" r="179.5" fill="none" stroke="url(#{{ $rid }}-chrome-a)" stroke-width="5"/>
@@ -202,9 +213,15 @@
         <circle cx="200" cy="200" r="171" fill="none" stroke="url(#{{ $rid }}-chrome-b)" stroke-width="10"/>
         {{-- 内の帯 --}}
         <circle cx="200" cy="200" r="160.5" fill="none" stroke="url(#{{ $rid }}-chrome-e)" stroke-width="9"/>
-        {{-- 内の縁と、そこに映るコアの光 --}}
+        {{-- 内の縁 --}}
         <circle cx="200" cy="200" r="151" fill="none" stroke="url(#{{ $rid }}-chrome-c)" stroke-width="8"/>
-        <circle cx="200" cy="200" r="151" fill="none" stroke="url(#{{ $rid }}-reflect)" stroke-width="8" class="reactor-reflect"/>
+    </svg>
+    {{-- 内の縁に映るコアの光（脈打つ） --}}
+    <svg class="reactor-layer reactor-reflect" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="151" fill="none" stroke="url(#{{ $rid }}-reflect)" stroke-width="8"/>
+    </svg>
+    {{-- 段の間の溝・継ぎ目・ボルト・映り込みと、コイルの土台（動かない） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         {{-- 段の間の溝 --}}
         <circle cx="200" cy="200" r="176.6" fill="none" stroke="#020304" stroke-width="1.8"/>
         <circle cx="200" cy="200" r="165.6" fill="none" stroke="#020304" stroke-width="1.6"/>
@@ -226,37 +243,72 @@
             <path d="{{ $arc(147.8, 205, 235) }}" stroke-width="0.8" stroke-opacity="0.6"/>
         </g>
 
-        {{-- ===== 10個のコイル（半径 103〜148） ===== --}}
-        @include('themes.ironman.components.reactor-coils')
+        {{-- ===== 10個のコイル（半径 103〜148）の土台 ===== --}}
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'under'])
+    </svg>
 
-        {{-- ===== コアを囲む金属（半径 84〜104） ===== --}}
+    {{-- コイルの窓の奥の光（コイルごとにずらして脈打つ。描き直しが残る） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'lights'])
+    </svg>
+    {{-- コイルの電気（うっすら光る線・短い光・長い光。まとまりごとに脈打つ。流れる光は描き直しが残る） --}}
+    <svg class="reactor-layer reactor-coil-base" viewBox="0 0 400 400" aria-hidden="true">
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'base'])
+    </svg>
+    <svg class="reactor-layer reactor-coil-spark-a" viewBox="0 0 400 400" aria-hidden="true">
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'spark-a'])
+    </svg>
+    <svg class="reactor-layer reactor-coil-spark-b" viewBox="0 0 400 400" aria-hidden="true">
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'spark-b'])
+    </svg>
+
+    {{-- コイルの窓のガラス・棒・留め金・ねじ・支えと、コアを囲む金属（半径 84〜104。動かない） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
+        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'over'])
         <circle cx="200" cy="200" r="101.5" fill="none" stroke="url(#{{ $rid }}-chrome-d)" stroke-width="5"/>
         <circle cx="200" cy="200" r="98.4" fill="none" stroke="#020304" stroke-width="1.6"/>
         <circle cx="200" cy="200" r="91" fill="none" stroke="url(#{{ $rid }}-chrome-e)" stroke-width="13"/>
-        <circle cx="200" cy="200" r="91" fill="none" stroke="url(#{{ $rid }}-reflect)" stroke-width="13" class="reactor-reflect"/>
+    </svg>
+    {{-- コアを囲む金属に映るコアの光（脈打つ） --}}
+    <svg class="reactor-layer reactor-reflect" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="91" fill="none" stroke="url(#{{ $rid }}-reflect)" stroke-width="13"/>
+    </svg>
+    {{-- コアを囲む金属の溝・映り込みと、コアの土台（動かない） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         <circle cx="200" cy="200" r="84.3" fill="none" stroke="#020304" stroke-width="1.4"/>
         <g fill="none" stroke="#ffffff" stroke-linecap="round" filter="url(#{{ $rid }}-glint)">
             <path d="{{ $arc(103.5, 295, 335) }}" stroke-width="0.9" stroke-opacity="0.8"/>
             <path d="{{ $arc(96.8, 120, 160) }}" stroke-width="0.9" stroke-opacity="0.55"/>
         </g>
-
-        {{-- コアの土台と光 --}}
         <circle cx="200" cy="200" r="83.6" fill="url(#{{ $rid }}-well)"/>
-        @if ($variant === 2)
-            {{-- 形 2：コアの背面に、外側と同じコイルを小さくして置く。金属は動かさず、中の電気を外側と逆向きに流す（半径 58〜83） --}}
+    </svg>
+
+    @if ($variant === 2)
+        {{-- 形 2：コアの背面に、外側と同じコイルを小さくして置く。金属は動かさず、中の電気を外側と逆向きに流す（半径 58〜83。描き直しが残る） --}}
+        <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
             <g clip-path="url(#{{ $rid }}-core)" opacity="0.6">
                 <g transform="translate(200 200) scale(0.56) translate(-200 -200)">
                     <g class="reactor-core-coils">
-                        @include('themes.ironman.components.reactor-coils')
+                        @include('themes.ironman.components.reactor-coils', ['coilPart' => 'all'])
                     </g>
                 </g>
             </g>
-        @endif
-        <circle class="reactor-core-glow" cx="200" cy="200" r="83" fill="url(#{{ $rid }}-core-glow)"/>
+        </svg>
+    @endif
+    {{-- コアの光（脈打つ） --}}
+    <svg class="reactor-layer reactor-core-glow" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="83" fill="url(#{{ $rid }}-core-glow)"/>
+    </svg>
 
-        {{-- ===== 金属で縁取った三角のコア（Mark VI） ===== --}}
-        {{-- 三角の後ろに広がる光 --}}
-        <path class="reactor-tri" d="{{ $triangle(64) }}" fill="none" stroke-width="30" stroke-linejoin="round" style="stroke: var(--reactor-glow)" opacity="0.5" filter="url(#{{ $rid }}-blur-strong)"/>
+    {{-- ===== 金属で縁取った三角のコア（Mark VI） ===== --}}
+    {{-- 三角の後ろに広がる光（脈打つ）。
+         1枚のときは、この線そのものに脈打ちを付けていたため、脈打ちの透明度と明るさ（CSS の filter）が、opacity="0.5" と filter（にじみ）の指定より
+         優先されていた（指定は効いていなかった）。見た目を変えないよう、ここでも付けない --}}
+    <svg class="reactor-layer reactor-tri" viewBox="0 0 400 400" aria-hidden="true">
+        <path d="{{ $triangle(64) }}" fill="none" stroke-width="30" stroke-linejoin="round" style="stroke: var(--reactor-glow)"/>
+    </svg>
+    {{-- 三角の金属（動かない） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         @if ($variant === 2)
             {{-- 形 2：コアの一番外側の三角の金属（外 104・内 91。細い金属の枠。辺の太さ 6.5）。
                  角は面取りし、面取りした面を、コアを囲む金属の輪（半径 84〜98）の上に乗せて、留め具でつなぐ
@@ -270,22 +322,28 @@
         @endif
         {{-- 金属の縁（外 86・内 41） --}}
         <path d="{{ $triangle(86) }} {{ $triangle(41) }}" fill="url(#{{ $rid }}-chrome-c)" fill-rule="evenodd" stroke="#020304" stroke-width="1" stroke-linejoin="round"/>
-        {{-- 光る帯（外 76・内 50）と、帯の中を通る明るい線（暗くしすぎない脈打ち） --}}
-        <g class="reactor-tri">
-            <path d="{{ $triangle(76) }} {{ $triangle(50) }}" fill="url(#{{ $rid }}-tri)" fill-rule="evenodd" stroke-linejoin="round" filter="url(#{{ $rid }}-blur-strong)"/>
-            <path d="{{ $triangle(64) }}" fill="none" stroke-width="6" stroke-linejoin="round" style="stroke: var(--reactor-bright)" filter="url(#{{ $rid }}-neon)"/>
-            <path d="{{ $triangle(64) }}" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
-        </g>
+    </svg>
+    {{-- 光る帯（外 76・内 50）と、帯の中を通る明るい線（暗くしすぎない脈打ち） --}}
+    <svg class="reactor-layer reactor-tri" viewBox="0 0 400 400" aria-hidden="true">
+        <path d="{{ $triangle(76) }} {{ $triangle(50) }}" fill="url(#{{ $rid }}-tri)" fill-rule="evenodd" stroke-linejoin="round" filter="url(#{{ $rid }}-blur-strong)"/>
+        <path d="{{ $triangle(64) }}" fill="none" stroke-width="6" stroke-linejoin="round" style="stroke: var(--reactor-bright)" filter="url(#{{ $rid }}-neon)"/>
+        <path d="{{ $triangle(64) }}" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>
 
-        {{-- ===== 金属の輪で囲んだ中心の光 ===== --}}
+    {{-- ===== 金属の輪で囲んだ中心の光 ===== --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         <circle cx="200" cy="200" r="27" fill="none" stroke="url(#{{ $rid }}-chrome-a)" stroke-width="7"/>
         <circle cx="200" cy="200" r="23.4" fill="none" stroke="#020304" stroke-width="1"/>
-        <circle class="reactor-center" cx="200" cy="200" r="22.5" fill="url(#{{ $rid }}-center)" filter="url(#{{ $rid }}-blur)"/>
+    </svg>
+    {{-- 中心の光（脈打つ）。1枚のときは、脈打ちの明るさ（CSS の filter）が filter（にじみ）の指定より優先されていた（指定は効いていなかった）ため、ここでも付けない --}}
+    <svg class="reactor-layer reactor-center" viewBox="0 0 400 400" aria-hidden="true">
+        <circle cx="200" cy="200" r="22.5" fill="url(#{{ $rid }}-center)"/>
+    </svg>
 
-        {{-- 前面のガラスの映り込み --}}
+    {{-- 前面のガラスの映り込み（動かない） --}}
+    <svg class="reactor-layer" viewBox="0 0 400 400" aria-hidden="true">
         <g clip-path="url(#{{ $rid }}-lens)">
             <ellipse cx="150" cy="118" rx="130" ry="56" transform="rotate(-32 150 118)" fill="url(#{{ $rid }}-glass)"/>
         </g>
-
     </svg>
 </div>

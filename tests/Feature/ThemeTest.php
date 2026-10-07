@@ -44,6 +44,10 @@ class ThemeTest extends TestCase
             ->assertDontSee('/themes/ironman/css/style.css', false)
             ->assertSee('class="theme-ironman"', false)
             ->assertSee('reactor-core', false)
+            // アークリアクターは重ねた SVG に分け、回転・脈打ちは SVG そのものに付ける（D-73-01）
+            ->assertSee('<svg class="reactor-layer reactor-hud reactor-hud-a"', false)
+            ->assertSee('<svg class="reactor-layer reactor-coil-spark-a"', false)
+            ->assertSee('<svg class="reactor-layer reactor-center"', false)
             ->assertSee('ブログを登録する');
 
         // 上書きしていない画面は共通の画面のまま、CSS だけ ironman

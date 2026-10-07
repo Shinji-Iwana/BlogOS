@@ -3,7 +3,19 @@
 
     中心 200,200・半径 103〜148 に描く。外側のコイルと、コアの背面のコイル（形 2。電気は外側と逆向きに流れる）で同じものを使う。
     部品の形と色は、components/reactor の <defs>（$rid）を使う。
+
+    受け取る値（任意）：
+    ・$coilPart：描く部分（D-73-01。アークリアクターを重ねた SVG に分けて描くため）
+        all（省略時）：全部（コアの背面のコイル）
+        under：土台の円と金属の板（動かない）／lights：窓の奥の光（脈打つ）／base：うっすら光る電気の線／
+        spark-a・spark-b：流れる電気（短い光・長い光）／over：窓のガラス・棒・留め金・ねじ・支え（動かない）
+      all のときは、電気のまとまり（g）に脈打ちの class を付ける。分けて描くときは、外側の SVG に付ける（components/reactor）
 --}}
+@php
+    $coilPart = $coilPart ?? 'all';
+    $coilAll = $coilPart === 'all';
+@endphp
+@if ($coilAll || $coilPart === 'under')
     <circle cx="200" cy="200" r="125.5" fill="none" stroke="#04070a" stroke-width="45"/>
     {{-- 金属の土台の板・一段高い縁・くぼみ（動かない） --}}
     <g class="reactor-coil-frames">
@@ -13,28 +25,38 @@
             <use href="#{{ $rid }}-coil-recess" fill="#04070a" stroke="#000" stroke-width="0.8" transform="rotate({{ $i * 36 }} 200 200)"/>
         @endforeach
     </g>
+@endif
+@if ($coilAll || $coilPart === 'lights')
     {{-- 窓の奥の光（脈打つ） --}}
     <g class="reactor-coil-lights">
         @foreach (range(0, 9) as $i)
             <use href="#{{ $rid }}-coil-window" fill="url(#{{ $rid }}-coil-glow)" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ $i * 0.4 }}s"/>
         @endforeach
     </g>
-    {{-- 電気の線：うっすら光る線の上を、短い光（火花）と長い光が流れる --}}
-    <g class="reactor-coil-base" fill="none">
+@endif
+{{-- 電気の線：うっすら光る線の上を、短い光（火花）と長い光が流れる --}}
+@if ($coilAll || $coilPart === 'base')
+    <g @if ($coilAll) class="reactor-coil-base" @endif fill="none">
         @foreach (range(0, 9) as $i)
             <use href="#{{ $rid }}-coil-lines" transform="rotate({{ $i * 36 }} 200 200)"/>
         @endforeach
     </g>
-    <g class="reactor-coil-spark-a" fill="none">
+@endif
+@if ($coilAll || $coilPart === 'spark-a')
+    <g @if ($coilAll) class="reactor-coil-spark-a" @endif fill="none">
         @foreach (range(0, 9) as $i)
             <use href="#{{ $rid }}-coil-lines" filter="url(#{{ $rid }}-neon)" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.37, 2) }}s"/>
         @endforeach
     </g>
-    <g class="reactor-coil-spark-b" fill="none">
+@endif
+@if ($coilAll || $coilPart === 'spark-b')
+    <g @if ($coilAll) class="reactor-coil-spark-b" @endif fill="none">
         @foreach (range(0, 9) as $i)
             <use href="#{{ $rid }}-coil-lines" filter="url(#{{ $rid }}-neon)" transform="rotate({{ $i * 36 }} 200 200)" style="animation-delay: -{{ round($i * 0.61, 2) }}s"/>
         @endforeach
     </g>
+@endif
+@if ($coilAll || $coilPart === 'over')
     {{-- 窓のガラス・上下の棒・左右の留め金・ねじ --}}
     <g>
         @foreach (range(0, 9) as $i)
@@ -51,3 +73,4 @@
             <use href="#{{ $rid }}-spoke-groove" stroke="#020304" stroke-width="1" transform="rotate({{ $i * 36 }} 200 200)"/>
         @endforeach
     </g>
+@endif
