@@ -121,6 +121,7 @@ class PagesSmokeTest extends TestCase
             'question bank create'    => ['materials.create', ['kind' => 'question_bank']],
             'ai settings'             => ['ai.settings.edit'],
             'ai prices'               => ['ai.prices.index'],
+            'server status'           => ['server.index'],
         ];
     }
 

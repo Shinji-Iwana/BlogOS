@@ -44,6 +44,7 @@ use App\Http\Controllers\Materials\MaterialReviewController;
 use App\Http\Controllers\Materials\MaterialSuggestionController;
 use App\Http\Controllers\Push\PushOperationController;
 use App\Http\Controllers\Quality\EvaluationController;
+use App\Http\Controllers\ServerStatusController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\Topics\CategoryLaunchController;
 use App\Http\Controllers\Topics\TopicPlanningController;
@@ -215,6 +216,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/ai/prices/history', [AiPriceController::class, 'history'])->name('ai.prices.history');
     // OpenAI API料金表情報（メニューの「情報 → OpenAI API料金表情報」。全ブログ共通。D-63-28）
     Route::get('/ai/prices', [AiPriceController::class, 'index'])->name('ai.prices.index');
+    // サーバー情報（メニューの「情報 → サーバー情報」。読み取りだけ。全ブログ共通。D-71）
+    Route::get('/server', [ServerStatusController::class, 'index'])->name('server.index');
     Route::get('/ai/credits', [AiCreditController::class, 'index'])->name('ai.credits.index');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {

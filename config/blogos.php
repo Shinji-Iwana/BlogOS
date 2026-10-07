@@ -305,6 +305,12 @@ return [
      * 方式 c：録音 → 聞き取り（文字にする）→ 文章の AI が判断して BlogOS の道具を呼ぶ → 返事を声にする、を順番に行う。
      * 方式 d・e（リアルタイム会話）は段階3で加える。使う方式・声・話し方は、画面「AIの設定」の「音声」で選ぶ（system_settings）。
      */
+    // サーバー情報（D-71）。DB の容量の上限（MB）。MySQL からは読み取れないため、XServer のサーバーパネル（データベース → MySQL設定）の値を入れる。
+    // 空にすると、使用率を出さない
+    'server' => [
+        'db_capacity_mb' => env('BLOGOS_DB_CAPACITY_MB', 5000),
+    ],
+
     'voice' => [
         // 聞き取り（音声 → 文字）・判断（文章の AI）・返事（文字 → 音声）のモデル
         'transcribe_model' => env('BLOGOS_VOICE_TRANSCRIBE_MODEL', 'gpt-transcribe'),
