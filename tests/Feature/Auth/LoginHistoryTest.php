@@ -100,7 +100,9 @@ class LoginHistoryTest extends TestCase
         $this->actingAs($user)
             ->get(route('database.login-histories.index'))
             ->assertOk()
-            ->assertSee('<h1>ログイン履歴</h1>', false)
+            ->assertSee('<h1>ログイン履歴 <span class="tip"', false)
+            ->assertSee('<h2>ログインの記録</h2>', false)
+            ->assertSee('件（新しい順、最大200件）')
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
             ->assertDontSee('設定ページに戻る');
 
@@ -108,7 +110,7 @@ class LoginHistoryTest extends TestCase
         $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<a href="' . preg_quote(route('database.login-histories.index'), '/') . '"\s*>ログイン履歴<\/a>\s*<\/li>\s*<li><a href="' . preg_quote(route('database-blog-history-list'), '/') . '"\s*>ブログ情報の同期履歴<\/a>/', $html);
         // ブログ情報の同期履歴（D-63-16）。トップページの「管理」には入口を出さない
-        $this->get(route('database-blog-history-list'))->assertOk()->assertSee('<h1>ブログ情報の同期履歴</h1>', false);
+        $this->get(route('database-blog-history-list'))->assertOk()->assertSee('<h1>ブログ情報の同期履歴 <span class="tip"', false);
         $this->assertNotContains('database-blog-history-list', array_column(array_merge(...array_column(\App\Support\DashboardLinks::GROUPS, 'links')), 'route'));
         $this->assertStringNotContainsString('<h2>セキュリティ</h2>', $html);
     }

@@ -8,7 +8,7 @@
 
 @section('content')
 
-    <h1>OpenAI API料金表との同期履歴 @include('partials.tip', ['tip' => "API実行の料金表を、OpenAI の公式のページと照合して変えた記録です（新しい順、最大200件）。\n値上がりは自動で反映し、値下がりは AIの設定の画面で確認してから反映します（確認待ちのものは、ここには出しません）。"])</h1>
+    <h1>OpenAI API料金表との同期履歴 @include('partials.tip', ['tip' => "API実行の料金表を、OpenAI の公式のページと照合して変えた記録です。\n値上がりは自動で反映し、値下がりは AIの設定の画面で確認してから反映します（確認待ちのものは、ここには出しません）。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
@@ -17,7 +17,8 @@
     @endif
 
     <section class="panel">
-    <h2>料金表の変更の記録（{{ $priceHistory->count() }}件）</h2>
+    <h2>料金表の変更の記録</h2>
+    <p>表示件数：{{ $priceHistory->count() }}件（新しい順、最大{{ $limit }}件）</p>
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th><th>状態</th><th>確認した人</th></tr></thead>

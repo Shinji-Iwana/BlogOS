@@ -21,6 +21,9 @@ class ScheduledTaskController extends Controller
 {
     use UsesSelectedBlog;
 
+    /** 定期実行履歴の1ページに出す最大の件数 */
+    public const RUNS_PER_PAGE = 50;
+
     public function __construct(
         protected ScheduledTaskService $service,
         protected BlogAiSettingRepository $aiSettings,
@@ -37,8 +40,9 @@ class ScheduledTaskController extends Controller
 
         return view('scheduled-tasks.runs', [
             'runs'   => ScheduledTaskRun::with('requester:id,name')->when($key !== null, fn ($q) => $q->where('task_key', $key))
-                ->latest('started_at')->latest('id')->paginate(50)->withQueryString(),
+                ->latest('started_at')->latest('id')->paginate(self::RUNS_PER_PAGE)->withQueryString(),
             'filter' => $key,
+            'limit'  => self::RUNS_PER_PAGE,
         ]);
     }
 

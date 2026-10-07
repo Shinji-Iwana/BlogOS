@@ -12,6 +12,9 @@ use App\Repositories\BlogHistoryRepository;
  */
 class BlogHistoryListController extends Controller
 {
+    /** 表示する最大の件数（表ごと） */
+    public const LIMIT = 200;
+
     public function __construct(
         protected BlogHistoryRepository $blogHistoryRepository
     ) {
@@ -19,12 +22,13 @@ class BlogHistoryListController extends Controller
 
     public function index()
     {
-        $histories = $this->blogHistoryRepository->getAll();
-        $settingHistories = $this->blogHistoryRepository->getSettingHistories();
+        $histories = $this->blogHistoryRepository->getAll(self::LIMIT);
+        $settingHistories = $this->blogHistoryRepository->getSettingHistories(self::LIMIT);
 
         return view('database.blog-history-list', [
             'histories'        => $histories,
             'settingHistories' => $settingHistories,
+            'limit'            => self::LIMIT,
         ]);
     }
 }

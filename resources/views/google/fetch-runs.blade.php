@@ -8,14 +8,15 @@
 
 @section('content')
 
-    <h1>Googleとの同期履歴</h1>
+    <h1>Googleとの同期履歴 @include('partials.tip', ['tip' => "選択中のブログの、Google（GA4・Search Console・AdSense）からデータを取得した記録と、保存しているデータの行数です。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.flash')
 
     <section class="panel">
-    <h2>取得の記録（新しい順、最大30件）</h2>
+    <h2>取得の記録</h2>
+    <p>表示件数：{{ $recentRuns->count() }}件（新しい順、最大{{ $limit }}件）</p>
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>サービス</th><th>契機</th><th>結果</th><th>期間</th><th>行数</th><th>メッセージ</th></tr></thead>

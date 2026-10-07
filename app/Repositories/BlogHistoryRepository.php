@@ -22,11 +22,12 @@ class BlogHistoryRepository
     /**
      * blogs の変更履歴（新しい順）
      */
-    public function getAll(): Collection
+    public function getAll(?int $limit = null): Collection
     {
         return BlogHistory::with(['blog', 'user'])
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
+            ->when($limit !== null, fn ($query) => $query->limit($limit))
             ->get();
     }
 
@@ -38,11 +39,12 @@ class BlogHistoryRepository
     /**
      * blog_settings（WordPressのサイト設定）の変更履歴（新しい順）
      */
-    public function getSettingHistories(): Collection
+    public function getSettingHistories(?int $limit = null): Collection
     {
         return BlogSettingHistory::with(['blog', 'setting'])
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
+            ->when($limit !== null, fn ($query) => $query->limit($limit))
             ->get();
     }
 }

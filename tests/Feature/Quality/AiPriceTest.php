@@ -198,6 +198,8 @@ class AiPriceTest extends TestCase
         $this->get(route('ai.prices.history'))->assertOk()
             ->assertSee('<h1>OpenAI API料金表との同期履歴', false)
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertSee('<h2>料金表の変更の記録</h2>', false)
+            ->assertSee('件（新しい順、最大200件）')
             ->assertSee('<th>確認した人</th>', false)
             ->assertSee('gpt-4o-mini-tts 音声の出力')
             ->assertSee('（自動）');

@@ -12,6 +12,9 @@ use App\Services\Auth\LoginHistoryService;
  */
 class LoginHistoryController extends Controller
 {
+    /** 表示する最大の件数 */
+    public const LIMIT = 200;
+
     public function __construct(
         protected LoginHistoryService $loginHistoryService
     ) {
@@ -19,10 +22,11 @@ class LoginHistoryController extends Controller
 
     public function index()
     {
-        $histories = $this->loginHistoryService->getLatest(200);
+        $histories = $this->loginHistoryService->getLatest(self::LIMIT);
 
         return view('database.login-histories.index', [
             'histories' => $histories,
+            'limit'     => self::LIMIT,
         ]);
     }
 }

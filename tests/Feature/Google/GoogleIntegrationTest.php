@@ -458,7 +458,7 @@ class GoogleIntegrationTest extends TestCase
 
         // 取得の欄はない（メニューの「設定 → 即時実行 → Googleとの同期」で取得する。D-63-18）。Googleとの同期履歴は、取得の記録と行数だけ（D-63-19）
         $this->actingAs($this->user)->get(route('google.fetch-runs.index'))->assertOk()
-            ->assertSee('<h1>Googleとの同期履歴</h1>', false)->assertSee('取得の記録')->assertDontSee('今すぐ取得する')->assertDontSee('このブログの対応先');
+            ->assertSee('<h1>Googleとの同期履歴 <span class="tip"', false)->assertSee('取得の記録')->assertDontSee('今すぐ取得する')->assertDontSee('このブログの対応先');
         $this->assertFalse(\Illuminate\Support\Facades\Route::has('google.fetch'));
         $this->assertFalse(\Illuminate\Support\Facades\Route::has('google.settings'));
 

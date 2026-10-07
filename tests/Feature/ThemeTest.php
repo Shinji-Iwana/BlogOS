@@ -119,7 +119,7 @@ class ThemeTest extends TestCase
         // 設定の画面には、WordPress API情報の欄を出さない（D-63-12）
         $this->assertStringNotContainsString(route('wp-api.home'), explode('<main', $html, 2)[1] ?? '');
         \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
-        $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期履歴</h1>', false);
+        $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期履歴 <span class="tip"', false);
         $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報</h1>', false);
         $this->get(route('wp-api.home'))->assertOk()->assertSee('<h1>WordPress API情報</h1>', false)
             ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)->assertDontSee('設定ページに戻る');

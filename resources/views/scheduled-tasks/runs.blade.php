@@ -13,7 +13,7 @@
         use App\Support\ScheduledTasks;
     @endphp
 
-    <h1>定期実行履歴 @include('partials.tip', ['tip' => '実行の記録は、1年で削除します。'])</h1>
+    <h1>定期実行履歴 @include('partials.tip', ['tip' => "定期実行と、メニューの「設定 → 即時実行」で実行した記録です。定期実行ごとにしぼり込めます。\n実行の記録は、1年で削除します。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
@@ -31,11 +31,14 @@
         <noscript><button type="submit" class="btn-secondary">絞り込む</button></noscript>
     </form>
 
-    <p>表示件数：{{ $runs->total() }}件（新しい順）</p>
+    <section class="panel">
+    <h2>実行の記録</h2>
+    <p>表示件数：{{ $runs->count() }}件（新しい順、最大{{ $limit }}件。全{{ number_format($runs->total()) }}件をページに分けて表示）</p>
 
     @if ($runs->isEmpty())
         <p>記録はまだありません。</p>
     @else
+        <div style="overflow-x:auto;">
         <table class="data" style="max-width:1200px; font-size:90%;">
             <thead><tr><th>内容</th><th>きっかけ</th><th>状態</th><th>開始</th><th>終了</th><th>かかった時間</th><th>ブログ</th><th>処理</th><th>変更</th><th>問題</th><th>メモリ</th><th>結果</th></tr></thead>
             <tbody>
@@ -69,8 +72,10 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         {{ $runs->links() }}
     @endif
+    </section>
 
     <section class="panel">
     <h2>件数の意味</h2>

@@ -11,6 +11,9 @@ use App\Repositories\SyncRunRepository;
  */
 class SyncRunController extends Controller
 {
+    /** 表示する最大の件数 */
+    public const LIMIT = 100;
+
     public function __construct(
         protected BlogRepository $blogRepository,
         protected SyncRunRepository $syncRunRepository,
@@ -24,7 +27,8 @@ class SyncRunController extends Controller
 
         return view('database.sync-runs.index', [
             'blog' => $blog,
-            'runs' => $this->syncRunRepository->recentForBlog($blog->id, 100),
+            'runs'  => $this->syncRunRepository->recentForBlog($blog->id, self::LIMIT),
+            'limit' => self::LIMIT,
         ]);
     }
 }

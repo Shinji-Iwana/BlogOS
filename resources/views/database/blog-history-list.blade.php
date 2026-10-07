@@ -9,12 +9,13 @@
 
 @section('content')
 
-    <h1>ブログ情報の同期履歴</h1>
+    <h1>ブログ情報の同期履歴 @include('partials.tip', ['tip' => "ブログの情報（BlogOS 側の情報と、WordPress のサイト設定）が変わった記録です。\n変わった項目ごとに1行で、「変更のまとまり」が同じ行は、同時に起きた変更です。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     <section class="panel">
-        <h2>BlogOS側の情報（blog_histories）：{{ $histories->count() }}件</h2>
+        <h2>BlogOS側の情報（blog_histories）</h2>
+        <p>表示件数：{{ $histories->count() }}件（新しい順、最大{{ $limit }}件）</p>
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>
@@ -44,7 +45,8 @@
     </section>
 
     <section class="panel">
-        <h2>WordPressのサイト設定（blog_setting_histories）：{{ $settingHistories->count() }}件</h2>
+        <h2>WordPressのサイト設定（blog_setting_histories）</h2>
+        <p>表示件数：{{ $settingHistories->count() }}件（新しい順、最大{{ $limit }}件）</p>
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>

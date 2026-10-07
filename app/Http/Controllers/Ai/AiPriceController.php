@@ -43,6 +43,7 @@ class AiPriceController extends Controller
     {
         return view('ai.prices.history', [
             'priceHistory'     => $this->prices->recentChanges(200),
+            'limit'            => 200,
             'latestPriceCheck' => $this->prices->latestCheck(),
         ]);
     }

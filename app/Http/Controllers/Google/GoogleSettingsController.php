@@ -49,6 +49,7 @@ class GoogleSettingsController extends Controller
 
         return view('google.fetch-runs', [
             'recentRuns' => $this->runs->recentForBlog($blog->id, 30),
+            'limit'      => 30,
             'counts'     => $this->metrics->counts($blog->id),
         ]);
     }

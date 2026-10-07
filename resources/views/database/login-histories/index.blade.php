@@ -10,14 +10,13 @@
 
 @section('content')
 
-    <h1>ログイン履歴</h1>
+    <h1>ログイン履歴 @include('partials.tip', ['tip' => "BlogOS へのログインの成功・失敗と、ログアウトの記録です。\n心当たりのないログインの成功や、繰り返しのログインの失敗がないかを確かめるために使います。"])</h1>
 
-    <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-    </p>
+    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    <p>表示件数：{{ $histories->count() }}件（新しい順、最大200件）</p>
-
+    <section class="panel">
+    <h2>ログインの記録</h2>
+    <p>表示件数：{{ $histories->count() }}件（新しい順、最大{{ $limit }}件）</p>
     <div style="overflow-x:auto;">
         <table class="data">
             <thead>
@@ -63,5 +62,6 @@
             </tbody>
         </table>
     </div>
+    </section>
 
 @endsection

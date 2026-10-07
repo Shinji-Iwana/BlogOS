@@ -7,11 +7,13 @@
 
 @section('content')
 
-    <h1>WordPressとの同期履歴</h1>
+    <h1>WordPressとの同期履歴 @include('partials.tip', ['tip' => "選択中のブログの WordPress から、記事・カテゴリ・タグなどを取り込んだ記録です。\n実行の行を押すと、対象ごとの結果が開きます。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    <p>表示件数：{{ $runs->count() }}件（新しい順、最大100件）。実行の行を押すと、対象ごとの結果が開きます。</p>
+    <section class="panel">
+    <h2>同期の記録</h2>
+    <p>表示件数：{{ $runs->count() }}件（新しい順、最大{{ $limit }}件）</p>
 
     @forelse ($runs as $run)
         <details class="sync-run">
@@ -61,5 +63,6 @@
     @empty
         <p>記録はありません。</p>
     @endforelse
+    </section>
 
 @endsection
