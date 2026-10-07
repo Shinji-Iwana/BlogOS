@@ -6,7 +6,7 @@
  *
  * ・パソコンの幅（パネルがアークリアクターの左右に並ぶとき）だけ描く。狭い画面では消す
  * ・線を引くのは、トップページの全てのパネル（左右の状態のパネルと、下の入口のパネル）。パネルの中身と数は変わる予定のため、
- *   普段は出さず、マウスを乗せている（キーボードで選んでいる）パネルの線だけ出して、電気を流す
+ *   普段は出さず、マウスを乗せている（キーボードで選んでいる・指で触って選んだ）パネルの線だけ出して、電気を流す
  *   （流すかは、アニメーションの設定 connectors。止めているときは、線だけ出す。js/script.js の BlogOSAnimations）
  * ・状態のパネル：アークリアクターの外枠の縁から、パネルの方向へ斜めに出て、横に折れてパネルの縁に届く
  * ・入口のパネル：アークリアクターの外枠の下の縁から下へ出て、アークリアクターとパネルの間の高さで横に折れ、パネルの上の縁へ下りる
@@ -150,10 +150,38 @@
         };
 
         // パネルの中身は、同期の状態の更新で入れ替わることがあるため、枠でまとめて受ける
-        board.addEventListener('pointerover', (event) => setActive(panelIndexOf(event.target)));
-        board.addEventListener('pointerleave', () => setActive(-1));
-        board.addEventListener('focusin', (event) => setActive(panelIndexOf(event.target)));
-        board.addEventListener('focusout', (event) => setActive(panelIndexOf(event.relatedTarget)));
+        // ・マウス：乗せている間だけ
+        // ・指（iPad など）：触ったパネルを選んだ状態にし、指を離しても保つ。ほかのパネルを触ると切り替え、パネルの外を触ると外す（D-73-03）
+        //   （指で触ると、触れている間だけ「乗せている」扱いになり、離すと「外れた」扱いになるため）
+        let lastInput = 'mouse';
+        board.addEventListener('pointerover', (event) => {
+            if (event.pointerType !== 'touch') {
+                setActive(panelIndexOf(event.target));
+            }
+        });
+        board.addEventListener('pointerleave', (event) => {
+            if (event.pointerType !== 'touch') {
+                setActive(-1);
+            }
+        });
+        document.addEventListener('pointerdown', (event) => {
+            lastInput = event.pointerType === 'touch' ? 'touch' : 'mouse';
+            if (event.pointerType === 'touch') {
+                setActive(panelIndexOf(event.target));
+            }
+        }, true);
+        document.addEventListener('keydown', () => { lastInput = 'keyboard'; }, true);
+        // キーボードで選んでいる間（指で触った後に、リンクに移る選択の変化では、選んだ状態を変えない）
+        board.addEventListener('focusin', (event) => {
+            if (lastInput !== 'touch') {
+                setActive(panelIndexOf(event.target));
+            }
+        });
+        board.addEventListener('focusout', (event) => {
+            if (lastInput !== 'touch') {
+                setActive(panelIndexOf(event.relatedTarget));
+            }
+        });
         document.addEventListener('blogos:animations', applyActive);
 
         const redraw = () => window.requestAnimationFrame(() => {

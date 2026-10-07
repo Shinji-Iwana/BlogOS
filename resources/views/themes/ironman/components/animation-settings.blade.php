@@ -43,7 +43,7 @@
         <label><input type="radio" name="anim-reactor" value="always"> 常に動かす</label>
         <label><input type="radio" name="anim-reactor" value="when"> 次のときだけ動かす</label>
         <div class="animation-settings-when">
-            <label><input type="checkbox" data-anim-key="reactor-panel"> トップページのパネルにマウスを乗せている間</label>
+            <label><input type="checkbox" data-anim-key="reactor-panel"> トップページのパネルにマウスを乗せている（指で触って選んだ）間</label>
             <label><input type="checkbox" data-anim-key="reactor-voice"> 音声の操作中</label>
             <label><input type="checkbox" data-anim-key="reactor-sync"> 同期の実行中</label>
         </div>
