@@ -10,11 +10,12 @@
 
 @section('content')
 
-    <h1>お知らせ @include('partials.tip', ['tip' => "要対応・注意のお知らせの記録です（トップページを開いたときと、定期実行が終わったときに更新します）。\nチェックを入れて「確認」を押すと、確認済みにします（一覧からは消えません）。\n内容（件数など）が変わったときは、新しいお知らせとして記録し、前のお知らせに「変動」を添えます。問題がなくなったときは「解消」を添えます。\nヘッダーのお知らせの数は、変動も解消もしていない、未確認のお知らせの数です。"])</h1>
+    <h1>お知らせ履歴 @include('partials.tip', ['tip' => "要対応・注意のお知らせの記録です（トップページを開いたときと、定期実行が終わったときに更新します）。\nチェックを入れて「確認」を押すと、確認済みにします（一覧からは消えません）。\n内容（件数など）が変わったときは、新しいお知らせとして記録し、前のお知らせに「変動」を添えます。問題がなくなったときは「解消」を添えます。\nヘッダーのお知らせの数は、変動も解消もしていない、未確認のお知らせの数です。"])</h1>
 
     <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
-    @include('partials.history-last', ['label' => '最後のお知らせ', 'at' => $latest?->occurred_at, 'result' => null])
+    {{-- 最後に、今の状態とお知らせの記録を照合した日時（トップページを開いたとき・定期実行が終わったとき） --}}
+    @include('partials.history-last', ['label' => '最後の照合', 'at' => $checkedAt, 'result' => '成功'])
 
     @include('partials.flash')
 
@@ -70,12 +71,50 @@
                 </tbody>
             </table>
         </div>
-        <p><button type="submit">確認</button></p>
+        <p class="notice-actions"><button type="submit">確認</button></p>
     </form>
     {{ $notices->links() }}
     </section>
 
     <script>
+        // ヘッダーのお知らせの数を、数え直した数にする（確認済みにした後に開き直したとき。
+        // トップページの横の画面のパネルの中で開いているときは、トップページのヘッダーの数も直す）
+        (function () {
+            const count = {{ (int) $openCount }};
+            const update = (doc) => {
+                const wrap = doc.querySelector('.notice-wrap');
+                if (!wrap) {
+                    return;
+                }
+                let badge = wrap.querySelector('.notice-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = doc.createElement('span');
+                        badge.className = 'notice-badge';
+                        badge.setAttribute('aria-hidden', 'true');
+                        wrap.appendChild(badge);
+                    }
+                    badge.textContent = count > 99 ? '99+' : String(count);
+                } else if (badge) {
+                    badge.remove();
+                }
+                const link = wrap.querySelector('.notice-button');
+                const label = 'お知らせ' + (count > 0 ? '（未確認 ' + count + '件）' : '');
+                if (link) {
+                    link.title = label;
+                    link.setAttribute('aria-label', label);
+                }
+            };
+            update(document);
+            try {
+                if (window.parent !== window) {
+                    update(window.parent.document);
+                }
+            } catch (e) {
+                // 別のサイトの中に開かれているときは、何もしない
+            }
+        })();
+
         // 見出しのチェックボックスで、このページの未確認のお知らせを全て選ぶ・外す
         document.querySelectorAll('.notice-check-all').forEach((all) => all.addEventListener('change', () => {
             all.closest('form').querySelectorAll('input[name="ids[]"]').forEach((box) => { box.checked = all.checked; });

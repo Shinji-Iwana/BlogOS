@@ -80,7 +80,8 @@ class NoticeTest extends TestCase
 
         // ヘッダーの数は、変動も解消もしていない未確認のお知らせの数
         $this->get(route('notices.index'))->assertOk()
-            ->assertSee('<h1>お知らせ', false)
+            ->assertSee('<h1>お知らせ履歴', false)
+            ->assertSee('最後の照合：')
             ->assertSee('更新が2件あります')
             ->assertSee('<span class="notice-badge" aria-hidden="true">' . Notice::open()->count() . '</span>', false)
             ->assertSee('<strong>未確認</strong>', false);
@@ -88,7 +89,9 @@ class NoticeTest extends TestCase
         $this->post(route('notices.confirm'), ['ids' => [$notice->id]])->assertRedirect();
 
         $this->assertNotNull($notice->fresh()->confirmed_at);
-        $this->get(route('notices.index'))->assertOk()->assertSee('更新が2件あります')->assertSee('確認済み');
+        // 確認済みにした後は、数え直した数で、ヘッダーの数（横の画面のパネルの中なら、トップページのヘッダーも）を直す
+        $this->get(route('notices.index'))->assertOk()->assertSee('更新が2件あります')->assertSee('確認済み')
+            ->assertSee('const count = ' . Notice::open()->count() . ';', false);
     }
 
     public function test_popup_opens_once_per_login_and_again_for_new_notices(): void

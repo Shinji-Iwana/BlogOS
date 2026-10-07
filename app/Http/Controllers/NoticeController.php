@@ -19,8 +19,10 @@ class NoticeController extends Controller
     public function index()
     {
         return view('notices.index', [
-            'notices' => $this->notices->paginate(HistoryPage::PER_PAGE),
-            'latest'  => \App\Models\Notice::latest('occurred_at')->latest('id')->first(),
+            'notices'   => $this->notices->paginate(HistoryPage::PER_PAGE),
+            'checkedAt' => $this->notices->lastCheckedAt(),
+            // ヘッダーの数（確認済みにした後、横の画面のパネルの中から、トップページのヘッダーの数も直すため）
+            'openCount' => $this->notices->openCount(),
         ]);
     }
 

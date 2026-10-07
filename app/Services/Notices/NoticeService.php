@@ -3,6 +3,7 @@
 namespace App\Services\Notices;
 
 use App\Models\Notice;
+use App\Models\SystemSetting;
 use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiCreditService;
 use App\Services\Dashboard\DashboardDataService;
@@ -39,6 +40,9 @@ class NoticeService
         'wordpress'    => 'WordPress の更新',
         'affiliate'    => 'アフィリエイトのリンク',
     ];
+
+    // 最後に照合した日時の保存先（system_settings）
+    public const CHECKED_AT = 'notices.checked_at';
 
     // ブログごとのお知らせ
     protected const BLOG_KINDS = ['link_switch', 'broken_links', 'wordpress', 'affiliate'];
@@ -80,8 +84,21 @@ class NoticeService
                 $current->reject(fn (Notice $n, string $key) => $conditions->has($key))
                     ->filter(fn (Notice $n) => $n->blog_id === null || $n->blog_id === $blogId)
                     ->each(fn (Notice $n) => $n->update(['resolved_at' => $now]));
+
+                // 最後に照合した日時（お知らせの画面の「最後の照合」）
+                SystemSetting::put(self::CHECKED_AT, $now->toIso8601String());
             });
         });
+    }
+
+    /**
+     * 最後に、今の状態とお知らせの記録を照合した日時（トップページを開いたとき・定期実行が終わったとき）
+     */
+    public function lastCheckedAt(): ?\Carbon\CarbonInterface
+    {
+        $value = SystemSetting::value(self::CHECKED_AT);
+
+        return $value !== null ? \Illuminate\Support\Carbon::parse($value) : null;
     }
 
     /**

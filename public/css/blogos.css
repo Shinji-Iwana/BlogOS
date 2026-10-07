@@ -961,3 +961,8 @@ details.sync-run[open] > summary {
 .notice-popup-list li {
     margin: 0 0 4px;
 }
+
+/* お知らせ履歴の「確認」のボタンは、右端に置く（D-74） */
+.notice-actions {
+    text-align: right;
+}
