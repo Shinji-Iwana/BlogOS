@@ -192,7 +192,14 @@
    アークリアクターから各パネルへの線（js/dashboard/connectors.js が描く）
    ----------------------------------------------------------
    パネルの状態の色。光が、アークリアクターからパネルへ流れる。
+   線は、トップページの全てのパネルに引き、普段は出さない。マウスを乗せているパネルの線だけ出し（is-active）、
+   電気を流す（is-flowing。アニメーションの設定 connectors で止めているときは流さない）。D-73-03
    ========================================================== */
+
+/* 線を引く範囲（アークリアクター・状態のパネル・お知らせ・入口のパネル） */
+.hud-board {
+    position: relative;
+}
 
 .hud-connectors {
     position: absolute;
@@ -205,6 +212,12 @@
 
 .hud-connector {
     --hud-accent: var(--im-cyan);
+    opacity: 0;
+    transition: opacity var(--im-ease);
+}
+
+.hud-connector.is-active {
+    opacity: 1;
 }
 
 .hud-connector[data-state="warn"] { --hud-accent: var(--im-gold); }
@@ -228,6 +241,11 @@
     stroke-dasharray: 10 22;
     filter: drop-shadow(0 0 3px var(--hud-accent));
     animation: hudConnectorFlow 1.6s linear infinite;
+    animation-play-state: paused;
+}
+
+.hud-connector.is-flowing .hud-connector-flow {
+    animation-play-state: running;
 }
 
 @keyframes hudConnectorFlow {

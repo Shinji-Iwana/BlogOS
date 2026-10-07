@@ -48,6 +48,10 @@ class ThemeTest extends TestCase
             ->assertSee('<svg class="reactor-layer reactor-hud reactor-hud-a"', false)
             ->assertSee('<svg class="reactor-layer reactor-coil-spark-a"', false)
             ->assertSee('<svg class="reactor-layer reactor-center"', false)
+            // アニメーションの設定（画面のテーマのポップアップ。このブラウザに保存。D-73-02）と、表示する前の読み込み
+            ->assertSee('id="animation-settings"', false)
+            ->assertSee('data-anim-key="connectors"', false)
+            ->assertSee("localStorage.getItem('blogos.animations')", false)
             ->assertSee('ブログを登録する');
 
         // 上書きしていない画面は共通の画面のまま、CSS だけ ironman

@@ -83,7 +83,10 @@ class DashboardStatusTest extends TestCase
             ->assertSee('data-state="critical"', false)
             ->assertSee('公開停止のプラグイン 1件')
             ->assertSee('ARTICLES')
-            ->assertSee('今すぐ同期');
+            ->assertSee('今すぐ同期')
+            // アークリアクターから全てのパネルへ線を引く範囲（D-73-03）
+            ->assertSee('<div class="hud-board">', false)
+            ->assertSee('<svg class="hud-connectors"', false);
     }
 
     public function test_blank_dashboard_lists_links_by_group(): void

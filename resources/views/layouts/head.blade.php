@@ -13,6 +13,10 @@
 {{-- 画面のパネル（トップページの横）の中に表示しているとき、ヘッダーとメニューを出さない（表示する前に決める。D-59） --}}
 <script>if (window.self !== window.top) { document.documentElement.classList.add('is-embedded'); }</script>
 
+{{-- アニメーションの設定（このブラウザに保存。設定 → 画面のテーマ。D-73-02）を、表示する前に html の data-anim-* に写す。
+     読めないとき（保存できないブラウザなど）は、何もしない（全て初めの値） --}}
+<script>(function () { try { var s = JSON.parse(window.localStorage.getItem('blogos.animations') || '{}'); Object.keys(s).forEach(function (k) { if (/^[a-z-]+$/.test(k) && /^[a-z]+$/.test(String(s[k]))) { document.documentElement.setAttribute('data-anim-' + k, String(s[k])); } }); } catch (e) {} })();</script>
+
 {{-- 共通の画面の見た目（public/css/blogos.css）。テーマのCSSより先に読み込み、テーマで上書きする。 --}}
 <link
     rel="stylesheet"

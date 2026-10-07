@@ -7,8 +7,8 @@
  * 各機能の JavaScript は、このファイルから loadScript() で読み込む。
  * script.js 自身の URL を基準にするため、テーマ名を書かない。
  *
- * 今は読み込むものはない（アークリアクターの動きは CSS だけで作っている。D-49-06）。
- * 全画面の背景の格子を流れる電気（startGridFlow）は、このファイルの中で動かす。
+ * 今は読み込むものはない（アークリアクターの動きは CSS で作り、止める・動かすだけをこのファイルで行う。D-49-06・D-73-02）。
+ * 全画面で動かすもの（アニメーションの設定・背景の格子を流れる電気・枠を流れる電気・時計・アークリアクターの制御）は、このファイルの中で動かす。
  * loadScript() で読み込むファイルには更新日時が付かず、ブラウザが古い版を使い続けることがある（D-49-08）。
  * 画面ごとの JavaScript は、テーマの View から ThemeService::assetUrl で読み込む（例：js/dashboard/connectors.js）。
  * ==========================================================
@@ -44,11 +44,131 @@
     void loadScript;
 
     /**
+     * アニメーションの設定（D-73-02）
+     *
+     * このブラウザの localStorage（blogos.animations）に保存し、html の data-anim-{名前} に写す（表示する前の写しは layouts/head）。
+     * 値は on／off（アークリアクターは always／when／off）。保存していない名前は、初めの値（ANIMATION_DEFAULTS）。
+     * 止める見た目は css/accessibility.css、JavaScript で動かすもの（背景の格子の光・時計・アークリアクター・線）は、
+     * 変わったときの知らせ（blogos:animations）で切り替える。ほかのタブ・横の画面のパネルの中（iframe）は、storage の知らせで写す。
+     * 設定の欄は、設定 → 画面のテーマのポップアップ（themes/ironman/components/animation-settings）
+     */
+    const ANIMATION_STORAGE = 'blogos.animations';
+    const ANIMATION_DEFAULTS = {
+        reactor: 'always',
+        'reactor-panel': 'on',
+        'reactor-voice': 'on',
+        'reactor-sync': 'on',
+        connectors: 'on',
+        grid: 'on',
+        'panel-flow': 'on',
+        'button-flow': 'on',
+        'modal-flow': 'on',
+        blink: 'on',
+        clock: 'on',
+        page: 'on',
+    };
+    const ANIMATION_VALUES = { reactor: ['always', 'when', 'off'] };
+
+    function readAnimations() {
+        let saved = {};
+        try {
+            saved = JSON.parse(window.localStorage.getItem(ANIMATION_STORAGE) || '{}') || {};
+        } catch (e) {
+            saved = {};
+        }
+        const settings = { ...ANIMATION_DEFAULTS };
+        Object.keys(ANIMATION_DEFAULTS).forEach((key) => {
+            const allowed = ANIMATION_VALUES[key] || ['on', 'off'];
+            if (allowed.includes(saved[key])) {
+                settings[key] = saved[key];
+            }
+        });
+
+        return settings;
+    }
+
+    function animationValue(key) {
+        return document.documentElement.getAttribute(`data-anim-${key}`) || ANIMATION_DEFAULTS[key];
+    }
+
+    function applyAnimations(settings) {
+        Object.keys(ANIMATION_DEFAULTS).forEach((key) => document.documentElement.setAttribute(`data-anim-${key}`, settings[key]));
+        document.dispatchEvent(new CustomEvent('blogos:animations'));
+    }
+
+    // 画面ごとの JavaScript（例：js/dashboard/connectors.js）から、設定を見られるようにする
+    window.BlogOSAnimations = {
+        value: animationValue,
+        on: (key) => animationValue(key) !== 'off',
+    };
+
+    function startAnimationSettings() {
+        applyAnimations(readAnimations());
+
+        // ほかのタブ・横の画面のパネルの中（同じ保存先）で変えたとき
+        window.addEventListener('storage', (event) => {
+            if (event.key === ANIMATION_STORAGE) {
+                applyAnimations(readAnimations());
+            }
+        });
+
+        const form = document.getElementById('animation-settings');
+        if (!form) {
+            return;
+        }
+        const radios = form.querySelectorAll('input[name="anim-reactor"]');
+        const boxes = form.querySelectorAll('input[data-anim-key]');
+
+        const show = (settings) => {
+            radios.forEach((radio) => { radio.checked = radio.value === settings.reactor; });
+            boxes.forEach((box) => {
+                box.checked = settings[box.dataset.animKey] !== 'off';
+                // 動かす条件は、「次のときだけ動かす」を選んでいるときだけ選べる
+                if (box.dataset.animKey.startsWith('reactor-')) {
+                    box.disabled = settings.reactor !== 'when';
+                }
+            });
+        };
+        const save = (settings) => {
+            try {
+                window.localStorage.setItem(ANIMATION_STORAGE, JSON.stringify(settings));
+            } catch (e) {
+                // 保存できないブラウザでは、この画面の間だけ反映する
+            }
+            applyAnimations(settings);
+            show(settings);
+        };
+        const collect = () => {
+            const settings = readAnimations();
+            radios.forEach((radio) => { if (radio.checked) { settings.reactor = radio.value; } });
+            boxes.forEach((box) => { settings[box.dataset.animKey] = box.checked ? 'on' : 'off'; });
+
+            return settings;
+        };
+
+        show(readAnimations());
+        form.addEventListener('change', () => save(collect()));
+        form.querySelectorAll('[data-anim-all]').forEach((button) => button.addEventListener('click', () => {
+            const value = button.dataset.animAll;
+            const settings = { ...ANIMATION_DEFAULTS };
+            Object.keys(settings).forEach((key) => {
+                if (!key.startsWith('reactor')) {
+                    settings[key] = value;
+                }
+            });
+            settings.reactor = value === 'on' ? 'always' : 'off';
+            save(settings);
+        }));
+        document.addEventListener('blogos:animations', () => show(readAnimations()));
+    }
+
+    /**
      * 背景の格子を流れる電気（css/background.css の HUD の格子。48px ごとの線）
      *
      * 画面に固定した canvas を、本文の後ろ（z-index:-1）に置き、格子の線の上を、薄い青い光の線が流れる。
      * 本文の邪魔にならないよう、薄く・本数を少なくする（GRID_FLOW）。
      * トップページの横の画面のパネルの中（iframe）でも動かす。動きを減らす設定の人・タブを見ていないときは、動かさない。
+     * アニメーションの設定（grid）で止められる（止めると、描くのをやめて消す。D-73-02）
      */
     const GRID_FLOW = {
         cell: 48,          // 格子の間隔（background.css と同じ）
@@ -111,11 +231,25 @@
 
         const pulses = Array.from({ length: GRID_FLOW.count }, spawn);
         let last = performance.now();
+        // 次の描く回を頼んでいるか（二重に頼まない）
+        let scheduled = false;
+        const enabled = () => animationValue('grid') !== 'off';
+        const schedule = () => {
+            if (!scheduled && enabled() && !document.hidden) {
+                scheduled = true;
+                last = performance.now();
+                window.requestAnimationFrame(frame);
+            }
+        };
 
         const frame = (now) => {
+            scheduled = false;
             const seconds = Math.min(0.1, (now - last) / 1000);
             last = now;
             context.clearRect(0, 0, width, height);
+            if (!enabled()) {
+                return;
+            }
 
             pulses.forEach((pulse, index) => {
                 pulse.position += pulse.speed * seconds;
@@ -147,18 +281,22 @@
                 context.fill();
             });
 
-            if (!document.hidden) {
+            if (!document.hidden && enabled()) {
+                scheduled = true;
                 window.requestAnimationFrame(frame);
             }
         };
 
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                last = performance.now();
-                window.requestAnimationFrame(frame);
+        document.addEventListener('visibilitychange', schedule);
+        // 設定を変えたとき：動かすなら描き始め、止めるなら次の回で消して止まる
+        document.addEventListener('blogos:animations', () => {
+            if (enabled()) {
+                schedule();
+            } else {
+                context.clearRect(0, 0, width, height);
             }
         });
-        window.requestAnimationFrame(frame);
+        schedule();
     }
 
     /**
@@ -253,11 +391,19 @@
             return span;
         });
 
+        // アニメーションの設定（clock）で止めたときは、分までを出し、変わったときだけ書き換える（D-73-02）
+        let shown = '';
         const tick = () => {
             const parts = Object.fromEntries(format.formatToParts(new Date()).map((part) => [part.type, part.value]));
+            const text = animationValue('clock') === 'off' ? `${parts.hour}:${parts.minute}` : `${parts.hour}:${parts.minute}:${parts.second}`;
+            if (text === shown) {
+                return;
+            }
+            shown = text;
             date.textContent = `${parts.year}-${parts.month}-${parts.day} ${String(parts.weekday).toUpperCase()}`;
-            time.replaceChildren(...chars(`${parts.hour}:${parts.minute}:${parts.second}`));
+            time.replaceChildren(...chars(text));
         };
+        document.addEventListener('blogos:animations', tick);
 
         tick();
         // 秒の変わり目に合わせて進める
@@ -407,19 +553,80 @@
         });
     }
 
+    /**
+     * アークリアクター（components/reactor）の動きを、アニメーションの設定（reactor）で止める・動かす（D-73-02）
+     *
+     * ・always：常に動かす（CSS のまま）／off：止める／when：次のどれかの間だけ動かす
+     *   reactor-panel：トップページのパネルにマウスを乗せている間（js/dashboard/connectors.js の知らせ blogos:panel-hover）
+     *   reactor-voice：音声の操作中（body の voice-listening・voice-thinking・voice-speaking）
+     *   reactor-sync：同期の実行中（.reactor の data-busy）
+     * ・止めるときは、重ねた SVG（.reactor-layer）の動きを Web Animations API で止め、光の脈打ちは一番暗いところ（動きの始め）にそろえる。
+     *   回転・電気の流れは、止めた位置のまま。動きを減らす設定の人は、CSS で止まっているため何もしない
+     */
+    const REACTOR_PULSES = ['reactorPulse', 'reactorCorePulse', 'reactorGlow', 'reactorElectricPulse', 'reactorHudPulse', 'reactorFlicker'];
+
+    function startReactorControl() {
+        const reactors = document.querySelectorAll('.reactor');
+        if (reactors.length === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
+        let panelHover = false;
+        const voiceActive = () => ['voice-listening', 'voice-thinking', 'voice-speaking'].some((name) => document.body.classList.contains(name));
+        const wanted = (reactor) => {
+            const mode = animationValue('reactor');
+            if (mode !== 'when') {
+                return mode !== 'off';
+            }
+            const on = (key) => animationValue(key) !== 'off';
+
+            return (on('reactor-panel') && panelHover) || (on('reactor-voice') && voiceActive()) || (on('reactor-sync') && reactor.dataset.busy === '1');
+        };
+
+        const running = new Map();
+        const setRunning = (reactor, active) => {
+            if (running.get(reactor) === active || typeof reactor.getAnimations !== 'function') {
+                return;
+            }
+            running.set(reactor, active);
+            reactor.getAnimations({ subtree: true })
+                .filter((animation) => animation.effect && animation.effect.target && animation.effect.target.closest('.reactor-layer'))
+                .forEach((animation) => {
+                    const pulse = REACTOR_PULSES.includes(animation.animationName);
+                    if (active) {
+                        // 脈打ちは、もとのずらし（コイルごとの animation-delay）に戻してから動かす
+                        if (pulse) {
+                            animation.currentTime = 0;
+                        }
+                        animation.play();
+                    } else {
+                        animation.pause();
+                        if (pulse) {
+                            // 動きの始め（0%：一番暗い）にそろえる。delay が負の値（ずらし）でも、始めの位置にする
+                            animation.currentTime = animation.effect.getTiming().delay || 0;
+                        }
+                    }
+                });
+        };
+        const update = () => reactors.forEach((reactor) => setRunning(reactor, wanted(reactor)));
+
+        // 初めは CSS のまま動いているため、動かすときは何もしない
+        reactors.forEach((reactor) => running.set(reactor, true));
+        update();
+
+        document.addEventListener('blogos:animations', update);
+        document.addEventListener('blogos:panel-hover', (event) => {
+            panelHover = Boolean(event.detail && event.detail.active);
+            update();
+        });
+        new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // 設定は最初に読む（ほかの動きが、設定を見て始めるため）
+    const starts = [startAnimationSettings, startPanelFlow, startMenuFlow, startGridFlow, startModalFlow, startClock, startHoverFlow, startReactorControl];
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startPanelFlow);
-        document.addEventListener('DOMContentLoaded', startMenuFlow);
-        document.addEventListener('DOMContentLoaded', startGridFlow);
-        document.addEventListener('DOMContentLoaded', startModalFlow);
-        document.addEventListener('DOMContentLoaded', startClock);
-        document.addEventListener('DOMContentLoaded', startHoverFlow);
+        document.addEventListener('DOMContentLoaded', () => starts.forEach((start) => start()));
     } else {
-        startPanelFlow();
-        startMenuFlow();
-        startGridFlow();
-        startModalFlow();
-        startClock();
-        startHoverFlow();
+        starts.forEach((start) => start());
     }
 })();

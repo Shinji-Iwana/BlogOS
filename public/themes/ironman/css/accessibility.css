@@ -19,3 +19,42 @@
     }
 
 }
+
+
+/* ==========================================================
+   アニメーションの設定（D-73-02）
+   ----------------------------------------------------------
+   設定 → 画面のテーマのポップアップで止めたもの（html の data-anim-{名前}="off"。このブラウザに保存）。
+   CSS だけで動くものを、ここで止める。背景の格子の光・時計・アークリアクター・線は、js/script.js と js/dashboard/connectors.js が止める。
+   ========================================================== */
+
+/* パネルの枠を流れる電気 */
+html[data-anim-panel-flow="off"] .hud-panel-flow {
+    display: none;
+}
+
+/* ボタン・メニューの枠を流れる電気（メニューの一覧の枠の線は残す） */
+html[data-anim-button-flow="off"] .hover-flow,
+html[data-anim-button-flow="off"] .menu-flow .modal-flow-line,
+html[data-anim-button-flow="off"] .menu-flow .modal-flow-dots {
+    display: none;
+}
+
+/* ポップアップの枠を流れる電気（ポップアップの枠の線は残す） */
+html[data-anim-modal-flow="off"] .modal-flow .modal-flow-line,
+html[data-anim-modal-flow="off"] .modal-flow .modal-flow-dots {
+    display: none;
+}
+
+/* 点滅（要対応の状態の点・音声の操作中のマイク） */
+html[data-anim-blink="off"] .hud-dot,
+html[data-anim-blink="off"] .voice-button,
+html[data-anim-blink="off"] .screen-drawer-signal {
+    animation: none !important;
+}
+
+/* 画面を開いたときの動き（画面がふわっと出る・横の画面を開いたときのアークリアクター） */
+html[data-anim-page="off"] .site-main,
+html[data-anim-page="off"] .hud-reactor .reactor {
+    animation: none !important;
+}

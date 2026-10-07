@@ -365,6 +365,11 @@
 
         </form>
 
+        {{-- アニメーションの設定（ironman だけ。このブラウザに保存し、すぐ反映する。D-73-02） --}}
+        @if ($headerThemes->current() === 'ironman')
+            @include('themes.ironman.components.animation-settings')
+        @endif
+
     </div>
 
 </div>

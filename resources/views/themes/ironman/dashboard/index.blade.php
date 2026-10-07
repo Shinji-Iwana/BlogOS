@@ -4,7 +4,7 @@
     共通の画面（resources/views/dashboard/index.blade.php）の代わりに使う。データは共通と同じ（DashboardController）。
     ・上：SYSTEM STATUS の帯（全体の状態・要対応と注意の数。選択中のブログはヘッダーに出ている）
     ・中：アークリアクター（全体の状態の色。同期の実行中は HUD の円が速く回る）と、左右に3つずつ状態のパネル。
-      パソコンの幅では、アークリアクターから各パネルへ線を引く（js/dashboard/connectors.js）
+      パソコンの幅では、アークリアクターから、マウスを乗せているパネル（状態のパネル・入口のパネル）へ線を出す（js/dashboard/connectors.js。D-73-03）
     ・下：お知らせ（共通の dashboard/notices。同期はパネルに出すため除く）と、種類ごとの入口のパネル
 --}}
 
@@ -38,11 +38,13 @@
             </span>
         </div>
 
+        {{-- アークリアクター・状態のパネル・お知らせ・入口のパネルをまとめる枠（アークリアクターから全てのパネルへ線を引くため。D-73-03） --}}
+        <div class="hud-board">
+        {{-- アークリアクターから各パネルへの線（js/dashboard/connectors.js が描く。パネルにマウスを乗せている間だけ出す） --}}
+        <svg class="hud-connectors" aria-hidden="true"></svg>
+
         {{-- アークリアクターと、左右の状態のパネル --}}
         <div class="hud-core">
-            {{-- アークリアクターから各パネルへの線（js/dashboard/connectors.js が描く） --}}
-            <svg class="hud-connectors" aria-hidden="true"></svg>
-
             <div class="hud-panels hud-panels-left">
                 @foreach (array_slice($statusPanels, 0, 3) as $panel)
                     @include('themes.ironman.components.status-panel', ['panel' => $panel])
@@ -80,6 +82,7 @@
                     </ul>
                 </section>
             @endforeach
+        </div>
         </div>
 
 
