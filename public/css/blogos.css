@@ -1103,6 +1103,30 @@ details.sync-run[open] > summary {
     padding-right: 20px;
 }
 
+/* 入力の表（項目名の列と入力欄の列。入力欄の始まりをそろえる。入力欄の大きさは各欄のまま。色・枠なし。ポップアップの入力など） */
+.form-grid {
+    width: 100%;
+    border-collapse: collapse;
+    border: 0;
+    background: none;
+}
+
+.form-grid th,
+.form-grid td {
+    padding: 5px 10px 5px 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* 項目名（「?」付き）は折り返さず、列の幅は項目名に合わせる */
+.form-grid th {
+    width: 1%;
+    white-space: nowrap;
+    font-weight: normal;
+}
+
 /* 入力欄・選択欄は同じ幅にし、列の位置をそろえる */
 .filter-table input,
 .filter-table select {

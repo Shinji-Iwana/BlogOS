@@ -48,44 +48,54 @@
                 @include('partials.selected-blog-field')
                 <input type="hidden" name="_form" value="affiliate-program">
 
-                <p>
-                    <label>ASP
-                        <select name="asp">
-                            <option value="moshimo" @selected($programFailed && old('asp') === 'moshimo')>もしもアフィリエイト</option>
-                            <option value="a8" @selected($programFailed && old('asp') === 'a8')>A8.net</option>
-                            <option value="other" @selected($programFailed && old('asp') === 'other')>その他</option>
-                        </select>
-                    </label>
-                </p>
-                <p>
-                    <label>広告ID <input type="text" name="external_id" value="{{ $programFailed ? old('external_id') : '' }}" style="width:140px;" required></label>
-                    @include('partials.tip', ['tip' => 'もしもアフィリエイトの広告IDは、リンクの p_id= の数字です。'])
-                </p>
-                <p>
-                    <label>名前 <input type="text" name="name" value="{{ $programFailed ? old('name') : '' }}" style="width:100%; max-width:320px;" required></label>
-                </p>
-                <p>
-                    <label>教材の種類
-                        <select name="material_kind">
-                            <option value="">（決めない）</option>
-                            @foreach (\App\Enums\MaterialKind::cases() as $option)
-                                <option value="{{ $option->value }}" @selected($programFailed && old('material_kind') === $option->value)>{{ $option->label() }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-                </p>
-                <p>
-                    <label>状態
-                        <select name="status">
-                            @foreach (\App\Enums\AffiliateProgramStatus::cases() as $option)
-                                <option value="{{ $option->value }}" @selected(($programFailed ? old('status') : 'active') === $option->value)>{{ $option->label() }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-                </p>
-                <p>
-                    <label>メモ <input type="text" name="memo" value="{{ $programFailed ? old('memo') : '' }}" style="width:100%; max-width:320px;"></label>
-                </p>
+                {{-- 項目名（左の列）と入力欄（右の列）を表に並べ、入力欄の始まりをそろえる（入力欄の大きさは変えない。色・枠なし） --}}
+                <table class="form-grid">
+                    <tbody>
+                        <tr>
+                            <th><label for="program-asp">ASP</label></th>
+                            <td>
+                                <select name="asp" id="program-asp">
+                                    <option value="moshimo" @selected($programFailed && old('asp') === 'moshimo')>もしもアフィリエイト</option>
+                                    <option value="a8" @selected($programFailed && old('asp') === 'a8')>A8.net</option>
+                                    <option value="other" @selected($programFailed && old('asp') === 'other')>その他</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="program-external-id">広告ID</label> @include('partials.tip', ['tip' => 'もしもアフィリエイトの広告IDは、リンクの p_id= の数字です。'])</th>
+                            <td><input type="text" name="external_id" id="program-external-id" value="{{ $programFailed ? old('external_id') : '' }}" style="width:140px;" required></td>
+                        </tr>
+                        <tr>
+                            <th><label for="program-name">名前</label></th>
+                            <td><input type="text" name="name" id="program-name" value="{{ $programFailed ? old('name') : '' }}" style="width:100%; max-width:320px;" required></td>
+                        </tr>
+                        <tr>
+                            <th><label for="program-kind">教材の種類</label></th>
+                            <td>
+                                <select name="material_kind" id="program-kind">
+                                    <option value="">（決めない）</option>
+                                    @foreach (\App\Enums\MaterialKind::cases() as $option)
+                                        <option value="{{ $option->value }}" @selected($programFailed && old('material_kind') === $option->value)>{{ $option->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="program-status">状態</label></th>
+                            <td>
+                                <select name="status" id="program-status">
+                                    @foreach (\App\Enums\AffiliateProgramStatus::cases() as $option)
+                                        <option value="{{ $option->value }}" @selected(($programFailed ? old('status') : 'active') === $option->value)>{{ $option->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="program-memo">メモ</label></th>
+                            <td><input type="text" name="memo" id="program-memo" value="{{ $programFailed ? old('memo') : '' }}" style="width:100%; max-width:320px;"></td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div
                     class="blog-switch-actions"
