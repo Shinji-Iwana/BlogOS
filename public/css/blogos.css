@@ -1076,3 +1076,35 @@ details.sync-run[open] > summary {
 .api-field-children {
     margin: 4px 0 2px 16px;
 }
+
+/* 条件の表（名前と入力欄を交互に並べる。色・枠なし。WordPress API情報の条件など。D-72-12） */
+.filter-table {
+    border-collapse: collapse;
+    border: 0;
+    background: none;
+}
+
+.filter-table th,
+.filter-table td {
+    padding: 4px 8px 4px 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* 名前（「?」付き）は折り返さない */
+.filter-table th {
+    white-space: nowrap;
+    font-weight: normal;
+}
+
+.filter-table td {
+    padding-right: 20px;
+}
+
+/* 「取得」などのボタンは、表の下の右端 */
+.filter-actions {
+    margin: 6px 0 0;
+    text-align: right;
+}

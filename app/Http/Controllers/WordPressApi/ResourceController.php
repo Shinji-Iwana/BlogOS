@@ -57,6 +57,8 @@ class ResourceController extends Controller
             'id'         => $id,
             'result'     => $result,
             'rows'       => $id === null ? $this->inspectionService->rows($resource, $result['body']) : [],
+            // 詳細の画面の題名に付ける名前（取り出せなければ ID）
+            'detailName' => $id !== null ? ($this->inspectionService->name($resource, $result['body']) ?? $id) : null,
             'query'      => $query,
             'hasAuth'    => $blog->loadMissing('credential')->credential !== null,
         ]);

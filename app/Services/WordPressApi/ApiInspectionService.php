@@ -79,6 +79,25 @@ class ApiInspectionService
     }
 
     /**
+     * 1件のデータの名前（詳細の画面の題名に使う。投稿・固定ページ・メディアはタイトル、そのほかは name）。取り出せなければ null
+     */
+    public function name(string $resource, mixed $body): ?string
+    {
+        $key = self::RESOURCES[$resource]['title'] ?? null;
+        if ($key === null || ! is_array($body) || ! isset($body[$key])) {
+            return null;
+        }
+
+        $name = $body[$key];
+        if (is_array($name)) {
+            $name = $name['raw'] ?? $name['rendered'] ?? '';
+        }
+        $name = trim(html_entity_decode(strip_tags((string) $name)));
+
+        return $name !== '' ? $name : null;
+    }
+
+    /**
      * 一覧で表示する行（ID・slug・名前）を取り出す。形式が違う場合は空の配列を返す。
      */
     public function rows(string $resource, mixed $body): array
