@@ -10,12 +10,19 @@
 
     <p><a href="{{ route('database.wordpress-records.tables') }}">データの一覧に戻る</a></p>
 
-    <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}" class="panel" data-code="FILTER">
+    {{-- 絞り込みの条件（WordPress API情報の画面と同じ形。パネルの題名の英字の札（data-code）は、ironman だけで出す） --}}
+    <section class="panel">
+    <h2 data-code="FILTER">条件</h2>
+    <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}">
         <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode('・', $definition['search']) }}で絞り込み">
         <button class="btn-secondary" type="submit">絞り込む</button>
     </form>
+    </section>
 
-    <p>{{ $records->total() }}件</p>
+    {{-- レコードの一覧（1ページ最大50件。並びは、一覧の最初の列の昇順） --}}
+    <section class="panel">
+    <h2 data-code="RECORD">レコード</h2>
+    @include('partials.history-count', ['paginator' => $records, 'order' => $definition['columns'][0] . '昇順'])
 
     <div style="overflow-x:auto;">
         <table class="data">
@@ -51,5 +58,6 @@
     </div>
 
     {{ $records->links() }}
+    </section>
 
 @endsection

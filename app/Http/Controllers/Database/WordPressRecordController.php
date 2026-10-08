@@ -16,6 +16,7 @@ use App\Models\Taxonomy;
 use App\Models\Type;
 use App\Models\WordPressRecord;
 use App\Repositories\BlogRepository;
+use App\Support\HistoryPage;
 use Illuminate\Http\Request;
 
 /**
@@ -85,7 +86,7 @@ class WordPressRecordController extends Controller
                 });
             })
             ->orderBy($definition['columns'][0])
-            ->paginate(100)
+            ->paginate(HistoryPage::PER_PAGE)
             ->withQueryString();
 
         return view('database.wordpress-records.index', [
