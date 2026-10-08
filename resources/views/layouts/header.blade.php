@@ -567,13 +567,18 @@
      ============================================================== --}}
 
 <aside id="screen-drawer" class="screen-drawer" aria-label="画面のパネル" aria-hidden="true">
-    <div class="screen-drawer-head">
-        {{-- 声の操作の状態（聞いている・考えている・話している）。狭い画面で、アークリアクターの代わりに光る --}}
-        <span class="screen-drawer-signal" aria-hidden="true"></span>
-        <span class="screen-drawer-code">SCREEN</span>
-        <span class="screen-drawer-title" id="screen-drawer-title"></span>
-        <a href="#" class="screen-drawer-full" id="screen-drawer-full">全画面で開く</a>
-        <button type="button" class="btn-secondary screen-drawer-close" id="screen-drawer-close" aria-label="閉じる">×</button>
+    {{-- 見出しの行とパンくずリストを、ヘッダー（BlogOS とメニューバー）と同じく、ひとまとまりに見せる（D-75） --}}
+    <div class="screen-drawer-top">
+        <div class="screen-drawer-head">
+            {{-- 声の操作の状態（聞いている・考えている・話している）。狭い画面で、アークリアクターの代わりに光る --}}
+            <span class="screen-drawer-signal" aria-hidden="true"></span>
+            <span class="screen-drawer-code">SCREEN</span>
+            <span class="screen-drawer-title" id="screen-drawer-title"></span>
+            <a href="#" class="screen-drawer-full" id="screen-drawer-full">全画面で開く</a>
+            <button type="button" class="btn-secondary screen-drawer-close" id="screen-drawer-close" aria-label="閉じる">×</button>
+        </div>
+        {{-- パンくずリスト（パネルの中で開いた画面の順番。前の画面の名前を押すと戻る。最初の画面から出す。D-75） --}}
+        <nav class="screen-drawer-crumbs" id="screen-drawer-crumbs" aria-label="パネルの中で開いた画面" hidden></nav>
     </div>
     <iframe class="screen-drawer-frame" id="screen-drawer-frame" title="画面"></iframe>
 </aside>

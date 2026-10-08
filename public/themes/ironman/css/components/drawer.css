@@ -33,6 +33,38 @@
     border-bottom: 1px solid var(--im-line);
 }
 
+/* 見出しの行とパンくずリストを、ヘッダー（BlogOS とメニューバー）と同じく1つの帯にする（背景と下の線は、まとまりに付ける。D-75） */
+.screen-drawer-top {
+    background: rgba(102, 217, 255, 0.05);
+    border-bottom: 1px solid var(--im-line);
+}
+
+.screen-drawer-top .screen-drawer-head {
+    background: none;
+    border-bottom: 0;
+}
+
+/* パンくずリスト（D-75） */
+.screen-drawer-crumbs {
+    /* ヘッダーのメニューバーと同じく、上下の余白は付けない */
+    padding: 0 16px;
+    font-family: var(--im-font-hud);
+    letter-spacing: 0.04em;
+}
+
+.screen-drawer-crumb {
+    color: var(--im-cyan);
+}
+
+.screen-drawer-crumb.is-current {
+    color: var(--im-text);
+}
+
+.screen-drawer-crumb-sep,
+.screen-drawer-crumb-more {
+    color: var(--im-text-faint);
+}
+
 .screen-drawer-code {
     display: inline;
     font-family: var(--im-font-hud);

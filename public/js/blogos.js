@@ -222,12 +222,18 @@
         document.documentElement.style.setProperty('--drawer-top', offset + 'px');
     }
 
+    // パネルの中で開いた画面の順番（パンくずリスト。D-75）：{ path, url, name }。パネルを開き直す・閉じると、始め直す
+    let crumbs = [];
+    let renderCrumbs = () => {};
+
     BlogOS.openScreen = function (url) {
         if (!drawer) {
             window.location.href = url;
             return;
         }
         placeDrawer();
+        crumbs = [];
+        renderCrumbs();
         frame.src = url;
         drawer.classList.add('is-open');
         drawer.setAttribute('aria-hidden', 'false');
@@ -241,6 +247,8 @@
         drawer.classList.remove('is-open');
         drawer.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('drawer-open');
+        crumbs = [];
+        renderCrumbs();
         // 閉じ終わってから中身を消す（次に開いたとき、前の画面が一瞬見えないように）
         window.setTimeout(() => { if (!isDrawerOpen()) { frame.src = 'about:blank'; } }, 300);
         BlogOS.idle();
@@ -276,8 +284,69 @@
         frame = document.getElementById('screen-drawer-frame');
         const title = document.getElementById('screen-drawer-title');
         const full = document.getElementById('screen-drawer-full');
+        const trail = document.getElementById('screen-drawer-crumbs');
 
-        // パネルの中で画面を移ったら、題名と「全画面で開く」の行き先を合わせる
+        // パンくずリスト（D-75）：パネルの中で開いた画面の順番を出し、前の画面の名前を押すと、その画面に戻る（後ろの記録は消す）。
+        // 最初の画面から出す。長くなったら（5画面以上）、最初の画面は残し、その後ろを「…」で省いて、最後の3画面を出す
+        const CRUMB_MAX = 4;
+        renderCrumbs = () => {
+            if (!trail) {
+                return;
+            }
+            trail.replaceChildren();
+            trail.hidden = crumbs.length === 0;
+            if (trail.hidden) {
+                return;
+            }
+            const separate = () => {
+                if (trail.childNodes.length > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'screen-drawer-crumb-sep';
+                    separator.setAttribute('aria-hidden', 'true');
+                    separator.textContent = '›';
+                    trail.append(separator);
+                }
+            };
+            // 出す画面の番号（省くところは null＝「…」）
+            const shown = crumbs.length > CRUMB_MAX
+                ? [0, null, ...crumbs.map((crumb, index) => index).slice(crumbs.length - (CRUMB_MAX - 1))]
+                : crumbs.map((crumb, index) => index);
+            shown.forEach((index) => {
+                separate();
+                if (index === null) {
+                    const more = document.createElement('span');
+                    more.className = 'screen-drawer-crumb-more';
+                    more.textContent = '…';
+                    trail.append(more);
+
+                    return;
+                }
+                const crumb = crumbs[index];
+                if (index === crumbs.length - 1) {
+                    const current = document.createElement('span');
+                    current.className = 'screen-drawer-crumb is-current';
+                    current.setAttribute('aria-current', 'page');
+                    current.textContent = crumb.name;
+                    trail.append(current);
+
+                    return;
+                }
+                const link = document.createElement('a');
+                link.className = 'screen-drawer-crumb';
+                link.href = crumb.url;
+                link.textContent = crumb.name;
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // その画面に戻る（最後に見ていた状態。例：2ページ目）。後ろの記録は消す
+                    crumbs = crumbs.slice(0, index + 1);
+                    renderCrumbs();
+                    frame.src = crumb.url;
+                });
+                trail.append(link);
+            });
+        };
+
+        // パネルの中で画面を移ったら、題名と「全画面で開く」の行き先を合わせ、パンくずリストに加える
         frame.addEventListener('load', () => {
             if (!isDrawerOpen()) {
                 return;
@@ -293,7 +362,18 @@
                     name = copy.textContent.replace(/\s+/g, ' ').trim();
                 }
                 title.textContent = name;
-                full.href = frame.contentWindow.location.href;
+                const location = frame.contentWindow.location;
+                full.href = location.href;
+
+                // 同じ画面の中の移動（絞り込み・ページ送り・確認済みにした後の読み込み直し）は、記録を増やさず、最後の状態に合わせる。
+                // 前に開いた画面に、リンクで戻ったときは、その画面まで戻す
+                const crumb = { path: location.pathname, url: location.href, name };
+                const found = crumbs.findIndex((item) => item.path === crumb.path);
+                if (found >= 0) {
+                    crumbs = crumbs.slice(0, found);
+                }
+                crumbs.push(crumb);
+                renderCrumbs();
             } catch (e) {
                 title.textContent = '';
             }

@@ -677,6 +677,40 @@ html.is-embedded .screen-drawer {
     padding: 0 8px;
 }
 
+/* 見出しの行とパンくずリストのまとまり（ヘッダーの BlogOS とメニューバーと同じく、下の線は1本だけ。D-75） */
+.screen-drawer-top {
+    flex: none;
+    border-bottom: 1px solid #ccc;
+}
+
+.screen-drawer-top .screen-drawer-head {
+    border-bottom: 0;
+}
+
+/* パンくずリスト（パネルの中で開いた画面の順番。D-75） */
+.screen-drawer-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 6px;
+    /* ヘッダーのメニューバーと同じく、上下の余白は付けない */
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+.screen-drawer-crumbs[hidden] {
+    display: none;
+}
+
+.screen-drawer-crumb.is-current {
+    font-weight: bold;
+}
+
+.screen-drawer-crumb-sep,
+.screen-drawer-crumb-more {
+    color: #888;
+}
+
 .screen-drawer-frame {
     flex: 1;
     width: 100%;
