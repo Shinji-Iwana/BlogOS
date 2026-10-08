@@ -84,7 +84,10 @@ class NoticeTest extends TestCase
             ->assertSee('最後の照合：')
             ->assertSee('更新が2件あります')
             ->assertSee('<span class="notice-badge" aria-hidden="true">' . Notice::open()->count() . '</span>', false)
-            ->assertSee('<strong>未確認</strong>', false);
+            ->assertSee('<strong>未確認</strong>', false)
+            // 要対応・注意は、アークリアクターの小さな絵の色で表す（D-74-06）
+            ->assertSee('<symbol id="notice-reactor"', false)
+            ->assertSee('class="notice-icon notice-icon-error"', false);
 
         $this->post(route('notices.confirm'), ['ids' => [$notice->id]])->assertRedirect();
 

@@ -3,7 +3,7 @@
 
     要対応・注意のお知らせを、新しい順に出す。チェックを入れて「確認」を押すと確認済みにする（一覧からは消さない）。
     内容が変わって新しいお知らせを記録した前のものには「変動」、問題がなくなったものには「解消」を添える。
-    行は、お知らせの色（要対応：赤・注意：金）で囲む。
+    要対応（赤）・注意（金）は、チェックボックスの右の、アークリアクターの絵の色で表す（行の色は、ほかの一覧と同じ。D-74-06）。
 --}}
 
 @extends('layouts.app')
@@ -23,6 +23,9 @@
     <h2>お知らせの記録</h2>
     @include('partials.history-count', ['paginator' => $notices])
 
+    {{-- 要対応・注意を表すアークリアクターの絵の形（各行で使う） --}}
+    @include('notices.reactor-icon')
+
     <form method="POST" action="{{ route('notices.confirm') }}" class="notice-form">
         @csrf
         <div style="overflow-x:auto;">
@@ -30,6 +33,7 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" class="notice-check-all" aria-label="このページのお知らせを全て選ぶ" title="このページのお知らせを全て選ぶ"></th>
+                        <th aria-label="区分"></th>
                         <th>お知らせ日</th>
                         <th>メッセージ</th>
                         <th>状態</th>
@@ -37,11 +41,18 @@
                 </thead>
                 <tbody>
                     @forelse ($notices as $notice)
-                        <tr class="notice-row notice-{{ $notice->level }} {{ $notice->changed_at || $notice->resolved_at ? 'notice-closed' : '' }}">
+                        <tr>
                             <td>
                                 @unless ($notice->isConfirmed())
                                     <input type="checkbox" name="ids[]" value="{{ $notice->id }}" aria-label="確認済みにする">
                                 @endunless
+                            </td>
+                            {{-- 要対応（赤）・注意（金）を、アークリアクターの絵の色で表す --}}
+                            <td class="notice-icon-cell">
+                                <svg class="notice-icon notice-icon-{{ $notice->level }}" viewBox="0 0 40 40" role="img" aria-label="{{ $notice->level === 'error' ? '要対応' : '注意' }}">
+                                    <title>{{ $notice->level === 'error' ? '要対応' : '注意' }}</title>
+                                    <use href="#notice-reactor"/>
+                                </svg>
                             </td>
                             <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($notice->occurred_at) }}</td>
                             <td>
@@ -66,7 +77,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4">お知らせはありません。</td></tr>
+                        <tr><td colspan="5">お知らせはありません。</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -43,20 +43,10 @@ div.text-error p {
 
 
 /* ==========================================================
-   お知らせの画面の一覧（D-74）
+   お知らせ履歴の一覧（D-74）
    ----------------------------------------------------------
-   行を、トップページのお知らせと同じく、お知らせの色（要対応：赤・注意：金）で囲み、うっすら色を付ける
+   行の色はほかの一覧と同じ。要対応・注意は、アークリアクターの小さな絵の色で表す（public/css/blogos.css の .notice-icon）
    ========================================================== */
-
-.notice-list tr.notice-error > td {
-    border-color: var(--im-red);
-    background: rgba(255, 90, 82, 0.07);
-}
-
-.notice-list tr.notice-warn > td {
-    border-color: var(--im-gold);
-    background: rgba(242, 194, 91, 0.06);
-}
 
 .notice-list .notice-tag {
     font-family: var(--im-font-hud);

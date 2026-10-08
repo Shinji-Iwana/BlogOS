@@ -487,33 +487,28 @@ table.data.stacked td[data-label=""]::before {
     pointer-events: none;
 }
 
-/* お知らせの画面の一覧：行をお知らせの色で囲む（D-74） */
-.notice-list tr.notice-row > td {
-    border-top: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
+/* お知らせ履歴の一覧：行の色はほかの一覧と同じにし、要対応（赤）・注意（金）は、アークリアクターの小さな絵の色で表す（D-74-06）。
+   絵は、メッセージが2行になったときの高さに収まる大きさにする */
+.notice-list .notice-icon-cell {
+    width: 1%;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
-.notice-list tr.notice-row > td:first-child {
-    border-left: 3px solid currentColor;
+.notice-icon {
+    display: block;
+    width: 34px;
+    height: 34px;
+    filter: drop-shadow(0 0 2px currentColor);
 }
 
-.notice-list tr.notice-row > td:last-child {
-    border-right: 1px solid currentColor;
+/* 光の色は、アークリアクターの一番明るいときの色（css は reactor/reactor.css の --reactor-glow と同じ） */
+.notice-icon-error {
+    color: #ff4a3d;
 }
 
-.notice-list tr.notice-error > td {
-    border-color: #c00;
-    background: #fff5f5;
-}
-
-.notice-list tr.notice-warn > td {
-    border-color: #b8860b;
-    background: #fffbea;
-}
-
-/* 変動・解消したお知らせ（今は続いていない）は、少し薄くする */
-.notice-list tr.notice-closed > td {
-    opacity: 0.7;
+.notice-icon-warn {
+    color: #ffbf3c;
 }
 
 .notice-tag {
