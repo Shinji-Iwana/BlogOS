@@ -1067,3 +1067,12 @@ details.sync-run[open] > summary {
 .animation-settings.is-disabled {
     opacity: 0.5;
 }
+
+/* WordPress API情報の「詳細」の表：入れ子のまとまりは、名前の行を押すと中の表が開く（D-72-10） */
+.api-field-group > details > summary {
+    cursor: pointer;
+}
+
+.api-field-children {
+    margin: 4px 0 2px 16px;
+}

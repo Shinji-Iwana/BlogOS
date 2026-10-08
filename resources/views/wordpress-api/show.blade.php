@@ -84,6 +84,15 @@
                 </div>
             @endif
 
+            {{-- 1件のデータの応答（詳細・API Root・Settings）は、全ての項目を表で出す（取り込んだデータの詳細の画面と同じ形。D-72-10）。
+                 日時は日本時間に直す（DisplayTime::apiBody）。入れ子の項目は、まとまりの名前の行を押すと開く（wordpress-api/fields） --}}
+            @if (($id || $definition['list'] === 'single') && is_array($result['body']) && ! array_is_list($result['body']))
+                <h3>詳細</h3>
+                <div style="overflow-x:auto;">
+                    @include('wordpress-api.fields', ['fields' => \App\Support\DisplayTime::apiBody($result['body']), 'resource' => $resource, 'path' => ''])
+                </div>
+            @endif
+
             <h3>レスポンスヘッダー</h3>
             <details>
                 <summary>表示する</summary>
