@@ -33,7 +33,14 @@
                         $value = \App\Support\DisplayTime::value($column, $value);
                     @endphp
                     <tr>
-                        <th style="text-align:left; vertical-align:top;">{{ $column }}</th>
+                        {{-- 項目名と「?」は折り返さない（列の幅は、項目名に合わせる） --}}
+                        <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                            {{ $column }}
+                            {{-- 何を保持する列かの説明（App\Support\WordPressColumns。D-72-08） --}}
+                            @if ($columnNote = \App\Support\WordPressColumns::describe($table, $column))
+                                @include('partials.tip', ['tip' => $columnNote])
+                            @endif
+                        </th>
                         <td>
                             @if (is_string($value) && mb_strlen($value) > 300)
                                 <details>
