@@ -18,7 +18,9 @@
         @endif
     </p>
 
-    {{-- 問い合わせ条件（WordPress APIのパラメータ名のまま） --}}
+    {{-- 問い合わせ条件（WordPress APIのパラメータ名のまま）。パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
+    <section class="panel">
+    <h2 data-code="FILTER">条件</h2>
     <form method="GET" action="{{ $id ? route('wp-api.resources.show', [$resource, $id]) : route('wp-api.resources.index', $resource) }}">
         <label>context
             <select name="context">
@@ -36,9 +38,10 @@
         @endunless
         <button class="btn-secondary" type="submit">取得</button>
     </form>
+    </section>
 
     <section class="panel">
-        <h2>リクエスト</h2>
+        <h2 data-code="REQUEST">リクエスト</h2>
         <table class="data">
             <tr><th>HTTPメソッド</th><td>{{ $result['method'] }}</td></tr>
             <tr><th>URL</th><td style="word-break:break-all;">{{ $result['url'] }}</td></tr>
@@ -48,7 +51,7 @@
     </section>
 
     <section class="panel">
-        <h2>レスポンス</h2>
+        <h2 data-code="RESPONSE">レスポンス</h2>
 
         @if ($result['error'])
             <p class="text-error">{{ $result['error'] }}</p>
@@ -88,9 +91,12 @@
 @endforeach</pre>
             </details>
 
-            <h3>レスポンス本文（JSON）</h3>
-            <p class="text-muted">日時は、日本時間に直して出します（直した値に「（日本時間）」を付けます）。</p>
-            <pre class="code-block" style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; padding:8px;">{{ $result['body'] !== null ? json_encode(\App\Support\DisplayTime::apiBody($result['body']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
+            {{-- レスポンスヘッダーと同じく、初めは閉じておき、「表示する」で開く --}}
+            <h3>レスポンス本文（JSON） @include('partials.tip', ['tip' => '日時は、日本時間に直して出します（直した値に「（日本時間）」を付けます）。'])</h3>
+            <details>
+                <summary>表示する</summary>
+                <pre class="code-block" style="white-space:pre-wrap; word-break:break-all; max-height:60vh; overflow:auto; padding:8px;">{{ $result['body'] !== null ? json_encode(\App\Support\DisplayTime::apiBody($result['body']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $result['raw'] }}</pre>
+            </details>
         @endif
     </section>
 
