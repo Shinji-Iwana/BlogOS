@@ -107,23 +107,119 @@ class WordPressRecordController extends Controller
         $record = $definition['model']::where('blog_id', $blog->id)->find($id);
         abort_if($record === null, 404);
 
-        if ($record instanceof Post) {
-            $record->load(['categories', 'tags']);
-        }
-
         $historyClass = $record::historyClass();
         $histories = $historyClass::where($record::historyForeignKey(), $record->id)
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
-            ->limit(500)
-            ->get();
+            ->paginate(HistoryPage::PER_PAGE)
+            ->withQueryString();
 
         return view('database.wordpress-records.show', [
             'table'      => $table,
             'definition' => $definition,
             'record'     => $record,
             'histories'  => $histories,
+            'relations'  => $this->relations($table, $record, $blog->id),
         ]);
+    }
+
+    /**
+     * 詳細の画面の「関連」に出す、ほかのデータとのつながり（列の値から。D-72-09）。
+     * [列, 表示名, つながる先のテーブル, つながる先の列（id・slug）, 値が一覧（JSON）か]
+     */
+    protected const RELATIONS = [
+        'posts' => [
+            ['author_id', '投稿者', 'authors', 'id', false],
+            ['featured_media_id', 'アイキャッチ画像', 'media', 'id', false],
+            ['type', '投稿タイプ', 'types', 'slug', false],
+            ['status', '投稿ステータス', 'statuses', 'slug', false],
+        ],
+        'pages' => [
+            ['author_id', '投稿者', 'authors', 'id', false],
+            ['featured_media_id', 'アイキャッチ画像', 'media', 'id', false],
+            ['parent_id', '親ページ', 'pages', 'id', false],
+            ['type', '投稿タイプ', 'types', 'slug', false],
+            ['status', '投稿ステータス', 'statuses', 'slug', false],
+        ],
+        'media' => [
+            ['author_id', '投稿者', 'authors', 'id', false],
+            ['post_id', '添付先の投稿', 'posts', 'id', false],
+            ['page_id', '添付先の固定ページ', 'pages', 'id', false],
+            ['status', '投稿ステータス', 'statuses', 'slug', false],
+        ],
+        'categories' => [
+            ['parent_id', '親カテゴリ', 'categories', 'id', false],
+        ],
+        'custom_contents' => [
+            ['author_id', '投稿者', 'authors', 'id', false],
+            ['featured_media_id', 'アイキャッチ画像', 'media', 'id', false],
+            ['parent_id', '親', 'custom_contents', 'id', false],
+            ['type', '投稿タイプ', 'types', 'slug', false],
+            ['status', '投稿ステータス', 'statuses', 'slug', false],
+        ],
+        'custom_terms' => [
+            ['parent_id', '親', 'custom_terms', 'id', false],
+            ['taxonomy', 'タクソノミー', 'taxonomies', 'slug', false],
+        ],
+        'types' => [
+            ['taxonomies', 'タクソノミー', 'taxonomies', 'slug', true],
+        ],
+        'taxonomies' => [
+            ['types', '投稿タイプ', 'types', 'slug', true],
+        ],
+    ];
+
+    /**
+     * @return list<array{column: string|null, label: string, items: list<array{text: string, url: string|null}>}>
+     */
+    protected function relations(string $table, WordPressRecord $record, int $blogId): array
+    {
+        $record->loadMissing('blog');
+        $relations = [[
+            'column' => 'blog_id',
+            'label'  => 'ブログ',
+            'items'  => [['text' => $record->blog?->display_name ?? '#' . $record->blog_id, 'url' => route('database-blog-detail', ['id' => $record->blog_id])]],
+        ]];
+
+        foreach (self::RELATIONS[$table] ?? [] as [$column, $label, $target, $key, $many]) {
+            $raw = $record->getRawOriginal($column);
+            $values = $many ? (array) (json_decode((string) $raw, true) ?? []) : [$raw];
+            $values = array_values(array_filter($values, fn ($value) => $value !== null && $value !== '' && $value !== 0 && $value !== '0'));
+
+            $model = self::TABLES[$target]['model'];
+            $found = $values === [] ? collect() : $model::where('blog_id', $blogId)->whereIn($key, $values)->get()->keyBy($key);
+            $relations[] = [
+                'column' => $column,
+                'label'  => $label,
+                'items'  => array_map(fn ($value) => ($related = $found->get($value))
+                    ? ['text' => $this->recordName($related), 'url' => route('database.wordpress-records.show', ['table' => $target, 'id' => $related->id])]
+                    : ['text' => $value . '（取り込んだデータにない）', 'url' => null], $values),
+            ];
+        }
+
+        // 投稿のカテゴリ・タグ（列ではなく、つなぐ表で持つ）
+        if ($record instanceof Post) {
+            $record->load(['categories', 'tags']);
+            foreach (['categories' => 'カテゴリ', 'tags' => 'タグ'] as $target => $label) {
+                $relations[] = [
+                    'column' => null,
+                    'label'  => $label,
+                    'items'  => $record->{$target}->map(fn ($related) => ['text' => $this->recordName($related), 'url' => route('database.wordpress-records.show', ['table' => $target, 'id' => $related->id])])->all(),
+                ];
+            }
+        }
+
+        return $relations;
+    }
+
+    /**
+     * つながる先のデータの名前（タイトル・名前・スラッグのどれか）と番号
+     */
+    protected function recordName(WordPressRecord $record): string
+    {
+        $name = $record->getRawOriginal('title_raw') ?: $record->getRawOriginal('name') ?: $record->getRawOriginal('slug') ?: '';
+
+        return trim($name . ' #' . $record->id);
     }
 
     protected function definition(string $table): array

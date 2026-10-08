@@ -139,10 +139,39 @@ class WordPressColumns
     ];
 
     /**
+     * 変更履歴（{テーブル}_histories）の列。どのテーブルの履歴も同じ形（変更した項目ごとに1行）
+     */
+    protected const HISTORY = [
+        'id'                          => 'BlogOS の中での、この履歴の番号。',
+        'blog_id'                     => 'どのブログのデータの履歴か（BlogOS のブログの番号）。',
+        'change_set_id'               => '変更のまとまりの印（重ならないランダムな文字。値そのものに意味はない）。このデータを1回保存したときに変わった項目には、同じ印が付く（同じ印の行は、同時に変わった項目）。同期全体のまとまりは sync_run_id。',
+        'field'                       => '変わった項目（詳細の項目名）。',
+        'old_value'                   => '変わる前の値（初めて取り込んだときは空）。',
+        'new_value'                   => '変わった後の値。',
+        'source'                      => '変更の元（wp_initial_sync：ブログ登録時の初回の取り込み、wp_sync：同期で取り込んだ WordPress 側の変更、blogos_push：BlogOS から反映した結果、blogos_recovery：反映の記録からの回復、blogos_manual：BlogOS の画面での手動の編集、ai：AI による作成、system：移行などの内部の処理）。',
+        'sync_run_id'                 => 'この変更を取り込んだ同期の番号（WordPressとの同期履歴の #番号。同期でないときは空）。',
+        'wordpress_push_operation_id' => 'この変更を WordPress に反映した操作の番号（反映記録の番号。反映でないときは空）。',
+        'user_id'                     => '変更した人（BlogOS の利用者の番号。同期・自動の処理のときは空）。',
+        'changed_at'                  => '変わった日時（BlogOS が記録した日時）。',
+    ];
+
+    /**
      * 列の説明（なければ null）
      */
     public static function describe(string $table, string $column): ?string
     {
         return self::TABLES[$table][$column] ?? self::COMMON[$column] ?? null;
+    }
+
+    /**
+     * 変更履歴の列の説明（なければ null）。履歴の元のデータを指す列（category_id など）は、$foreignKey で渡す
+     */
+    public static function describeHistory(string $column, ?string $foreignKey = null): ?string
+    {
+        if ($column === $foreignKey) {
+            return 'どのデータの履歴か（このデータの BlogOS の番号。詳細の id）。';
+        }
+
+        return self::HISTORY[$column] ?? null;
     }
 }

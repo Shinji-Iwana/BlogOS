@@ -1,5 +1,5 @@
 {{--
-    WordPress由来のテーブルの1レコード（DB確認画面）。全ての列と変更履歴を表示する（D-05-10）
+    WordPress由来のテーブルの1レコード（DB確認画面）。詳細（全ての列）・関連（ほかのデータとのつながり）・変更履歴を表示する（D-05-10・D-72-09）
 --}}
 
 @extends('layouts.app')
@@ -21,8 +21,9 @@
         <p class="text-error"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>
     @endif
 
+    {{-- パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
     <section class="panel">
-    <h2>列の値</h2>
+    <h2 data-code="DETAIL">詳細</h2>
 
     <div style="overflow-x:auto;">
         <table class="data">
@@ -60,74 +61,84 @@
         </table>
     </div>
 
-    @if ($record instanceof \App\Models\Post)
-        <section class="panel">
-        <h2>カテゴリ・タグ</h2>
-        <p>
-            カテゴリ：
-            @forelse ($record->categories as $category)
-                <a href="{{ route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) }}">{{ $category->name }}</a>
-            @empty
-                なし
-            @endforelse
-        </p>
-        <p>
-            タグ：
-            @forelse ($record->tags as $tag)
-                <a href="{{ route('database.wordpress-records.show', ['table' => 'tags', 'id' => $tag->id]) }}">{{ $tag->name }}</a>
-            @empty
-                なし
-            @endforelse
-        </p>
-        </section>
-    @endif
+    </section>
 
+    {{-- ほかのデータとのつながり（列の値から。投稿はカテゴリ・タグも。D-72-09） --}}
     <section class="panel">
-    <h2>変更履歴（新しい順、最大500件）</h2>
-
-    <div style="overflow-x:auto;">
-        <table class="data">
-            <thead>
+    <h2 data-code="RELATION">関連</h2>
+    <table class="data">
+        <tbody>
+            @foreach ($relations as $relation)
                 <tr>
-                    <th>日時</th>
-                    <th>変更の元</th>
-                    <th>同期</th>
-                    <th>項目</th>
-                    <th>変更前</th>
-                    <th>変更後</th>
+                    <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                        {{ $relation['label'] }}
+                        @if ($relation['column'])
+                            <span class="text-muted">（{{ $relation['column'] }}）</span>
+                        @endif
+                    </th>
+                    <td>
+                        @forelse ($relation['items'] as $item)
+                            @if ($item['url'])
+                                <a href="{{ $item['url'] }}">{{ $item['text'] }}</a>
+                            @else
+                                {{ $item['text'] }}
+                            @endif
+                            @unless ($loop->last)・@endunless
+                        @empty
+                            なし
+                        @endforelse
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse ($histories as $history)
-                    <tr>
-                        <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
-                        <td>{{ $history->source?->value }}</td>
-                        <td>{{ $history->sync_run_id ? '#' . $history->sync_run_id : '' }}</td>
-                        <td>{{ $history->field }}</td>
-                        @foreach (['old_value', 'new_value'] as $valueColumn)
+            @endforeach
+        </tbody>
+    </table>
+    </section>
+
+    {{-- 変更履歴：日時・変更の元・項目の行だけを出し、押すと、その履歴の全ての項目を開く（詳細と同じ並べ方） --}}
+    <section class="panel">
+    <h2 data-code="HISTORY">変更履歴</h2>
+    @include('partials.history-count', ['paginator' => $histories])
+
+    @forelse ($histories as $history)
+        <details class="record-history">
+            <summary>{{ \App\Support\DisplayTime::format($history->changed_at) }}・{{ $history->source?->value }}・{{ $history->field }}</summary>
+            <div style="overflow-x:auto;">
+                <table class="data">
+                    <tbody>
+                        @foreach ($history->getAttributes() as $column => $value)
                             @php
-                                $shown = \App\Support\DisplayTime::value($history->field, $history->{$valueColumn});
+                                // 変更前・変更後は、変わった項目の名前で日時を日本時間にする。そのほか（changed_at など）は、列の名前で
+                                $shown = \App\Support\DisplayTime::value(in_array($column, ['old_value', 'new_value'], true) ? (string) $history->field : $column, $value);
                             @endphp
-                            <td>
-                                @if ($shown !== null && mb_strlen($shown) > 200)
-                                    <details>
-                                        <summary>{{ \Illuminate\Support\Str::limit($shown, 80) }}</summary>
-                                        <pre style="white-space:pre-wrap; word-break:break-all;">{{ $shown }}</pre>
-                                    </details>
-                                @else
-                                    {{ $shown }}
-                                @endif
-                            </td>
+                            <tr>
+                                <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                                    {{ $column }}
+                                    {{-- 何を保持する列かの説明（App\Support\WordPressColumns::describeHistory） --}}
+                                    @if ($historyNote = \App\Support\WordPressColumns::describeHistory($column, $record::historyForeignKey()))
+                                        @include('partials.tip', ['tip' => $historyNote])
+                                    @endif
+                                </th>
+                                <td>
+                                    @if (is_string($shown) && mb_strlen($shown) > 300)
+                                        <details>
+                                            <summary>{{ \Illuminate\Support\Str::limit($shown, 100) }}</summary>
+                                            <pre style="white-space:pre-wrap; word-break:break-all;">{{ $shown }}</pre>
+                                        </details>
+                                    @else
+                                        {{ $shown }}
+                                    @endif
+                                </td>
+                            </tr>
                         @endforeach
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6">履歴はありません。</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    @empty
+        <p>履歴はありません。</p>
+    @endforelse
+
+    {{ $histories->links() }}
     </section>
 
 @endsection
