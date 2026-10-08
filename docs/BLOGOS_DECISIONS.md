@@ -1335,7 +1335,9 @@ DB設計書をv2.0.0に改訂する際、既存の決定を具体化するため
 
 **D-72-11 WordPress API情報の詳細の題名** 詳細の画面の題名を「WordPress API情報：カテゴリ（1）」から「WordPress API情報：カテゴリ：{名前}」にした（利用者の要望）。名前は、投稿・固定ページ・メディアはタイトル（入力したそのままの文字）、そのほかは name。取り出せなければ ID（`ApiInspectionService::name`）。
 
-**D-72-12 WordPress API情報の条件の表** 条件のパネルの中を、名前と入力欄を交互に並べた表（色・枠なし。`.filter-table`）にした（利用者の要望）。1行目は context・page・per_page・status、2行目は search（一覧の画面だけ。詳細の画面は context だけ）。名前は「?」付きで折り返さず、「取得」は表の下の右端に置く。
+**D-72-12 WordPress API情報の条件の表** 条件のパネルの中を、名前と入力欄を交互に並べた表（色・枠なし。`.filter-table`）にした（利用者の要望）。1行目は context・page・per_page、2行目は status・search、3行目は orderby・order（並び替えできる一覧だけ）（一覧の画面だけ。詳細の画面は context だけ）。名前は「?」付きで折り返さず、「取得」は表の下の右端に置く。入力欄・選択欄は同じ幅にして列の位置をそろえる。API Root・Settings（1件だけを返す）は、指定する条件がないため、条件のパネルを出さない（利用者の指摘）。
+
+**D-72-13 WordPress API情報の一覧** 一覧の画面を、次のようにした（利用者の要望。`ApiInspectionService::ORDERBY`・`COLUMNS`）。(1) X-WP-Total・X-WP-TotalPages に「?」で説明を付ける。(2) 並び替えできる一覧（投稿・固定ページ・メディア・カテゴリ・タグ・ユーザー）は、初めは ID の昇順（orderby=id・order=asc）で取得し、条件の3行目に orderby（データの種類ごとの選択肢）・order を置く。ステータス・投稿タイプ・タクソノミーは、WordPress API が並び替えに対応していない（名前をキーにしたまとまりで返す）ため、今のまま。(3) 一覧の表の列を、データの種類ごとに決めた（投稿：ID・status・名前・タイトル。メディア：ID・status・名前・タイトル・mime_type。固定ページ：ID・status・slug・名前・タイトル。そのほか：ID・slug・名前・タイトル）。名前・タイトル以外の列は折り返さない。
 
 **D-72-06 パネルの動きを全ての画面で** ironman テーマの、パネルにマウスを乗せたときの光と枠を流れる電気が、トップページのパネル（`.hud-panel`）にしかなかった（線を置く `js/dashboard/panel-flow.js` をトップページだけで読み込み、CSS も `.hud-panel` だけだった）。トップページの横の画面のパネルの中と、全画面の各画面のパネル（`.panel`）でも動くよう、線を置く処理を全画面共通の `js/script.js`（`startPanelFlow`）に、見た目を `components/panel.css` に移した（利用者の要望。`panel-flow.js` は削除）。
 

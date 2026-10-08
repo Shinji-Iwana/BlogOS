@@ -1103,6 +1103,13 @@ details.sync-run[open] > summary {
     padding-right: 20px;
 }
 
+/* 入力欄・選択欄は同じ幅にし、列の位置をそろえる */
+.filter-table input,
+.filter-table select {
+    width: 10em;
+    box-sizing: border-box;
+}
+
 /* 「取得」などのボタンは、表の下の右端 */
 .filter-actions {
     margin: 6px 0 0;

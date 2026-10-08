@@ -40,6 +40,34 @@ class ApiInspectionService
     public const QUERY_KEYS = ['context', 'page', 'per_page', 'status', 'search', 'orderby', 'order'];
 
     /**
+     * 並び替えに使える項目（WordPress API の orderby。配列の一覧（list）だけ。map（statuses・types・taxonomies）は並び替えできない）。
+     * 一覧の画面の初めは、ID の昇順（orderby=id・order=asc。D-72-13）
+     */
+    public const ORDERBY = [
+        'posts'      => ['id', 'date', 'modified', 'title', 'slug', 'author', 'relevance'],
+        'pages'      => ['id', 'date', 'modified', 'title', 'slug', 'author', 'parent', 'menu_order', 'relevance'],
+        'media'      => ['id', 'date', 'modified', 'title', 'slug', 'author', 'relevance'],
+        'categories' => ['id', 'name', 'slug', 'count', 'description'],
+        'tags'       => ['id', 'name', 'slug', 'count', 'description'],
+        'users'      => ['id', 'name', 'slug', 'registered_date', 'url'],
+    ];
+
+    /**
+     * 一覧の表に出す列（順番どおり。id・status・slug・mime_type は折り返さない。D-72-13）
+     */
+    public const COLUMNS = [
+        'posts'      => ['id', 'status', 'title'],
+        'pages'      => ['id', 'status', 'slug', 'title'],
+        'categories' => ['id', 'slug', 'title'],
+        'tags'       => ['id', 'slug', 'title'],
+        'users'      => ['id', 'slug', 'title'],
+        'media'      => ['id', 'status', 'title', 'mime_type'],
+        'statuses'   => ['id', 'slug', 'title'],
+        'types'      => ['id', 'slug', 'title'],
+        'taxonomies' => ['id', 'slug', 'title'],
+    ];
+
+    /**
      * @return array{
      *   method: string, url: string, query: array, status: int|null,
      *   headers: array, body: mixed, raw: string|null, error: string|null
@@ -120,10 +148,11 @@ class ApiInspectionService
             }
 
             $rows[] = [
-                'id'     => $definition['list'] === 'map' ? (string) $key : (string) ($item['id'] ?? ''),
-                'slug'   => $item['slug'] ?? '',
-                'title'  => html_entity_decode(strip_tags((string) $title)),
-                'status' => $item['status'] ?? '',
+                'id'        => $definition['list'] === 'map' ? (string) $key : (string) ($item['id'] ?? ''),
+                'slug'      => $item['slug'] ?? '',
+                'title'     => html_entity_decode(strip_tags((string) $title)),
+                'status'    => is_scalar($item['status'] ?? null) ? (string) $item['status'] : '',
+                'mime_type' => $item['mime_type'] ?? '',
             ];
         }
 

@@ -47,6 +47,11 @@ class ResourceController extends Controller
         $query = $request->only(ApiInspectionService::QUERY_KEYS);
         if ($id === null && ApiInspectionService::RESOURCES[$resource]['list'] === 'list') {
             $query['per_page'] ??= 20;
+            // 初めは ID の昇順（並び替えできるものだけ。D-72-13）
+            if (isset(ApiInspectionService::ORDERBY[$resource])) {
+                $query['orderby'] = ($query['orderby'] ?? '') !== '' ? $query['orderby'] : 'id';
+                $query['order'] = ($query['order'] ?? '') !== '' ? $query['order'] : 'asc';
+            }
         }
 
         $result = $this->inspectionService->fetch($blog, $resource, $id, $query);
