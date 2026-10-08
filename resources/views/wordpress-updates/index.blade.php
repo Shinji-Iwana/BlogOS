@@ -21,7 +21,8 @@
         $typeComponents = $components->where('type', $type);
     @endphp
     <section class="panel">
-    <h2>{{ $typeLabel }}</h2>
+    {{-- パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
+    <h2 data-code="{{ ['core' => 'WORDPRESS', 'plugin' => 'PLUGIN', 'theme' => 'THEME'][$type] ?? strtoupper($type) }}">{{ $typeLabel }}</h2>
     @if ($typeComponents->isEmpty())
         <p>{{ $components->isEmpty() ? 'まだ確認していません。' : 'ありません。' }}</p>
     @else
