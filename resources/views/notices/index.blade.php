@@ -56,9 +56,10 @@
                             </td>
                             <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($notice->occurred_at) }}</td>
                             <td>
+                                {{-- メッセージで1行、確認する画面へのリンクで1行 --}}
                                 {{ $notice->message }}
                                 @if ($notice->url)
-                                    <a href="{{ $notice->url }}">{{ $notice->link_label ?? '確認する' }}</a>
+                                    <br><a href="{{ $notice->url }}">{{ $notice->link_label ?? '確認する' }}</a>
                                 @endif
                             </td>
                             <td style="white-space:nowrap;">
