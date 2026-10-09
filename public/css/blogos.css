@@ -1144,3 +1144,35 @@ details.sync-run[open] > summary {
     margin: 6px 0 0;
     text-align: right;
 }
+
+/* パネルを横に並べる（アクティビティログの取得条件・表示条件。D-77-09）。高さをそろえ、ボタンはパネルの下の右端。狭い画面では縦に並べる */
+.panel-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin: 24px 0;
+}
+
+.panel-columns > .panel {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.panel-columns > .panel > form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+.panel-columns .filter-actions {
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+
+    .panel-columns {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+}

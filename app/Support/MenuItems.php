@@ -20,6 +20,8 @@ class MenuItems
     public const GROUPS = [
         // 履歴（D-69。項目の名前は画面の名前と同じ。D-63-15。順は D-63-26）。押すと画面を開く（トップページでは、横の画面のパネルに開く）
         ['key' => 'history', 'code' => 'HISTORY', 'label' => '履歴', 'links' => [
+            // アクティビティログ（D-77。全ての作業の記録を新しい順に）
+            ['label' => 'アクティビティログ', 'route' => 'activities.index'],
             // ログイン履歴（D-63-13。以前は設定の画面の「セキュリティ」から開いた）
             ['label' => 'ログイン履歴', 'route' => 'database.login-histories.index'],
             // ブログ情報の同期履歴（D-63-16。以前はトップページの「管理」の「ブログ変更履歴一覧」から開いた）

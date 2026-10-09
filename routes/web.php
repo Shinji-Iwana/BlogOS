@@ -98,6 +98,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // アークリアクター（ironman テーマ）の状態と、動きを見比べる画面（D-76）
     Route::get('/api/reactor-status', [\App\Http\Controllers\ReactorController::class, 'status'])->name('api.reactor.status');
     Route::get('/reactor', [\App\Http\Controllers\ReactorController::class, 'compare'])->name('reactor.compare');
+    // アクティビティログ（D-77。BlogOS 全体の作業の記録のため、選択中のブログの照合はしない）
+    Route::get('/activities', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activities.index');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）
