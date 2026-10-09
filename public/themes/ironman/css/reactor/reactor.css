@@ -67,12 +67,12 @@
 
 /* パネル（引き出し）を開いている間の通常時 */
 .reactor[data-scene="drawer"] {
-    --reactor-spin-a: 12s;
-    --reactor-spin-b: 18s;
-    --reactor-spin-c: 4s;
-    --reactor-spin-d: 6s;
-    --reactor-spin-e: 8s;
-    --reactor-spin-f: 11s;
+    --reactor-spin-a: 30s;
+    --reactor-spin-b: 45s;
+    --reactor-spin-c: 6s;
+    --reactor-spin-d: 9s;
+    --reactor-spin-e: 12.5s;
+    --reactor-spin-f: 17s;
     --reactor-pulse: 1.5s;
     --reactor-flow: 0.4s;
 }
