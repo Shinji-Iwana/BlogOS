@@ -3,7 +3,8 @@
 
     共通の画面（resources/views/dashboard/index.blade.php）の代わりに使う。データは共通と同じ（DashboardController）。
     ・上：SYSTEM STATUS の帯（全体の状態・要対応と注意の数。選択中のブログはヘッダーに出ている）
-    ・中：アークリアクター（全体の状態の色。同期の実行中は HUD の円が速く回る）と、左右に3つずつ状態のパネル。
+    ・中：アークリアクター（全体の状態の色。AI の実行中は HUD の円が速く回る。D-76）と、左右に3つずつ状態のパネル。
+      アークリアクターの色・動きと SYSTEM STATUS の帯は、開いている間も 10秒ごとに切り替える（js/script.js。下のパネルの中身は、読み込み直したとき）
       パソコンの幅では、アークリアクターから、マウスを乗せているパネル（状態のパネル・入口のパネル）へ線を出す（js/dashboard/connectors.js。D-73-03）
     ・一番上：その場限りの表示（共通の dashboard/notices。操作の結果・入力の誤りなど。要対応・注意のお知らせは、お知らせの画面に移した。D-74）
     ・下：種類ごとの入口のパネル
@@ -59,7 +60,7 @@
             </div>
 
             <div class="hud-reactor">
-                @include('themes.ironman.components.reactor', ['reactorState' => $systemState, 'reactorBusy' => $systemBusy])
+                @include('themes.ironman.components.reactor', ['reactorState' => $systemState, 'reactorBusy' => $systemBusy, 'reactorStatusUrl' => route('api.reactor.status')])
             </div>
 
             <div class="hud-panels hud-panels-right">

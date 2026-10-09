@@ -220,3 +220,66 @@
         reactorSpin var(--reactor-spin-f) linear infinite reverse,
         reactorHudPulse var(--reactor-pulse) ease-in-out infinite;
 }
+
+/* ==========================================================
+   AI の実行中（.reactor の data-busy。D-76）：脈打ちを止め、一番明るいところ（各動きの 35%・50%）のまま光らせる。
+   回転・コイルの電気の流れ・電気の明滅はそのまま。音声の操作中（data-voice）は、音声の動き（脈打ちあり）にする
+   ========================================================== */
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-halo,
+.reactor[data-busy="1"]:not([data-voice]) .reactor-reflect,
+.reactor[data-busy="1"]:not([data-voice]) .reactor-coil-lights use {
+    animation: none;
+    opacity: 1;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-core-glow,
+.reactor[data-busy="1"]:not([data-voice]) .reactor-center {
+    animation: none;
+    opacity: 1;
+    transform: scale(1.08);
+    filter: brightness(1.6);
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-tri {
+    animation: none;
+    opacity: 1;
+    filter: brightness(1.7);
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-coil-base,
+.reactor[data-busy="1"]:not([data-voice]) .reactor-coil-spark-a,
+.reactor[data-busy="1"]:not([data-voice]) .reactor-coil-spark-b {
+    animation: none;
+    opacity: 1;
+    filter: brightness(1.25) saturate(1.8) drop-shadow(0 0 4px var(--reactor-glow));
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud {
+    opacity: 1;
+    filter: brightness(1.15) saturate(1.8) drop-shadow(0 0 3px var(--reactor-glow));
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-a {
+    animation: reactorSpin var(--reactor-spin-a) linear infinite;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-b {
+    animation: reactorSpin var(--reactor-spin-b) linear infinite reverse;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-c {
+    animation: reactorSpin var(--reactor-spin-c) linear infinite;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-d {
+    animation: reactorSpin var(--reactor-spin-d) linear infinite reverse;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-e {
+    animation: reactorSpin var(--reactor-spin-e) linear infinite;
+}
+
+.reactor[data-busy="1"]:not([data-voice]) .reactor-hud-f {
+    animation: reactorSpin var(--reactor-spin-f) linear infinite reverse;
+}

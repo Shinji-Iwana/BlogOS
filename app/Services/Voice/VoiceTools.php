@@ -154,7 +154,7 @@ class VoiceTools
 
         return [
             'overall' => ['normal' => 'すべて正常', 'warning' => '注意あり', 'critical' => '要対応あり'][$this->status->overall($panels)],
-            'busy'    => $this->status->busy($notices) ? '同期の実行中' : null,
+            'busy'    => $this->status->busy($notices) ? 'AIの実行中（同期・定期実行を含む）' : null,
             'panels'  => array_map(fn ($panel) => [
                 'area'  => $panel['label'],
                 'state' => $states[$panel['state']],

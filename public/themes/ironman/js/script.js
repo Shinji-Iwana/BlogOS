@@ -513,14 +513,115 @@
      * ・always：常に動かす（CSS のまま）／off：止める／when：次のどれかの間だけ動かす
      *   reactor-panel：トップページのパネルにマウスを乗せている間（js/dashboard/connectors.js の知らせ blogos:panel-hover）
      *   reactor-voice：音声の操作中（body の voice-listening・voice-thinking・voice-speaking）
-     *   reactor-sync：同期の実行中（.reactor の data-busy）
+     *   reactor-sync：AI の実行中（.reactor の data-busy。D-76。設定の名前は以前の「同期の実行中」のまま）
      * ・止めるときは、重ねた SVG（.reactor-layer）の動きを Web Animations API で止め、光の脈打ちは一番暗いところ（動きの始め）にそろえる。
      *   回転・電気の流れは、止めた位置のまま。動きを減らす設定の人は、CSS で止まっているため何もしない
+     * ・状態が変わると、CSS の動きが作り直されるため、止めているときは止め直す
+     * ・画面「アークリアクターの動き」の見比べ用（data-preview）は、設定にかかわらず動かす
      */
     const REACTOR_PULSES = ['reactorPulse', 'reactorCorePulse', 'reactorGlow', 'reactorElectricPulse', 'reactorHudPulse', 'reactorFlicker'];
+    const REACTOR_STATES = ['data-state', 'data-busy', 'data-scene', 'data-voice'];
+
+    /**
+     * アークリアクターの状態を、画面を開いたままで切り替える（D-76）
+     *
+     * ・パネル（引き出し）を開いている間（body の drawer-open）→ data-scene="drawer"
+     * ・音声の操作中（body の voice-listening・voice-thinking・voice-speaking）→ data-voice
+     * ・トップページ（data-status-url があるもの）は、10秒ごとに全体の状態（色）と AI の実行中かを読み、data-state・data-busy と
+     *   SYSTEM STATUS の帯を切り替える。タブを見ていない間は読まない
+     * 速さは css/reactor/reactor.css の属性ごとの値。見比べ用（data-preview）は、決めた値のまま変えない
+     */
+    function startReactorState() {
+        const reactors = document.querySelectorAll('.reactor:not([data-preview])');
+        if (reactors.length === 0) {
+            return;
+        }
+
+        const VOICES = ['listening', 'thinking', 'speaking'];
+        const mirror = () => {
+            const drawer = document.body.classList.contains('drawer-open');
+            const voice = VOICES.find((name) => document.body.classList.contains('voice-' + name));
+            reactors.forEach((reactor) => {
+                if (drawer) {
+                    reactor.setAttribute('data-scene', 'drawer');
+                } else {
+                    reactor.removeAttribute('data-scene');
+                }
+                if (voice) {
+                    reactor.setAttribute('data-voice', voice);
+                } else {
+                    reactor.removeAttribute('data-voice');
+                }
+            });
+        };
+        mirror();
+        new MutationObserver(mirror).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        const reactor = document.querySelector('.reactor[data-status-url]');
+        if (!reactor) {
+            return;
+        }
+        const LABELS = { normal: 'ALL SYSTEMS NORMAL', warning: 'CAUTION', critical: 'ALERT' };
+        const bar = document.querySelector('.hud-statusbar');
+        const show = (status) => {
+            if (!LABELS[status.state]) {
+                return;
+            }
+            reactor.setAttribute('data-state', status.state);
+            if (status.busy) {
+                reactor.setAttribute('data-busy', '1');
+            } else {
+                reactor.removeAttribute('data-busy');
+            }
+            if (!bar) {
+                return;
+            }
+            bar.setAttribute('data-state', status.state);
+            bar.querySelector('.hud-statusbar-state').textContent = LABELS[status.state];
+            const counts = bar.querySelector('.hud-statusbar-counts');
+            counts.textContent = '';
+            const error = (status.counts && status.counts.error) || 0;
+            const warn = (status.counts && status.counts.warn) || 0;
+            if (error === 0 && warn === 0) {
+                counts.textContent = 'すべて正常';
+            }
+            [['text-error', '要対応', error], ['text-warn', '注意', warn]].forEach(([name, label, count]) => {
+                if (count > 0) {
+                    const span = document.createElement('span');
+                    span.className = name;
+                    span.textContent = label + ' ' + count;
+                    counts.appendChild(span);
+                }
+            });
+        };
+
+        let timer = null;
+        const poll = async () => {
+            clearTimeout(timer);
+            if (document.hidden) {
+                return;
+            }
+            try {
+                const response = await fetch(reactor.dataset.statusUrl, { headers: { 'Accept': 'application/json' } });
+                if (response.ok) {
+                    show(await response.json());
+                }
+            } catch (e) {
+                // 通信の失敗は、次の確認で再度試す
+            }
+            timer = setTimeout(poll, 10000);
+        };
+        timer = setTimeout(poll, 10000);
+        // タブに戻ったときは、すぐ読む
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                poll();
+            }
+        });
+    }
 
     function startReactorControl() {
-        const reactors = document.querySelectorAll('.reactor');
+        const reactors = document.querySelectorAll('.reactor:not([data-preview])');
         if (reactors.length === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             return;
         }
@@ -574,10 +675,17 @@
             update();
         });
         new MutationObserver(update).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        // 状態が変わると、CSS の動きが作り直される（AI の実行中の光りっぱなしなど）。止めているときは、新しい動きも止め直す
+        reactors.forEach((reactor) => new MutationObserver(() => {
+            if (!wanted(reactor)) {
+                running.delete(reactor);
+            }
+            update();
+        }).observe(reactor, { attributes: true, attributeFilter: REACTOR_STATES }));
     }
 
-    // 設定は最初に読む（ほかの動きが、設定を見て始めるため）
-    const starts = [startAnimationSettings, startPanelFlow, startMenuFlow, startGridFlow, startModalFlow, startClock, startHoverFlow, startReactorControl];
+    // 設定は最初に読む（ほかの動きが、設定を見て始めるため）。アークリアクターの状態は、止める・動かすの前に写す
+    const starts = [startAnimationSettings, startPanelFlow, startMenuFlow, startGridFlow, startModalFlow, startClock, startHoverFlow, startReactorState, startReactorControl];
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => starts.forEach((start) => start()));
     } else {

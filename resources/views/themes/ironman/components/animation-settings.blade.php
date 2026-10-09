@@ -45,12 +45,17 @@
         <div class="animation-settings-when">
             <label><input type="checkbox" data-anim-key="reactor-panel"> トップページのパネルにマウスを乗せている（指で触って選んだ）間</label>
             <label><input type="checkbox" data-anim-key="reactor-voice"> 音声の操作中</label>
-            <label><input type="checkbox" data-anim-key="reactor-sync"> 同期の実行中</label>
+            <span class="animation-settings-line">
+                <label><input type="checkbox" data-anim-key="reactor-sync"> AIの実行中</label>
+                @include('partials.tip', ['tip' => '同期・定期実行・AI の実行（編集案・新規記事・品質診断など）・画像の作成・Google の取得の間です（音声の操作は含みません）。'])
+            </span>
         </div>
         <span class="animation-settings-line">
             <label><input type="radio" name="anim-reactor" value="off"> 止める</label>
-            @include('partials.tip', ['tip' => '止めている間は、光の脈打ちの一番暗いところで止めます。'])
+            @include('partials.tip', ['tip' => '止めている間は、光の脈打ちの一番暗いところで止めます（AI の実行中は、光ったまま止めます）。'])
         </span>
+        {{-- 状態ごとの動きを見比べる画面（D-76） --}}
+        <span class="animation-settings-line"><a href="{{ route('reactor.compare') }}">アークリアクターの動きを見る</a></span>
     </fieldset>
 
     <ul class="animation-settings-list">

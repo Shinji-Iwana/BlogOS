@@ -95,20 +95,7 @@ body.voice-available .hud-reactor .reactor {
     cursor: pointer;
 }
 
-body.voice-listening .reactor {
-    --reactor-pulse: 1s;
-}
-
-body.voice-thinking .reactor {
-    --reactor-spin-a: 6s;
-    --reactor-spin-b: 9s;
-    --reactor-spin-core: 5s;
-    --reactor-flow: 0.4s;
-}
-
-body.voice-speaking .reactor {
-    --reactor-pulse: 0.7s;
-}
+/* 音声の操作中の動きの速さは、reactor/reactor.css（.reactor の data-voice。D-76） */
 
 
 /* ==========================================================

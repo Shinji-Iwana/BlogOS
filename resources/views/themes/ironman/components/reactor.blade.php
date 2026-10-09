@@ -11,7 +11,10 @@
 
     受け取る値（任意）：
     ・$reactorState：normal（青）／warning（金）／critical（赤）。省略時は normal
-    ・$reactorBusy：true なら HUD の円を速く回す（同期の実行中など）
+    ・$reactorBusy：true なら AI の実行中の動きにする（D-76。HUD の円を速く回し、脈打たずに光らせる）
+    ・$reactorStatusUrl：画面を開いている間、状態を読む先（api.reactor.status。トップページだけ。js/script.js が 10秒ごとに読む）
+    ・$reactorPreview：画面「アークリアクターの動き」で見比べるための表示。$reactorScene（drawer）・$reactorVoice（listening・thinking・speaking）で、
+      その状態の動きにする（画面の状態から写さない。アニメーションの設定でも止めない）
     ・$reactorVariant：形。1＝基本、2＝コアの外側の三角の金属と、コアの背面のコイル（金属は動かさず、電気を外側と逆向きに流す）を足した形。
       省略時は config/themes.php の ironman の reactor_variant
 --}}
@@ -51,7 +54,7 @@
     描く中身・色・重なりの順は、1枚のときと同じ。部品（<defs>）は、一番下の .reactor-svg に置き、ほかの SVG からも使う。
     描き直しが残るのは、線の模様が流れるコイルの電気と、コイルの窓の光（コイルごとにずらして脈打つ）と、形 2 のコアの背面のコイル
 --}}
-<div class="reactor" data-state="{{ $reactorState ?? 'normal' }}" @if ($reactorBusy ?? false) data-busy="1" @endif role="img" aria-label="アークリアクター">
+<div class="reactor" data-state="{{ $reactorState ?? 'normal' }}" @if ($reactorBusy ?? false) data-busy="1" @endif @if (! empty($reactorStatusUrl)) data-status-url="{{ $reactorStatusUrl }}" @endif @if ($reactorPreview ?? false) data-preview="1" @if (! empty($reactorScene)) data-scene="{{ $reactorScene }}" @endif @if (! empty($reactorVoice)) data-voice="{{ $reactorVoice }}" @endif @endif role="img" aria-label="アークリアクター">
     <svg class="reactor-layer reactor-svg" viewBox="0 0 400 400" aria-hidden="true">
 
         <defs>

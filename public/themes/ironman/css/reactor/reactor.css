@@ -57,7 +57,27 @@
     --reactor-flow: 0.5s;
 }
 
-/* 同期の実行中など */
+/* ==========================================================
+   状態ごとの動きの速さ（D-76。画面「アークリアクターの動き」で見比べられる）
+   ・重なったときは、後に書いたものが勝つ（音声 ＞ AI の実行中 ＞ パネル（引き出し）の通常時 ＞ トップページの通常時）。
+     どれも .reactor の属性で決め、強さ（詳細度）をそろえて、書いた順で決まるようにする
+   ・data-scene・data-voice は、js/script.js が body の drawer-open・voice-* から写す（画面「アークリアクターの動き」では、決めた値を付ける）
+   ・data-busy は、トップページを開いたときと、開いている間の確認（api.reactor.status）で付ける
+   ========================================================== */
+
+/* パネル（引き出し）を開いている間の通常時 */
+.reactor[data-scene="drawer"] {
+    --reactor-spin-a: 12s;
+    --reactor-spin-b: 18s;
+    --reactor-spin-c: 4s;
+    --reactor-spin-d: 6s;
+    --reactor-spin-e: 8s;
+    --reactor-spin-f: 11s;
+    --reactor-pulse: 1.5s;
+    --reactor-flow: 0.4s;
+}
+
+/* AI の実行中（同期・定期実行・AI の実行など。音声は除く）。脈打ちはなく、一番明るいまま光らせる（animation/reactor.css） */
 .reactor[data-busy="1"] {
     --reactor-spin-a: 12s;
     --reactor-spin-b: 18s;
@@ -65,6 +85,36 @@
     --reactor-spin-d: 6s;
     --reactor-spin-e: 8s;
     --reactor-spin-f: 11s;
+    --reactor-flow: 0.2s;
+}
+
+/* 音声の操作中：変える値のほかは、トップページの通常時の値にする（ほかの状態と混ざらないようにする） */
+.reactor[data-voice] {
+    --reactor-spin-a: 60s;
+    --reactor-spin-b: 90s;
+    --reactor-spin-c: 12s;
+    --reactor-spin-d: 18s;
+    --reactor-spin-e: 25s;
+    --reactor-spin-f: 34s;
+    --reactor-pulse: 3s;
+    --reactor-flow: 0.8s;
+}
+
+/* 聞いている間 */
+.reactor[data-voice="listening"] {
+    --reactor-pulse: 1s;
+}
+
+/* 考えている間 */
+.reactor[data-voice="thinking"] {
+    --reactor-spin-a: 6s;
+    --reactor-spin-b: 9s;
+    --reactor-flow: 0.4s;
+}
+
+/* 話している間 */
+.reactor[data-voice="speaking"] {
+    --reactor-pulse: 0.7s;
 }
 
 /* 重ねた SVG（D-73-01）。同じ大きさで重ね、回転・脈打ちは SVG そのものに付ける（中心は、SVG の箱の真ん中＝絵の中心 200,200） */

@@ -1053,6 +1053,11 @@ details.sync-run[open] > summary {
     margin-left: 24px;
 }
 
+/* 説明（?）を横に置く行（D-76） */
+.animation-settings-when .animation-settings-line label {
+    display: inline;
+}
+
 .animation-settings-list {
     margin: 0;
     padding: 0;

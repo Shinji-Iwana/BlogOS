@@ -95,6 +95,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::put('/voice/settings', [\App\Http\Controllers\VoiceController::class, 'updateSettings'])->name('voice.settings.update');
     // 画面のテーマ（D-49）。BlogOS 全体の設定のため、選択中のブログの照合はしない
     Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme.update');
+    // アークリアクター（ironman テーマ）の状態と、動きを見比べる画面（D-76）
+    Route::get('/api/reactor-status', [\App\Http\Controllers\ReactorController::class, 'status'])->name('api.reactor.status');
+    Route::get('/reactor', [\App\Http\Controllers\ReactorController::class, 'compare'])->name('reactor.compare');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）

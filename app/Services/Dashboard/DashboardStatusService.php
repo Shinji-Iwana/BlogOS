@@ -2,7 +2,9 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\ScheduledTaskRun;
 use App\Support\DisplayTime;
+use Illuminate\Support\Facades\DB;
 
 /**
  * トップページの状態のパネル（D-49-07）。
@@ -58,11 +60,28 @@ class DashboardStatusService
     }
 
     /**
-     * 同期の実行中・開始待ちか（アークリアクターの HUD の円を速く回す）
+     * AI の実行中か（アークリアクターの「AI の実行中」の動き。D-76）。BlogOS 全体で、次のどれかがあるとき：
+     * ・選択中のブログの同期の実行中・開始待ち
+     * ・裏の処理の待ち行列（Queue）の、開始待ち・実行中の処理（同期・AI の実行・画像の作成・Google の取得など。音声は Queue を使わない）。
+     *   再試行の待ちで、開始の時刻が先のものは数えない
+     * ・定期実行の実行中（ScheduledTaskRun::STALE_HOURS を過ぎたものは、途中で止まったとみなして数えない）
      */
     public function busy(array $d): bool
     {
-        return in_array($d['syncStatus']['state'] ?? 'idle', ['queued', 'running'], true);
+        if (in_array($d['syncStatus']['state'] ?? 'idle', ['queued', 'running'], true)) {
+            return true;
+        }
+
+        if (config('queue.default') === 'database') {
+            $waiting = DB::table(config('queue.connections.database.table', 'jobs'))
+                ->where(fn ($query) => $query->whereNotNull('reserved_at')->orWhere('available_at', '<=', now()->getTimestamp()))
+                ->exists();
+            if ($waiting) {
+                return true;
+            }
+        }
+
+        return ScheduledTaskRun::where('status', 'running')->where('started_at', '>=', now()->subHours(ScheduledTaskRun::STALE_HOURS))->exists();
     }
 
     /**
