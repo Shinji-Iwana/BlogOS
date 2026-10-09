@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * PageSpeed Insights の測定（D-78）。
  *
  * - pagespeed_runs：測定の履歴（1つの URL を、携帯かデスクトップで1回測ったごとに1行）。点数・主な値・合格しなかった項目を残す（1年で削除）
+ * 日時の列は、ほかの記録と同じく nullable にする（空を許さないと、本番の DB では書き換えのたびに今の時刻で上書きされる。D-78-07）
  * - pagespeed_responses：応答の全部（URL×携帯・デスクトップごとに最新の1回だけ。圧縮して残し、測り直したら置き換える）
  */
 return new class extends Migration
@@ -57,7 +58,7 @@ return new class extends Migration
             $table->string('lighthouse_version', 20)->nullable();
             $table->text('error')->nullable();
             $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('started_at');
+            $table->timestamp('started_at')->nullable();
             $table->timestamp('finished_at')->nullable();
             $table->timestamps();
 
@@ -76,7 +77,7 @@ return new class extends Migration
             $table->foreignId('pagespeed_run_id')->nullable()->constrained('pagespeed_runs')->nullOnDelete();
             // 応答の JSON を gzip で圧縮し、base64 にしたもの
             $table->longText('response');
-            $table->timestamp('fetched_at');
+            $table->timestamp('fetched_at')->nullable();
             $table->timestamps();
 
             $table->unique(['url_hash', 'strategy']);
