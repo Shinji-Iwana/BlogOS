@@ -98,10 +98,12 @@ OAuth クライアントの「承認済みのリダイレクト URI」に、`htt
 # 定期実行（毎分）
 /usr/bin/php8.4 <BlogOS のフォルダ>/artisan schedule:run >> /dev/null 2>&1
 # Queue の処理（毎分起動。すでに動いていれば何もしない。たまった処理を片付けたら終わる）
-/usr/bin/flock -n <BlogOS のフォルダ>/storage/framework/queue-worker.lock /usr/bin/php8.4 <BlogOS のフォルダ>/artisan queue:work --stop-when-empty --max-time=3300 >> /dev/null 2>&1
+/bin/sh <BlogOS のフォルダ>/scripts/xserver/queue-worker.sh
 ```
 
 * cron では、SSH の `alias` や `PATH` の設定は効かない。PHP・artisan は、必ずフルパスで書く（例：`<BlogOS のフォルダ>` は `/home/<アカウント名>/BlogOS`）。
+* Queue の処理のコマンドは `scripts/xserver/queue-worker.sh` に書く（Cron の画面のコマンドの欄が、--queue=default,pagespeed を含むコマンドを「コマンドを正しく入力してください」として受け付けなかったため。カンマ（,）が原因とみられる）。中身は `flock` ＋ `queue:work --queue=default,pagespeed --stop-when-empty --max-time=3300`。
+* `--queue=default,pagespeed`：PageSpeed Insights の測定（1件に 10〜30秒かかる）は別の Queue（pagespeed）に入れ、同期・AI の処理（default）を先に処理する（D-78-03）。付け忘れると、測定が待ったまま動かない。
 * Queue の処理は、`flock` で同時に1つだけ動かす。AI のまとめて実行は1記事ずつ順に処理する設計のため（D-25）。共用サーバーで、処理が何本も同時に動くのも防ぐ。
 * `--max-time` は、1つの起動が処理を続ける上限の秒数。上限を過ぎると、処理中の Job を終えてから止まり、次の分の起動が続きを処理する。
 * エラーは `storage/logs/laravel.log` に記録される（cron の出力は捨てる）。
