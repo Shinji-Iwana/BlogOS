@@ -66,4 +66,13 @@ return [
         'books_url'      => env('RAKUTEN_BOOKS_URL', 'https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404'),
     ],
 
+    /*
+     * PageSpeed Insights API（記事とトップページの表示の速さなどの測定。D-78）。
+     * APIキーは Google Cloud で作り（PageSpeed Insights API だけに制限）、.env に置く（無料。未設定なら測らない）。
+     */
+    'pagespeed' => [
+        'key' => env('GOOGLE_PAGESPEED_API_KEY'),
+        'url' => env('GOOGLE_PAGESPEED_URL', 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed'),
+    ],
+
 ];

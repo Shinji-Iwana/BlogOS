@@ -45,7 +45,7 @@ class ScheduledTaskTest extends TestCase
     {
         // 既定（日本時間 3:00 = UTC 18:00、月曜 6:45 = UTC 日曜 21:45）
         $events = $this->registered();
-        $this->assertCount(9, $events);
+        $this->assertCount(10, $events);
         $this->assertSame('0 3 * * *', $events['blogs:sync']);
         $this->assertSame('45 6 * * 1', $events['affiliate:check-links']);
 
@@ -268,12 +268,12 @@ class ScheduledTaskTest extends TestCase
         // 今すぐ実行のある定期実行を全て、メニューの「定期実行」と同じ順に出す（料金がかかる2つは出さない）
         preg_match('/>即時実行<\/summary>(.*?)<\/ul>/s', $html, $runNow);
         preg_match_all('/data-menu-confirm="[^"]*">([^<]+)<\/a>/', $runNow[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除'], $labels[1]);
 
         // メニューの「定期実行」の順（D-63-25）
         preg_match('/>定期実行<\/summary>(.*?)<\/ul>/s', $html, $schedule);
         preg_match_all('/data-modal-open="scheduled-[^"]*" >([^<]+)<\/a>/', $schedule[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除'], $labels[1]);
 
         // 開いていた画面に戻り、Queue に登録する
         $this->from(route('drafts.index'))->post($url)->assertRedirect(route('drafts.index'))

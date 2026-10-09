@@ -289,6 +289,23 @@ return [
     ],
 
     /*
+     * PageSpeed Insights の測定（D-78）。1回の呼び出しに 10〜30秒かかるため、Queue で1件ずつ測る。
+     * API の上限（1日 25,000回・1分 30回）より十分に少なくする
+     */
+    'pagespeed' => [
+        // 測る Queue の名前。同期・AI の処理を先に動かすため、queue:work を --queue=default,pagespeed で動かす
+        'queue'            => env('PAGESPEED_QUEUE', 'pagespeed'),
+        // 定期実行の1回で測る URL の上限（各 URL を携帯・デスクトップで測るため、呼び出しはこの2倍。トップページは別に毎回測る）
+        'max_urls_per_run' => (int) env('PAGESPEED_MAX_URLS_PER_RUN', 100),
+        // 呼び出しの間を空ける秒数（1分 30回の上限を超えないように）
+        'pause_seconds'    => 3,
+        // 1回の呼び出しの待ち時間（秒）
+        'timeout'          => 90,
+        // 上限を超えた（HTTP 429）ときに、待ってからやり直す秒数（1回だけ）
+        'retry_after'      => 60,
+    ],
+
+    /*
      * 同期（BLOGOS_WORDPRESS_API.md 第III部）
      */
     'sync' => [

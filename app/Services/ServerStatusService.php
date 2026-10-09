@@ -6,6 +6,7 @@ use App\Models\AiGeneration;
 use App\Models\Blog;
 use App\Models\AiPriceCheck;
 use App\Models\GoogleFetchRun;
+use App\Models\PageSpeedRun;
 use App\Models\ScheduledTaskRun;
 use App\Models\SyncIssue;
 use App\Models\SyncRun;
@@ -33,6 +34,7 @@ class ServerStatusService
         ['model' => AiGeneration::class, 'label' => 'AI の実行記録', 'column' => 'created_at', 'rule' => '1年より古いもの（WordPress に反映した編集案を作った記録は残す）'],
         ['model' => AiPriceCheck::class, 'label' => 'OpenAI API料金表との照合の記録', 'column' => 'created_at', 'rule' => '1年より古いもの'],
         ['model' => GoogleFetchRun::class, 'label' => 'Googleとの同期の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
+        ['model' => PageSpeedRun::class, 'label' => 'PageSpeed Insightsとの同期の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
         ['model' => ScheduledTaskRun::class, 'label' => '定期実行の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
         ['model' => SyncIssue::class, 'label' => 'WordPressとの同期の問題', 'column' => 'resolved_at', 'rule' => '解決してから1年より古いもの'],
         ['model' => SyncRun::class, 'label' => 'WordPressとの同期の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],

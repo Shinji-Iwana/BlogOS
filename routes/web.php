@@ -100,6 +100,8 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/reactor', [\App\Http\Controllers\ReactorController::class, 'compare'])->name('reactor.compare');
     // アクティビティログ（D-77。BlogOS 全体の作業の記録のため、選択中のブログの照合はしない）
     Route::get('/activities', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activities.index');
+    // PageSpeed Insightsとの同期履歴（D-78。選択中のブログの測定の記録）
+    Route::get('/pagespeed/runs', [\App\Http\Controllers\PageSpeedController::class, 'runs'])->name('pagespeed.runs.index');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）

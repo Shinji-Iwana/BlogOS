@@ -28,6 +28,7 @@ use App\Models\MaterialSuggestion;
 use App\Models\Media;
 use App\Models\Notice;
 use App\Models\Page;
+use App\Models\PageSpeedRun;
 use App\Models\Post;
 use App\Models\ScheduledTaskRun;
 use App\Models\Status;
@@ -75,6 +76,7 @@ class ActivityLogService
         'material'   => '教材・提携',
         'image'      => '画像',
         'google'     => 'Google',
+        'pagespeed'  => 'PageSpeed',
         'openai'     => 'OpenAI',
         'wpinfo'     => 'WordPress情報',
         'blog'       => 'ブログ',
@@ -222,6 +224,9 @@ class ActivityLogService
             ['google', $this->rows('google_fetch_runs', 'google_fetch_runs', 'start', 'started_at')],
             ['google', $this->rows('google_fetch_runs', 'google_fetch_runs', 'end', 'finished_at')],
             ['google', $this->rows('google_index_statuses', 'google_index_statuses', 'changed', 'category_changed_at')],
+            // PageSpeed（D-78）
+            ['pagespeed', $this->rows('pagespeed_runs', 'pagespeed_runs', 'start', 'started_at')],
+            ['pagespeed', $this->rows('pagespeed_runs', 'pagespeed_runs', 'end', 'finished_at')],
             // OpenAI
             ['openai', $this->rows('ai_price_checks', 'ai_price_checks', 'checked', 'created_at', false)],
             ['openai', $this->rows('ai_price_changes', 'ai_price_changes', 'created', 'created_at', false)],
@@ -303,6 +308,7 @@ class ActivityLogService
             'material'   => ['materials', 'material_suggestions', 'article_material_reviews', 'affiliate_programs'],
             'image'      => ['images'],
             'google'     => ['google_fetch_runs', 'google_index_statuses'],
+            'pagespeed'  => ['pagespeed_runs'],
             'openai'     => ['ai_price_checks', 'ai_price_changes', 'ai_credit_entries'],
             'wpinfo'     => ['wordpress_components'],
             'blog'       => ['blog_histories', 'blog_setting_histories'],
@@ -363,6 +369,7 @@ class ActivityLogService
             'images'                         => fn () => Image::whereIn('id', $ids)->get(),
             'google_fetch_runs'              => fn () => GoogleFetchRun::whereIn('id', $ids)->get(),
             'google_index_statuses'          => fn () => GoogleIndexStatus::whereIn('id', $ids)->get(),
+            'pagespeed_runs'                 => fn () => PageSpeedRun::with(['post:id,title_raw', 'page:id,title_raw'])->whereIn('id', $ids)->get(),
             'ai_price_checks'                => fn () => AiPriceCheck::whereIn('id', $ids)->get(),
             'ai_price_changes'               => fn () => AiPriceChange::whereIn('id', $ids)->get(),
             'ai_credit_entries'              => fn () => AiCreditEntry::whereIn('id', $ids)->get(),
@@ -465,6 +472,10 @@ class ActivityLogService
                 ? ["Googleとの同期を開始：{$this->label($m->service)}", route('google.fetch-runs.index')]
                 : ["Googleとの同期を終了：{$this->label($m->service)}：{$this->label($m->status)}" . $this->took($m->started_at, $m->finished_at) . ($m->row_count !== null ? "・{$m->row_count}行" : ''), route('google.fetch-runs.index')],
             'google_index_statuses' => ['インデックスの状態が変わった：' . ($m->previous_category ? $this->label($m->previous_category) . ' → ' : '') . $this->label($m->category) . $this->note($m->url), route('google.index-status')],
+            'pagespeed_runs' => $e === 'start'
+                ? ["PageSpeed Insights の測定を開始：{$m->strategyLabel()}" . $this->quote($m->targetLabel()), route('pagespeed.runs.index')]
+                : ["PageSpeed Insights の測定を終了：{$m->strategyLabel()}：{$m->statusLabel()}" . $this->quote($m->targetLabel())
+                    . ($m->status === 'succeeded' ? "（パフォーマンス {$m->performance_score}・SEO {$m->seo_score}）" : $this->note($m->error)) . $this->took($m->started_at, $m->finished_at), route('pagespeed.runs.index')],
             'ai_price_checks' => ['OpenAI API料金表を確認：' . (['succeeded' => '成功', 'failed' => '失敗'][$this->value($m->status)] ?? $this->value($m->status)) . "（反映 {$m->applied_count}件・確認待ち {$m->pending_count}件）", route('ai.prices.history')],
             'ai_price_changes' => $e === 'created'
                 ? ["料金の変更を見つけた：{$m->price_key} の {$m->field}（{$m->old_value} → {$m->new_value}）", route('ai.prices.history')]

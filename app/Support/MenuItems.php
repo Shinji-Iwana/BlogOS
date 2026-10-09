@@ -29,6 +29,8 @@ class MenuItems
             ['label' => 'WordPressとの同期履歴', 'route' => 'database.sync-runs.index'],
             // Googleとの同期履歴（D-63-19。以前は画面「Google連携」の取得の記録）
             ['label' => 'Googleとの同期履歴', 'route' => 'google.fetch-runs.index'],
+            // PageSpeed Insightsとの同期履歴（D-78）
+            ['label' => 'PageSpeed Insightsとの同期履歴', 'route' => 'pagespeed.runs.index'],
             // OpenAI API料金表との同期履歴（D-63-27。以前はAIの設定の画面の「料金表の変更の記録」）
             ['label' => 'OpenAI API料金表との同期履歴', 'route' => 'ai.prices.history'],
             ['label' => '定期実行履歴', 'route' => 'scheduled-tasks.runs'],

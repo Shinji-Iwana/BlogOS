@@ -66,6 +66,15 @@ class ScheduledTasks
             'menu_label'  => 'Googleのインデックス確認',
             'counts'      => '処理件数：調べた記事の数',
         ],
+        'pagespeed:measure' => [
+            'label'       => 'PageSpeed Insights の測定',
+            'description' => '記事とトップページの表示の速さなど（パフォーマンス・ユーザー補助・おすすめの方法・SEO）を、携帯・デスクトップで測る（Queue で1件ずつ。D-78）',
+            'frequency'   => 'weekly', 'weekday' => 1, 'time' => '07:00',
+            'after'       => ['blogs:sync'], 'can_disable' => true, 'manual' => true,
+            'menu_label'  => 'PageSpeed Insightsとの同期',
+            'tip'         => '1回に、記事を最大100件（まだ測っていない記事 → 前回の測定の後に更新された記事 → 前回の測定が古い記事の順）と、各ブログのトップページを測ります。1件に 10〜30秒かかるため、Queue で1件ずつ測ります。',
+            'counts'      => '処理件数：測った回数（URL×携帯・デスクトップ）',
+        ],
         'ai:auto-reevaluate' => [
             'label'       => '自動の再評価',
             'description' => '再評価の条件に当てはまる記事を、まとめて品質診断する（AI の設定で有効にしたブログだけ。料金がかかる）',
@@ -103,7 +112,7 @@ class ScheduledTasks
      * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）。
      * 「設定 → 即時実行」も、この順（D-63-25）
      */
-    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune'];
+    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune'];
 
     /**
      * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。
