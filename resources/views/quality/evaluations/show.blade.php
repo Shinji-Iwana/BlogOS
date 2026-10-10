@@ -107,7 +107,8 @@
     <div style="overflow-x:auto;">
         <table class="data evaluation-items">
             <colgroup><col><col class="evaluation-items-judgment"></colgroup>
-            <thead><tr><th>評価項目</th><th>判定</th></tr></thead>
+            {{-- 必須条件も、○ でなければ指摘を出し、記事改修に渡す（孤立記事でない（req.not_orphan）は、その記事の改修では直せないため渡さない。RevisionFindingService::NOT_FIXABLE_BY_REVISION） --}}
+            <thead><tr><th>評価項目</th><th>判定 @include('partials.tip', ['tip' => "○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。記事改修は、この指摘を直すべきこととして受け取ります。\nただし、孤立記事でない（req.not_orphan）は、ほかの記事からのリンクが要るため、記事改修には渡しません（ロードマップの編集案で直します）。"])</th></tr></thead>
             <tbody>
                 @foreach ($standard->required as $key => $condition)
                     @include('quality.evaluations.item-row', ['key' => $key, 'label' => $condition['label'], 'detail' => $details->get($key), 'criteria' => false, 'withPoints' => false])

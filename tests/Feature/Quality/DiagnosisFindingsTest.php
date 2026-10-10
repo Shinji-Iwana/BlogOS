@@ -67,7 +67,7 @@ class DiagnosisFindingsTest extends TestCase
             ->assertSeeInOrder(['<h3>① 検索意図', '<th>評価項目</th><th>判定', '○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。', '<h3>② 記事の型', '<h3>③ '], false)
             ->assertDontSee('<th>分類</th>', false)
             // 必須条件も同じ形（評価項目（条件＋キー）・判定の行を押すと、理由・指摘が開く。D-79-04）
-            ->assertSeeInOrder(['<h2 data-code="REQUIRED">必須条件</h2>', '<th>評価項目</th><th>判定</th></tr>', 'aria-controls="evaluation-item-req-title_match"'], false)
+            ->assertSeeInOrder(['<h2 data-code="REQUIRED">必須条件</h2>', '<th>評価項目</th><th>判定', '○ でない項目には、指摘', 'req.not_orphan）は、ほかの記事からのリンクが要るため', 'aria-controls="evaluation-item-req-title_match"'], false)
             ->assertDontSee('<th>キー</th>', false)
             ->assertDontSee('項目の行を押すと')
             ->assertSee('aria-controls="evaluation-item-type-do_result"', false)
