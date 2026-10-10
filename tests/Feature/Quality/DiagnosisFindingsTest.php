@@ -62,11 +62,38 @@ class DiagnosisFindingsTest extends TestCase
         $this->get(route('evaluations.show', ['id' => $evaluation->id]))->assertOk()
             ->assertSee('公開不可（記事の型の必須の項目を満たしていない）')
             ->assertSee('観点ごとの適合度')->assertSee('検索結果で選ばれるか')
-            ->assertSee('どう直すか：')->assertSee('コードの直後に、空欄で送信したときの表示を実行結果として示す');
+            ->assertSee('どう直すか：')->assertSee('コードの直後に、空欄で送信したときの表示を実行結果として示す')
+            // 採点項目は分類ごとに、分類名と表に分ける。評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く
+            ->assertSeeInOrder(['<h3>① 検索意図', '<th>評価項目</th><th>判定', '○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。', '<h3>② 記事の型'], false)
+            ->assertDontSee('<th>分類</th>', false)
+            // 必須条件も同じ形（評価項目（条件＋キー）・判定の行を押すと、理由・指摘が開く。D-79-04）
+            ->assertSeeInOrder(['<h2 data-code="REQUIRED">必須条件</h2>', '<th>評価項目</th><th>判定</th></tr>', 'aria-controls="evaluation-item-req-title_match"'], false)
+            ->assertDontSee('<th>キー</th>', false)
+            ->assertDontSee('項目の行を押すと')
+            ->assertSee('aria-controls="evaluation-item-type-do_result"', false)
+            ->assertSeeInOrder(['id="evaluation-item-type-do_result" hidden', '>判定の基準</th>', '>理由</th>', '>指摘</th>'], false)
+            // 判定の基準は、「○」「△」と補足の行の表にする（D-79-02）
+            ->assertSeeInOrder(['<table class="data evaluation-criteria">', '<tr><th>○</th><td>', '<tr><th>△</th><td>'], false);
+
+        // 分類名の横に、分類の総得点（得点 / 配点）を出す。各項目の得点も「点」を付ける
+        $html = $this->get(route('evaluations.show', ['id' => $evaluation->id]))->getContent();
+        $this->assertMatchesRegularExpression('/<td style="white-space:nowrap;">\d+(\.\d)?点 \/ \d+点<\/td>/u', $html);
+        $this->assertMatchesRegularExpression('/<h3>① 検索意図.*?：総得点（\d+(\.\d)?点 \/ \d+点）<\/h3>/su', $html);
 
         // 記事改修の指示文に、指摘が入る
         $prompt = app(PromptBuilder::class)->build(AiMode::Revision, $blog, $post, null, [], null)['prompt'];
         $this->assertStringContainsString('：type.do_result（実行結果）：×', $prompt);
         $this->assertStringContainsString('  - どう直すか：コードの直後に、空欄で送信したときの表示を実行結果として示す', $prompt);
+    }
+
+    public function test_criteria_are_split_by_judgment(): void
+    {
+        $this->assertSame(
+            [['○', '答えを示している（A／B のどちらでもよい）'], ['△', '一部だけ']],
+            \App\Support\QualityCriteria::split('○ 答えを示している（A／B のどちらでもよい） ／ △ 一部だけ'),
+        );
+        // 記号で始まらない文は、記号なしの1行
+        $this->assertSame([['', '人が確認する']], \App\Support\QualityCriteria::split('人が確認する'));
+        $this->assertSame([], \App\Support\QualityCriteria::split(null));
     }
 }

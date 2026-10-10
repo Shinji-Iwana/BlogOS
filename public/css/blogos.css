@@ -1176,3 +1176,65 @@ details.sync-run[open] > summary {
     }
 
 }
+
+/* 品質評価の採点項目：評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く（quality/evaluations/show）。開くかどうかの印を、項目の名前の前に出す */
+.evaluation-item {
+    cursor: pointer;
+}
+
+.evaluation-item > td:first-child::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 70%;
+    transition: transform 0.15s ease;
+}
+
+.evaluation-item[aria-expanded="true"] > td:first-child::before {
+    transform: rotate(90deg);
+}
+
+.evaluation-item-detail > td {
+    padding-left: 24px;
+}
+
+/* 表はパネルの幅いっぱいで、列の幅を決めておく（開いて中の表が出ても、表の大きさ・列の幅が変わらないように）。
+   判定（最長「要人間確認」）と得点（例：12.5点 / 15点）は、全部が見える幅で折り返さない */
+table.data.evaluation-items,
+table.data.evaluation-item-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.evaluation-items-judgment {
+    width: 8em;
+}
+
+/* 得点は「12.5点 / 15点」まで */
+.evaluation-items-points {
+    width: 10em;
+}
+
+table.data.evaluation-items > * > tr > td:nth-child(2),
+table.data.evaluation-items > * > tr > td:nth-child(3),
+table.data.evaluation-items > thead > tr > th {
+    white-space: nowrap;
+}
+
+.evaluation-item-table-label {
+    width: 7em;
+}
+
+/* 判定の基準の中の表（「○」「△」と補足。D-79-02）。中の表の幅いっぱいで、記号の列は狭く固定する */
+table.data.evaluation-criteria {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.evaluation-criteria-mark {
+    width: 3em;
+}
+
+table.data.evaluation-criteria > tbody > tr > th {
+    text-align: center;
+}

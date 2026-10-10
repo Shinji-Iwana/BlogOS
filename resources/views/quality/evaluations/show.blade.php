@@ -101,53 +101,72 @@
         </section>
     @endif
 
+    {{-- 必須条件：採点項目と同じく、評価項目（条件＋キー）・判定の行を押すと、理由・指摘の表が開く（必須条件には配点・判定の基準がない） --}}
     <section class="panel">
     <h2 data-code="REQUIRED">必須条件</h2>
-    <table class="data">
-        <thead><tr><th>キー</th><th>条件</th><th>判定</th><th>理由</th></tr></thead>
-        <tbody>
-            @foreach ($standard->required as $key => $condition)
-                @php $detail = $details->get($key); @endphp
-                <tr>
-                    <td><code>{{ $key }}</code></td>
-                    <td>{{ $condition['label'] }}</td>
-                    <td>{{ $detail?->judgment->label() ?? '-' }}</td>
-                    <td>{{ $detail?->comment }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-    </section>
-
-    <section class="panel">
-    <h2 data-code="ITEMS">採点項目と指摘</h2>
-    <p class="text-muted">○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。記事改修は、この指摘を直すべきこととして受け取ります。</p>
     <div style="overflow-x:auto;">
-        <table class="data">
-            <thead><tr><th>分類</th><th>評価項目（判定の基準）</th><th>判定</th><th>得点</th><th>理由</th><th>指摘</th></tr></thead>
+        <table class="data evaluation-items">
+            <colgroup><col><col class="evaluation-items-judgment"></colgroup>
+            <thead><tr><th>評価項目</th><th>判定</th></tr></thead>
             <tbody>
-                @foreach ($allItems + $details->except(array_merge(array_keys($allItems), array_keys($standard->required)))->map(fn ($d) => ['category' => '（今の品質基準にない項目）', 'label' => $d->item_key])->all() as $key => $item)
-                    @php $detail = $details->get($key); @endphp
-                    @continue($detail === null)
-                    <tr @if ($detail->judgment !== \App\Enums\Judgment::Good) class="row-attention" @endif>
-                        <td style="white-space:nowrap;">{{ $item['category'] }}</td>
-                        <td style="max-width:360px;">
-                            {{ $item['label'] }}@if ($item['required'] ?? false)<strong>（★必須）</strong>@endif <code style="font-size:80%;">{{ $key }}</code>
-                            @if ($item['criteria'] ?? null)<br><span class="text-muted" style="font-size:90%;">{{ $item['criteria'] }}</span>@endif
-                        </td>
-                        <td>{{ $detail->judgment->label() }}</td>
-                        <td style="white-space:nowrap;">{{ $detail->points !== null ? rtrim(rtrim(number_format($detail->points, 1), '0'), '.') . ' / ' . $detail->max_points : '-' }}</td>
-                        <td style="max-width:300px;">{{ $detail->comment }}</td>
-                        <td style="max-width:360px; font-size:90%;">
-                            @if ($detail->location)<strong>どこが：</strong>{{ $detail->location }}<br>@endif
-                            @if ($detail->problem)<strong>何が足りないか：</strong>{{ $detail->problem }}<br>@endif
-                            @if ($detail->fix)<strong>どう直すか：</strong>{{ $detail->fix }}@endif
-                        </td>
-                    </tr>
+                @foreach ($standard->required as $key => $condition)
+                    @include('quality.evaluations.item-row', ['key' => $key, 'label' => $condition['label'], 'detail' => $details->get($key), 'criteria' => false, 'withPoints' => false])
                 @endforeach
             </tbody>
         </table>
     </div>
     </section>
+
+    {{-- 採点項目と指摘：分類（①〜⑪）ごとに、分類名と表に分ける。評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く --}}
+    <section class="panel">
+    <h2 data-code="ITEMS">採点項目と指摘</h2>
+    @php
+        // 今の品質基準の項目の順（分類の順）に並べ、今の品質基準にない項目は最後にまとめる。判定していない項目は出さない
+        $scoredItems = collect($allItems + $details->except(array_merge(array_keys($allItems), array_keys($standard->required)))->map(fn ($d) => ['category' => '（今の品質基準にない項目）', 'label' => $d->item_key])->all())
+            ->filter(fn ($item, $key) => $details->has($key))
+            ->groupBy('category', preserveKeys: true);
+    @endphp
+    @foreach ($scoredItems as $category => $items)
+        {{-- 指摘の説明は、判定の列のツールチップに出す --}}
+        @php
+            // 分類の総得点（得点 / 配点。例：12.5点 / 15点）。点数の計算と同じく、要人間確認（点が付いていない項目）は、得点・配点のどちらにも入れない
+            $scored = collect($items)->keys()->map(fn ($key) => $details->get($key))->filter(fn ($detail) => $detail->points !== null && $detail->max_points !== null);
+            $points = fn ($value) => rtrim(rtrim(number_format($value, 1), '0'), '.');
+            $categoryTotal = $scored->isNotEmpty() ? $points($scored->sum('points')) . '点 / ' . $points($scored->sum('max_points')) . '点' : null;
+        @endphp
+        <h3>{{ $category }}@if ($categoryTotal)：総得点（{{ $categoryTotal }}）@endif</h3>
+        <div style="overflow-x:auto;">
+            <table class="data evaluation-items">
+                {{-- 列の幅は決めておく（開いても表の大きさが変わらないように。表はパネルの幅いっぱい） --}}
+                <colgroup><col><col class="evaluation-items-judgment"><col class="evaluation-items-points"></colgroup>
+                <thead><tr><th>評価項目</th><th>判定 @include('partials.tip', ['tip' => '○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。記事改修は、この指摘を直すべきこととして受け取ります。'])</th><th>得点</th></tr></thead>
+                <tbody>
+                    @foreach ($items as $key => $item)
+                        @include('quality.evaluations.item-row', ['key' => $key, 'label' => $item['label'], 'detail' => $details->get($key), 'criteria' => $item['criteria'] ?? null, 'withPoints' => true, 'typeRequired' => $item['required'] ?? false])
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endforeach
+    </section>
+
+    <script>
+        // 評価項目の行を押す（Enter・スペースでも）と、すぐ下の判定の基準・理由・指摘の表を開く・閉じる
+        document.querySelectorAll('.evaluation-item').forEach((row) => {
+            const toggle = () => {
+                const detail = document.getElementById(row.getAttribute('aria-controls'));
+                const open = row.getAttribute('aria-expanded') !== 'true';
+                row.setAttribute('aria-expanded', open ? 'true' : 'false');
+                detail.hidden = !open;
+            };
+            row.addEventListener('click', toggle);
+            row.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    </script>
 
 @endsection
