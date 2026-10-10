@@ -15,6 +15,7 @@ use App\Repositories\ArticleManagementRepository;
 use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
 use App\Repositories\MaterialRepository;
+use App\Services\PageSpeed\PageSpeedReportService;
 use App\Support\QualityProfiles;
 use Illuminate\Http\Request;
 
@@ -101,6 +102,9 @@ class ArticleController extends Controller
             // 記事で使っている教材と、最新の見直しの結果（D-30）
             'articleMaterials' => $this->materials->forArticle($article),
             'materialReview'   => $this->materials->latestReviewFor($article),
+            // ページの速さ（PageSpeed Insights。D-78）：端末ごとの最新の結果と、測定の記録
+            'pagespeed'        => app(PageSpeedReportService::class)->latestForArticle($article),
+            'pagespeedHistory' => app(PageSpeedReportService::class)->historyForArticle($article),
             'relatedQuery'  => $relatedKeyword,
             'relatedType'   => $relatedType,
             'candidates'    => $candidates,

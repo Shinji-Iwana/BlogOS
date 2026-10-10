@@ -102,6 +102,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/activities', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activities.index');
     // PageSpeed Insightsとの同期履歴（D-78。選択中のブログの測定の記録）
     Route::get('/pagespeed/runs', [\App\Http\Controllers\PageSpeedController::class, 'runs'])->name('pagespeed.runs.index');
+    // PageSpeed Insights情報（メニューの「情報」）と、今すぐ測定（記事・トップページ。D-78）
+    Route::get('/pagespeed', [\App\Http\Controllers\PageSpeedController::class, 'index'])->name('pagespeed.index');
+    Route::post('/pagespeed/measure', [\App\Http\Controllers\PageSpeedController::class, 'measure'])->middleware(EnsureSelectedBlog::class)->name('pagespeed.measure');
 
     // 定期実行（D-44）。ブログ全体の処理のため、選択中のブログの照合はしない
     // 画面「定期実行」はなくした（設定・今すぐ実行はメニュー。D-63-10）

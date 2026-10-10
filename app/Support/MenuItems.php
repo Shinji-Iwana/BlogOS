@@ -79,6 +79,8 @@ class MenuItems
             ['label' => 'WordPress API情報', 'route' => 'wp-api.home'],
             // OpenAI API料金表情報（D-63-28。以前はAIの設定の画面の「API実行の料金表」）
             ['label' => 'OpenAI API料金表情報', 'route' => 'ai.prices.index'],
+            // PageSpeed Insights情報（D-78。並びの最後。サイト全体のまとめ・多い問題・記事ごとの最新の結果）
+            ['label' => 'PageSpeed Insights情報', 'route' => 'pagespeed.index'],
         ]],
     ];
 

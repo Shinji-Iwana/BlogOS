@@ -180,6 +180,48 @@
 
     {{-- 管理情報（D-08-02） --}}
     </section>
+    {{-- ページの速さ（PageSpeed Insights。D-78）：携帯・デスクトップの最新の結果・合格しなかった項目・測定の記録・今すぐ測定 --}}
+    <section class="panel">
+    <h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights） @include('partials.tip', ['tip' => "PageSpeed Insights で測った、この記事の表示の速さなどです（定期実行で毎週。下の「今すぐ測定」でも測れます）。\nGoogle は携帯の表示で評価するため、携帯の結果を主に見てください。試しに開いた値は、測るたびに数点ぶれます。"])</h2>
+    @if ($pagespeed['mobile'] || $pagespeed['desktop'])
+        @include('pagespeed.scores', ['runs' => ['携帯' => $pagespeed['mobile'], 'デスクトップ' => $pagespeed['desktop']]])
+    @else
+        <p>まだ測っていません。</p>
+    @endif
+
+    @if ($pagespeedHistory->isNotEmpty())
+        <details>
+            <summary>測定の記録（新しい順、最大{{ $pagespeedHistory->count() }}件）</summary>
+            <div style="overflow-x:auto;">
+                <table class="data">
+                    <thead><tr><th>日時</th><th>端末</th><th>結果</th><th>パフォーマンス</th><th>ユーザー補助</th><th>おすすめの方法</th><th>SEO</th></tr></thead>
+                    <tbody>
+                        @foreach ($pagespeedHistory as $run)
+                            <tr>
+                                <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($run->started_at) }}</td>
+                                <td>{{ $run->strategyLabel() }}</td>
+                                <td>{{ $run->statusLabel() }}</td>
+                                <td>{{ $run->performance_score }}</td>
+                                <td>{{ $run->accessibility_score }}</td>
+                                <td>{{ $run->best_practices_score }}</td>
+                                <td>{{ $run->seo_score }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    @endif
+
+    <form method="POST" action="{{ route('pagespeed.measure') }}" class="filter-actions">
+        @csrf
+        @include('partials.selected-blog-field')
+        <input type="hidden" name="type" value="{{ $type }}">
+        <input type="hidden" name="id" value="{{ $article->id }}">
+        <a href="{{ route('pagespeed.index') }}">PageSpeed Insights情報</a>
+        <button type="submit" class="btn-secondary">今すぐ測定</button>
+    </form>
+    </section>
     <section class="panel">
     <h2 data-code="MANAGEMENT">管理情報</h2>
     <form method="POST" action="{{ route('articles.management.update', ['type' => $type, 'id' => $article->id]) }}">

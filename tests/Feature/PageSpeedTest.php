@@ -161,4 +161,77 @@ class PageSpeedTest extends TestCase
         $this->get(route('activities.index'))->assertOk()
             ->assertSeeInOrder(['PageSpeed Insights の測定を終了：携帯：成功『記事1』（パフォーマンス 72・SEO 92）', 'PageSpeed Insights の測定を開始：携帯『記事1』']);
     }
-}
+
+    protected function succeededRun(?Post $post, string $strategy, int $performance, array $audits = []): PageSpeedRun
+    {
+        return PageSpeedRun::create(['blog_id' => $this->blog->id, 'post_id' => $post?->id, 'url' => $post?->link ?? 'https://blog.example.test/', 'strategy' => $strategy, 'trigger' => 'scheduled', 'status' => 'succeeded',
+            'performance_score' => $performance, 'accessibility_score' => 90, 'best_practices_score' => 100, 'seo_score' => 92, 'lcp_ms' => 3200, 'cls' => 0.05, 'tbt_ms' => 150,
+            'field_category' => 'AVERAGE', 'field_lcp_ms' => 2900, 'field_inp_ms' => 180, 'field_cls' => 0.05, 'origin_category' => 'FAST', 'origin_lcp_ms' => 2100,
+            'failed_audits' => $audits, 'started_at' => now(), 'finished_at' => now()]);
+    }
+
+    public function test_article_page_shows_latest_results_and_measure_now(): void
+    {
+        Queue::fake();
+        $this->actingAs(User::factory()->create());
+        $post = $this->article(1);
+        $this->succeededRun($post, 'mobile', 45, [['id' => 'image-alt', 'categories' => ['accessibility', 'seo'], 'title' => '画像要素に [alt] 属性が指定されていません', 'score' => 0, 'display_value' => null]]);
+        $this->succeededRun($post, 'desktop', 95);
+
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSee('<h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights）', false)
+            ->assertSeeInOrder(['携帯', 'デスクトップ', 'パフォーマンス', '45（不良）', '95（良好）'])
+            ->assertSee('改善が必要（LCP 2.9秒・INP 180ms・CLS 0.05）')
+            ->assertSee('携帯：合格しなかった項目（1件）')
+            ->assertSee('今すぐ測定');
+
+        // 今すぐ測定：携帯・デスクトップの2回を、手動の測定として Queue に登録する
+        $this->post(route('pagespeed.measure'), ['selected_blog_id' => $this->blog->id, 'type' => 'posts', 'id' => $post->id])
+            ->assertRedirect()->assertSessionHas('status');
+        $pushed = Queue::pushed(MeasurePageSpeedJob::class);
+        $this->assertSame([[$post->link, 'mobile', 'manual'], [$post->link, 'desktop', 'manual']], $pushed->map(fn ($job) => [$job->url, $job->strategy, $job->trigger])->values()->all());
+
+        // トップページ（type・id なし）
+        $this->post(route('pagespeed.measure'), ['selected_blog_id' => $this->blog->id])->assertRedirect();
+        $this->assertSame('https://blog.example.test/', Queue::pushed(MeasurePageSpeedJob::class)->last()->url);
+
+        // APIキーがなければ登録しない
+        config(['services.pagespeed.key' => null]);
+        $this->post(route('pagespeed.measure'), ['selected_blog_id' => $this->blog->id])->assertSessionHasErrors('pagespeed');
+        $this->assertCount(4, Queue::pushed(MeasurePageSpeedJob::class));
+    }
+
+    public function test_info_page_summarizes_latest_results(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $alt = ['id' => 'image-alt', 'categories' => ['accessibility', 'seo'], 'title' => '画像要素に [alt] 属性が指定されていません', 'score' => 0, 'display_value' => null];
+        $first = $this->article(1);
+        $second = $this->article(2);
+        $this->article(3);
+        // 記事1は、古い結果（30点）の後に新しい結果（80点）。最新の結果だけを数える
+        $this->succeededRun($first, 'mobile', 30, [$alt]);
+        $this->succeededRun($first, 'mobile', 80, [$alt]);
+        $this->succeededRun($second, 'mobile', 40, [$alt]);
+        $this->succeededRun(null, 'mobile', 70);
+        $this->succeededRun($first, 'desktop', 99);
+
+        $this->get(route('pagespeed.index'))->assertOk()
+            ->assertSee('<h1>PageSpeed Insights情報', false)
+            ->assertSee('<h2 data-code="SITE">トップページ（携帯）</h2>', false)
+            ->assertSee('70（改善が必要）')
+            ->assertSee('測った記事：2件（公開中の記事 3件')
+            // パフォーマンスの平均 (80 + 40) / 2
+            ->assertSeeInOrder(['パフォーマンス', '60', '0件', '1件', '1件'])
+            ->assertSeeInOrder(['画像要素に [alt] 属性が指定されていません', 'ユーザー補助・SEO', '2件'])
+            // 記事ごとの最新の結果は、点数の低い順
+            ->assertSeeInOrder(['記事2', '記事1'])
+            ->assertSee(route('articles.show', ['type' => 'posts', 'id' => $first->id]));
+
+        // デスクトップに切り替える
+        $this->get(route('pagespeed.index', ['strategy' => 'desktop']))->assertOk()
+            ->assertSee('記事のまとめ（デスクトップ）')
+            ->assertSee('測った記事：1件');
+
+        // メニューの「情報」から開ける
+        $this->get(route('home'))->assertSee(route('pagespeed.index'));
+    }}
