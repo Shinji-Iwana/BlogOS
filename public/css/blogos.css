@@ -1177,12 +1177,15 @@ details.sync-run[open] > summary {
 
 }
 
-/* 品質評価の採点項目：評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く（quality/evaluations/show）。開くかどうかの印を、項目の名前の前に出す */
-.evaluation-item {
+/* 押すと、すぐ下の行が開く行（品質評価の採点項目：quality/evaluations/show。.expand-row は、ほかの画面でも使う共通の形：reactor/compare）。
+   開くかどうかの印を、行の最初のセルの前に出す */
+.evaluation-item,
+.expand-row {
     cursor: pointer;
 }
 
-.evaluation-item > td:first-child::before {
+.evaluation-item > td:first-child::before,
+.expand-row > td:first-child::before {
     content: "▶";
     display: inline-block;
     margin-right: 6px;
@@ -1190,11 +1193,13 @@ details.sync-run[open] > summary {
     transition: transform 0.15s ease;
 }
 
-.evaluation-item[aria-expanded="true"] > td:first-child::before {
+.evaluation-item[aria-expanded="true"] > td:first-child::before,
+.expand-row[aria-expanded="true"] > td:first-child::before {
     transform: rotate(90deg);
 }
 
-.evaluation-item-detail > td {
+.evaluation-item-detail > td,
+.expand-row-detail > td {
     padding-left: 24px;
 }
 

@@ -119,7 +119,11 @@ class DashboardStatusTest extends TestCase
         $response = $this->get(route('reactor.compare'))->assertOk()
             ->assertSeeInOrder(['トップページの通常時', 'パネル（引き出し）の通常時', 'AI の実行中', '音声：聞いている間', '音声：考えている間', '音声：話している間'])
             ->assertSee('data-scene="drawer"', false)
-            ->assertSee('data-voice="thinking"', false);
+            ->assertSee('data-voice="thinking"', false)
+            // 速さは部分ごとの表（赤のときの値も持つ）、条件は押すと開く行。色の補足は、色のパネルの名前のツールチップ
+            ->assertSeeInOrder(['<details class="reactor-compare-details">', '<summary><strong>トップページの通常時</strong></summary>', '>HUDの円</th>', '>外側の輪</th>', '>脈打ち</th>', '<span class="reactor-compare-speed-critical">1.5秒</span>', '>コイルの電気</th>'], false)
+            ->assertSeeInOrder(['class="expand-row"', 'この動きになるとき', 'class="expand-row-detail"', '通常時に戻るとき'], false)
+            ->assertDontSee('<p class="text-muted">色は、', false);
         $this->assertSame(6, substr_count($response->getContent(), 'data-preview="1"'));
     }
 
