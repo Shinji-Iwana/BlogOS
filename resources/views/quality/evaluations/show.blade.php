@@ -124,7 +124,9 @@
         // 今の品質基準の項目の順（分類の順）に並べ、今の品質基準にない項目は最後にまとめる。判定していない項目は出さない
         $scoredItems = collect($allItems + $details->except(array_merge(array_keys($allItems), array_keys($standard->required)))->map(fn ($d) => ['category' => '（今の品質基準にない項目）', 'label' => $d->item_key])->all())
             ->filter(fn ($item, $key) => $details->has($key))
-            ->groupBy('category', preserveKeys: true);
+            ->groupBy('category', preserveKeys: true)
+            // 分類は、品質基準の見出しの順（①〜⑪）にする。② 記事の型の項目はブログ別のファイルから読み、ほかの項目の後ろに付くため、並べ直す
+            ->sortBy(fn ($items, $category) => ($position = array_search($category, array_keys($standard->categories), true)) === false ? PHP_INT_MAX : $position);
     @endphp
     @foreach ($scoredItems as $category => $items)
         {{-- 指摘の説明は、判定の列のツールチップに出す --}}

@@ -64,7 +64,7 @@ class DiagnosisFindingsTest extends TestCase
             ->assertSee('観点ごとの適合度')->assertSee('検索結果で選ばれるか')
             ->assertSee('どう直すか：')->assertSee('コードの直後に、空欄で送信したときの表示を実行結果として示す')
             // 採点項目は分類ごとに、分類名と表に分ける。評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く
-            ->assertSeeInOrder(['<h3>① 検索意図', '<th>評価項目</th><th>判定', '○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。', '<h3>② 記事の型'], false)
+            ->assertSeeInOrder(['<h3>① 検索意図', '<th>評価項目</th><th>判定', '○ でない項目には、指摘（どこが・何が足りないか・どう直すか）を出します。', '<h3>② 記事の型', '<h3>③ '], false)
             ->assertDontSee('<th>分類</th>', false)
             // 必須条件も同じ形（評価項目（条件＋キー）・判定の行を押すと、理由・指摘が開く。D-79-04）
             ->assertSeeInOrder(['<h2 data-code="REQUIRED">必須条件</h2>', '<th>評価項目</th><th>判定</th></tr>', 'aria-controls="evaluation-item-req-title_match"'], false)
