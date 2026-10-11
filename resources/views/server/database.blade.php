@@ -1,4 +1,11 @@
-{{-- XServer情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71） --}}
+{{--
+    XServer情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71）。
+    $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、その画面と同じ形（名前（テーブル名）のリンク・WordPress側で削除済みの件数）で出す（D-71-07）。
+    BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。WordPress の DB のテーブルは、テーブル名だけ
+--}}
+@php
+    $wordpressTables ??= [];
+@endphp
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
 <table class="data">
     <tbody>
@@ -19,12 +26,26 @@
     <summary>テーブルごとの件数と容量（容量の大きい順）</summary>
     <div style="overflow-x:auto;">
     <table class="data">
-        <thead><tr><th>テーブル</th><th>件数</th><th>容量（データと索引）</th></tr></thead>
+        <thead><tr><th>テーブル</th><th>件数</th>@if ($wordpressTables !== [])<th>うちWordPress側で削除済み</th>@endif<th>容量（データと索引）</th></tr></thead>
         <tbody>
             @foreach ($database['tables'] as $table)
+                @php
+                    $wordpressTable = $wordpressTables[$table['name']] ?? null;
+                @endphp
                 <tr>
-                    <td>{{ $table['name'] }}</td>
+                    @if ($wordpressTable)
+                        {{-- 一覧は選択中のブログの分を出すため、ブログを選んでいなければリンクにしない --}}
+                        <td>@if ($selectedBlog)<a href="{{ route('database.wordpress-records.index', ['table' => $table['name']]) }}">{{ $wordpressTable['label'] }}</a>@else{{ $wordpressTable['label'] }}@endif（{{ $table['name'] }}）</td>
+                    @elseif ($wordpressTables !== [])
+                        {{-- BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で、日本語名を一覧へのリンクにする（日本語名がなければテーブル名のリンク。D-80） --}}
+                        <td><a href="{{ route('database.tables.index', ['table' => $table['name']]) }}">{{ \App\Support\DatabaseTables::label($table['name']) ?? $table['name'] }}</a>@if (\App\Support\DatabaseTables::label($table['name']))（{{ $table['name'] }}）@endif</td>
+                    @else
+                        <td>{{ $table['name'] }}</td>
+                    @endif
                     <td style="text-align:right;">{{ number_format($table['rows']) }}</td>
+                    @if ($wordpressTables !== [])
+                        <td style="text-align:right;">{{ $wordpressTable ? number_format($wordpressTable['deleted']) : '' }}</td>
+                    @endif
                     <td style="text-align:right;">{{ $size($table['bytes']) }}</td>
                 </tr>
             @endforeach

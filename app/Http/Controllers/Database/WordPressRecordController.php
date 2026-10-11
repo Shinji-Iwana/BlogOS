@@ -50,6 +50,16 @@ class WordPressRecordController extends Controller
     }
 
     /**
+     * 表示できるテーブルの定義（テーブル名 => label・model など）。XServer情報の DB（BlogOS）の表でも使う（D-71-07）
+     *
+     * @return array<string, array{label: string, model: class-string<WordPressRecord>}>
+     */
+    public static function definitions(): array
+    {
+        return self::TABLES;
+    }
+
+    /**
      * テーブルの一覧（DB確認画面の入口）
      */
     public function tables()
@@ -85,7 +95,7 @@ class WordPressRecordController extends Controller
                     }
                 });
             })
-            ->orderBy($definition['columns'][0])
+            ->orderByDesc('id')
             ->paginate(HistoryPage::PER_PAGE)
             ->withQueryString();
 

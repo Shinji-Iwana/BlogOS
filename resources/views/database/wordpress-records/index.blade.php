@@ -19,10 +19,10 @@
     </form>
     </section>
 
-    {{-- レコードの一覧（1ページ最大50件。並びは、一覧の最初の列の昇順） --}}
+    {{-- レコードの一覧（1ページ最大50件。並びは、id の降順＝新しい順。D-80） --}}
     <section class="panel">
     <h2 data-code="RECORD">レコード</h2>
-    @include('partials.history-count', ['paginator' => $records, 'order' => $definition['columns'][0] . '昇順'])
+    @include('partials.history-count', ['paginator' => $records, 'order' => 'id降順'])
 
     <div style="overflow-x:auto;">
         <table class="data">

@@ -36,6 +36,22 @@ class ServerStatusTest extends TestCase
         $this->assertSame(2, ScheduledTaskRun::count());
     }
 
+    public function test_wordpress_tables_are_shown_like_wordpress_data_page(): void
+    {
+        $blog = \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        \App\Models\Tag::create(['blog_id' => $blog->id, 'wordpress_id' => 1, 'name' => 'A', 'slug' => 'a']);
+        \App\Models\Tag::create(['blog_id' => $blog->id, 'wordpress_id' => 2, 'name' => 'B', 'slug' => 'b', 'wordpress_deleted_at' => now()]);
+
+        // 取り込んだ WordPress のデータのテーブルは「名前（テーブル名）」のリンクと、WordPress側で削除済みの件数を、件数と容量の間に出す（D-71-07）
+        $this->actingAs(User::factory()->create())
+            ->get(route('server.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['<h2>DB（BlogOS）</h2>', '<th>テーブル</th><th>件数</th><th>うちWordPress側で削除済み</th><th>容量（データと索引）</th>'], false)
+            ->assertSeeInOrder(['<a href="' . route('database.wordpress-records.index', ['table' => 'tags']) . '">タグ</a>（tags）</td>', '>2</td>', '>1</td>'], false)
+            // ほかのテーブルも「日本語名（テーブル名）」で、全テーブルの一覧へつなぐ（D-80）
+            ->assertSee('<a href="' . route('database.tables.index', ['table' => 'scheduled_task_runs']) . '">定期実行の記録</a>（scheduled_task_runs）', false);
+    }
+
     public function test_prunable_counts_records_past_retention(): void
     {
         ScheduledTaskRun::create(['task_key' => 'model:prune', 'trigger' => 'scheduled', 'status' => 'succeeded', 'started_at' => now()->subYears(2)]);

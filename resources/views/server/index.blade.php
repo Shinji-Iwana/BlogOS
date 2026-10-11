@@ -49,7 +49,7 @@
 
     <section class="panel">
     <h2>DB（BlogOS）</h2>
-    @include('server.database', ['database' => $database, 'size' => $size])
+    @include('server.database', ['database' => $database, 'wordpressTables' => $wordpressTables, 'size' => $size])
     </section>
 
     {{-- WordPress の DB（BlogOS の DB のユーザーにアクセス権がある DB。読むだけ。D-71-04） --}}

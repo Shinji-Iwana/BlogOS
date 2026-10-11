@@ -31,6 +31,7 @@ use App\Http\Controllers\Database\BlogHistoryListController as DatabaseBlogHisto
 use App\Http\Controllers\Database\BlogListController as DatabaseBlogListController;
 use App\Http\Controllers\Database\LoginHistoryController as DatabaseLoginHistoryController;
 use App\Http\Controllers\Database\SyncRunController as DatabaseSyncRunController;
+use App\Http\Controllers\Database\TableRecordController as DatabaseTableRecordController;
 use App\Http\Controllers\Database\WordPressRecordController as DatabaseWordPressRecordController;
 use App\Http\Controllers\Google\GoogleOAuthController;
 use App\Http\Controllers\Google\GoogleIndexController;
@@ -203,6 +204,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/database/wordpress', [DatabaseWordPressRecordController::class, 'tables'])->name('database.wordpress-records.tables');
     Route::get('/database/wordpress/{table}', [DatabaseWordPressRecordController::class, 'index'])->name('database.wordpress-records.index');
     Route::get('/database/wordpress/{table}/{id}', [DatabaseWordPressRecordController::class, 'show'])->whereNumber('id')->name('database.wordpress-records.show');
+    // BlogOS の DB の全テーブルの一覧・詳細（XServer情報の「テーブルごとの件数と容量」から開く。D-80）
+    Route::get('/database/tables/{table}', [DatabaseTableRecordController::class, 'index'])->name('database.tables.index');
+    Route::get('/database/tables/{table}/{id}', [DatabaseTableRecordController::class, 'show'])->name('database.tables.show');
 
     // API確認画面（D-11-02、ARCHITECTURE 21-2）
     Route::get('/wordpress-api', [WordPressApiResourceController::class, 'home'])->name('wp-api.home');
