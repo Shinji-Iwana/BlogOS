@@ -82,7 +82,9 @@ class RevisionFindingsTest extends TestCase
         $this->get(route('drafts.edit', ['id' => $draft->id]))->assertOk()
             ->assertSee('指摘と対応')->assertSee('解消 1件・一部解消 1件・未解消 0件')
             ->assertSee('見出し「書き方」に実行結果を加えた')->assertSee('できることは入ったが、違いが弱い')
-            ->assertSee(number_format($before->score, 1) . '点');
+            ->assertSee(number_format($before->score, 1) . '点')
+            // 観点を行に、改修前・改修後の適合度をバーと割合で出し、列の見出しに点数（評価の画面へのリンク）を出す（D-47-06）
+            ->assertSeeInOrder(['<th>観点</th>', '適合度：改修前（<a href="' . route('evaluations.show', ['id' => $before->id]) . '">', '適合度：改修後（', '<td title="', 'class="bar-track"'], false);
 
         // 一部解消の指摘は、次の改修では、編集案の評価の指摘として引き継がれる
         $this->post(route('ai.generations.store'), ['selected_blog_id' => $blog->id, 'mode' => 'revision', 'target' => "drafts:{$draft->id}", 'execution_method' => 'manual'])->assertRedirect();

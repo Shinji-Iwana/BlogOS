@@ -75,21 +75,37 @@
                 改修の結果は、<a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => 'drafts:' . $draft->id]) }}">AIで品質診断する</a>と確かめられます（指摘ごとに、解消したかを判定します）。
             @endif
         </p>
+        {{-- 観点ごとの適合度：品質評価の詳細の「観点ごとの適合度」と同じく、観点を行に、改修前・改修後の適合度をバーと割合で出す。
+             列の見出しに、それぞれの評価の点数（評価の画面へのリンク）を出す --}}
         @if ($before || $after)
-            <table class="data" style="margin-bottom:8px;">
-                <thead><tr><th></th><th>点数</th>@foreach ($qualityStandard->axes as $axis)<th>{{ $axis['label'] }}</th>@endforeach</tr></thead>
-                <tbody>
-                    @foreach (['改修前' => $before, '改修後' => $after] as $name => $evaluation)
+            <div style="overflow-x:auto;">
+                <table class="data" style="margin-bottom:8px;">
+                    <thead>
                         <tr>
-                            <th style="text-align:left;">{{ $name }}</th>
-                            <td>@if ($evaluation)<a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>@else - @endif</td>
-                            @foreach (array_keys($qualityStandard->axes) as $axisKey)
-                                <td>{{ isset($evaluation?->axis_scores[$axisKey]) ? number_format((float) $evaluation->axis_scores[$axisKey], 1) . '%' : '-' }}</td>
+                            <th>観点</th>
+                            @foreach (['改修前' => $before, '改修後' => $after] as $name => $evaluation)
+                                <th>
+                                    適合度：{{ $name }}（@if ($evaluation)<a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>@else未評価@endif）
+                                </th>
                             @endforeach
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($qualityStandard->axes as $axisKey => $axis)
+                            @php
+                                $axisBefore = isset($before?->axis_scores[$axisKey]) ? (float) $before->axis_scores[$axisKey] : null;
+                                $axisAfter = isset($after?->axis_scores[$axisKey]) ? (float) $after->axis_scores[$axisKey] : null;
+                            @endphp
+                            @continue($axisBefore === null && $axisAfter === null)
+                            <tr>
+                                <td title="{{ $axis['description'] }}">{{ $axis['label'] }}</td>
+                                <td style="white-space:nowrap;">@include('quality.evaluations.axis-bar', ['value' => $axisBefore])</td>
+                                <td style="white-space:nowrap;">@include('quality.evaluations.axis-bar', ['value' => $axisAfter])</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
         <p>
             解消 {{ $revisionFindings->where('check_status', 'resolved')->count() }}件・一部解消 {{ $revisionFindings->where('check_status', 'partial')->count() }}件・未解消 {{ $revisionFindings->where('check_status', 'unresolved')->count() }}件

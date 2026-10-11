@@ -81,10 +81,7 @@
                     @continue($value === null)
                     <tr @if ($value < 90 && $importance === '重要') class="row-attention" @endif>
                         <td title="{{ $axis['description'] }}">{{ $axis['label'] }}</td>
-                        <td style="white-space:nowrap;">
-                            <span class="bar-track" style="display:inline-block; width:120px; vertical-align:middle;"><span class="{{ $value >= 90 ? 'bar-good' : ($value >= 70 ? 'bar-mid' : 'bar-bad') }}" style="display:block; height:10px; width:{{ max(0, min(100, $value)) }}%;"></span></span>
-                            {{ number_format($value, 1) }}%
-                        </td>
+                        <td style="white-space:nowrap;">@include('quality.evaluations.axis-bar', ['value' => $value])</td>
                         <td>{{ $importance }}</td>
                         <td style="font-size:90%;">{{ $weak->map(fn ($d) => ($allItems[$d->item_key]['label'] ?? $d->item_key) . '（' . $d->judgment->label() . '）')->implode('、') ?: '-' }}</td>
                     </tr>
