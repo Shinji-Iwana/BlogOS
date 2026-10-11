@@ -67,7 +67,9 @@ class WordPressUpdateTest extends TestCase
         // お知らせは、トップページを開いたときに記録し、お知らせの画面に出す（D-74）
         $this->get(route('home'))->assertOk();
         $this->get(route('notices.index'))->assertOk()->assertSee('更新が2件あります')->assertSee('公開停止になったプラグインが1件あります')
-            ->assertSee('<a href="' . route('wordpress-updates.index') . '">WordPress情報</a>', false);
+            ->assertSee('<a href="' . route('wordpress-updates.index') . '">WordPress情報</a>', false)
+            // 行の色：要対応（更新と公開停止を1件にまとめたお知らせ）は薄い赤（D-74-08）
+            ->assertSee('<tr class="row-danger" title="要対応">', false);
 
         // 削除したプラグインは、次の確認で消える
         array_pop($plugins);

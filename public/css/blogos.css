@@ -487,30 +487,6 @@ table.data.stacked td[data-label=""]::before {
     pointer-events: none;
 }
 
-/* お知らせ履歴の一覧：行の色はほかの一覧と同じにし、要対応（赤）・注意（金）は、アークリアクターの小さな絵の色で表す（D-74-06）。
-   絵は、メッセージが2行になったときの高さに収まる大きさにする */
-.notice-list .notice-icon-cell {
-    width: 1%;
-    padding-top: 4px;
-    padding-bottom: 4px;
-}
-
-.notice-icon {
-    display: block;
-    width: 34px;
-    height: 34px;
-    filter: drop-shadow(0 0 2px currentColor);
-}
-
-/* 光の色は、アークリアクターの一番明るいときの色（css は reactor/reactor.css の --reactor-glow と同じ） */
-.notice-icon-error {
-    color: #ff4a3d;
-}
-
-.notice-icon-warn {
-    color: #ffbf3c;
-}
-
 .notice-tag {
     display: inline-block;
     padding: 0 6px;

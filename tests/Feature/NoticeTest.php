@@ -77,6 +77,8 @@ class NoticeTest extends TestCase
         $this->plugins(2);
         app(NoticeService::class)->refresh();
         $notice = $this->wordpressNotices()->first();
+        // 注意のお知らせ（行の色を見るため）
+        Notice::create(['blog_id' => $this->blog->id, 'kind' => 'link_switch', 'level' => 'warn', 'message' => 'リンクの切り替え・修正の編集案が1件あります。', 'signature' => '1', 'occurred_at' => now()]);
 
         // ヘッダーの数は、変動も解消もしていない未確認のお知らせの数
         $this->get(route('notices.index'))->assertOk()
@@ -85,9 +87,11 @@ class NoticeTest extends TestCase
             ->assertSee('更新が2件あります')
             ->assertSee('<span class="notice-badge" aria-hidden="true">' . Notice::open()->count() . '</span>', false)
             ->assertSee('<strong>未確認</strong>', false)
-            // 要対応・注意は、アークリアクターの小さな絵の色で表す（D-74-06）
-            ->assertSee('<symbol id="notice-reactor"', false)
-            ->assertSee('class="notice-icon notice-icon-error"', false);
+            // 要対応・注意は、行の色で表す（アークリアクターの絵の列はなくした。D-74-09）
+            ->assertDontSee('notice-icon', false)
+            // 行の色：要対応は薄い赤、注意は薄い黄（D-74-08）
+            ->assertSee('<tr class="row-danger" title="要対応">', false)
+            ->assertSee('<tr class="row-attention" title="注意">', false);
 
         $this->post(route('notices.confirm'), ['ids' => [$notice->id]])->assertRedirect();
 
