@@ -19,6 +19,7 @@ use App\Support\ArticlePlaceholders;
  * 1. 古い書き方を外す（FAQ の構造化データ、テーマの教材のショートコード、広告のショートコード、広告を含むことの表示）
  * 2. 目印を置き換える（[[教材:ID]]・[[記事:ID]]・[[画像:ID]]）。置き換えられない目印は残し、反映できないようにする
  * 3. 広告を含むことの表示・教材の枠の PR の印・広告のショートコードを、決まった位置に入れる
+ * 4. 本文に出てこない用語の補足（supplement-box）を削除する（D-35-05。WordPress への反映は人が確かめてから行うため、知らせずに消す）
  *
  * 広告などの設定がないブログ（html-rules.md のないブログ）では、2 だけを行う。
  */
@@ -62,9 +63,7 @@ class ArticleHtmlFinisher
             }
         }
 
-        foreach ($this->orphanSupplements($content) as $term) {
-            $notes[] = "本文に出てこない用語の補足があります：「{$term}」（補足を削除するか、補足の見出しの表記を本文に合わせてください）";
-        }
+        $content = $this->removeOrphanSupplements($content);
 
         foreach (ArticlePlaceholders::remaining($content) as $placeholder) {
             $notes[] = "置き換えられなかった目印：{$placeholder}（このままでは反映できません。登録してから「目印を置き換え直す」を押すか、本文から削除してください）";
@@ -197,37 +196,50 @@ class ArticleHtmlFinisher
     }
 
     /**
-     * 本文（その補足の枠の外）に出てこない用語の補足（html-rules.md 3-4。D-35-02）。
-     * 「補足：DOM（ドム）とは？」は、「DOM」か括弧の中の「ドム」のどちらかが本文にあればよい
-     *
-     * @return list<string> 用語
+     * 本文（その補足の枠の外）に出てこない用語の補足を削除する（html-rules.md 3-4。D-35-02・D-35-05）。
+     * 「補足：DOM（ドム）とは？」は、「DOM」か括弧の中の「ドム」のどちらかが本文にあれば残す。
+     * ほかの補足の説明文にだけ出てくる用語の補足は、その補足を消すと本文に出てこなくなるため、消せるものがなくなるまで繰り返す。
+     * 中に別の div がある枠（形の違う枠）は、範囲を正しく取れないため消さない
      */
-    protected function orphanSupplements(string $content): array
+    protected function removeOrphanSupplements(string $content): string
     {
-        preg_match_all('/<div class="supplement-box">.*?<\/div>/su', $content, $boxes, PREG_OFFSET_CAPTURE);
-
-        $orphans = [];
-        foreach ($boxes[0] as [$box, $offset]) {
-            if (! preg_match('/補足[：:]\s*(.+?)\s*(?:とは)?\s*[？?]?\s*<\/strong>/u', $box, $m)) {
-                continue;
-            }
-            $term = trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES));
-            $candidates = array_filter(array_map('trim', preg_split('/[（）()・／\/]/u', $term)), fn ($value) => mb_strlen($value) >= 2);
-            $rest = html_entity_decode(strip_tags(substr($content, 0, $offset) . ' ' . substr($content, $offset + strlen($box))), ENT_QUOTES);
-
-            $found = false;
-            foreach ($candidates as $candidate) {
-                if (mb_stripos($rest, $candidate) !== false) {
-                    $found = true;
-                    break;
+        for ($round = 0; $round < 10; $round++) {
+            $removed = false;
+            preg_match_all('/<div class="supplement-box">.*?<\/div>/su', $content, $boxes, PREG_OFFSET_CAPTURE);
+            foreach (array_reverse($boxes[0]) as [$box, $offset]) {
+                if (str_contains(substr($box, 1), '<div') || ! $this->isOrphanSupplement($content, $box, $offset)) {
+                    continue;
                 }
+                $content = rtrim(substr($content, 0, $offset)) . "\n" . ltrim(substr($content, $offset + strlen($box)));
+                $removed = true;
             }
-            if (! $found && $candidates !== []) {
-                $orphans[] = $term;
+            if (! $removed) {
+                break;
             }
         }
 
-        return $orphans;
+        return $content;
+    }
+
+    protected function isOrphanSupplement(string $content, string $box, int $offset): bool
+    {
+        if (! preg_match('/補足[：:]\s*(.+?)\s*(?:とは)?\s*[？?]?\s*<\/strong>/u', $box, $m)) {
+            return false;
+        }
+        $term = trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES));
+        $candidates = array_filter(array_map('trim', preg_split('/[（）()・／\/]/u', $term)), fn ($value) => mb_strlen($value) >= 2);
+        if ($candidates === []) {
+            return false;
+        }
+        $rest = html_entity_decode(strip_tags(substr($content, 0, $offset) . ' ' . substr($content, $offset + strlen($box))), ENT_QUOTES);
+
+        foreach ($candidates as $candidate) {
+            if (mb_stripos($rest, $candidate) !== false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

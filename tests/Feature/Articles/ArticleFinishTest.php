@@ -180,20 +180,27 @@ class ArticleFinishTest extends TestCase
         $this->assertSame($html, app(ArticleHtmlFinisher::class)->finish($this->blog, $html)['content']);
     }
 
-    public function test_supplements_for_terms_not_in_the_article_are_reported(): void
+    public function test_supplements_for_terms_not_in_the_article_are_removed(): void
     {
         $content = implode("\n", [
             '<p>JavaScriptはインタプリタ型の言語で、DOMを操作できます。</p>',
             '<div class="supplement-box"><strong>補足：インタプリタ型とは？</strong><br>上から順に読みながら動かす方式です。</div>',
             '<div class="supplement-box"><strong>補足：DOM（ドム）とは？</strong><br>ページの中身を JavaScript から読み書きできるように整理したものです。</div>',
-            '<div class="supplement-box"><strong>補足：コンパイルとは？</strong><br>まとめて機械の言葉に直すことです。</div>',
+            // 本文に出てこない用語の補足。その説明文にだけ出てくる用語（機械語）の補足も、続けて消す
+            '<div class="supplement-box"><strong>補足：コンパイルとは？</strong><br>まとめて機械語に直すことです。</div>',
+            '<div class="supplement-box"><strong>補足：機械語とは？</strong><br>コンピューターが直接読める命令です。</div>',
+            '<p>おわり</p>',
         ]);
 
-        $notes = implode("\n", app(ArticleHtmlFinisher::class)->finish($this->blog, $content)['notes']);
+        $finished = app(ArticleHtmlFinisher::class)->finish($this->blog, $content);
 
-        $this->assertStringContainsString('本文に出てこない用語の補足があります：「コンパイル」', $notes);
-        $this->assertStringNotContainsString('「インタプリタ型」', $notes);
-        $this->assertStringNotContainsString('「DOM（ドム）」', $notes);
+        // 本文にある用語の補足は残し、本文に出てこない用語の補足は消す（知らせはしない。D-35-05）
+        $this->assertStringContainsString('補足：インタプリタ型とは？', $finished['content']);
+        $this->assertStringContainsString('補足：DOM（ドム）とは？', $finished['content']);
+        $this->assertStringNotContainsString('補足：コンパイルとは？', $finished['content']);
+        $this->assertStringNotContainsString('補足：機械語とは？', $finished['content']);
+        $this->assertStringContainsString("整理したものです。</div>\n<p>おわり</p>", $finished['content']);
+        $this->assertStringNotContainsString('本文に出てこない用語', implode("\n", $finished['notes']));
     }
 
     public function test_revision_output_creates_image_requests_and_blocks_push_until_resolved(): void
