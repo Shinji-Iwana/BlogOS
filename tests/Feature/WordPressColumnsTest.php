@@ -53,15 +53,31 @@ class WordPressColumnsTest extends TestCase
 
         $child = \App\Models\Category::create(['blog_id' => $blog->id, 'wordpress_id' => 6, 'name' => 'DOM', 'slug' => 'dom', 'parent_id' => $category->id, 'wordpress_parent_id' => 5]);
 
+        // 親カテゴリを付けた変更の履歴（変更後の値の横に、つながる先を出す。D-72-15）
+        \Illuminate\Support\Facades\DB::table('category_histories')->insert(['blog_id' => $blog->id, 'category_id' => $child->id, 'change_set_id' => 'set-1', 'field' => 'parent_id', 'old_value' => null, 'new_value' => (string) $category->id, 'source' => 'wp_sync', 'changed_at' => now()]);
+
         $this->get(route('database.wordpress-records.show', ['table' => 'categories', 'id' => $child->id]))->assertOk()
             ->assertSee('data-tip="カテゴリの名前。"', false)
             ->assertSee('data-tip="WordPress の中での ID（WordPress の管理画面や API で使う番号）。"', false)
-            // 詳細・関連・変更履歴（D-72-09）
+            // 詳細・変更履歴（D-72-09）。関連は、詳細の値の横に「（リンク）」で出す（D-72-14）
             ->assertSee('<h2 data-code="DETAIL">詳細</h2>', false)
-            ->assertSee('<h2 data-code="RELATION">関連</h2>', false)
+            ->assertDontSee('<h2 data-code="RELATION">', false)
             ->assertSee('<h2 data-code="HISTORY">変更履歴</h2>', false)
-            ->assertSee('Example Blog')
-            ->assertSee('<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>', false)
-            ->assertSee('（新しい順、最大50件。');
+            ->assertSee('（<a href="' . route('database-blog-detail', ['id' => $blog->id]) . '">Example Blog</a>）', false)
+            ->assertSee('（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>）', false)
+            ->assertSee('（新しい順、最大50件。')
+            // 変更履歴：変更後の parent_id の横に親カテゴリ、category_id の横にこのカテゴリ（変更前は空のため出さない）
+            ->assertSeeInOrder(['<h2 data-code="HISTORY">', 'category_id', '（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $child->id]) . '">DOM #' . $child->id . '</a>）', 'new_value', '（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>）'], false);
+
+        // 親のないカテゴリは、親の列の横に何も出さない（「（なし）」とも出さない）
+        $parent = $this->get(route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]))->assertOk()->getContent();
+        $this->assertStringNotContainsString('（なし）', $parent);
+        $this->assertStringNotContainsString('取り込んだデータにない', $parent);
+
+        // 投稿のカテゴリ・タグ（列ではなく、別の表でつなぐ）は、詳細ではなく関連のパネルに出す。タグがなければ「なし」
+        $post = \App\Models\Post::create(['blog_id' => $blog->id, 'wordpress_id' => 100, 'title_raw' => '記事', 'status' => 'publish', 'link' => 'https://blog.example.test/100.html']);
+        $post->categories()->attach($category->id);
+        $this->get(route('database.wordpress-records.show', ['table' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSeeInOrder(['<h2 data-code="DETAIL">詳細</h2>', '<h2 data-code="RELATION">関連', '>カテゴリ</th>', '<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>', '>タグ</th>', '<td>なし</td>', '<h2 data-code="HISTORY">'], false);
     }
 }

@@ -120,11 +120,13 @@ class WordPressRecordController extends Controller
             'record'     => $record,
             'histories'  => $histories,
             'relations'  => $this->relations($table, $record, $blog->id),
+            // 変更履歴の値の横に出すつながる先（D-72-15）
+            'historyLinks' => $this->historyLinks($table, $record, $histories, $blog->id),
         ]);
     }
 
     /**
-     * 詳細の画面の「関連」に出す、ほかのデータとのつながり（列の値から。D-72-09）。
+     * 詳細の画面で、値の横に「（リンク）」で出す、ほかのデータとのつながり（列の値から。D-72-09・D-72-14）。
      * [列, 表示名, つながる先のテーブル, つながる先の列（id・slug）, 値が一覧（JSON）か]
      */
     protected const RELATIONS = [
@@ -181,19 +183,11 @@ class WordPressRecordController extends Controller
             'items'  => [['text' => $record->blog?->display_name ?? '#' . $record->blog_id, 'url' => route('database-blog-detail', ['id' => $record->blog_id])]],
         ]];
 
-        foreach (self::RELATIONS[$table] ?? [] as [$column, $label, $target, $key, $many]) {
-            $raw = $record->getRawOriginal($column);
-            $values = $many ? (array) (json_decode((string) $raw, true) ?? []) : [$raw];
-            $values = array_values(array_filter($values, fn ($value) => $value !== null && $value !== '' && $value !== 0 && $value !== '0'));
-
-            $model = self::TABLES[$target]['model'];
-            $found = $values === [] ? collect() : $model::where('blog_id', $blogId)->whereIn($key, $values)->get()->keyBy($key);
+        foreach (self::RELATIONS[$table] ?? [] as [$column, $label]) {
             $relations[] = [
                 'column' => $column,
                 'label'  => $label,
-                'items'  => array_map(fn ($value) => ($related = $found->get($value))
-                    ? ['text' => $this->recordName($related), 'url' => route('database.wordpress-records.show', ['table' => $target, 'id' => $related->id])]
-                    : ['text' => $value . '（取り込んだデータにない）', 'url' => null], $values),
+                'items'  => $this->resolve($table, $column, $record->getRawOriginal($column), $blogId),
             ];
         }
 
@@ -210,6 +204,71 @@ class WordPressRecordController extends Controller
         }
 
         return $relations;
+    }
+
+    /**
+     * 列の値の、つながる先（RELATIONS。値が空・0 ならない）
+     *
+     * @return list<array{text: string, url: string|null}>
+     */
+    protected function resolve(string $table, string $column, mixed $raw, int $blogId): array
+    {
+        $relation = collect(self::RELATIONS[$table] ?? [])->first(fn ($row) => $row[0] === $column);
+        if ($relation === null) {
+            return [];
+        }
+        [, , $target, $key, $many] = $relation;
+
+        $values = $many ? (array) (json_decode((string) $raw, true) ?? []) : [$raw];
+        $values = array_values(array_filter($values, fn ($value) => $value !== null && $value !== '' && $value !== 0 && $value !== '0'));
+        if ($values === []) {
+            return [];
+        }
+
+        $model = self::TABLES[$target]['model'];
+        $found = $model::where('blog_id', $blogId)->whereIn($key, $values)->get()->keyBy($key);
+
+        return array_map(fn ($value) => ($related = $found->get($value))
+            ? ['text' => $this->recordName($related), 'url' => route('database.wordpress-records.show', ['table' => $target, 'id' => $related->id])]
+            : ['text' => $value . '（取り込んだデータにない）', 'url' => null], $values);
+    }
+
+    /**
+     * 変更履歴の各行の、値の横に「（リンク）」で出すつながる先（D-72-15）：[履歴の ID => [列 => つながる先]]。
+     * ブログ・このレコード・反映の記録・同期の記録・変えた人と、変更前・変更後（変えた項目がつながる先を持つ列のとき）
+     *
+     * @param  iterable<\Illuminate\Database\Eloquent\Model>  $histories
+     * @return array<int, array<string, list<array{text: string, url: string|null}>>>
+     */
+    protected function historyLinks(string $table, WordPressRecord $record, iterable $histories, int $blogId): array
+    {
+        $record->loadMissing('blog');
+        $users = \App\Models\User::whereIn('id', collect($histories)->pluck('user_id')->filter()->unique()->all())->get()->keyBy('id');
+        $self = [['text' => $this->recordName($record), 'url' => route('database.wordpress-records.show', ['table' => $table, 'id' => $record->id])]];
+        $blog = [['text' => $record->blog?->display_name ?? '#' . $record->blog_id, 'url' => route('database-blog-detail', ['id' => $record->blog_id])]];
+
+        $links = [];
+        foreach ($histories as $history) {
+            $row = [
+                'blog_id'                => $blog,
+                $record::historyForeignKey() => $self,
+            ];
+            if ($history->wordpress_push_operation_id) {
+                $row['wordpress_push_operation_id'] = [['text' => '反映記録 #' . $history->wordpress_push_operation_id, 'url' => route('push-operations.show', ['id' => $history->wordpress_push_operation_id])]];
+            }
+            if ($history->sync_run_id) {
+                $row['sync_run_id'] = [['text' => '同期の記録 #' . $history->sync_run_id, 'url' => route('database.sync-runs.index')]];
+            }
+            if ($history->user_id && isset($users[$history->user_id])) {
+                $row['user_id'] = [['text' => (string) $users[$history->user_id]->name, 'url' => null]];
+            }
+            foreach (['old_value', 'new_value'] as $column) {
+                $row[$column] = $this->resolve($table, (string) $history->field, $history->getRawOriginal($column), $blogId);
+            }
+            $links[$history->id] = array_filter($row);
+        }
+
+        return $links;
     }
 
     /**
