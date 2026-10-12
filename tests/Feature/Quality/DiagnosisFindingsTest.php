@@ -80,6 +80,15 @@ class DiagnosisFindingsTest extends TestCase
         $this->assertMatchesRegularExpression('/<td style="white-space:nowrap;">\d+(\.\d)?点 \/ \d+点<\/td>/u', $html);
         $this->assertMatchesRegularExpression('/<h3>① 検索意図.*?：総得点（\d+(\.\d)?点 \/ \d+点）<\/h3>/su', $html);
 
+        // 一番上の表：左に点数の円グラフ（点数の境目で色を変える）、AI の点数の補足は「点数」の「?」、品質基準は2行（D-79-06）
+        $score = (float) $evaluation->fresh()->score;
+        $class = $score >= 95 ? 'good' : ($score >= 90 ? 'mid' : 'bad');
+        $this->assertStringContainsString('<figure class="score-gauge score-gauge-' . $class . '"', $html);
+        $this->assertStringContainsString('<span class="score-gauge-number">' . number_format($score, 1) . '</span>', $html);
+        $this->assertStringContainsString('data-tip="AIの点数：AIが判定できる項目だけで換算した参考値です。"', $html);
+        $this->assertStringNotContainsString('（AIの点数：', $html);
+        $this->assertMatchesRegularExpression('/共通基準 [\d.]+、si-note [\d.]+.*?<br>記事種類 /su', $html);
+
         // 記事改修の指示文に、指摘が入る
         $prompt = app(PromptBuilder::class)->build(AiMode::Revision, $blog, $post, null, [], null)['prompt'];
         $this->assertStringContainsString('：type.do_result（実行結果）：×', $prompt);

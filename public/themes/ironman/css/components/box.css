@@ -75,6 +75,16 @@ summary:hover {
 .bar-mid { background: var(--im-gold); }
 .bar-bad { background: var(--im-red); }
 
+/* 品質評価の点数の円グラフ（色は点数の棒と同じ。D-79-06） */
+/* 線の色は、どちらのテーマでもアークリアクターのコイルの色（public/css/blogos.css。D-79-09）。暗い背景で下地が沈まないよう、少し濃くする */
+.score-gauge svg { --gauge-line: currentColor; }
+.score-gauge-faint { opacity: 0.35; }
+.score-gauge-dim { opacity: 0.6; }
+.score-gauge-track { opacity: 0.18; }
+.score-gauge-good .score-gauge-label { color: var(--im-cyan); }
+.score-gauge-mid .score-gauge-label { color: var(--im-gold); }
+.score-gauge-bad .score-gauge-label { color: var(--im-red); }
+
 
 /* ==========================================================
    行ごとの差分
