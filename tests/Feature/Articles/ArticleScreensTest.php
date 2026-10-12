@@ -81,6 +81,25 @@ class ArticleScreensTest extends TestCase
             ->assertOk()->assertSee('追加');
     }
 
+    public function test_article_media_are_shown_like_image_list(): void
+    {
+        $post = Post::where('wordpress_id', 100)->sole();
+        $media = \App\Models\Media::forceCreate(['blog_id' => $this->blog->id, 'wordpress_id' => 700, 'title_raw' => 'DOM の図', 'alt_text' => 'DOM の木構造',
+            'source_url' => 'https://blog.example.test/wp-content/uploads/dom.png', 'mime_type' => 'image/png', 'width' => 800, 'height' => 450]);
+        \Illuminate\Support\Facades\DB::table('article_media')->insert([
+            ['blog_id' => $this->blog->id, 'post_id' => $post->id, 'source_url' => 'https://blog.example.test/wp-content/uploads/dom.png', 'wordpress_media_id' => 700, 'media_id' => $media->id],
+            ['blog_id' => $this->blog->id, 'post_id' => $post->id, 'source_url' => 'https://example.org/banner.gif', 'wordpress_media_id' => null, 'media_id' => null],
+        ]);
+
+        // 画像の一覧と同じく、画像を並べ、下にメディアの情報を出す（D-82-02）
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSee('<img src="https://blog.example.test/wp-content/uploads/dom.png" alt="DOM の木構造"', false)
+            ->assertSee('<a href="' . route('database.wordpress-records.show', ['table' => 'media', 'id' => $media->id]) . '">DOM の図</a>', false)
+            ->assertSee('800×450・image/png')
+            ->assertSee('メディアの代替テキスト：DOM の木構造')
+            ->assertSeeInOrder(['banner.gif', 'メディアが見つかりません（外部の画像など）']);
+    }
+
     public function test_pagination_renders_text_links_without_svg(): void
     {
         $paginator = new \Illuminate\Pagination\LengthAwarePaginator(range(1, 50), 120, 50, 2, ['path' => '/articles/posts']);

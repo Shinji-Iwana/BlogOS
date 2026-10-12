@@ -461,13 +461,34 @@
 
     <section class="panel">
     <h2 data-code="MEDIA">本文中の画像（{{ $media->count() }}件）</h2>
-    <ul>
-        @forelse ($media as $item)
-            <li>{{ $item->source_url }} @if ($item->media)（メディア：{{ $item->media->title_raw }}）@endif</li>
-        @empty
-            <li>ありません。</li>
-        @endforelse
-    </ul>
+    {{-- 画像の一覧（画面「画像」）と同じく、画像を並べ、下に情報を出す（以前は URL の一覧。D-82-02）。
+         画像は WordPress のサイトから読む。押すと、元の大きさの画像を別のタブで開く --}}
+    @if ($media->isEmpty())
+        <p>ありません。</p>
+    @else
+        {{-- パネルの幅を4等分した列に並べ、画像の枠も列の幅に合わせる（パネルが狭いときは2列。D-82-03） --}}
+        <div class="media-grid-wrap"><div class="media-grid">
+            @foreach ($media as $item)
+                <div class="bordered media-grid-item">
+                    <a href="{{ $item->source_url }}" target="_blank" rel="noopener">
+                        <img src="{{ $item->source_url }}" alt="{{ $item->media?->alt_text }}" class="bg-subtle media-grid-image" loading="lazy">
+                    </a>
+                    <div style="font-size:13px; word-break:break-all;">
+                        @if ($item->media)
+                            {{-- 取り込んだメディアの詳細（DB確認画面）へ --}}
+                            <a href="{{ route('database.wordpress-records.show', ['table' => 'media', 'id' => $item->media->id]) }}">{{ $item->media->title_raw ?: basename(parse_url($item->source_url, PHP_URL_PATH) ?: $item->source_url) }}</a><br>
+                            @if ($item->media->width && $item->media->height){{ $item->media->width }}×{{ $item->media->height }}・@endif{{ $item->media->mime_type }}
+                            {{-- メディアライブラリの代替テキスト（本文の img の alt とは違うことがある） --}}
+                            <br><span class="text-muted">メディアの代替テキスト：{{ filled($item->media->alt_text) ? $item->media->alt_text : 'なし' }}</span>
+                        @else
+                            {{ basename(parse_url($item->source_url, PHP_URL_PATH) ?: $item->source_url) }}<br>
+                            <span class="text-muted">メディアが見つかりません（外部の画像など）</span>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div></div>
+    @endif
 
     {{-- 反映記録 --}}
     </section>

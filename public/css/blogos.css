@@ -117,6 +117,14 @@ table.data.data-compact > * > tr > td {
 
 .evaluation-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .evaluation-summary > table { flex: 1 1 320px; }
+/* 記事の画面の本文中の画像：パネルの幅を4等分した列に並べ、画像の枠も列の幅に合わせる（パネルが狭いときは2列。D-82-03） */
+.media-grid-wrap { container-type: inline-size; }
+.media-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@container (max-width: 480px) {
+    .media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.media-grid-item { padding: 6px; min-width: 0; }
+.media-grid-image { display: block; width: 100%; aspect-ratio: 16 / 10; height: auto; object-fit: contain; }
 /* 端末ごとの行に、区分ごとの円グラフを並べる（pagespeed/gauges）。端末名の列の右を、同じ幅の列に分け、
    円グラフは列の幅いっぱいに広げる（パネルの幅に合わせて大きさが変わる。D-78-10）。パネルが狭いときは、端末名を上の行にする */
 .score-gauge-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; container-type: inline-size; }

@@ -180,7 +180,7 @@ class ArticleRepository
      */
     public function media(Post|Page $article): Collection
     {
-        return ArticleMedia::with('media:id,wordpress_id,title_raw')
+        return ArticleMedia::with('media:id,wordpress_id,title_raw,alt_text,mime_type,width,height')
             ->where(ArticleContentRepository::articleColumn($article), $article->id)
             ->orderBy('id')
             ->get();
