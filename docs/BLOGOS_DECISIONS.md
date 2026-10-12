@@ -1477,6 +1477,8 @@ Chrome のタスクマネージャーで、トップページを開いている�
 
 **D-81-05 列の説明** WordPress 本体の12テーブルの全ての列に説明（「?」）を付ける（`WordPressDatabaseTables::COLUMNS`。列は WordPress の標準の構造（wp-admin/includes/schema.php）のとおりで、テストで確かめる）。値の種類（post_status・post_type・comment_approved など）は、取り得る値と意味を並べる。プラグインのテーブルの列は、日本語名と一緒に、必要なものから足す。
 
+**D-81-06 プラグインのテーブル** 本番の si-note で使っているプラグイン（AIOSEO・Action Scheduler・EWWW Image Optimizer・WP QUADS）の23テーブルにも、日本語名（「AIOSEO：記事ごとのSEOの設定」のように、プラグインの名前を先に付ける）と列の説明を付ける（利用者の要望）。列は、本番の DB の information_schema から読んだ一覧のとおり（利用者が本番で読み、貼り付けた。プラグインの版で変わることがある）。つながり（aioseo_posts.post_id → posts、ewwwio_images.attachment_id → posts、actionscheduler_logs.action_id → actionscheduler_actions など）も足す。WP QUADS の ad_id は、広告の置き場所が版によって違うため、つなげない。WP QUADS の決済サービスの応答（payment_response）と、AIOSEO のキャッシュのうち名前に key・secret・token・password・license を含むものの値は、出さない。
+
 
 | 事項 | 決める時期 |
 | --- | --- |

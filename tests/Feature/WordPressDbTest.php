@@ -49,7 +49,7 @@ class WordPressDbTest extends TestCase
     }
 
     /**
-     * 本体の12テーブルの全ての列に、説明がある（D-81-05。列は WordPress の標準の構造（wp-admin/includes/schema.php）のとおり）
+     * 本体の12テーブルと、本番で使っているプラグインの23テーブルの全ての列に、説明がある（D-81-05・06。本体の列は WordPress の標準の構造（wp-admin/includes/schema.php）、プラグインの列は本番の DB のとおり）
      */
     public function test_every_core_column_has_a_description(): void
     {
@@ -66,6 +66,31 @@ class WordPressDbTest extends TestCase
             'comments'           => ['comment_ID', 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_date', 'comment_date_gmt', 'comment_content', 'comment_karma', 'comment_approved', 'comment_agent', 'comment_type', 'comment_parent', 'user_id'],
             'commentmeta'        => ['meta_id', 'comment_id', 'meta_key', 'meta_value'],
             'links'              => ['link_id', 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_updated', 'link_rel', 'link_notes', 'link_rss'],
+
+            // プラグイン（本番の si-note の列。information_schema から読んだもの。D-81-06）
+            'actionscheduler_actions'            => ['action_id', 'hook', 'status', 'scheduled_date_gmt', 'scheduled_date_local', 'priority', 'args', 'schedule', 'group_id', 'attempts', 'last_attempt_gmt', 'last_attempt_local', 'claim_id', 'extended_args'],
+            'actionscheduler_claims'             => ['claim_id', 'date_created_gmt'],
+            'actionscheduler_groups'             => ['group_id', 'slug'],
+            'actionscheduler_logs'               => ['log_id', 'action_id', 'message', 'log_date_gmt', 'log_date_local'],
+            'aioseo_ai_insights_keyword_reports' => ['id', 'uuid', 'keyword', 'status', 'brands', 'brands_mentioned', 'results', 'created', 'updated'],
+            'aioseo_cache'                       => ['id', 'key', 'value', 'is_object', 'expiration', 'created', 'updated', 'name'],
+            'aioseo_crawl_cleanup_blocked_args'  => ['id', 'param', 'key', 'value', 'key_value_hash', 'regex', 'hits', 'created', 'updated', 'param_value_hash'],
+            'aioseo_crawl_cleanup_logs'          => ['id', 'slug', 'param', 'key', 'value', 'hash', 'hits', 'created', 'updated'],
+            'aioseo_notifications'               => ['id', 'slug', 'addon', 'title', 'content', 'type', 'level', 'notification_id', 'notification_name', 'start', 'end', 'button1_label', 'button1_action', 'button2_label', 'button2_action', 'dismissed', 'new', 'created', 'updated'],
+            'aioseo_posts'                       => ['id', 'post_id', 'title', 'description', 'keywords', 'keyphrases', 'page_analysis', 'primary_term', 'canonical_url', 'og_title', 'og_description', 'og_object_type', 'og_image_type', 'og_image_url', 'og_image_width', 'og_image_height', 'og_image_custom_url', 'og_image_custom_fields', 'og_video', 'og_custom_url', 'og_article_section', 'og_article_tags', 'twitter_use_og', 'twitter_card', 'twitter_image_type', 'twitter_image_url', 'twitter_image_custom_url', 'twitter_image_custom_fields', 'twitter_title', 'twitter_description', 'seo_score', 'schema', 'schema_type', 'schema_type_options', 'pillar_content', 'robots_default', 'robots_noindex', 'robots_noarchive', 'robots_nosnippet', 'robots_nofollow', 'robots_noimageindex', 'robots_noodp', 'robots_notranslate', 'robots_max_snippet', 'robots_max_videopreview', 'robots_max_imagepreview', 'images', 'image_scan_date', 'priority', 'frequency', 'videos', 'video_thumbnail', 'video_scan_date', 'local_seo', 'breadcrumb_settings', 'limit_modified_date', 'options', 'ai', 'created', 'updated', 'seo_analyzer_scan_date', 'focus_keyword', 'truseo', 'additional_keywords', 'truseo_locale'],
+            'aioseo_seo_analyzer_results'        => ['id', 'data', 'score', 'competitor_url', 'created', 'updated'],
+            'aioseo_writing_assistant_keywords'  => ['id', 'uuid', 'keyword', 'country', 'language', 'progress', 'keywords', 'competitors', 'created', 'updated'],
+            'aioseo_writing_assistant_posts'     => ['id', 'post_id', 'keyword_id', 'content_analysis_hash', 'content_analysis', 'created', 'updated'],
+            'ewwwio_images'                      => ['id', 'attachment_id', 'gallery', 'resize', 'path', 'converted', 'image_size', 'orig_size', 'backup', 'level', 'pending', 'updates', 'updated', 'retrieve', 'resized_width', 'resized_height', 'resize_error', 'webp_size', 'webp_error'],
+            'ewwwio_pages'                       => ['id', 'page', 'data'],
+            'ewwwio_queue'                       => ['id', 'attachment_id', 'gallery', 'scanned', 'new', 'convert_once', 'force_reopt', 'force_smart', 'webp_only'],
+            'quads_adbuy_data'                   => ['id', 'user_id', 'ad_id', 'ad_content', 'ad_link', 'ad_image', 'start_date', 'end_date', 'payment_response', 'payment_status', 'ad_status'],
+            'quads_clicks_desktop'               => ['id', 'ad_id', 'stats_date', 'stats_clicks', 'stats_year'],
+            'quads_clicks_mobile'                => ['id', 'ad_id', 'stats_date', 'stats_clicks', 'stats_year'],
+            'quads_disabledad_data'              => ['disable_ad_id', 'user_id', 'payment_response', 'disable_cost', 'payment_status', 'disable_status', 'disable_duration', 'username', 'user_email', 'disable_date'],
+            'quads_impressions_desktop'          => ['id', 'ad_id', 'stats_date', 'stats_impressions', 'stats_year'],
+            'quads_impressions_mobile'           => ['id', 'ad_id', 'stats_date', 'stats_impressions', 'stats_year'],
+            'quads_logs'                         => ['id', 'ad_id', 'log_date', 'log_clicks', 'ip_address', 'log_url', 'browser', 'referrer'],
         ];
 
         $this->assertSame($expected, WordPressDatabaseTables::describedColumns());
