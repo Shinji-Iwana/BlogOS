@@ -398,37 +398,65 @@
     </section>
     <section class="panel">
     <h2 data-code="LINKS OUT">この記事からのリンク（{{ $outbound->count() }}件）</h2>
-    <ul>
-        @forelse ($outbound as $link)
-            <li>
-                {{ $link->anchor_text ?: '（テキストなし）' }} →
-                @if ($link->targetPost || $link->targetPage)
-                    <a href="{{ route('articles.show', ['type' => $link->targetPost ? 'posts' : 'pages', 'id' => ($link->targetPost ?? $link->targetPage)->id]) }}">{{ ($link->targetPost ?? $link->targetPage)->title_raw }}</a>
-                @else
-                    <span class="text-error">{{ $link->target_url }}（記事が見つかりません）</span>
-                @endif
-            </li>
-        @empty
-            <li>ありません。</li>
-        @endforelse
-    </ul>
+    {{-- 列名で、どちらが何かを分かるようにする（以前は「リンクの文字 → リンク先」の1行。D-82-01） --}}
+    <div style="overflow-x:auto;">
+        <table class="data">
+            <thead>
+                <tr>
+                    <th>リンクの文字 @include('partials.tip', ['tip' => 'この記事の本文で、リンクとして表示している文字（アンカーテキスト）です。'])</th>
+                    <th>リンク先の記事 @include('partials.tip', ['tip' => "リンクを押すと開く記事です。\nBlogOS に取り込んだ記事の中に見つからない URL は、赤で URL を出します。"])</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($outbound as $link)
+                    <tr>
+                        <td>{{ $link->anchor_text ?: '（テキストなし）' }}</td>
+                        <td>
+                            @if ($link->targetPost || $link->targetPage)
+                                <a href="{{ route('articles.show', ['type' => $link->targetPost ? 'posts' : 'pages', 'id' => ($link->targetPost ?? $link->targetPage)->id]) }}">{{ ($link->targetPost ?? $link->targetPage)->title_raw }}</a>
+                            @else
+                                <span class="text-error">{{ $link->target_url }}（記事が見つかりません）</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="2">ありません。</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
     </section>
 
     <section class="panel">
     <h2 data-code="LINKS IN">この記事へのリンク（{{ $inbound->count() }}件）</h2>
-    <ul>
-        @forelse ($inbound as $link)
-            @php $source = $link->sourcePost ?? $link->sourcePage; @endphp
-            <li>
-                @if ($source)
-                    <a href="{{ route('articles.show', ['type' => $link->sourcePost ? 'posts' : 'pages', 'id' => $source->id]) }}">{{ $source->title_raw }}</a>
-                @endif
-                （{{ $link->anchor_text }}）
-            </li>
-        @empty
-            <li>ありません（孤立している記事の可能性があります）。</li>
-        @endforelse
-    </ul>
+    {{-- 列名で、どちらが何かを分かるようにする（以前は「リンク元の記事（リンクの文字）」の1行。D-82-01） --}}
+    <div style="overflow-x:auto;">
+        <table class="data">
+            <thead>
+                <tr>
+                    <th>リンク元の記事 @include('partials.tip', ['tip' => 'この記事へのリンクを本文に置いている記事です。'])</th>
+                    <th>リンクの文字 @include('partials.tip', ['tip' => 'リンク元の記事の本文で、この記事へのリンクとして表示している文字（アンカーテキスト）です。'])</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($inbound as $link)
+                    @php $source = $link->sourcePost ?? $link->sourcePage; @endphp
+                    <tr>
+                        <td>
+                            @if ($source)
+                                <a href="{{ route('articles.show', ['type' => $link->sourcePost ? 'posts' : 'pages', 'id' => $source->id]) }}">{{ $source->title_raw }}</a>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td>{{ $link->anchor_text ?: '（テキストなし）' }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="2">ありません（孤立している記事の可能性があります）。</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
     </section>
 
     <section class="panel">

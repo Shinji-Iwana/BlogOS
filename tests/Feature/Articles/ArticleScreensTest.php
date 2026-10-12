@@ -69,7 +69,14 @@ class ArticleScreensTest extends TestCase
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))
             ->assertOk()
             ->assertSee('この記事からのリンク（1件）')
+            // 内部リンクは、どちらが何かを列名で出す表（D-82-01）
+            ->assertSeeInOrder(['<h2 data-code="LINKS OUT">', '<th>リンクの文字', '<th>リンク先の記事', '<td>次</td>', '<h2 data-code="LINKS IN">', '<th>リンク元の記事', '<th>リンクの文字'], false)
             ->assertSee('親ロードマップ'); // si-note の記事種類の定義を選択肢にする
+
+        // リンク先の記事では、この記事へのリンクに、リンク元の記事とリンクの文字を列に分けて出す
+        $target = Post::where('wordpress_id', 101)->sole();
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $target->id]))->assertOk()
+            ->assertSeeInOrder(['<h2 data-code="LINKS IN">', '<th>リンク元の記事', '>Title 100</a>', '<td>次</td>'], false);
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id, 'related_q' => 'Title 101']))
             ->assertOk()->assertSee('追加');
     }
