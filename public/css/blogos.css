@@ -117,12 +117,22 @@ table.data.data-compact > * > tr > td {
 
 .evaluation-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .evaluation-summary > table { flex: 1 1 320px; }
-/* 端末ごとの行に、区分ごとの円グラフを並べる（pagespeed/gauges。狭い画面では折り返す） */
-.score-gauge-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.score-gauge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-.score-gauge-row-label { width: 8em; flex: none; }
-.score-gauge-item { display: flex; flex-direction: column; align-items: center; }
-.score-gauge-caption { font-size: 13px; margin-top: 2px; }
+/* 端末ごとの行に、区分ごとの円グラフを並べる（pagespeed/gauges）。端末名の列の右を、同じ幅の列に分け、
+   円グラフは列の幅いっぱいに広げる（パネルの幅に合わせて大きさが変わる。D-78-10）。パネルが狭いときは、端末名を上の行にする */
+.score-gauge-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; container-type: inline-size; }
+.score-gauge-row { display: grid; grid-template-columns: 8em repeat(4, minmax(0, 1fr)); align-items: center; gap: 8px 4%; }
+.score-gauge-item { display: flex; flex-direction: column; align-items: center; min-width: 0; container-type: inline-size; }
+.score-gauge-caption { font-size: 13px; margin-top: 2px; text-align: center; }
+@container (max-width: 560px) {
+    .score-gauge-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 3%; }
+    .score-gauge-row-label { grid-column: 1 / -1; }
+}
+/* 幅いっぱいの円グラフ：大きさは置いた列の幅。中の文字は、列の幅（cqi）に合わせる */
+.score-gauge.score-gauge-fluid { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+.score-gauge-fluid svg { width: 100%; height: 100%; }
+.score-gauge-fluid .score-gauge-number { font-size: 20cqi; }
+.score-gauge-fluid .score-gauge-max { font-size: max(9px, 8cqi); }
+.score-gauge-fluid .score-gauge-label { font-size: max(9px, 8.7cqi); white-space: nowrap; }
 .score-gauge { position: relative; margin: 0; width: var(--gauge-size, 150px); height: var(--gauge-size, 150px); flex: none; }
 .score-gauge svg { display: block; overflow: visible; color: #999; }
 /* 線の色は color（currentColor）。外輪・内側の輪・下地は薄くする（D-79-07）。

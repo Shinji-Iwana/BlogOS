@@ -18,7 +18,7 @@
             </div>
             @foreach ($report::CATEGORIES as $column => $categoryLabel)
                 <div class="score-gauge-item">
-                    @include('partials.score-gauge', ['score' => $run?->{$column}, 'grades' => $grades, 'decimals' => 0, 'size' => 110, 'noneLabel' => $run ? 'データなし' : '未測定'])
+                    @include('partials.score-gauge', ['score' => $run?->{$column}, 'grades' => $grades, 'decimals' => 0, 'size' => 'fluid', 'noneLabel' => $run ? 'データなし' : '未測定'])
                     <div class="score-gauge-caption">{{ $categoryLabel }}</div>
                 </div>
             @endforeach
