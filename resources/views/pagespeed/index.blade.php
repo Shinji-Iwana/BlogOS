@@ -60,6 +60,8 @@
         <section class="panel">
         <h2 data-code="SITE">トップページ（{{ $strategyLabel }}）</h2>
         @if ($home)
+            {{-- 表の上に、4つの区分の点数の円グラフ（記事の画面と同じ。D-78-11） --}}
+            @include('pagespeed.gauges', ['runs' => [$strategyLabel => $home]])
             @include('pagespeed.scores', ['runs' => [$strategyLabel => $home]])
         @else
             <p>まだ測っていません。</p>
@@ -76,6 +78,12 @@
         <h2 data-code="SUMMARY">記事のまとめ（{{ $strategyLabel }}）</h2>
         <p>測った記事：{{ number_format($summary['measured']) }}件（公開中の記事 {{ number_format($summary['published']) }}件。記事ごとの最新の結果から）</p>
         @if ($summary['measured'] > 0)
+            {{-- 表の上に、区分ごとの平均の円グラフ（小数第1位まで。D-78-11） --}}
+            @include('pagespeed.gauges', ['decimals' => 1, 'rows' => ['記事の平均' => [
+                'sub'    => number_format($summary['measured']) . '件の平均',
+                'scores' => collect($summary['categories'])->map(fn ($category) => $category['average'])->all(),
+                'none'   => 'データなし',
+            ]]])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th>区分</th><th>平均</th><th>良好（90以上）</th><th>改善が必要（50〜89）</th><th>不良（50未満）</th></tr></thead>

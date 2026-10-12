@@ -223,6 +223,9 @@ class PageSpeedTest extends TestCase
             ->assertSee('<h2 data-code="SITE">トップページ（携帯）</h2>', false)
             ->assertSee('70（改善が必要）')
             ->assertSee('測った記事：2件（公開中の記事 3件')
+            // トップページの表・記事のまとめの表の上に、4つの区分の円グラフ（まとめは平均。小数第1位まで。D-78-11）
+            ->assertSeeInOrder(['<h2 data-code="SITE">', 'class="score-gauge-rows"', 'score-gauge-mid', '>70</span>', '<table class="data">',
+                '<h2 data-code="SUMMARY">', 'class="score-gauge-rows"', '記事の平均', '2件の平均', 'score-gauge-mid', '>60.0</span>', 'パフォーマンス', '<table class="data">'], false)
             // パフォーマンスの平均 (80 + 40) / 2
             ->assertSeeInOrder(['パフォーマンス', '60', '0件', '1件', '1件'])
             ->assertSeeInOrder(['画像要素に [alt] 属性が指定されていません', 'ユーザー補助・SEO', '2件'])
