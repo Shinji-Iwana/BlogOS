@@ -56,6 +56,8 @@ class DatabaseTables
         'custom_content_histories'            => 'カスタム投稿タイプの内容の変更履歴',
         'custom_content_terms'                => 'カスタム投稿タイプの内容とカスタムタクソノミーの項目のつながり',
         'custom_term_histories'               => 'カスタムタクソノミーの項目の変更履歴',
+        'database_usage_items'                => 'DBの使用量の内訳',
+        'database_usage_measurements'         => 'DBの使用量の計算',
         'failed_jobs'                         => '失敗したキューの処理',
         'google_accounts'                     => 'Googleのアカウント',
         'google_adsense_dimension_daily'      => 'AdSenseの日ごとの内訳',

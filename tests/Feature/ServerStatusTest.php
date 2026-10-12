@@ -64,9 +64,65 @@ class ServerStatusTest extends TestCase
         // 内訳の容量の合計は、全体の容量と（丸めの差を除いて）同じ
         $this->assertEqualsWithDelta($database['total_bytes'], array_sum(array_column($breakdown['totals'], 'bytes')), count($database['tables']) * 2);
 
+        // 画面を開いたときには計算しない（まだ計算していなければ、そう出す。D-71-09）
         $this->actingAs($user)->get(route('server.index'))->assertOk()
+            ->assertSee('まだ計算していません')->assertDontSee('うち ブログA');
+
+        // 計算して保存すると、画面は最新の結果を読んで出す
+        $measurement = $status->measureUsage();
+        $this->assertSame(count($database['tables']), $measurement->table_count);
+        $saved = $status->latestBreakdown();
+        $this->assertSame(1, $saved['tables']['posts'][(string) $a->id]['rows']);
+        $this->assertSame(1, $saved['tables']['users']['common']['rows']);
+        $this->assertNull(\App\Models\DatabaseUsageItem::where('table_name', 'users')->value('blog_id'));
+
+        $this->get(route('server.index'))->assertOk()
+            ->assertSee(\App\Support\DisplayTime::format($measurement->measured_at, 'Y-m-d H:i') . ' 時点')
             ->assertSee('うち ブログA')->assertSee('うち 共通（ブログに属さない）')
-            ->assertSee('ブログB（アーカイブ）<br><span class="text-muted">件数／容量</span>', false);
+            ->assertSee('ブログB（アーカイブ）<br><span class="text-muted">件数／容量</span>', false)
+            // 新しいテーブルも、日本語名（テーブル名）で全テーブルの一覧へつなぐ
+            ->assertSee('DBの使用量の計算</a>（database_usage_measurements）', false);
+        $this->get(route('database.tables.show', ['table' => 'database_usage_measurements', 'id' => $measurement->id]))->assertOk()
+            ->assertSee('data-tip="計算にかかった時間（ミリ秒）。"', false)
+            ->assertSeeInOrder(['<h2 data-code="RELATION">', 'DBの使用量の内訳（database_usage_items）'], false);
+    }
+
+    /**
+     * DB の使用量の計算は、その日の定期実行が全て終わった後に、定期実行として1回だけ動く（D-71-09）
+     */
+    public function test_measure_usage_starts_after_all_scheduled_tasks(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+        $service = app(\App\Services\Schedule\ScheduledTaskService::class);
+        $finish = fn (string $key, string $trigger = 'scheduled') => ScheduledTaskRun::create(['task_key' => $key, 'trigger' => $trigger, 'status' => 'succeeded', 'started_at' => now(), 'finished_at' => now(), 'pending_jobs' => 0]);
+        $others = array_values(array_filter(array_keys(\App\Support\ScheduledTasks::TASKS), fn ($key) => $key !== 'database:measure-usage'));
+
+        // 時刻では登録しない
+        $schedule = app(\Illuminate\Console\Scheduling\Schedule::class);
+        $service->register($schedule);
+        $this->assertNotContains('database:measure-usage', array_map(fn ($event) => $event->description, $schedule->events()));
+
+        // まだ終わっていない定期実行がある（今すぐ実行は数えない）
+        foreach ($others as $key) {
+            if ($key !== 'blogs:sync') {
+                $finish($key);
+            }
+        }
+        $finish('blogs:sync', 'manual');
+        $service->startAfterAll();
+        \Illuminate\Support\Facades\Queue::assertNothingPushed();
+
+        // 動いている定期実行がある
+        $running = ScheduledTaskRun::create(['task_key' => 'blogs:sync', 'trigger' => 'scheduled', 'status' => 'running', 'started_at' => now(), 'pending_jobs' => 1]);
+        $service->startAfterAll();
+        \Illuminate\Support\Facades\Queue::assertNothingPushed();
+
+        // 全て終わったら、1回だけ登録する
+        $running->update(['status' => 'succeeded', 'finished_at' => now(), 'pending_jobs' => 0]);
+        $service->startAfterAll();
+        $service->startAfterAll();
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\RunScheduledTaskJob::class, 1);
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\RunScheduledTaskJob::class, fn ($job) => $job->taskKey === 'database:measure-usage' && $job->trigger === 'scheduled');
     }
 
     public function test_wordpress_tables_are_shown_like_wordpress_data_page(): void

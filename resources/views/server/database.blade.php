@@ -3,12 +3,13 @@
     $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、その画面と同じ形（名前（テーブル名）のリンク・WordPress側で削除済みの件数）で出す（D-71-07）。
     BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。
     $wordpressDb（WordPress の DB で渡す）があれば、テーブルを WordPress の DB の一覧へつなぐ（本体のテーブルは「日本語名（テーブル名）」。D-81）
-    $breakdown（BlogOS の DB だけで渡す）があれば、ブログごとの内訳（使用率の表の行と、テーブルごとの件数／容量の列）を出す（容量は見積もり。D-71-08）
+    $breakdown（BlogOS の DB だけで渡す。定期実行で計算した最新の結果）があれば、ブログごとの内訳（使用率の表の行と、テーブルごとの件数／容量の列）を出す（容量は見積もり。D-71-08・09）。$blogosDb は BlogOS の DB の欄か（まだ計算していなければ、そう出す）
 --}}
 @php
     $wordpressTables ??= [];
     $wordpressDb ??= false;
     $breakdown ??= null;
+    $blogosDb ??= false;
     $wp = $wordpressDb ? app(\App\Support\WordPressDatabaseTables::class) : null;
 @endphp
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
@@ -25,25 +26,37 @@
             </td>
         </tr>
         <tr><th>データと索引</th><td>{{ $size($database['total_bytes']) }}</td></tr>
-        {{-- ブログごとの内訳（BlogOS の DB だけ。容量は見積もり。D-71-08） --}}
+        {{-- ブログごとの内訳（BlogOS の DB だけ。容量は見積もり。D-71-08）。定期実行で計算した最新の結果で、割合はその計算の時点の全体・上限で出す（D-71-09） --}}
         @if ($breakdown)
+            @php
+                $measurement = $breakdown['measurement'];
+            @endphp
+            <tr>
+                <th>
+                    ブログごとの内訳
+                    @include('partials.tip', ['tip' => "全体の「データと索引」のうち、ブログごとの分の目安です。\nMySQL はテーブル単位でしか容量を持たないため、テーブルの容量を、行のデータの長さの割合でブログに分けて見積もっています（索引などの分も、同じ割合で分けています）。\nどのブログの行かは blog_id で決め、blog_id のないテーブルは親のテーブル（例：AIの一括処理の対象 → AIの一括処理）でたどります。\nどのブログにも属さない行（利用者・キュー・料金表など）と、行のないテーブルの容量（MySQL が最低限とる分）は「共通」に入れています。\n計算が重いため、画面を開いたときには計算せず、その日の定期実行が全て終わった後に計算した結果を出しています（今すぐ計算するには、メニューの「設定 → 即時実行 → DBの使用量の計算」）。"])
+                </th>
+                <td>
+                    {{ \App\Support\DisplayTime::format($measurement->measured_at, 'Y-m-d H:i') }} 時点（全体 {{ $size((int) $measurement->total_bytes) }}・計算にかかった時間 {{ number_format($measurement->duration_ms / 1000, 1) }}秒・<a href="{{ route('database.tables.show', ['table' => 'database_usage_measurements', 'id' => $measurement->id]) }}">計算の記録</a>）
+                </td>
+            </tr>
             @foreach ($breakdown['buckets'] as $bucket)
                 @php
                     $bytes = $breakdown['totals'][$bucket['key']]['bytes'];
                 @endphp
                 <tr>
-                    <th>
-                        うち {{ $bucket['label'] }}
-                        @if ($loop->first)
-                            @include('partials.tip', ['tip' => "全体の「データと索引」のうち、ブログごとの分の目安です。\nMySQL はテーブル単位でしか容量を持たないため、テーブルの容量を、行のデータの長さの割合でブログに分けて見積もっています（索引などの分も、同じ割合で分けています）。\nどのブログの行かは blog_id で決め、blog_id のないテーブルは親のテーブル（例：AIの一括処理の対象 → AIの一括処理）でたどります。\nどのブログにも属さない行（利用者・キュー・料金表など）と、行のないテーブルの容量（MySQL が最低限とる分）は「共通」に入れています。"])
-                        @endif
-                    </th>
+                    <th>うち {{ $bucket['label'] }}</th>
                     <td>
                         {{ $size($bytes) }}
-                        （@if ($database['capacity_bytes'])使用率 {{ number_format($bytes / $database['capacity_bytes'] * 100, 1) }}%・@endif全体の {{ $database['total_bytes'] > 0 ? number_format($bytes / $database['total_bytes'] * 100, 1) : '0.0' }}%）
+                        （@if ($measurement->capacity_bytes)使用率 {{ number_format($bytes / $measurement->capacity_bytes * 100, 1) }}%・@endif全体の {{ $measurement->total_bytes > 0 ? number_format($bytes / $measurement->total_bytes * 100, 1) : '0.0' }}%）
                     </td>
                 </tr>
             @endforeach
+        @elseif ($blogosDb)
+            <tr>
+                <th>ブログごとの内訳</th>
+                <td class="text-muted">まだ計算していません（その日の定期実行が全て終わった後に計算します。今すぐ計算するには、メニューの「設定 → 即時実行 → DBの使用量の計算」）。</td>
+            </tr>
         @endif
     </tbody>
 </table>

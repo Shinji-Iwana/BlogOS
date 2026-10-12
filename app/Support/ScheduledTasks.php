@@ -14,6 +14,7 @@ namespace App\Support;
  * - modal_view：設定のポップアップの View（なければ scheduled-tasks/modal。記事の再評価は ai/settings/reevaluation-modal。D-64）
  * - counts：処理件数・変更件数が何を数えたものか
  * - tip：設定のポップアップの説明（?）に加える文（D-63-18）
+ * - after_all：決まった時刻ではなく、その日の定期実行が全て終わった後に動く（time は null。D-71-09）
  */
 class ScheduledTasks
 {
@@ -103,6 +104,14 @@ class ScheduledTasks
             'menu_label'  => 'アフィリエイト提携先との同期',
             'counts'      => '処理件数：確認したプログラムの数／変更件数：提携終了の疑いの数',
         ],
+        'database:measure-usage' => [
+            'label'       => 'DBの使用量の計算',
+            'description' => 'BlogOS の DB の使用量の、ブログごとの内訳を計算して保存する（XServer情報の画面で出す。重いため、画面を開いたときには計算しない。D-71-09）',
+            // 決まった時刻ではなく、その日の定期実行が全て終わった後に動く（after_all。ScheduledTaskService::startAfterAll）
+            'frequency'   => 'daily', 'weekday' => null, 'time' => null, 'after_all' => true,
+            'after'       => [], 'can_disable' => true, 'manual' => true,
+            'counts'      => '処理件数：計算したテーブルの数',
+        ],
     ];
 
     public const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -112,7 +121,7 @@ class ScheduledTasks
      * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）。
      * 「設定 → 即時実行」も、この順（D-63-25）
      */
-    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune'];
+    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune', 'database:measure-usage'];
 
     /**
      * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。

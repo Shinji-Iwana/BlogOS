@@ -5,13 +5,17 @@ namespace App\Services;
 use App\Models\AiGeneration;
 use App\Models\Blog;
 use App\Models\AiPriceCheck;
+use App\Models\DatabaseUsageItem;
+use App\Models\DatabaseUsageMeasurement;
 use App\Models\GoogleFetchRun;
 use App\Models\PageSpeedRun;
 use App\Models\ScheduledTaskRun;
 use App\Models\SyncIssue;
 use App\Models\SyncRun;
 use App\Models\WordPressPushOperation;
+use App\Services\Schedule\ScheduledTaskService;
 use FilesystemIterator;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -33,6 +37,7 @@ class ServerStatusService
     public const PRUNABLE = [
         ['model' => AiGeneration::class, 'label' => 'AI の実行記録', 'column' => 'created_at', 'rule' => '1年より古いもの（WordPress に反映した編集案を作った記録は残す）'],
         ['model' => AiPriceCheck::class, 'label' => 'OpenAI API料金表との照合の記録', 'column' => 'created_at', 'rule' => '1年より古いもの'],
+        ['model' => DatabaseUsageMeasurement::class, 'label' => 'DBの使用量の計算（内訳も一緒に消す）', 'column' => 'measured_at', 'rule' => '90日より古いもの'],
         ['model' => GoogleFetchRun::class, 'label' => 'Googleとの同期の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
         ['model' => PageSpeedRun::class, 'label' => 'PageSpeed Insightsとの同期の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
         ['model' => ScheduledTaskRun::class, 'label' => '定期実行の記録', 'column' => 'started_at', 'rule' => '1年より古いもの'],
@@ -162,6 +167,78 @@ class ServerStatusService
         }
 
         return ['buckets' => $buckets, 'totals' => $totals, 'tables' => $tables];
+    }
+
+    /**
+     * ブログごとの内訳を計算して保存する（D-71-09。定期実行 database:measure-usage）
+     */
+    public function measureUsage(): DatabaseUsageMeasurement
+    {
+        $started = microtime(true);
+        $database = $this->database();
+        $breakdown = $this->blogBreakdown($database);
+
+        return DB::transaction(function () use ($database, $breakdown, $started) {
+            $measurement = DatabaseUsageMeasurement::create([
+                'total_bytes'           => $database['total_bytes'],
+                'capacity_bytes'        => $database['capacity_bytes'],
+                'table_count'           => count($database['tables']),
+                'duration_ms'           => (int) round((microtime(true) - $started) * 1000),
+                'scheduled_task_run_id' => Context::get(ScheduledTaskService::CONTEXT_KEY),
+                'measured_at'           => now(),
+            ]);
+
+            $now = now();
+            $rows = [];
+            foreach ($breakdown['tables'] as $table => $shares) {
+                foreach ($shares as $key => $share) {
+                    $rows[] = [
+                        'database_usage_measurement_id' => $measurement->id,
+                        'table_name'                    => $table,
+                        'blog_id'                       => $key === 'common' ? null : (int) $key,
+                        'row_count'                     => $share['rows'],
+                        'estimated_bytes'               => $share['bytes'],
+                        'created_at'                    => $now,
+                        'updated_at'                    => $now,
+                    ];
+                }
+            }
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DatabaseUsageItem::insert($chunk);
+            }
+
+            return $measurement;
+        });
+    }
+
+    /**
+     * 最新の計算の内訳（XServer情報の画面。blogBreakdown と同じ形に、計算の記録を加える。まだ計算していなければ null）。
+     * ブログは今の名前で出す（消したブログの分は、計算の時点で blog_id が空になり「共通」に入る）
+     *
+     * @return array{measurement: DatabaseUsageMeasurement, buckets: list<array{key: string, label: string}>, totals: array<string, array{rows: int, bytes: int}>, tables: array<string, array<string, array{rows: int, bytes: int}>>}|null
+     */
+    public function latestBreakdown(): ?array
+    {
+        $measurement = DatabaseUsageMeasurement::latest('measured_at')->latest('id')->first();
+        if ($measurement === null) {
+            return null;
+        }
+
+        $items = $measurement->items()->get();
+        $blogs = Blog::whereIn('id', $items->pluck('blog_id')->filter()->unique())->orderBy('id')->get();
+        $buckets = $blogs->map(fn (Blog $blog) => ['key' => (string) $blog->id, 'label' => $blog->display_name . ($blog->archived_at ? '（アーカイブ）' : '')])->all();
+        $buckets[] = ['key' => 'common', 'label' => '共通（ブログに属さない）'];
+
+        $tables = [];
+        $totals = array_fill_keys(array_column($buckets, 'key'), ['rows' => 0, 'bytes' => 0]);
+        foreach ($items as $item) {
+            $key = $item->blog_id !== null ? (string) $item->blog_id : 'common';
+            $tables[$item->table_name][$key] = ['rows' => (int) $item->row_count, 'bytes' => (int) $item->estimated_bytes];
+            $totals[$key]['rows'] += (int) $item->row_count;
+            $totals[$key]['bytes'] += (int) $item->estimated_bytes;
+        }
+
+        return ['measurement' => $measurement, 'buckets' => $buckets, 'totals' => $totals, 'tables' => $tables];
     }
 
     /**

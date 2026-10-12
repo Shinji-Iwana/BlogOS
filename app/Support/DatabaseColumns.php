@@ -740,6 +740,23 @@ class DatabaseColumns
             'peak_memory_mb'   => '使ったメモリの最大（MB）。',
             'requested_by'     => '「今すぐ実行」を押した人（BlogOS の利用者の番号。定期実行なら空）。',
         ],
+        'database_usage_measurements' => [
+            'id'                    => 'BlogOS の中での、この計算の番号。',
+            'total_bytes'           => '計算した時点の、BlogOS の DB 全体の容量（データと索引。バイト）。',
+            'capacity_bytes'        => '計算した時点の、DB の容量の上限（設定 BLOGOS_DB_CAPACITY_MB。バイト。設定していなければ空）。',
+            'table_count'           => '計算したテーブルの数。',
+            'duration_ms'           => '計算にかかった時間（ミリ秒）。',
+            'scheduled_task_run_id' => 'この計算をした定期実行の記録（定期実行の記録の番号。コマンドを SSH で直接実行したなら空）。',
+            'measured_at'           => '計算した日時。',
+        ],
+        'database_usage_items' => [
+            'id'                            => 'BlogOS の中での、この内訳の番号。',
+            'database_usage_measurement_id' => 'どの計算の内訳か（DBの使用量の計算の番号）。',
+            'table_name'                    => 'テーブルの名前。',
+            'blog_id'                       => 'どのブログの分か（BlogOS のブログの番号）。空なら「共通」（どのブログにも属さない行と、行のないテーブルの容量）。',
+            'row_count'                     => 'このブログの分の件数（数えた値）。',
+            'estimated_bytes'               => 'このブログの分の容量の見積もり（テーブルの容量（データと索引）を、行のデータの長さの割合で分けた値。バイト）。',
+        ],
         'scheduled_task_settings' => [
             'id'         => 'BlogOS の中での、この設定の番号（定期実行1つにつき1行）。',
             'task_key'   => 'どの定期実行か（例：blogs:sync。App\Support\ScheduledTasks のキー）。',

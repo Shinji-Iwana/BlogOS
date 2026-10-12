@@ -71,6 +71,15 @@
                 @include('partials.selected-blog-field')
             @endif
 
+            {{-- その日の定期実行が全て終わった後に動くもの（after_all）は、時刻を変えられない。検証のため、決まった値を送る（保存しても使わない。D-71-09） --}}
+            @if ($scheduledTask['after_all'] ?? false)
+            <p>
+                いつ：毎日、その日の定期実行が全て終わった後
+                <input type="hidden" name="frequency" value="daily">
+                <input type="hidden" name="time" value="00:00">
+                @include('partials.tip', ['tip' => "決まった時刻ではなく、その日に動く定期実行（毎日のものと、毎週のうちその曜日のもの）が全て終わった後に、続けて実行します。\n「今すぐ実行」で動かしたものは数えません。"])
+            </p>
+            @else
             <p>
                 いつ：
                 <select name="frequency" onchange="this.form.querySelector('.weekday').style.display = this.value === 'weekly' ? '' : 'none'">
@@ -85,6 +94,7 @@
                 <input type="time" name="time" value="{{ $scheduleValues['time'] }}" step="60" required>
                 @include('partials.tip', ['tip' => '毎日、または毎週の決まった曜日の、この時刻（日本時間）に実行します。'])
             </p>
+            @endif
 
             @if ($blogColumn !== null)
                 <p>

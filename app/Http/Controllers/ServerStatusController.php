@@ -18,8 +18,8 @@ class ServerStatusController extends Controller
         return view('server.index', [
             'machine'  => $status->machine(),
             'database' => $database,
-            // ブログごとの内訳（件数は数えた値、容量は見積もり。D-71-08）
-            'breakdown' => $status->blogBreakdown($database),
+            // ブログごとの内訳（件数は数えた値、容量は見積もり。D-71-08）。重いため、定期実行で計算した最新の結果を読む（D-71-09）
+            'breakdown' => $status->latestBreakdown(),
             'wordpressTables' => $this->wordpressTables(),
             'others'   => $status->otherDatabases(),
             'prunable' => $status->prunable(),

@@ -252,6 +252,9 @@ class ScheduledTaskTest extends TestCase
 
         $this->assertStringContainsString('次の実行：無効', $popup('scheduled-google-fetch-modal'));
         $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
+        // その日の定期実行が全て終わった後に動くもの（D-71-09）
+        $this->assertStringContainsString('次の実行：その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
+        $this->assertStringContainsString('いつ：毎日、その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
         // 記事の再評価（専用のポップアップ）にも出す
         $this->assertStringContainsString('次の実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
     }
@@ -268,12 +271,12 @@ class ScheduledTaskTest extends TestCase
         // 今すぐ実行のある定期実行を全て、メニューの「定期実行」と同じ順に出す（料金がかかる2つは出さない）
         preg_match('/>即時実行<\/summary>(.*?)<\/ul>/s', $html, $runNow);
         preg_match_all('/data-menu-confirm="[^"]*">([^<]+)<\/a>/', $runNow[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除', 'DBの使用量の計算'], $labels[1]);
 
         // メニューの「定期実行」の順（D-63-25）
         preg_match('/>定期実行<\/summary>(.*?)<\/ul>/s', $html, $schedule);
         preg_match_all('/data-modal-open="scheduled-[^"]*" >([^<]+)<\/a>/', $schedule[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除', 'DBの使用量の計算'], $labels[1]);
 
         // 開いていた画面に戻り、Queue に登録する
         $this->from(route('drafts.index'))->post($url)->assertRedirect(route('drafts.index'))

@@ -5,9 +5,12 @@
 --}}
 @php
     $nextRun = app(\App\Services\Schedule\ScheduledTaskService::class)->nextRunAt($taskKey, $scheduleSettings ?? null);
+    // その日の定期実行が全て終わった後に動くもの（after_all）は、日時が決まらない（D-71-09）
+    $runsAfterAll = (\App\Support\ScheduledTasks::get($taskKey)['after_all'] ?? false)
+        && app(\App\Services\Schedule\ScheduledTaskService::class)->setting($taskKey, $scheduleSettings ?? null)['enabled'];
 @endphp
 <p class="schedule-run-info">
-    次の実行：{{ $nextRun ? \App\Support\DisplayTime::format($nextRun, 'Y-m-d H:i') : '無効' }}
+    次の実行：{{ $nextRun ? \App\Support\DisplayTime::format($nextRun, 'Y-m-d H:i') : ($runsAfterAll ? 'その日の定期実行が全て終わった後' : '無効') }}
     <br>
     前回：
     @if ($lastRun ?? null)

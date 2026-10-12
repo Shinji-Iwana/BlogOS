@@ -3,6 +3,7 @@
 namespace App\Services\Schedule;
 
 use App\Enums\SyncTrigger;
+use App\Jobs\RunScheduledTaskJob;
 use App\Models\ScheduledTaskRun;
 use App\Models\ScheduledTaskSetting;
 use App\Services\Notices\NoticeService;
@@ -13,6 +14,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -44,10 +46,13 @@ class ScheduledTaskService
         $task = ScheduledTasks::get($key);
         $row = ($settings ?? $this->settings())->get($key);
 
+        // 定期実行が全て終わった後に動くもの（after_all）は、時刻を持たない（D-71-09）
+        $afterAll = $task['after_all'] ?? false;
+
         return [
-            'frequency' => $row?->frequency ?? $task['frequency'],
-            'weekday'   => $row !== null ? $row->weekday : $task['weekday'],
-            'time'      => $row?->time ?? $task['time'],
+            'frequency' => $afterAll ? 'daily' : ($row?->frequency ?? $task['frequency']),
+            'weekday'   => $afterAll ? null : ($row !== null ? $row->weekday : $task['weekday']),
+            'time'      => $afterAll ? null : ($row?->time ?? $task['time']),
             // 画面で無効にできない定期実行は、常に有効
             'enabled'   => ! $task['can_disable'] || ($row?->enabled ?? true),
         ];
@@ -96,7 +101,8 @@ class ScheduledTaskService
         $settings = $this->settings();
         foreach (array_keys(ScheduledTasks::TASKS) as $key) {
             $setting = $this->setting($key, $settings);
-            if (! $setting['enabled']) {
+            // 定期実行が全て終わった後に動くもの（after_all）は、時刻で登録しない（startAfterAll で始める。D-71-09）
+            if (! $setting['enabled'] || (ScheduledTasks::TASKS[$key]['after_all'] ?? false)) {
                 continue;
             }
 
@@ -118,7 +124,8 @@ class ScheduledTaskService
     public function nextRunAt(string $key, ?Collection $settings = null): ?CarbonImmutable
     {
         $setting = $this->setting($key, $settings);
-        if (! $setting['enabled']) {
+        // 定期実行が全て終わった後に動くもの（after_all）は、日時が決まらない
+        if (! $setting['enabled'] || $setting['time'] === null) {
             return null;
         }
 
@@ -298,6 +305,56 @@ class ScheduledTaskService
             } catch (Throwable $e) {
                 report($e);
             }
+            // その日の定期実行が全て終わったら、その後に動くもの（DB の使用量の計算）を始める（D-71-09）
+            try {
+                $this->startAfterAll();
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+    }
+
+    /**
+     * その日の定期実行が全て終わっていれば、その後に動く定期実行（after_all）を Queue に登録する（D-71-09）。
+     *
+     * 定期実行が1つ終わるたびに確かめる。次の全てを満たすときだけ登録する（「今すぐ実行」は数えない）：
+     * - 今日（日本時間）動く予定の定期実行（有効で、毎日のもの・毎週のうち今日の曜日のもの）が、今日の定期実行として全て終わっている
+     * - 動いている定期実行がない（3時間より前に始まったまま止まったものは除く）
+     * - その after_all の定期実行を、今日はまだ定期実行として登録していない
+     */
+    public function startAfterAll(): void
+    {
+        $timezone = (string) config('blogos.display_timezone');
+        $today = now($timezone)->startOfDay()->toImmutable();
+        $settings = $this->settings();
+
+        $afterAll = array_keys(array_filter(ScheduledTasks::TASKS, fn (array $task) => $task['after_all'] ?? false));
+        $due = array_values(array_filter(array_keys(ScheduledTasks::TASKS), function (string $key) use ($afterAll, $settings, $today) {
+            $setting = $this->setting($key, $settings);
+
+            return ! in_array($key, $afterAll, true) && $setting['enabled']
+                && ($setting['frequency'] === 'daily' || (int) $setting['weekday'] === $today->dayOfWeek);
+        }));
+
+        $todayRuns = ScheduledTaskRun::where('trigger', 'scheduled')->where('started_at', '>=', $today->utc());
+        $finished = (clone $todayRuns)->whereIn('task_key', $due)->whereNotNull('finished_at')->distinct()->pluck('task_key')->all();
+        $running = ScheduledTaskRun::where('status', 'running')->where('started_at', '>=', now()->subHours(ScheduledTaskRun::STALE_HOURS))->exists();
+        if (array_diff($due, $finished) !== [] || $running) {
+            return;
+        }
+
+        foreach ($afterAll as $key) {
+            if (! $this->setting($key, $settings)['enabled']) {
+                continue;
+            }
+            // 2つの定期実行が同時に終わっても、二重に登録しない
+            Cache::lock("scheduled-after-all:{$key}", 60)->get(function () use ($key, $todayRuns, $today) {
+                if ((clone $todayRuns)->where('task_key', $key)->exists() || Cache::has("scheduled-after-all:{$key}:" . $today->toDateString())) {
+                    return;
+                }
+                Cache::put("scheduled-after-all:{$key}:" . $today->toDateString(), true, now()->addDay());
+                RunScheduledTaskJob::dispatch($key, null, 'scheduled');
+            });
         }
     }
 
