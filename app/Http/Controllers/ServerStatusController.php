@@ -13,9 +13,13 @@ class ServerStatusController extends Controller
 {
     public function index(ServerStatusService $status)
     {
+        $database = $status->database();
+
         return view('server.index', [
             'machine'  => $status->machine(),
-            'database' => $status->database(),
+            'database' => $database,
+            // ブログごとの内訳（件数は数えた値、容量は見積もり。D-71-08）
+            'breakdown' => $status->blogBreakdown($database),
             'wordpressTables' => $this->wordpressTables(),
             'others'   => $status->otherDatabases(),
             'prunable' => $status->prunable(),

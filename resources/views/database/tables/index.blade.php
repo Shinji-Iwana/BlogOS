@@ -21,6 +21,11 @@
         </p>
     @elseif ($scoped)
         <p class="text-muted">選択中のブログ{{ $blog ? '（' . $blog->display_name . '）' : '' }}の行と、どのブログにも属さない行を出します。</p>
+    {{-- どの行を出しているかを、全ての一覧で補足する（D-80-06） --}}
+    @elseif (\App\Support\DatabaseTables::hasColumn($table, 'blog_id'))
+        <p class="text-muted">ブログの情報のテーブルのため、選択中のブログによらず、全てのブログの行を出します。</p>
+    @else
+        <p class="text-muted">ブログの列（blog_id）を持たないテーブルのため、選択中のブログによらず、全ての行を出します。</p>
     @endif
     @if ($searchColumns !== [])
         <form method="GET" action="{{ route('database.tables.index', ['table' => $table]) }}">

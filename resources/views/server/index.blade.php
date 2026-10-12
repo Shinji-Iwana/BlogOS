@@ -49,7 +49,7 @@
 
     <section class="panel">
     <h2>DB（BlogOS）</h2>
-    @include('server.database', ['database' => $database, 'wordpressTables' => $wordpressTables, 'size' => $size])
+    @include('server.database', ['database' => $database, 'wordpressTables' => $wordpressTables, 'breakdown' => $breakdown, 'size' => $size])
     </section>
 
     {{-- WordPress の DB（BlogOS の DB のユーザーにアクセス権がある DB。読むだけ。D-71-04） --}}
@@ -65,7 +65,7 @@
             <p class="text-muted">サイトの URL：{{ $other['home'] }}{{ $other['blog'] ? '' : '（BlogOS に登録していないサイト）' }}</p>
         @endif
         {{-- @include は画面の変数を引き継ぐため、BlogOS の DB のテーブルの情報（リンク・削除済みの件数）は空にして渡す。テーブルは WordPress の DB の画面へつなぐ（D-81） --}}
-        @include('server.database', ['database' => $other['database'], 'wordpressTables' => [], 'wordpressDb' => true, 'size' => $size])
+        @include('server.database', ['database' => $other['database'], 'wordpressTables' => [], 'wordpressDb' => true, 'breakdown' => null, 'size' => $size])
         </section>
     @empty
         <section class="panel">

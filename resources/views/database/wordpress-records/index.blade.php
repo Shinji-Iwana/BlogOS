@@ -13,6 +13,8 @@
     {{-- 絞り込みの条件（WordPress API情報の画面と同じ形。パネルの題名の英字の札（data-code）は、ironman だけで出す） --}}
     <section class="panel">
     <h2 data-code="FILTER">条件</h2>
+    {{-- どの行を出しているかの補足（BlogOS の DB の全テーブルの一覧と同じ。D-80-06） --}}
+    <p class="text-muted">選択中のブログ（{{ $blog->display_name }}）の行を出します（WordPress側で削除済みの行も含みます）。</p>
     <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}">
         <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode('・', $definition['search']) }}で絞り込み">
         <button class="btn-secondary" type="submit">絞り込む</button>

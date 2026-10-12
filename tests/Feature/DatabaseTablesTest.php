@@ -54,6 +54,7 @@ class DatabaseTablesTest extends TestCase
         // 一覧：新しい順。選択中のブログの分だけ。長い文章（message）は一覧に出さない
         $this->get(route('database.tables.index', ['table' => 'sync_runs']))->assertOk()
             ->assertSee('<h1>WordPressとの同期の記録（sync_runs）</h1>', false)
+            ->assertSee('選択中のブログ（Example Blog）の行と、どのブログにも属さない行を出します。')
             ->assertSee('<h2 data-code="FILTER">条件</h2>', false)
             ->assertSee('（id降順、最大50件。')
             ->assertSeeInOrder(['>' . $new . '</a>', '>' . $old . '</a>'], false)
@@ -100,7 +101,12 @@ class DatabaseTablesTest extends TestCase
         DB::table('blog_histories')->insert(['blog_id' => $blog->id, 'change_set_id' => 'set-1', 'field' => 'display_name', 'old_value' => '旧名', 'new_value' => 'Example Blog', 'source' => 'blogos_manual', 'user_id' => $user->id, 'changed_at' => now()]);
 
         // ブログは、選択中のブログによらず全て出す
-        $this->get(route('database.tables.index', ['table' => 'blogs']))->assertOk()->assertSee('Example Blog')->assertSee('Other Blog');
+        $this->get(route('database.tables.index', ['table' => 'blogs']))->assertOk()->assertSee('Example Blog')->assertSee('Other Blog')
+            ->assertSee('ブログの列（blog_id）を持たないテーブルのため、選択中のブログによらず、全ての行を出します。');
+        $this->get(route('database.tables.index', ['table' => 'blog_settings']))->assertOk()
+            ->assertSee('ブログの情報のテーブルのため、選択中のブログによらず、全てのブログの行を出します。');
+        $this->get(route('database.wordpress-records.index', ['table' => 'posts']))->assertOk()
+            ->assertSee('選択中のブログ（Example Blog）の行を出します（WordPress側で削除済みの行も含みます）。');
 
         // 変更履歴のパネル（履歴のテーブルは、関連のパネルには出さない）
         $this->get(route('database.tables.show', ['table' => 'blogs', 'id' => $blog->id]))->assertOk()

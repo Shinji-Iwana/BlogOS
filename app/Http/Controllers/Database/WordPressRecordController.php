@@ -104,6 +104,7 @@ class WordPressRecordController extends Controller
             'definition' => $definition,
             'records'    => $records,
             'keyword'    => $keyword,
+            'blog'       => $blog,
         ]);
     }
 

@@ -36,6 +36,39 @@ class ServerStatusTest extends TestCase
         $this->assertSame(2, ScheduledTaskRun::count());
     }
 
+    public function test_blog_breakdown_splits_rows_and_estimated_size(): void
+    {
+        $user = User::factory()->create();
+        $a = \App\Models\Blog::create(['home' => 'https://a.example.test', 'display_name' => 'ブログA', 'is_selected' => true]);
+        $b = \App\Models\Blog::create(['home' => 'https://b.example.test', 'display_name' => 'ブログB', 'is_selected' => false, 'archived_at' => now()]);
+        // 本文の長い記事のブログほど、容量の見積もりが大きくなる
+        \App\Models\Post::create(['blog_id' => $a->id, 'wordpress_id' => 1, 'title_raw' => 'A', 'status' => 'publish', 'link' => 'https://a.example.test/1', 'content_raw' => str_repeat('あ', 3000)]);
+        \App\Models\Post::create(['blog_id' => $b->id, 'wordpress_id' => 1, 'title_raw' => 'B', 'status' => 'publish', 'link' => 'https://b.example.test/1', 'content_raw' => 'い']);
+        // blog_id のないテーブルは、親のテーブル（同期の記録）のブログ
+        $run = DB::table('sync_runs')->insertGetId(['blog_id' => $b->id, 'trigger' => 'manual', 'status' => 'succeeded', 'started_at' => now()]);
+        DB::table('sync_run_resources')->insert(['sync_run_id' => $run, 'resource_type' => 'posts', 'status' => 'succeeded']);
+
+        $status = app(ServerStatusService::class);
+        $database = $status->database();
+        $breakdown = $status->blogBreakdown($database);
+
+        $this->assertSame(['ブログA', 'ブログB（アーカイブ）', '共通（ブログに属さない）'], array_column($breakdown['buckets'], 'label'));
+        $posts = $breakdown['tables']['posts'];
+        $this->assertSame(1, $posts[(string) $a->id]['rows']);
+        $this->assertSame(1, $posts[(string) $b->id]['rows']);
+        $this->assertGreaterThan($posts[(string) $b->id]['bytes'] * 10, $posts[(string) $a->id]['bytes']);
+        $this->assertSame(1, $breakdown['tables']['sync_run_resources'][(string) $b->id]['rows']);
+        // 利用者はどのブログにも属さない。ブログの行は、そのブログ
+        $this->assertSame(1, $breakdown['tables']['users']['common']['rows']);
+        $this->assertSame(1, $breakdown['tables']['blogs'][(string) $a->id]['rows']);
+        // 内訳の容量の合計は、全体の容量と（丸めの差を除いて）同じ
+        $this->assertEqualsWithDelta($database['total_bytes'], array_sum(array_column($breakdown['totals'], 'bytes')), count($database['tables']) * 2);
+
+        $this->actingAs($user)->get(route('server.index'))->assertOk()
+            ->assertSee('うち ブログA')->assertSee('うち 共通（ブログに属さない）')
+            ->assertSee('ブログB（アーカイブ）<br><span class="text-muted">件数／容量</span>', false);
+    }
+
     public function test_wordpress_tables_are_shown_like_wordpress_data_page(): void
     {
         $blog = \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);

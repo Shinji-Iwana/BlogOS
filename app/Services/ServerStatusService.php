@@ -121,6 +121,87 @@ class ServerStatusService
     }
 
     /**
+     * BlogOS の DB の、ブログごとの内訳（D-71-08）。件数は数えた値、容量は見積もり。
+     *
+     * MySQL はテーブル単位でしか容量を持たないため、テーブルの容量（データと索引）を、行のデータの長さの合計の割合でブログに分ける
+     * （長さが全て 0 なら件数の割合）。どのブログの行かは、blog_id（blogs は id）で決め、blog_id のないテーブルは、
+     * 外部キーを1つたどった親のテーブルの blog_id で決める。どちらもない・blog_id が空・ブログが消えた行と、行のないテーブルの容量は「共通」に入れる。
+     *
+     * @param  array{tables: list<array{name: string, rows: int, bytes: int}>}  $database  database() の値
+     * @return array{buckets: list<array{key: string, label: string}>, totals: array<string, array{rows: int, bytes: int}>, tables: array<string, array<string, array{rows: int, bytes: int}>>}
+     */
+    public function blogBreakdown(array $database): array
+    {
+        $blogs = Blog::orderBy('id')->get();
+        $buckets = $blogs->map(fn (Blog $blog) => ['key' => (string) $blog->id, 'label' => $blog->display_name . ($blog->archived_at ? '（アーカイブ）' : '')])->all();
+        $buckets[] = ['key' => 'common', 'label' => '共通（ブログに属さない）'];
+        $known = $blogs->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+        $tables = [];
+        $totals = array_fill_keys(array_column($buckets, 'key'), ['rows' => 0, 'bytes' => 0]);
+        foreach ($database['tables'] as $table) {
+            $groups = $this->safe(fn () => $this->blogGroups($table['name'])) ?? [['blog' => null, 'rows' => $table['rows'], 'length' => 0]];
+
+            // 行のデータの長さの割合で、テーブルの容量を分ける（長さが全て 0 なら件数の割合）
+            $length = array_sum(array_column($groups, 'length'));
+            $rows = array_sum(array_column($groups, 'rows'));
+            // 行のないテーブルの容量（MySQL が最低限とる分）は、どのブログのものでもないため「共通」に入れる
+            $shares = $rows === 0 && $table['bytes'] > 0 ? ['common' => ['rows' => 0, 'bytes' => $table['bytes']]] : [];
+            foreach ($groups as $group) {
+                $key = in_array((string) $group['blog'], $known, true) ? (string) $group['blog'] : 'common';
+                $weight = $length > 0 ? $group['length'] / $length : ($rows > 0 ? $group['rows'] / $rows : 0);
+                $shares[$key]['rows'] = ($shares[$key]['rows'] ?? 0) + $group['rows'];
+                $shares[$key]['bytes'] = ($shares[$key]['bytes'] ?? 0) + $table['bytes'] * $weight;
+            }
+            foreach ($shares as $key => $share) {
+                $shares[$key]['bytes'] = (int) round($share['bytes']);
+                $totals[$key]['rows'] += $share['rows'];
+                $totals[$key]['bytes'] += $shares[$key]['bytes'];
+            }
+            $tables[$table['name']] = $shares;
+        }
+
+        return ['buckets' => $buckets, 'totals' => $totals, 'tables' => $tables];
+    }
+
+    /**
+     * テーブルの行を、どのブログの行かでまとめる（ブログの番号・件数・行のデータの長さの合計。ブログが分からなければ blog は null）
+     *
+     * @return list<array{blog: int|string|null, rows: int, length: int}>
+     */
+    protected function blogGroups(string $table): array
+    {
+        $columns = array_column(\App\Support\DatabaseTables::columns($table), 'name');
+        $length = implode(' + ', array_map(fn ($column) => 'coalesce(length(t.`' . str_replace('`', '', $column) . '`), 0)', $columns));
+
+        $query = DB::table("{$table} as t");
+        if ($table === 'blogs') {
+            $blog = 't.id';
+        } elseif (in_array('blog_id', $columns, true)) {
+            $blog = 't.blog_id';
+        } else {
+            // blog_id のないテーブルは、blog_id のある親のテーブルを、外部キーで1つたどる
+            $parent = collect(\App\Support\DatabaseTables::foreignKeys($table))
+                ->first(fn (string $foreign) => $foreign === 'blogs' || \App\Support\DatabaseTables::hasColumn($foreign, 'blog_id'));
+            $column = $parent !== null ? array_search($parent, \App\Support\DatabaseTables::foreignKeys($table), true) : null;
+            if ($parent === 'blogs') {
+                $blog = "t.{$column}";
+            } elseif ($parent !== null) {
+                $query->leftJoin("{$parent} as p", 'p.' . \App\Support\DatabaseTables::primaryKey($parent), '=', "t.{$column}");
+                $blog = 'p.blog_id';
+            } else {
+                $blog = 'null';
+            }
+        }
+
+        return $query->selectRaw("{$blog} as blog, count(*) as row_count, coalesce(sum({$length}), 0) as data_length")
+            ->groupByRaw($blog === 'null' ? '1' : $blog)
+            ->get()
+            ->map(fn ($row) => ['blog' => $row->blog, 'rows' => (int) $row->row_count, 'length' => (int) $row->data_length])
+            ->all();
+    }
+
+    /**
      * BlogOS の DB のユーザーで見える、ほかの DB の名前（MySQL の管理用の DB は除く。名前の順）
      *
      * @return list<string>

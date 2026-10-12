@@ -3,10 +3,12 @@
     $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、その画面と同じ形（名前（テーブル名）のリンク・WordPress側で削除済みの件数）で出す（D-71-07）。
     BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。
     $wordpressDb（WordPress の DB で渡す）があれば、テーブルを WordPress の DB の一覧へつなぐ（本体のテーブルは「日本語名（テーブル名）」。D-81）
+    $breakdown（BlogOS の DB だけで渡す）があれば、ブログごとの内訳（使用率の表の行と、テーブルごとの件数／容量の列）を出す（容量は見積もり。D-71-08）
 --}}
 @php
     $wordpressTables ??= [];
     $wordpressDb ??= false;
+    $breakdown ??= null;
     $wp = $wordpressDb ? app(\App\Support\WordPressDatabaseTables::class) : null;
 @endphp
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
@@ -23,13 +25,43 @@
             </td>
         </tr>
         <tr><th>データと索引</th><td>{{ $size($database['total_bytes']) }}</td></tr>
+        {{-- ブログごとの内訳（BlogOS の DB だけ。容量は見積もり。D-71-08） --}}
+        @if ($breakdown)
+            @foreach ($breakdown['buckets'] as $bucket)
+                @php
+                    $bytes = $breakdown['totals'][$bucket['key']]['bytes'];
+                @endphp
+                <tr>
+                    <th>
+                        うち {{ $bucket['label'] }}
+                        @if ($loop->first)
+                            @include('partials.tip', ['tip' => "全体の「データと索引」のうち、ブログごとの分の目安です。\nMySQL はテーブル単位でしか容量を持たないため、テーブルの容量を、行のデータの長さの割合でブログに分けて見積もっています（索引などの分も、同じ割合で分けています）。\nどのブログの行かは blog_id で決め、blog_id のないテーブルは親のテーブル（例：AIの一括処理の対象 → AIの一括処理）でたどります。\nどのブログにも属さない行（利用者・キュー・料金表など）と、行のないテーブルの容量（MySQL が最低限とる分）は「共通」に入れています。"])
+                        @endif
+                    </th>
+                    <td>
+                        {{ $size($bytes) }}
+                        （@if ($database['capacity_bytes'])使用率 {{ number_format($bytes / $database['capacity_bytes'] * 100, 1) }}%・@endif全体の {{ $database['total_bytes'] > 0 ? number_format($bytes / $database['total_bytes'] * 100, 1) : '0.0' }}%）
+                    </td>
+                </tr>
+            @endforeach
+        @endif
     </tbody>
 </table>
 <details>
     <summary>テーブルごとの件数と容量（容量の大きい順）</summary>
     <div style="overflow-x:auto;">
     <table class="data">
-        <thead><tr><th>テーブル</th><th>件数</th>@if ($wordpressTables !== [])<th>うちWordPress側で削除済み</th>@endif<th>容量（データと索引）</th></tr></thead>
+        <thead>
+            <tr>
+                <th>テーブル</th><th>件数</th>@if ($wordpressTables !== [])<th>うちWordPress側で削除済み</th>@endif<th>容量（データと索引）</th>
+                {{-- ブログごとの件数と容量（容量は見積もり。D-71-08） --}}
+                @if ($breakdown)
+                    @foreach ($breakdown['buckets'] as $bucket)
+                        <th>{{ $bucket['label'] }}<br><span class="text-muted">件数／容量</span></th>
+                    @endforeach
+                @endif
+            </tr>
+        </thead>
         <tbody>
             @foreach ($database['tables'] as $table)
                 @php
@@ -55,6 +87,15 @@
                         <td style="text-align:right;">{{ $wordpressTable ? number_format($wordpressTable['deleted']) : '' }}</td>
                     @endif
                     <td style="text-align:right;">{{ $size($table['bytes']) }}</td>
+                    @if ($breakdown)
+                        @foreach ($breakdown['buckets'] as $bucket)
+                            @php
+                                $share = $breakdown['tables'][$table['name']][$bucket['key']] ?? null;
+                            @endphp
+                            {{-- 行がなければ空にする --}}
+                            <td style="text-align:right; white-space:nowrap;">@if ($share){{ number_format($share['rows']) }}／{{ $size($share['bytes']) }}@endif</td>
+                        @endforeach
+                    @endif
                 </tr>
             @endforeach
         </tbody>
