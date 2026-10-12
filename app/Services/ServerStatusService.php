@@ -107,16 +107,9 @@ class ServerStatusService
      */
     public function otherDatabases(): array
     {
-        $own = (string) DB::getDatabaseName();
-        $schemas = collect(DB::select('select SCHEMA_NAME as name from information_schema.SCHEMATA'))
-            ->pluck('name')
-            ->reject(fn (string $name) => $name === $own || in_array(strtolower($name), ['information_schema', 'mysql', 'performance_schema', 'sys'], true))
-            ->sort()
-            ->values();
-
         $blogs = Blog::all();
 
-        return $schemas->map(function (string $schema) use ($blogs) {
+        return collect($this->otherSchemas())->map(function (string $schema) use ($blogs) {
             $home = $this->wordPressHome($schema);
 
             return [
@@ -125,6 +118,33 @@ class ServerStatusService
                 'blog'     => $home ? $blogs->first(fn (Blog $blog) => $this->sameSite($blog->home, $home)) : null,
             ];
         })->all();
+    }
+
+    /**
+     * BlogOS の DB のユーザーで見える、ほかの DB の名前（MySQL の管理用の DB は除く。名前の順）
+     *
+     * @return list<string>
+     */
+    public function otherSchemas(): array
+    {
+        $own = (string) DB::getDatabaseName();
+
+        return collect(DB::select('select SCHEMA_NAME as name from information_schema.SCHEMATA'))
+            ->pluck('name')
+            ->reject(fn (string $name) => $name === $own || in_array(strtolower($name), ['information_schema', 'mysql', 'performance_schema', 'sys'], true))
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * WordPress の DB に当たる、登録しているブログ（options の home の URL から探す。なければ null）
+     */
+    public function blogForSchema(string $schema): ?Blog
+    {
+        $home = $this->wordPressHome($schema);
+
+        return $home ? Blog::all()->first(fn (Blog $blog) => $this->sameSite($blog->home, $home)) : null;
     }
 
     /**

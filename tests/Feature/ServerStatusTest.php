@@ -99,7 +99,10 @@ class ServerStatusTest extends TestCase
             $this->assertSame([['name' => 'wp_options', 'rows' => 2]], array_map(fn ($table) => ['name' => $table['name'], 'rows' => $table['rows']], $other['database']['tables']));
 
             // 読むだけで、WordPress の DB を変えない
-            $this->actingAs(User::factory()->create())->get(route('server.index'))->assertOk()->assertSee('WordPress：' . $blog->display_name);
+            $this->actingAs(User::factory()->create())->get(route('server.index'))->assertOk()->assertSee('WordPress：' . $blog->display_name)
+                // WordPress の DB のテーブルは、WordPress の DB の一覧へつなぐ（BlogOS の DB の一覧へのリンクにしない。D-81）
+                ->assertSee('<a href="' . route('database.wordpress-db.index', ['schema' => $schema, 'table' => 'wp_options']) . '">サイトの設定</a>（wp_options）', false)
+                ->assertDontSee(route('database.tables.index', ['table' => 'wp_options']), false);
             $this->assertSame(2, DB::table("{$schema}.wp_options")->count());
         } finally {
             DB::statement("drop database if exists `{$schema}`");

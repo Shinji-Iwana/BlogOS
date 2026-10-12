@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // WordPress の DB のテーブルの構造は、1回の画面の表示の中で使い回す（XServer情報・WordPress の DB の画面。D-81）
+        $this->app->scoped(\App\Support\WordPressDatabaseTables::class);
+
         // artisan serve は決まった環境変数しか子プロセスへ渡さない。Windowsでは TEMP・TMP が渡らないと
         // PHPの一時フォルダが書き込めない場所になり、16KBを超える送信（AIの回答の貼り付けなど）が
         // 「Unable to create temporary file」で失われるため、渡す対象に加える（開発環境だけの問題。D-22-11）。

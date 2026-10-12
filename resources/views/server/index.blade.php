@@ -64,7 +64,8 @@
         @if ($other['home'])
             <p class="text-muted">サイトの URL：{{ $other['home'] }}{{ $other['blog'] ? '' : '（BlogOS に登録していないサイト）' }}</p>
         @endif
-        @include('server.database', ['database' => $other['database'], 'size' => $size])
+        {{-- @include は画面の変数を引き継ぐため、BlogOS の DB のテーブルの情報（リンク・削除済みの件数）は空にして渡す。テーブルは WordPress の DB の画面へつなぐ（D-81） --}}
+        @include('server.database', ['database' => $other['database'], 'wordpressTables' => [], 'wordpressDb' => true, 'size' => $size])
         </section>
     @empty
         <section class="panel">

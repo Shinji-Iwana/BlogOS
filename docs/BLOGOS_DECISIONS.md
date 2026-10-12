@@ -1465,6 +1465,18 @@ Chrome のタスクマネージャーで、トップページを開いている�
 
 **D-80-05 秘密の値** パスワードのハッシュ・ログインを保つ値・Application Password・Google のトークン・セッションやキューの処理の中身・キャッシュの値・パスワード再設定の値は、一覧・詳細とも値を出さず、「****（○○を保存）」と出す（WordPress API情報の Authorization と同じ形。利用者の判断）。絞り込みの対象にもしない（`DatabaseTables::SECRETS`）。
 
+### 項目81：WordPress の DB のテーブルの一覧・詳細（2026-10-12）
+
+**D-81-01 WordPress の DB も、一覧・詳細で見る** XServer情報の DB（WordPress）の「テーブルごとの件数と容量」のテーブルも、BlogOS の DB（D-80）と同じ形（一覧：条件・レコード。詳細：詳細・関連）で見られるようにする（利用者の要望）。BlogOS の DB のユーザーには、WordPress の DB のアクセス権がある（D-71-04）。権限の上では書き換えられるが、読むだけ（select だけ）にする。開けるのは、XServer情報に出している DB（MySQL の管理用の DB と BlogOS の DB を除く）のテーブルだけ（`/database/wordpress-db/{DB}/{テーブル}`。`Database\WordPressDbController`・`App\Support\WordPressDatabaseTables`）。WordPress は変更の履歴を持たないため、変更履歴のパネルはない（投稿のリビジョンは、関連に出る）。ブログでは絞らない（DB がブログごとに分かれているため）。以前、WordPress の DB の欄のテーブルにも BlogOS の DB の一覧へのリンクが付き、開くと 404 になっていた（Blade の @include は画面の変数を引き継ぐため。WordPress の DB の欄には、BlogOS の DB のテーブルの情報を空で渡すようにした）。
+
+**D-81-02 名前とつながり** WordPress 本体の12テーブル（posts・postmeta・options・users・usermeta・terms・term_taxonomy・term_relationships・termmeta・comments・commentmeta・links）に日本語名を付け、「日本語名（テーブル名）」で出す。接頭辞（wp_ など）は、options のテーブルから読む。プラグインのテーブルは、まずテーブル名だけ（付けたいものから足す）。WordPress の DB には外部キーの定義がないため、本体のテーブルのつながり（postmeta.post_id → posts、posts.post_author → users など）を決め、詳細の値の横に「（リンク）」で、逆向きを関連のパネルに件数で出す（値が 0 なら、つながる先はない）。投稿・固定ページ・メディア・カテゴリ・タグ・ユーザーは、BlogOS に取り込んだ同じデータ（投稿 #番号 など）へのリンクも出す。
+
+**D-81-03 一覧と絞り込み** 並びは主キーの降順。WordPress はタイトル（post_title）なども text の型のため、text までは一覧に出し、絞り込みの対象にする。とても長い文章（mediumtext・longtext。本文・設定の値など）は、詳細だけで出す。_gmt の日時は日本時間にする（WordPress が「日時なし」で入れる 0000-00-00 00:00:00 は、そのまま出す）。
+
+**D-81-04 秘密の値** ユーザーのパスワードのハッシュ（user_pass）・パスワード再設定の値（user_activation_key）、記事を読むためのパスワード（posts の post_password。パスワード保護の記事。そのままの文字で保存されている）、ユーザーのメタ情報のうちログイン中のセッション（session_tokens）・Application Password（_application_passwords）、サイトの設定のうち名前に key・secret・token・password を含むもの（プラグインの API キーなど）は、値を出さず「****（説明）」と出す。ほかに隠したいものがあれば足す。
+
+**D-81-05 列の説明** WordPress 本体の12テーブルの全ての列に説明（「?」）を付ける（`WordPressDatabaseTables::COLUMNS`。列は WordPress の標準の構造（wp-admin/includes/schema.php）のとおりで、テストで確かめる）。値の種類（post_status・post_type・comment_approved など）は、取り得る値と意味を並べる。プラグインのテーブルの列は、日本語名と一緒に、必要なものから足す。
+
 
 | 事項 | 決める時期 |
 | --- | --- |

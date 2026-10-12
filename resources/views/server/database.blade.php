@@ -1,10 +1,13 @@
 {{--
     XServer情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71）。
     $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、その画面と同じ形（名前（テーブル名）のリンク・WordPress側で削除済みの件数）で出す（D-71-07）。
-    BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。WordPress の DB のテーブルは、テーブル名だけ
+    BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。
+    $wordpressDb（WordPress の DB で渡す）があれば、テーブルを WordPress の DB の一覧へつなぐ（本体のテーブルは「日本語名（テーブル名）」。D-81）
 --}}
 @php
     $wordpressTables ??= [];
+    $wordpressDb ??= false;
+    $wp = $wordpressDb ? app(\App\Support\WordPressDatabaseTables::class) : null;
 @endphp
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
 <table class="data">
@@ -39,6 +42,11 @@
                     @elseif ($wordpressTables !== [])
                         {{-- BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で、日本語名を一覧へのリンクにする（日本語名がなければテーブル名のリンク。D-80） --}}
                         <td><a href="{{ route('database.tables.index', ['table' => $table['name']]) }}">{{ \App\Support\DatabaseTables::label($table['name']) ?? $table['name'] }}</a>@if (\App\Support\DatabaseTables::label($table['name']))（{{ $table['name'] }}）@endif</td>
+                    @elseif ($wp)
+                        @php
+                            $wpLabel = $wp->label($database['name'], $table['name']);
+                        @endphp
+                        <td><a href="{{ route('database.wordpress-db.index', ['schema' => $database['name'], 'table' => $table['name']]) }}">{{ $wpLabel ?? $table['name'] }}</a>@if ($wpLabel)（{{ $table['name'] }}）@endif</td>
                     @else
                         <td>{{ $table['name'] }}</td>
                     @endif
