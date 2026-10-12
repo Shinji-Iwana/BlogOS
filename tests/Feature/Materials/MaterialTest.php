@@ -137,7 +137,10 @@ class MaterialTest extends TestCase
         // 登録済みのリンクは、検出の画面で登録済みと表示する
         $this->get(route('materials.detected'))->assertOk()->assertSee('登録済み');
         $this->get(route('materials.index'))->assertOk()->assertSee('いちばんやさしいJavaScriptの教本 第2版');
-        $this->get(route('articles.show', ['type' => 'posts', 'id' => $this->post->id]))->assertOk()->assertSee('紹介している教材（3件）');
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $this->post->id]))->assertOk()->assertSee('紹介している教材（3件）')
+            // 種類・教材・記録の元・見直しを列に分けた表（D-82-04）
+            ->assertSeeInOrder(['<h2 data-code="MATERIALS">', '<th>種類</th>', '<th>教材</th>', '<th>記録の元', '<th>見直し',
+                '書籍</td>', '>いちばんやさしいJavaScriptの教本 第2版</a>', '本文から検出</td>'], false);
 
         // 同期で本文が変わり、リンクがなくなったら、記録も消す
         $this->post->update(['content_raw' => $this->bookBox()]);

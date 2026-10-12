@@ -292,14 +292,29 @@
     @if ($articleMaterials->isEmpty())
         <p>本文に、登録済みの教材のリンクはありません。</p>
     @else
-        <ul>
-            @foreach ($articleMaterials as $record)
-                <li>
-                    {{ $record->material->kind->label() }}：<a href="{{ route('materials.edit', ['id' => $record->material_id]) }}">{{ $record->material->name }}</a>
-                    @if ($reason = $record->reviewReason())<span class="text-warn">見直し：{{ $reason }}</span>@endif
-                </li>
-            @endforeach
-        </ul>
+        {{-- 種類・教材・記録の元・見直しを列に分けた表（以前は「書籍：○○」の1行ずつ。D-82-04） --}}
+        <div style="overflow-x:auto;">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>種類</th>
+                        <th>教材</th>
+                        <th>記録の元 @include('partials.tip', ['tip' => "本文から検出：本文の中のリンクから、登録済みの教材を見つけたもの。\n人が登録：人がこの記事の教材として登録したもの。"])</th>
+                        <th>見直し @include('partials.tip', ['tip' => '教材の情報や記事が、最後に見直した後に変わった場合に、見直しが要る理由を出します。'])</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($articleMaterials as $record)
+                        <tr>
+                            <td style="white-space:nowrap;">{{ $record->material->kind->label() }}</td>
+                            <td><a href="{{ route('materials.edit', ['id' => $record->material_id]) }}">{{ $record->material->name }}</a></td>
+                            <td style="white-space:nowrap;">{{ $record->source?->label() ?? '-' }}</td>
+                            <td>@if ($reason = $record->reviewReason())<span class="text-warn">{{ $reason }}</span>@else - @endif</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     @endif
     <p>
         @if ($materialReview)
