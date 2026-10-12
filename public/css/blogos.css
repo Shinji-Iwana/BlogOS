@@ -112,12 +112,18 @@ table.data.data-compact > * > tr > td {
 
 
 /* ==========================================================
-   品質評価の点数の円グラフ（quality/evaluations/score-gauge。色は点数の棒と同じ。D-79-06）
+   点数の円グラフ（partials/score-gauge。品質評価の詳細・記事の画面のページの速さ。D-79-06・D-78-09）
    ========================================================== */
 
 .evaluation-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
 .evaluation-summary > table { flex: 1 1 320px; }
-.score-gauge { position: relative; margin: 0; width: 150px; height: 150px; flex: none; }
+/* 端末ごとの行に、区分ごとの円グラフを並べる（pagespeed/gauges。狭い画面では折り返す） */
+.score-gauge-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.score-gauge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.score-gauge-row-label { width: 8em; flex: none; }
+.score-gauge-item { display: flex; flex-direction: column; align-items: center; }
+.score-gauge-caption { font-size: 13px; margin-top: 2px; }
+.score-gauge { position: relative; margin: 0; width: var(--gauge-size, 150px); height: var(--gauge-size, 150px); flex: none; }
 .score-gauge svg { display: block; overflow: visible; color: #999; }
 /* 線の色は color（currentColor）。外輪・内側の輪・下地は薄くする（D-79-07）。
    色はアークリアクターのコイルと同じ：窓は深い色（--reactor-deep）、窓の上を走る細い線は蛍光色（--reactor-glow）。
@@ -137,9 +143,9 @@ table.data.data-compact > * > tr > td {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     line-height: 1.2;
 }
-.score-gauge-number { font-size: 30px; font-weight: bold; }
-.score-gauge-max { font-size: 12px; opacity: 0.7; }
-.score-gauge-label { font-size: 13px; font-weight: bold; margin-top: 2px; }
+.score-gauge-number { font-size: calc(var(--gauge-size, 150px) * 0.2); font-weight: bold; }
+.score-gauge-max { font-size: max(10px, calc(var(--gauge-size, 150px) * 0.08)); opacity: 0.7; }
+.score-gauge-label { font-size: max(11px, calc(var(--gauge-size, 150px) * 0.087)); font-weight: bold; margin-top: 2px; }
 .score-gauge-good .score-gauge-label { color: #4a90e2; }
 .score-gauge-mid .score-gauge-label { color: #e8a33d; }
 .score-gauge-bad .score-gauge-label { color: #d9534f; }

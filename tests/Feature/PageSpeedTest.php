@@ -180,6 +180,9 @@ class PageSpeedTest extends TestCase
 
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
             ->assertSee('<h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights）', false)
+            // 表の上に、端末ごとに4つの区分の円グラフ（点数の区切りは表と同じ。D-78-09）
+            ->assertSeeInOrder(['class="score-gauge-rows"', '携帯', 'score-gauge-bad', '>45</span>', '不良', 'パフォーマンス', 'score-gauge-good', '>90</span>', 'ユーザー補助',
+                'デスクトップ', 'score-gauge-good', '>95</span>', '良好', 'パフォーマンス', '<table class="data">'], false)
             ->assertSeeInOrder(['携帯', 'デスクトップ', 'パフォーマンス', '45（不良）', '95（良好）'])
             ->assertSee('改善が必要（LCP 2.9秒・INP 180ms・CLS 0.05）')
             ->assertSee('携帯：合格しなかった項目（1件）')

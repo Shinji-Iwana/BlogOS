@@ -1,20 +1,24 @@
 {{--
-    品質評価の点数の円グラフ（100点満点のうち何点か。品質評価の詳細の一番上の表の左。D-79-06）。
-    受け取る値：$score（点数。null なら「-」）。
-    色は判定の点数の境目に合わせる（95点以上：基準以上、90点以上：あと少し、90点未満：要改善。ScoreCalculator::verdict。
-    good・mid・bad。色はアークリアクターのコイルと同じ）。必須条件などで公開できないかは、表の「判定」の行で見る。
+    点数の円グラフ（100点満点のうち何点か）。品質評価の詳細の一番上の表の左（D-79-06）と、記事の画面のページの速さ（D-78-09）で使う。
+    受け取る値：
+    ・$score：点数（null なら「-」）
+    ・$grades（任意）：色と状態の区切り [[下限, good・mid・bad, 状態], …]（上から順に当てはめる）。
+      省略時は品質評価の判定の区切り（95点以上：基準以上、90点以上：あと少し、90点未満：要改善。ScoreCalculator::verdict）
+    ・$decimals（任意）：点数の小数の桁（省略時 1）／$size（任意）：大きさ（px。省略時 150）
+    ・$noneLabel（任意）：点数がないときの状態（省略時「未評価」）
+    色はアークリアクターのコイルと同じ（good・mid・bad）。品質評価で、必須条件などで公開できないかは、表の「判定」の行で見る。
     線はアークリアクターのように、目盛りの外輪・点数の線・内側の細い輪を重ねる（動きは付けない。D-79-07）。
     点数の線は、アークリアクターのコイルのように、深い色の区切りの窓の上を、細い蛍光の線が走る（D-79-09）。
     色は CSS の color で決め、線は currentColor で引く
 --}}
 @php
     $acceptance = (float) config('blogos.ai.acceptance_score', 95);
-    [$gaugeClass, $gaugeLabel] = match (true) {
-        $score === null         => ['none', '未評価'],
-        $score >= $acceptance   => ['good', '基準以上'],
-        $score >= 90.0          => ['mid', 'あと少し'],
-        default                 => ['bad', '要改善'],
-    };
+    $grades ??= [[$acceptance, 'good', '基準以上'], [90.0, 'mid', 'あと少し'], [-INF, 'bad', '要改善']];
+    $decimals ??= 1;
+    $size ??= 150;
+    $grade = $score === null ? [null, 'none', $noneLabel ?? '未評価'] : collect($grades)->first(fn ($grade) => $score >= $grade[0], [null, 'bad', '']);
+    [$gaugeClass, $gaugeLabel] = [$grade[1], $grade[2]];
+    $shown = $score !== null ? number_format($score, $decimals) : '-';
     $ratio = $score === null ? 0 : max(0, min(100, (float) $score)) / 100;
     // 点数の線（半径 46）。12時の位置から時計回りに、点数の割合だけ引く
     $circumference = 2 * M_PI * 46;
@@ -25,8 +29,8 @@
     // 区切りのある点数の線は、区切りの輪を点数の線で切り抜いて描く（ページの中で重ならない id）
     $maskId = 'score-gauge-mask-' . uniqid();
 @endphp
-<figure class="score-gauge score-gauge-{{ $gaugeClass }}" role="img" aria-label="点数 {{ $score !== null ? number_format($score, 1) : '-' }} / 100点（{{ $gaugeLabel }}）">
-    <svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true">
+<figure class="score-gauge score-gauge-{{ $gaugeClass }}" style="--gauge-size: {{ (int) $size }}px;" role="img" aria-label="点数 {{ $shown }} / 100点（{{ $gaugeLabel }}）">
+    <svg viewBox="0 0 120 120" width="{{ (int) $size }}" height="{{ (int) $size }}" aria-hidden="true">
         <defs>
             <mask id="{{ $maskId }}">
                 <circle cx="60" cy="60" r="46" fill="none" stroke="#fff" stroke-width="12"
@@ -73,7 +77,7 @@
         <circle class="score-gauge-faint" cx="60" cy="60" r="36" fill="none" stroke="currentColor" stroke-width="0.6" stroke-dasharray="1 2"></circle>
     </svg>
     <figcaption>
-        <span class="score-gauge-number">{{ $score !== null ? number_format($score, 1) : '-' }}</span>
+        <span class="score-gauge-number">{{ $shown }}</span>
         <span class="score-gauge-max">/100</span>
         <span class="score-gauge-label">{{ $gaugeLabel }}</span>
     </figcaption>

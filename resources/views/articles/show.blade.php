@@ -184,6 +184,8 @@
     <section class="panel">
     <h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights） @include('partials.tip', ['tip' => "PageSpeed Insights で測った、この記事の表示の速さなどです（定期実行で毎週。下の「今すぐ測定」でも測れます）。\nGoogle は携帯の表示で評価するため、携帯の結果を主に見てください。試しに開いた値は、測るたびに数点ぶれます。"])</h2>
     @if ($pagespeed['mobile'] || $pagespeed['desktop'])
+        {{-- 表の上に、4つの区分 × 携帯・デスクトップの点数の円グラフ（D-78-09） --}}
+        @include('pagespeed.gauges', ['runs' => ['携帯' => $pagespeed['mobile'], 'デスクトップ' => $pagespeed['desktop']]])
         @include('pagespeed.scores', ['runs' => ['携帯' => $pagespeed['mobile'], 'デスクトップ' => $pagespeed['desktop']]])
     @else
         <p>まだ測っていません。</p>

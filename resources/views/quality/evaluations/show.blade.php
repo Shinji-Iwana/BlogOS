@@ -33,7 +33,7 @@
 
     {{-- 左に点数の円グラフ、右に結果の表（狭い画面では、円グラフの下に表。D-79-06） --}}
     <div class="evaluation-summary">
-    @include('quality.evaluations.score-gauge', ['score' => $evaluation->score !== null ? (float) $evaluation->score : null])
+    @include('partials.score-gauge', ['score' => $evaluation->score !== null ? (float) $evaluation->score : null])
     <table class="data">
         <tr><th style="text-align:left;">評価した主体</th><td>{{ $evaluation->evaluator_type->label() }}（{{ $evaluation->creator?->name ?? '-' }}、{{ \App\Support\DisplayTime::format($evaluation->created_at) }}）</td></tr>
         <tr><th style="text-align:left;">
