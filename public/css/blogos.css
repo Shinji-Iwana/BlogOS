@@ -1277,3 +1277,9 @@ table.data.evaluation-criteria {
 table.data.evaluation-criteria > tbody > tr > th {
     text-align: center;
 }
+/* 記事の企画のカテゴリごとの記事種類：開いた表の見出しの左右の余白を詰め、文字を少し小さくする（10列を同じ幅にしても、右の引き出しの幅で見出しが途中で折り返さないように。D-83-03） */
+table.data.type-matrix-detail > thead > tr > th {
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 13px;
+}

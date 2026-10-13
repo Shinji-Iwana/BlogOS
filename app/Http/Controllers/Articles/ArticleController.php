@@ -44,12 +44,30 @@ class ArticleController extends Controller
         abort_unless(isset(ArticleRepository::TYPES[$type]), 404);
         $blog = $this->selectedBlog();
 
-        $filters = $request->only(['q', 'status', 'work_status']);
+        $filters = $request->only(['q', 'status', 'work_status', 'kind']);
+
+        // カテゴリ（記事の企画のカテゴリごとの記事種類の表から開く。そのカテゴリと子孫のカテゴリの投稿。D-83-01）
+        // 固定ページ（ロードマップ）は、カテゴリと同じスラッグで絞る（D-83-03）
+        $category = $request->filled('category_id')
+            ? \App\Models\Category::where('blog_id', $blog->id)->find((int) $request->query('category_id'))
+            : null;
+        if ($category !== null) {
+            $tree = app(\App\Services\Terms\CategoryTreeService::class)->tree($blog);
+            $ids = [$category->id];
+            for ($i = 0; $i < count($ids); $i++) {
+                array_push($ids, ...$tree->where('parent_id', $ids[$i])->pluck('id')->all());
+            }
+            $type === 'posts'
+                ? $filters['category_ids'] = $ids
+                : $filters['category_slugs'] = $tree->whereIn('id', $ids)->pluck('slug')->filter()->values()->all();
+        }
 
         return view('articles.index', [
             'blog'         => $blog,
             'type'         => $type,
             'filters'      => $filters,
+            'category'     => $category,
+            'kindLabel'    => filled($filters['kind'] ?? null) ? (app(\App\Services\Topics\ArticleTypeMatrixService::class)->columns($blog)[$filters['kind']] ?? $filters['kind']) : null,
             'articles'     => $this->articles->paginate($blog->id, $type, $filters),
             'workStatuses' => WorkStatus::cases(),
         ]);

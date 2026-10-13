@@ -56,6 +56,60 @@ class TopicPlanningTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
+    /**
+     * カテゴリごとの記事種類（D-83-01）：親の行は子を含めた小計。件数から、そのカテゴリ・記事種類の記事の一覧を開ける
+     */
+    public function test_article_type_matrix_by_category(): void
+    {
+        $basicPost = Post::where('wordpress_id', 24)->sole();
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $basicPost->id, 'article_type' => 'acquisition', 'article_subtype' => 'know']);
+        $event = Category::where('slug', 'js-event')->sole();
+        $doPost = Post::create(['blog_id' => $this->blog->id, 'wordpress_id' => 30, 'title_raw' => 'addEventListenerの使い方', 'status' => 'publish', 'link' => 'https://blog.example.test/js/js-event/30.html']);
+        $doPost->categories()->attach($event->id);
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $doPost->id, 'article_type' => 'acquisition', 'article_subtype' => 'do']);
+        $revenue = Post::create(['blog_id' => $this->blog->id, 'wordpress_id' => 31, 'title_raw' => 'JavaScript入門書のおすすめ', 'status' => 'publish', 'link' => 'https://blog.example.test/js/31.html']);
+        $revenue->categories()->attach($this->js->id);
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $revenue->id, 'article_type' => 'revenue']);
+        // 下書き・未登録の記事
+        Post::create(['blog_id' => $this->blog->id, 'wordpress_id' => 32, 'title_raw' => '下書き', 'status' => 'draft', 'link' => 'https://blog.example.test/?p=32'])->categories()->attach($event->id);
+        Post::create(['blog_id' => $this->blog->id, 'wordpress_id' => 33, 'title_raw' => '未登録の記事', 'status' => 'publish', 'link' => 'https://blog.example.test/js/js-event/33.html'])->categories()->attach($event->id);
+        // 子ロードマップの固定ページは、カテゴリと同じスラッグで数える
+        $roadmap = Page::where('wordpress_id', 2063)->sole();
+        $roadmap->update(['slug' => 'js-basic']);
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'page_id' => $roadmap->id, 'article_type' => 'child_roadmap']);
+
+        $matrix = app(\App\Services\Topics\ArticleTypeMatrixService::class)->build($this->blog);
+        $rows = collect($matrix['rows'])->keyBy(fn ($row) => $row['category']->slug);
+        $this->assertSame(1, $rows['js-basic']['counts']['acquisition:know']);
+        $this->assertSame(1, $rows['js-basic']['counts']['child_roadmap']);
+        $this->assertSame(['acquisition:do' => 1, 'unregistered' => 1], array_filter($rows['js-event']['counts']));
+        // 親の行は、自分と子の記事の小計
+        $this->assertSame(5, $rows['js']['total']);
+        $this->assertSame(1, $rows['js']['counts']['revenue']);
+        $this->assertSame(5, $matrix['total']);
+        $this->assertEqualsWithDelta(0.2, $matrix['revenue_ratio'], 0.0001);
+        $this->assertTrue($matrix['revenue_over']);
+
+        $this->get(route('topics.index'))->assertOk()
+            ->assertSee('<h2 data-code="TYPES">カテゴリごとの記事種類', false)
+            ->assertSee('収益記事の割合が目安（10%）を超えています。')
+            ->assertSee(e(route('articles.index', ['type' => 'posts', 'category_id' => $this->js->id, 'kind' => 'revenue'])), false);
+
+        // 件数から開く記事の一覧は、そのカテゴリ（子を含む）・記事種類で絞る
+        $this->get(route('articles.index', ['type' => 'posts', 'category_id' => $this->js->id, 'kind' => 'acquisition:do']))->assertOk()
+            ->assertSee('絞り込み：カテゴリ「JavaScript」（子カテゴリを含む）')
+            ->assertSee('addEventListenerの使い方')->assertDontSee('JavaScript入門書のおすすめ');
+        $this->get(route('articles.index', ['type' => 'posts', 'kind' => 'unregistered']))->assertOk()
+            ->assertSee('未登録の記事')->assertDontSee('addEventListenerの使い方');
+
+        // ロードマップは、固定ページの一覧をカテゴリと同じスラッグで絞って開く（D-83-03）
+        $this->get(route('topics.index'))->assertOk()
+            ->assertSee(e(route('articles.index', ['type' => 'pages', 'category_id' => $this->basic->id, 'kind' => 'child_roadmap'])), false);
+        Page::create(['blog_id' => $this->blog->id, 'wordpress_id' => 2070, 'title_raw' => 'ほかのロードマップ', 'status' => 'publish', 'slug' => 'other', 'link' => 'https://blog.example.test/other.html']);
+        $this->get(route('articles.index', ['type' => 'pages', 'category_id' => $this->js->id, 'kind' => 'child_roadmap']))->assertOk()
+            ->assertSee('JavaScript 基礎ロードマップ')->assertDontSee('ほかのロードマップ');
+    }
+
     public function test_article_planning_creates_suggestions_with_duplicate_notes(): void
     {
         $this->get(route('topics.index'))->assertOk()

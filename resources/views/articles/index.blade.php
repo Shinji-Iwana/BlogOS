@@ -24,6 +24,15 @@
     </form>
 
     <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}" class="panel" data-code="FILTER">
+        {{-- 記事の企画のカテゴリごとの記事種類の表から開いたときの絞り込み（D-83-01） --}}
+        @if ($category || $kindLabel)
+            <p>
+                絞り込み：@if ($category)カテゴリ「{{ $category->name }}」（子カテゴリを含む）@endif @if ($kindLabel)記事種類「{{ $kindLabel }}」@endif
+                ・<a href="{{ route('articles.index', ['type' => $type]) }}">解除する</a>
+            </p>
+            @if ($category)<input type="hidden" name="category_id" value="{{ $category->id }}">@endif
+            @if ($kindLabel)<input type="hidden" name="kind" value="{{ $filters['kind'] }}">@endif
+        @endif
         <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="タイトル・スラッグ">
         <select name="status">
             <option value="">ステータス：すべて</option>

@@ -80,6 +80,8 @@
     @endif
     </section>
 
+    @include('topics.partials.type-matrix', ['matrix' => $matrix])
+
     <section class="panel">
     <h2>AIを使わない手がかり</h2>
     <h3>記事の少ないカテゴリ（2件以下）</h3>

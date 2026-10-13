@@ -21,7 +21,7 @@ class ArticleRepository
     public const TYPES = ['posts' => Post::class, 'pages' => Page::class];
 
     /**
-     * @param array{q?: string, status?: string, work_status?: string, draft?: bool} $filters
+     * @param array{q?: string, status?: string, work_status?: string, draft?: bool, category_ids?: list<int>, category_slugs?: list<string>, kind?: string} $filters
      */
     public function paginate(int $blogId, string $type, array $filters, int $perPage = 50): LengthAwarePaginator
     {
@@ -44,6 +44,21 @@ class ArticleRepository
                 $query->where(fn ($q) => $q->where("{$type}.title_raw", 'like', $like)->orWhere("{$type}.slug", 'like', $like));
             })
             ->when(filled($filters['status'] ?? null), fn ($query) => $query->where("{$type}.status", $filters['status']))
+            // カテゴリ（そのカテゴリと子孫のカテゴリ。投稿だけ）と、記事種類（記事の企画のカテゴリごとの記事種類の表の列のキー。D-83-01）
+            ->when($type === 'posts' && filled($filters['category_ids'] ?? null), fn ($query) => $query->whereExists(
+                fn ($q) => $q->from('post_categories')->whereColumn('post_categories.post_id', 'posts.id')->whereIn('post_categories.category_id', (array) $filters['category_ids'])
+            ))
+            // 固定ページ（ロードマップ）は、カテゴリと同じスラッグで結び付ける（カテゴリごとの記事種類の数え方と同じ。D-83-03）
+            ->when($type === 'pages' && isset($filters['category_slugs']), fn ($query) => $query->whereIn('pages.slug', (array) $filters['category_slugs']))
+            ->when(filled($filters['kind'] ?? null), function ($query) use ($filters) {
+                [$articleType, $subtype] = array_pad(explode(':', (string) $filters['kind'], 2), 2, null);
+                match (true) {
+                    $articleType === 'unregistered' => $query->where(fn ($q) => $q->whereNull('m.article_type')->orWhere('m.article_type', '')),
+                    $subtype === ''                 => $query->where('m.article_type', $articleType)->where(fn ($q) => $q->whereNull('m.article_subtype')->orWhere('m.article_subtype', '')),
+                    $subtype !== null               => $query->where('m.article_type', $articleType)->where('m.article_subtype', $subtype),
+                    default                         => $query->where('m.article_type', $articleType),
+                };
+            })
             ->when(filled($filters['work_status'] ?? null), function ($query) use ($filters) {
                 $filters['work_status'] === 'not_started'
                     ? $query->where(fn ($q) => $q->whereNull('m.work_status')->orWhere('m.work_status', 'not_started'))

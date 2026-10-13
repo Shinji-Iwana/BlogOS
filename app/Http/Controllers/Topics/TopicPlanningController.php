@@ -64,6 +64,8 @@ class TopicPlanningController extends Controller
                 'webSearch'  => $this->apiPolicy->webSearch(),
             ],
             'selected'   => (int) $request->query('category_id'),
+            // カテゴリごとの記事種類（D-83-01）
+            'matrix'     => app(\App\Services\Topics\ArticleTypeMatrixService::class)->build($blog),
         ]);
     }
 
