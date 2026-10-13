@@ -2,7 +2,7 @@
     PageSpeed Insights の結果の表（D-78。記事の画面のパネル・PageSpeed Insights情報の画面のトップページ）。
     受け取る値：$runs（[見出し => PageSpeedRun|null]。例：['携帯' => …, 'デスクトップ' => …]）
 
-    点数の判定は Lighthouse と同じ区切り（90以上：良好・50以上：改善が必要・50未満：不良）。
+    4つの区分の点数は、表の上の円グラフ（pagespeed/gauges。Lighthouse と同じ区切り）で出し、表には出さない（D-82-05）。
     実際の利用者の値は、Chrome の利用者の記録（直近28日の75パーセンタイル）で、アクセスが少ないとない。
     合格しなかった項目は、区分ごとにたたんで出す。
 --}}
@@ -25,14 +25,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($report::CATEGORIES as $column => $categoryLabel)
-                <tr>
-                    <th style="text-align:left; white-space:nowrap;">{{ $categoryLabel }}</th>
-                    @foreach ($runs as $run)
-                        <td>{{ $run?->{$column} ?? '-' }}@if ($run && $run->{$column} !== null)（{{ $report::grade($run->{$column}) }}）@endif</td>
-                    @endforeach
-                </tr>
-            @endforeach
+            {{-- 4つの区分（パフォーマンス・ユーザー補助・おすすめの方法・SEO）の点数は、表の上の円グラフ（pagespeed/gauges）で出すため、表には出さない（D-82-05） --}}
             <tr>
                 <th style="text-align:left; white-space:nowrap;">LCP @include('partials.tip', ['tip' => 'Largest Contentful Paint：一番大きい要素（見出し・画像など）が出るまでの時間（試しに開いた値）。2.5秒以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $ms($run?->lcp_ms) }}</td>@endforeach

@@ -99,6 +99,8 @@ class ArticleController extends Controller
             'google'         => $this->metrics->articleSummary($column, $article->id, $from, $to),
             'googlePrevious' => $this->metrics->articleSummary($column, $article->id, $previousFrom, $previousTo),
             'googlePeriod'   => [$from, $to],
+            // その前の28日の期間（Googleの指標の表の列の見出し。D-82-05）
+            'googlePreviousPeriod' => [$previousFrom, $previousTo],
             // 記事で使っている教材と、最新の見直しの結果（D-30）
             'articleMaterials' => $this->materials->forArticle($article),
             'materialReview'   => $this->materials->latestReviewFor($article),

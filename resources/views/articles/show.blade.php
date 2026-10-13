@@ -24,11 +24,15 @@
 
     <table class="data">
         <tr><th style="text-align:left;">種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
-        <tr><th style="text-align:left;">ステータス</th><td>{{ $article->status }}</td></tr>
+        {{-- ステータスは日本語で出す（WordPress の値は、マウスを乗せると出る。D-82-05） --}}
+        <tr><th style="text-align:left;">ステータス</th><td title="{{ $article->status }}">{{ \App\Support\PostStatus::label($article->status) }}</td></tr>
         <tr><th style="text-align:left;">スラッグ</th><td title="{{ $article->slug }}">{{ \App\Support\Slug::display($article->slug) }}</td></tr>
-        <tr><th style="text-align:left;">公開日・更新日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_date_gmt) }} ・ {{ \App\Support\DisplayTime::format($article->wordpress_modified_gmt) }}</td></tr>
+        {{-- 公開日と更新日、カテゴリとタグは、1行ずつに分ける（D-82-05） --}}
+        <tr><th style="text-align:left;">公開日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_date_gmt) }}</td></tr>
+        <tr><th style="text-align:left;">更新日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_modified_gmt) }}</td></tr>
         @if ($isPost)
-            <tr><th style="text-align:left;">カテゴリ・タグ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }} ／ {{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
+            <tr><th style="text-align:left;">カテゴリ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
+            <tr><th style="text-align:left;">タグ</th><td>{{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
         @endif
         <tr><th style="text-align:left;">本文の文字数</th><td>{{ mb_strlen((string) $article->content_raw) }}</td></tr>
         <tr><th style="text-align:left;">メタディスクリプション（AIOSEO）</th><td>
@@ -125,18 +129,29 @@
     {{-- Googleの指標（保存済みのデータ。D-21-02〜D-21-04） --}}
     </section>
     <section class="panel">
-    <h2 data-code="GOOGLE">Googleの指標（{{ $googlePeriod[0]->toDateString() }}〜{{ $googlePeriod[1]->toDateString() }}、括弧内はその前の28日）</h2>
+    <h2 data-code="GOOGLE">Googleの指標</h2>
     @php
         $ga = $google['ga4']; $gaPrev = $googlePrevious['ga4'];
         $sc = $google['search_console']; $scPrev = $googlePrevious['search_console'];
         $ad = $google['adsense']; $adPrev = $googlePrevious['adsense'];
     @endphp
+    {{-- 今の期間と、その前の28日を、列に分ける（以前は括弧の中に前の28日。D-82-05） --}}
     <table class="data">
-        <tr><th style="text-align:left;">表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}（{{ number_format((int) $gaPrev->views) }}）</td></tr>
-        <tr><th style="text-align:left;">セッション</th><td>{{ number_format((int) $ga->sessions) }}（{{ number_format((int) $gaPrev->sessions) }}）</td></tr>
-        <tr><th style="text-align:left;">検索のクリック・表示回数</th><td>{{ number_format((int) $sc->clicks) }}・{{ number_format((int) $sc->impressions) }}（{{ number_format((int) $scPrev->clicks) }}・{{ number_format((int) $scPrev->impressions) }}）</td></tr>
-        <tr><th style="text-align:left;">平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}（{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}）</td></tr>
-        <tr><th style="text-align:left;">収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}（{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) : '-' }}）</td></tr>
+        <thead>
+            <tr>
+                <th></th>
+                <th>直近28日<br><span class="text-muted">{{ $googlePeriod[0]->toDateString() }}〜{{ $googlePeriod[1]->toDateString() }}</span></th>
+                <th>その前の28日<br><span class="text-muted">{{ $googlePreviousPeriod[0]->toDateString() }}〜{{ $googlePreviousPeriod[1]->toDateString() }}</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><th style="text-align:left;">表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}</td><td>{{ number_format((int) $gaPrev->views) }}</td></tr>
+            <tr><th style="text-align:left;">セッション</th><td>{{ number_format((int) $ga->sessions) }}</td><td>{{ number_format((int) $gaPrev->sessions) }}</td></tr>
+            <tr><th style="text-align:left;">検索のクリック</th><td>{{ number_format((int) $sc->clicks) }}</td><td>{{ number_format((int) $scPrev->clicks) }}</td></tr>
+            <tr><th style="text-align:left;">検索の表示回数</th><td>{{ number_format((int) $sc->impressions) }}</td><td>{{ number_format((int) $scPrev->impressions) }}</td></tr>
+            <tr><th style="text-align:left;">平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}</td><td>{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}</td></tr>
+            <tr><th style="text-align:left;">収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}</td><td>{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) . ' ' . ($adPrev->currency_code ?? $ad->currency_code) : '-' }}</td></tr>
+        </tbody>
     </table>
 
     @if ($google['channels']->isNotEmpty())
@@ -415,7 +430,9 @@
     <h2 data-code="LINKS OUT">この記事からのリンク（{{ $outbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンクの文字 → リンク先」の1行。D-82-01） --}}
     <div style="overflow-x:auto;">
-        <table class="data">
+        {{-- パネルの幅いっぱいで、2つの列を同じ幅にする（D-82-05） --}}
+        <table class="data" style="width:100%; table-layout:fixed; overflow-wrap:anywhere;">
+            <colgroup><col style="width:50%;"><col style="width:50%;"></colgroup>
             <thead>
                 <tr>
                     <th>リンクの文字 @include('partials.tip', ['tip' => 'この記事の本文で、リンクとして表示している文字（アンカーテキスト）です。'])</th>
@@ -446,7 +463,9 @@
     <h2 data-code="LINKS IN">この記事へのリンク（{{ $inbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンク元の記事（リンクの文字）」の1行。D-82-01） --}}
     <div style="overflow-x:auto;">
-        <table class="data">
+        {{-- パネルの幅いっぱいで、2つの列を同じ幅にする（D-82-05） --}}
+        <table class="data" style="width:100%; table-layout:fixed; overflow-wrap:anywhere;">
+            <colgroup><col style="width:50%;"><col style="width:50%;"></colgroup>
             <thead>
                 <tr>
                     <th>リンク元の記事 @include('partials.tip', ['tip' => 'この記事へのリンクを本文に置いている記事です。'])</th>

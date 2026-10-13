@@ -69,8 +69,15 @@ class ArticleScreensTest extends TestCase
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))
             ->assertOk()
             ->assertSee('この記事からのリンク（1件）')
-            // 内部リンクは、どちらが何かを列名で出す表（D-82-01）
-            ->assertSeeInOrder(['<h2 data-code="LINKS OUT">', '<th>リンクの文字', '<th>リンク先の記事', '<td>次</td>', '<h2 data-code="LINKS IN">', '<th>リンク元の記事', '<th>リンクの文字'], false)
+            // 内部リンクは、どちらが何かを列名で出す表（D-82-01）。パネルの幅いっぱいで、2つの列は同じ幅（D-82-05）
+            ->assertSeeInOrder(['<h2 data-code="LINKS OUT">', 'table-layout:fixed', '<col style="width:50%;"><col style="width:50%;">', '<th>リンクの文字', '<th>リンク先の記事', '<td>次</td>',
+                '<h2 data-code="LINKS IN">', 'table-layout:fixed', '<th>リンク元の記事', '<th>リンクの文字'], false)
+            // 一番上の表：ステータスは日本語、公開日・更新日とカテゴリ・タグは1行ずつ（D-82-05）
+            ->assertSee('<td title="draft">下書き</td>', false)
+            ->assertSeeInOrder(['>公開日</th>', '>更新日</th>', '>カテゴリ</th>', '>タグ</th>'], false)
+            // Googleの指標：直近28日とその前の28日を列に分け、検索のクリック・表示回数は1行ずつ
+            ->assertSeeInOrder(['<h2 data-code="GOOGLE">Googleの指標</h2>', '直近28日', 'その前の28日', '>検索のクリック</th>', '>検索の表示回数</th>'], false)
+            ->assertDontSee('括弧内はその前の28日')
             ->assertSee('親ロードマップ'); // si-note の記事種類の定義を選択肢にする
 
         // リンク先の記事では、この記事へのリンクに、リンク元の記事とリンクの文字を列に分けて出す

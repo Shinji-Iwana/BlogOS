@@ -183,7 +183,8 @@ class PageSpeedTest extends TestCase
             // 表の上に、端末ごとに4つの区分の円グラフ（点数の区切りは表と同じ。D-78-09）
             ->assertSeeInOrder(['class="score-gauge-rows"', '携帯', 'score-gauge-bad', '>45</span>', '不良', 'パフォーマンス', 'score-gauge-good', '>90</span>', 'ユーザー補助',
                 'デスクトップ', 'score-gauge-good', '>95</span>', '良好', 'パフォーマンス', '<table class="data">'], false)
-            ->assertSeeInOrder(['携帯', 'デスクトップ', 'パフォーマンス', '45（不良）', '95（良好）'])
+            // 4つの区分の点数は円グラフだけで出し、表には出さない（D-82-05）
+            ->assertDontSee('45（不良）')->assertSeeInOrder(['<table class="data">', 'LCP', '3.2秒'], false)
             ->assertSee('改善が必要（LCP 2.9秒・INP 180ms・CLS 0.05）')
             ->assertSee('携帯：合格しなかった項目（1件）')
             ->assertSee('今すぐ測定');
@@ -221,7 +222,7 @@ class PageSpeedTest extends TestCase
         $this->get(route('pagespeed.index'))->assertOk()
             ->assertSee('<h1>PageSpeed Insights情報', false)
             ->assertSee('<h2 data-code="SITE">トップページ（携帯）</h2>', false)
-            ->assertSee('70（改善が必要）')
+            ->assertDontSee('70（改善が必要）')
             ->assertSee('測った記事：2件（公開中の記事 3件')
             // トップページの表・記事のまとめの表の上に、4つの区分の円グラフ（まとめは平均。小数第1位まで。D-78-11）
             ->assertSeeInOrder(['<h2 data-code="SITE">', 'class="score-gauge-rows"', 'score-gauge-mid', '>70</span>', '<table class="data">',
