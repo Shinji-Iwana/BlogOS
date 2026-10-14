@@ -70,6 +70,8 @@ class ArticleContentRepository
             return 0;
         }
 
+        // パスと記事の対応は、照合のたびに読み直す（同じ処理の中で記事が保存・公開された後も、古い対応で照合しないように。D-82-06）
+        $this->paths->forget($blogId);
         $resolved = 0;
         foreach ($unresolved as $link) {
             $match = $this->paths->find($blogId, $link->target_url);

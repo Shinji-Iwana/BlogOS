@@ -111,6 +111,28 @@ class ArticlePushServiceTest extends TestCase
         $this->assertSame(0, SyncIssue::count());
     }
 
+    /**
+     * 反映の後に、本文の内部リンクをその場で照合する（D-82-06。以前は次の同期まで「記事が見つかりません」だった）
+     */
+    public function test_internal_links_are_resolved_right_after_push(): void
+    {
+        // リンク先の記事（同期で取り込み済み）
+        $this->wp->lists['posts'][] = FakeWordPress::post(101);
+        $this->wp->install();
+        app(SyncService::class)->run($this->blog, SyncTrigger::Scheduled);
+        $target = Post::where('wordpress_id', 101)->sole();
+
+        $post = Post::where('wordpress_id', 100)->sole();
+        $draft = $this->draftFor($post, ['content_raw' => '<p>次は<a href="/post-101/">こちらの記事</a>へ。</p>']);
+        $this->service()->push($draft, $this->user->id);
+
+        $link = \App\Models\InternalLink::where('post_id', $post->id)->sole();
+        $this->assertSame('/post-101/', $link->target_url);
+        $this->assertSame($target->id, $link->target_post_id);
+        $this->actingAs($this->user)->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertDontSee('（記事が見つかりません）');
+    }
+
     public function test_meta_description_is_synced_and_pushed_via_aioseo(): void
     {
         $post = Post::sole();

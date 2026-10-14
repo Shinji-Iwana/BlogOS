@@ -82,4 +82,17 @@ abstract class ArticleSyncer extends TwoStageSyncer
 
         return [];
     }
+
+    /**
+     * 反映・回復処理で保存した後に、未解決の内部リンク・本文中のメディアを、その場で照合し直す（D-82-06）。
+     * 保存のときに本文から抜き出し直したリンクは、全て未解決として登録し直す。照合は同期の最後にも行うが、
+     * 反映の後に行わないと、次の同期まで「記事が見つかりません」と出ていた
+     */
+    public function storeFromApi(array $item, SyncContext $context): WordPressRecord
+    {
+        $record = parent::storeFromApi($item, $context);
+        $this->extraction->resolve($context->blog->id);
+
+        return $record;
+    }
 }
