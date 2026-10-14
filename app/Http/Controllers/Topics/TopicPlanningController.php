@@ -56,6 +56,7 @@ class TopicPlanningController extends Controller
             'thin'       => $categories->filter(fn ($category) => ($category->parent_id !== null || ! $categories->contains('parent_id', $category->id)) && ($counts[$category->id] ?? 0) <= 2),
             'queries'    => $this->unmatchedQueries($blog->id),
             'units'      => TopicPlanningPromptValues::UNITS,
+            'kinds'      => TopicPlanningPromptValues::kinds($blog),
             'types'      => QualityProfiles::articleTypes($blog->quality_profile),
             'api'        => [
                 'configured' => $this->apiPolicy->isConfigured(),
@@ -76,6 +77,8 @@ class TopicPlanningController extends Controller
             'category_id'      => ['required', 'integer'],
             'unit'             => ['required', Rule::in(array_keys(TopicPlanningPromptValues::UNITS))],
             'notes'            => ['nullable', 'string', 'max:5000'],
+            // 記事種類の指定（集客記事の細分類・収益記事。記事の案のときだけ。D-83-04）
+            'article_kind'     => ['nullable', Rule::in(array_keys(TopicPlanningPromptValues::kinds($blog)))],
             'execution_method' => ['required', Rule::enum(AiExecutionMethod::class)],
             'model'            => ['nullable', 'string', 'max:100'],
             'reasoning_effort' => ['nullable', 'string', 'max:30'],
@@ -83,6 +86,7 @@ class TopicPlanningController extends Controller
         ]);
         $category = Category::where('blog_id', $blog->id)->existing()->find((int) $validated['category_id']);
         abort_if($category === null, 404);
+        $kind = $validated['unit'] === 'articles' ? ($validated['article_kind'] ?? null) : null;
 
         try {
             $generation = $this->runService->start(AiMode::TopicPlanning, $blog, null, null, array_filter([
@@ -90,6 +94,8 @@ class TopicPlanningController extends Controller
                 '企画の単位の値' => $validated['unit'],
                 'カテゴリ'       => $category->name,
                 'カテゴリの値'   => (string) $category->id,
+                '記事種類の指定'     => $kind !== null ? TopicPlanningPromptValues::kinds($blog)[$kind] : null,
+                '記事種類の指定の値' => $kind,
                 '補足'           => $validated['notes'] ?? null,
             ], fn ($value) => filled($value)), null, $request->user()?->id,
                 AiExecutionMethod::from($validated['execution_method']), $validated['model'] ?? null, $validated['reasoning_effort'] ?? null,

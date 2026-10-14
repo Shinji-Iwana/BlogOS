@@ -22,6 +22,9 @@ class TopicSuggestion extends Model
             'status'       => SuggestionStatus::class,
             'sub_keywords' => 'array',
             'sources'      => 'array',
+            // 収益記事の案：比べる教材・収益記事へのリンクを置く集客記事（D-83-04）
+            'material_ids'  => 'array',
+            'link_post_ids' => 'array',
             'reviewed_at'  => 'datetime',
         ];
     }

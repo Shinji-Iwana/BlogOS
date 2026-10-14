@@ -322,6 +322,19 @@ class AiOutputParser
     }
 
     /**
+     * 番号の一覧（正の整数だけ。重ならないように。AI が "12" のような文字で書いた場合も読む）
+     *
+     * @return list<int>
+     */
+    protected function ids(mixed $values): array
+    {
+        return array_values(array_unique(array_filter(
+            array_map(fn ($value) => is_int($value) || (is_string($value) && ctype_digit(trim($value))) ? (int) $value : 0, (array) $values),
+            fn (int $id) => $id > 0,
+        )));
+    }
+
+    /**
      * @return list<string> http(s) のURLだけ
      */
     protected function urls(mixed $values): array
@@ -389,6 +402,9 @@ class AiOutputParser
                 'priority'        => in_array($item['priority'] ?? null, ['high', 'medium', 'low'], true) ? $item['priority'] : null,
                 'reason'          => filled($item['reason'] ?? null) ? trim((string) $item['reason']) : null,
                 'sources'         => $this->urls($item['sources'] ?? []),
+                // 収益記事の案：比べる教材・収益記事へのリンクを置く集客記事（番号の一覧。D-83-04）
+                'material_ids'    => $this->ids($item['material_ids'] ?? []),
+                'link_post_ids'   => $this->ids($item['link_from_post_ids'] ?? []),
             ];
         };
 

@@ -515,6 +515,8 @@ class DatabaseColumns
             'priority'              => '優先度（high・medium・low。読者の必要性で AI が決める）。',
             'reason'                => 'AI が示した理由。',
             'sources'               => '根拠の一覧。',
+            'material_ids'          => '収益記事の案で比べる教材の一覧（教材の番号。AI が候補から選んだもの。収益記事でなければ空。D-83-04）。',
+            'link_post_ids'         => '収益記事の案で、収益記事へのリンクを置く集客記事の一覧（BlogOS の投稿の番号。収益記事でなければ空。D-83-04）。',
             'duplicate_note'        => '既存の記事・作業中の編集案と重なるかもしれないこと（BlogOS が機械的に調べた結果）。',
             'status'                => '案の状態（pending：確認待ち、accepted：登録済み、rejected：不採用、superseded：新しい案に置き換え）。',
             'reviewed_by'           => '登録・不採用にした人（BlogOS の利用者の番号）。',

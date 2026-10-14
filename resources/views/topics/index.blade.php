@@ -36,6 +36,18 @@
                 @endforeach
                 <span class="text-muted">子カテゴリの記事の案は子カテゴリを、足りない子カテゴリの案は親カテゴリを選んでください。</span>
             </p>
+            {{-- 記事種類の指定（記事の案のときだけ。少ない種類を狙う・収益記事を企画する。D-83-04） --}}
+            <p>
+                <label>記事種類の指定（記事の案のとき）
+                    <select name="article_kind">
+                        <option value="">指定なし（AI が選ぶ）</option>
+                        @foreach ($kinds as $value => $label)
+                            <option value="{{ $value }}" @selected(old('article_kind') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                @include('partials.tip', ['tip' => "指定すると、その記事種類の案だけを出します。下の「カテゴリごとの記事種類」で少ない種類を選ぶと、偏りを減らせます。\n収益記事は、登録済みの教材（提携中のリンクがあり、情報を調べたもの）から比べる教材を選び、収益記事へのリンクを置く集客記事も案に含めます。ブログ全体で、1つのテーマにつき1記事にします。\n足りない子カテゴリの案では、使いません。"])
+            </p>
             <p><label>補足（重点を置きたい内容・対象の読者など）<br><textarea name="notes" rows="2" style="width:100%;">{{ old('notes') }}</textarea></label></p>
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.topic_planning', 'api'), 'webSearch' => true, 'prefix' => 'topic'])
             <p class="text-muted">Web検索ありの API 実行で、1回あたり約 $0.05 です。結果は下の「確認待ちの案」に届きます。</p>

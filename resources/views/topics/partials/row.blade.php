@@ -15,6 +15,25 @@
                 @if ($suggestion->roadmap_step)・ステップ：{{ $suggestion->roadmap_step }}@endif
             </span>
             @if ($suggestion->search_intent)<br><span class="text-muted">検索意図：{{ $suggestion->search_intent }}</span>@endif
+            {{-- 収益記事の案：比べる教材と、収益記事へのリンクを置く集客記事（D-83-04） --}}
+            @if ($suggestion->article_type === 'revenue')
+                @php
+                    $materials = \App\Models\Material::whereIn('id', (array) $suggestion->material_ids)->get(['id', 'name', 'kind'])->sortBy(fn ($m) => array_search($m->id, (array) $suggestion->material_ids));
+                    $linkPosts = \App\Models\Post::whereIn('id', (array) $suggestion->link_post_ids)->get(['id', 'title_raw'])->sortBy(fn ($p) => array_search($p->id, (array) $suggestion->link_post_ids));
+                @endphp
+                <br><span class="text-muted">比べる教材：</span>
+                @forelse ($materials as $material)
+                    <a href="{{ route('materials.edit', ['id' => $material->id]) }}">{{ $material->name }}</a>@if (! $loop->last)、@endif
+                @empty
+                    <span class="text-error">なし（先に教材を登録・調査してください）</span>
+                @endforelse
+                <br><span class="text-muted">リンクを置く集客記事：</span>
+                @forelse ($linkPosts as $post)
+                    <a href="{{ route('articles.show', ['type' => 'posts', 'id' => $post->id]) }}">{{ $post->title_raw }}</a>@if (! $loop->last)、@endif
+                @empty
+                    なし
+                @endforelse
+            @endif
         @endif
     </td>
     <td>{{ \App\Models\TopicSuggestion::PRIORITIES[$suggestion->priority] ?? '-' }}</td>

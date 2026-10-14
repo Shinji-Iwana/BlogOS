@@ -64,8 +64,15 @@ class TopicPlanningResultService
             ->when($launchChild !== null, fn ($q) => $q->where('launch_child_id', $launchChild->id), fn ($q) => $q->where('category_id', $category->id)->whereNull('launch_child_id'))
             ->update(['status' => SuggestionStatus::Superseded->value]);
 
+        // 記事種類の指定（D-83-04）：指定した記事種類の案だけを出させるが、違う記事種類で返ってきても、指定の記事種類として保存する
+        $kind = $unit === 'article' && $launchChild === null && array_key_exists((string) ($parameters['記事種類の指定の値'] ?? ''), TopicPlanningPromptValues::kinds($category->blog))
+            ? (string) $parameters['記事種類の指定の値'] : null;
+
         $this->existing = null;
         foreach ($items as $item) {
+            if ($kind !== null) {
+                [$item['article_type'], $item['article_subtype']] = array_pad(explode(':', $kind, 2), 2, null);
+            }
             if ($unit === 'article') {
                 $this->createArticle($generation, $launchChild?->category_id ?? $category->id, null, $item);
 
@@ -116,9 +123,33 @@ class TopicPlanningResultService
             'priority'             => $item['priority'],
             'reason'               => $item['reason'],
             'sources'              => $item['sources'],
+            // 収益記事の案：比べる教材・リンクを置く集客記事。このブログの、使える教材・ある投稿の番号だけ残す（D-83-04）
+            'material_ids'         => $item['article_type'] === 'revenue' ? $this->validIds(\App\Models\Material::class, $generation->blog_id, $item['material_ids'] ?? []) : null,
+            'link_post_ids'        => $item['article_type'] === 'revenue' ? $this->validIds(Post::class, $generation->blog_id, $item['link_post_ids'] ?? []) : null,
             'duplicate_note'       => $this->duplicateNote($generation->blog_id, $item['title'], $item['main_keyword']),
             'status'               => SuggestionStatus::Pending,
         ]);
+    }
+
+    /**
+     * このブログにある番号だけを、AI が書いた順に残す（教材・投稿。WordPress 側で削除された投稿は除く）
+     *
+     * @param class-string<\Illuminate\Database\Eloquent\Model> $model
+     * @param list<int> $ids
+     * @return list<int>
+     */
+    protected function validIds(string $model, int $blogId, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $query = $model::where('blog_id', $blogId)->whereIn('id', $ids);
+        if ($model === Post::class) {
+            $query->whereNull('wordpress_deleted_at');
+        }
+        $found = $query->pluck('id')->all();
+
+        return array_values(array_filter($ids, fn (int $id) => in_array($id, $found, true)));
     }
 
     /**

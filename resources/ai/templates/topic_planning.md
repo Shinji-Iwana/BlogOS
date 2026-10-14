@@ -1,6 +1,6 @@
 # 記事の企画
 
-**テンプレートバージョン:** 1.0.1
+**テンプレートバージョン:** 1.1.0
 **品質基準のファイル:** {profile}/profile.md, {profile}/article-types.md, {profile}/site-design.md
 
 ## 指示文
@@ -10,6 +10,10 @@
 # 企画すること
 
 {{planning_target}}
+
+# 記事種類の指定
+
+{{type_focus}}
 
 # 人が提供した情報
 
@@ -46,7 +50,9 @@
       "roadmap_step": "ロードマップのどのステップに入るか（新しいステップなら、その名前）",
       "priority": "high / medium / low",
       "reason": "この記事が必要な理由（検索語句・学習の順番の抜け・公式の資料との比較など）",
-      "sources": ["根拠の URL"]
+      "sources": ["根拠の URL"],
+      "material_ids": [収益記事のときだけ：比べる教材の教材ID（数字）。ほかの記事種類では []],
+      "link_from_post_ids": [収益記事のときだけ：収益記事へのリンクを置く集客記事の記事の番号（数字）。ほかの記事種類では []]
     }
   ],
   "categories": [

@@ -147,6 +147,59 @@ class TopicPlanningTest extends TestCase
             ->assertSee('記事の企画の案：変数とは？値を入れる箱');
     }
 
+    /**
+     * 記事種類の指定（D-83-04）：集客記事の細分類・収益記事を指定して企画する
+     */
+    public function test_planning_with_article_kind_including_revenue(): void
+    {
+        $post = Post::where('wordpress_id', 24)->sole();
+        \App\Models\ArticleManagement::create(['blog_id' => $this->blog->id, 'post_id' => $post->id, 'article_type' => 'acquisition', 'article_subtype' => 'know']);
+
+        // 集客記事の細分類を指定：その種類の案だけを出させ、対象のカテゴリの記事種類の内訳を渡す。今ある記事の一覧にも記事種類を出す
+        $this->post(route('topics.store'), ['selected_blog_id' => $this->blog->id, 'category_id' => $this->basic->id, 'unit' => 'articles', 'article_kind' => 'acquisition:compare', 'execution_method' => 'manual'])->assertRedirect();
+        $input = AiGeneration::sole()->input;
+        $this->assertStringContainsString('# 記事種類の指定', $input);
+        $this->assertStringContainsString('- 対象のカテゴリの記事種類の内訳：集客記事（Know記事） 1件', $input);
+        $this->assertStringContainsString('- 指定：集客記事（Compare記事（比較記事））（article_type は acquisition、article_subtype は compare）', $input);
+        $this->assertStringContainsString('- ［集客記事（Know記事）］JavaScriptとは？【JavaScript入門】', $input);
+        $this->assertStringNotContainsString('比べる教材の候補', $input);
+        AiGeneration::query()->delete();
+
+        // 収益記事を指定：比べる教材の候補（教材ID）と、集客記事の番号を渡す
+        $book = \App\Models\Material::forceCreate(['blog_id' => $this->blog->id, 'kind' => 'book', 'status' => 'active', 'name' => 'いちばんやさしいJavaScriptの教本', 'summary' => '初心者向けの入門書']);
+        $udemy = \App\Models\Material::forceCreate(['blog_id' => $this->blog->id, 'kind' => 'udemy', 'status' => 'active', 'name' => 'JavaScript完全入門', 'summary' => '動画で学ぶ入門講座']);
+        DB::table('material_categories')->insert([['material_id' => $book->id, 'category_id' => $this->js->id], ['material_id' => $udemy->id, 'category_id' => $this->js->id]]);
+
+        $this->post(route('topics.store'), ['selected_blog_id' => $this->blog->id, 'category_id' => $this->basic->id, 'unit' => 'articles', 'article_kind' => 'revenue', 'execution_method' => 'manual'])->assertRedirect();
+        $generation = AiGeneration::sole();
+        $this->assertStringContainsString('- 指定：収益記事（article_type は revenue、article_subtype は null）', $generation->input);
+        $this->assertStringContainsString('1つのテーマにつき1記事', $generation->input);
+        $this->assertStringContainsString("- 教材ID {$book->id}：書籍「いちばんやさしいJavaScriptの教本」", $generation->input);
+        $this->assertStringContainsString("- ［記事の番号 {$post->id}］［集客記事（Know記事）］JavaScriptとは？", $generation->input);
+
+        // 違う記事種類で返ってきても、指定の記事種類で保存する。教材・投稿は、このブログにある番号だけ残す
+        $output = "```json\n" . json_encode(['summary' => '入門書を比べる', 'categories' => [], 'articles' => [
+            ['title' => 'JavaScript入門書のおすすめ｜初心者向けの選び方', 'main_keyword' => 'JavaScript 入門書 おすすめ', 'article_type' => 'acquisition', 'article_subtype' => 'know', 'priority' => 'high', 'reason' => '入門書を探す読者が多い',
+                'material_ids' => [$book->id, (string) $udemy->id, 99999], 'link_from_post_ids' => [$post->id, 99999]],
+        ]], JSON_UNESCAPED_UNICODE) . "\n```";
+        $this->post(route('ai.generations.submit', ['id' => $generation->id]), ['selected_blog_id' => $this->blog->id, 'output' => $output, 'model' => 'gpt-6-luna'])->assertSessionHasNoErrors();
+
+        $suggestion = TopicSuggestion::sole();
+        $this->assertSame('revenue', $suggestion->article_type);
+        $this->assertNull($suggestion->article_subtype);
+        $this->assertSame([$book->id, $udemy->id], $suggestion->material_ids);
+        $this->assertSame([$post->id], $suggestion->link_post_ids);
+
+        // 確認待ちの案に、比べる教材とリンクを置く集客記事を出す
+        $this->get(route('topics.index'))->assertOk()
+            ->assertSeeInOrder(['JavaScript入門書のおすすめ', '比べる教材：', 'いちばんやさしいJavaScriptの教本', 'JavaScript完全入門', 'リンクを置く集客記事：', 'JavaScriptとは？【JavaScript入門】']);
+
+        // 子カテゴリの案（親カテゴリの企画）では、記事種類の指定を使わない
+        AiGeneration::query()->delete();
+        $this->post(route('topics.store'), ['selected_blog_id' => $this->blog->id, 'category_id' => $this->js->id, 'unit' => 'categories', 'article_kind' => 'revenue', 'execution_method' => 'manual'])->assertRedirect();
+        $this->assertStringContainsString('- 指定：なし', AiGeneration::sole()->input);
+    }
+
     public function test_category_planning_creates_category_and_first_article_suggestions(): void
     {
         $this->post(route('topics.store'), ['selected_blog_id' => $this->blog->id, 'category_id' => $this->js->id, 'unit' => 'categories', 'execution_method' => 'manual'])->assertRedirect();
