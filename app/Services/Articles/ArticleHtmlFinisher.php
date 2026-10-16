@@ -20,8 +20,9 @@ use App\Support\ArticlePlaceholders;
  * 2. 目印を置き換える（[[教材:ID]]・[[記事:ID]]・[[画像:ID]]）。置き換えられない目印は残し、反映できないようにする
  * 3. 広告を含むことの表示・教材の枠の PR の印・広告のショートコードを、決まった位置に入れる
  * 4. 本文に出てこない用語の補足（supplement-box）を削除する（D-35-05。WordPress への反映は人が確かめてから行うため、知らせずに消す）
+ * 5. PageSpeed Insights で引っかかる書き方を直す（ArticleHtmlMarkupFixer。D-84-04）
  *
- * 広告などの設定がないブログ（html-rules.md のないブログ）では、2 だけを行う。
+ * 広告などの設定がないブログ（html-rules.md のないブログ）では、3 と、決まった形の部品を枠に直すこと（normalizeSections）を行わない。
  */
 class ArticleHtmlFinisher
 {
@@ -33,6 +34,7 @@ class ArticleHtmlFinisher
     public function __construct(
         protected AffiliateProgramService $programs,
         protected ArticleLinkTextUpdater $linkTexts,
+        protected ArticleHtmlMarkupFixer $markup,
     ) {
     }
 
@@ -64,6 +66,11 @@ class ArticleHtmlFinisher
         }
 
         $content = $this->removeOrphanSupplements($content);
+
+        // PageSpeed Insights で引っかかる書き方（画像の幅・高さ、見出しの順番、表の見出し、リストの入れ子、名前のないリンク）を直す（D-84-04）
+        $fixed = $this->markup->fix($blog, $content);
+        $content = $fixed['content'];
+        array_push($notes, ...$fixed['notes']);
 
         foreach (ArticlePlaceholders::remaining($content) as $placeholder) {
             $notes[] = "置き換えられなかった目印：{$placeholder}（このままでは反映できません。登録してから「目印を置き換え直す」を押すか、本文から削除してください）";

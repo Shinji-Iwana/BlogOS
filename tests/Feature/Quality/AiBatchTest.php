@@ -690,6 +690,29 @@ class AiBatchTest extends TestCase
         $this->assertSame(1, ArticleDraft::count());
     }
 
+    public function test_unchanged_draft_is_diagnosed_again_when_the_quality_standard_version_changes(): void
+    {
+        $this->fakeImprovingOpenAi([0.0, 0.2, 0.4]);
+        $this->onlyFirstPostNeedsReevaluation();
+        $this->enableAutoReevaluation(1);
+
+        $draft = app(\App\Services\Articles\DraftService::class)->createFromArticle($this->posts[1], RevisionScope::Minor, $this->user->id);
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $this->assertSame(1, AiBatch::where('purpose', 'quality_diagnosis')->count());
+
+        // 編集案の診断の後に、品質基準のバージョンが変わった：編集案が変わっていなくても、診断し直す（D-85）
+        ArticleEvaluation::where('article_draft_id', $draft->id)->update(['quality_profile_version' => '0.0.1']);
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $this->assertSame(2, AiBatch::where('purpose', 'quality_diagnosis')->count());
+        $this->assertSame($draft->id, ArticleEvaluation::latest('id')->value('article_draft_id'));
+
+        // 今のバージョンで診断し直した後は、編集案が変わらなければ、診断し直さない
+        $this->travel(1)->days();
+        $this->artisan('ai:auto-reevaluate')->assertSuccessful();
+        $this->assertSame(2, AiBatch::where('purpose', 'quality_diagnosis')->count());
+    }
+
     public function test_unchanged_ai_draft_below_the_target_is_reevaluated_again(): void
     {
         // 前の目標（90点）に届いて止まった編集案（90〜94点）を、目標を 95点に上げた後に、改修し直す（D-70-07）。

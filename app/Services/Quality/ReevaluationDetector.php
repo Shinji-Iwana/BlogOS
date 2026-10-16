@@ -30,6 +30,11 @@ use Illuminate\Support\Carbon;
  */
 class ReevaluationDetector
 {
+    /**
+     * 品質診断のテンプレートのバージョン（isVersionOutdated で、記事ごとに読み直さないため）
+     */
+    protected ?string $templateVersion = null;
+
     public function __construct(
         protected ArticleRepository $articles,
         protected ArticleEvaluationRepository $evaluations,
@@ -84,9 +89,7 @@ class ReevaluationDetector
                 $evaluation->evaluated_wordpress_modified_gmt === null
                     || ($article->wordpress_modified_gmt !== null && $article->wordpress_modified_gmt->gt($evaluation->evaluated_wordpress_modified_gmt)) => ReevaluationReason::Changed,
 
-                $evaluation->quality_common_version !== $standard->commonVersion
-                    || $evaluation->quality_profile_version !== $standard->profileVersion
-                    || ($evaluation->generation?->template_key === AiMode::QualityDiagnosis->value && $evaluation->generation->template_version !== $templateVersion) => ReevaluationReason::Version,
+                $this->versionDiffers($evaluation, $standard, $templateVersion) => ReevaluationReason::Version,
 
                 // 評価した時点の数を記録していない評価（D-25 より前）は比べない
                 $evaluation->inbound_link_count !== null
@@ -109,6 +112,23 @@ class ReevaluationDetector
         usort($result, fn ($a, $b) => [$a['tier'], $a['reason']->priority(), -$a['impressions']] <=> [$b['tier'], $b['reason']->priority(), -$b['impressions']]);
 
         return $result;
+    }
+
+    /**
+     * 評価（記事・編集案の品質診断）が、今と違う品質基準・品質診断のテンプレートのバージョンで行われたか
+     */
+    public function isVersionOutdated(Blog $blog, ArticleEvaluation $evaluation): bool
+    {
+        $this->templateVersion ??= AiTemplate::load(AiMode::QualityDiagnosis)->version;
+
+        return $this->versionDiffers($evaluation, $this->loader->load($blog->quality_profile), $this->templateVersion);
+    }
+
+    protected function versionDiffers(ArticleEvaluation $evaluation, QualityStandard $standard, string $templateVersion): bool
+    {
+        return $evaluation->quality_common_version !== $standard->commonVersion
+            || $evaluation->quality_profile_version !== $standard->profileVersion
+            || ($evaluation->generation?->template_key === AiMode::QualityDiagnosis->value && $evaluation->generation->template_version !== $templateVersion);
     }
 
     /**

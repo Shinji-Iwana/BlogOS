@@ -18,6 +18,7 @@ use App\Repositories\AiBatchRepository;
 use App\Repositories\ArticleDraftRepository;
 use App\Repositories\ArticleEvaluationRepository;
 use App\Repositories\BlogAiSettingRepository;
+use App\Services\Quality\ReevaluationDetector;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,6 +38,7 @@ class AutoReevaluationService
         protected BlogAiSettingRepository $settings,
         protected ArticleDraftRepository $drafts,
         protected ArticleEvaluationRepository $evaluations,
+        protected ReevaluationDetector $detector,
     ) {
     }
 
@@ -56,7 +58,7 @@ class AutoReevaluationService
         // 編集案がある記事は、編集案を診断する。前回の診断から編集案が変わっていなければ、診断し直さない（費用をかけないため。D-65）
         $targets = array_values(array_filter(
             $this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation),
-            fn (array $row) => ! $this->draftUnchangedSinceDiagnosis($row['article']),
+            fn (array $row) => ! $this->draftUnchangedSinceDiagnosis($blog, $row['article']),
         ));
         // 目標の点数が上がった：前の目標に届いて止まった編集案を、新しい目標まで改修し直す（記事に再評価の理由がなくても。D-70-07）。
         // あと少しで目標に届く編集案のため、1日の上限の中で先に回す
@@ -92,9 +94,11 @@ class AutoReevaluationService
 
     /**
      * 作業中の編集案があり、その編集案を最後に診断した後、編集案が変わっていないか。
-     * ただし、目標の点数が上がって改修し直す編集案（stoppedBelowRaisedTarget）は、変わっていなくても対象にする（D-70-07）
+     * ただし、次の編集案は、変わっていなくても対象にする。
+     * - 目標の点数が上がって改修し直す編集案（stoppedBelowRaisedTarget。D-70-07）
+     * - 最後の診断の後に、品質基準・品質診断のテンプレートのバージョンが変わった編集案（基準が変われば点数も変わるため。D-85）
      */
-    protected function draftUnchangedSinceDiagnosis(Post|Page $article): bool
+    protected function draftUnchangedSinceDiagnosis(Blog $blog, Post|Page $article): bool
     {
         $draft = $this->drafts->activeFor($article);
         if ($draft === null) {
@@ -102,6 +106,9 @@ class AutoReevaluationService
         }
         $evaluation = $this->evaluations->latestFor($article, $draft);
         if ($evaluation === null || $draft->updated_at === null || $evaluation->created_at < $draft->updated_at) {
+            return false;
+        }
+        if ($this->detector->isVersionOutdated($blog, $evaluation)) {
             return false;
         }
 

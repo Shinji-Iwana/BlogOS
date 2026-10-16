@@ -203,6 +203,52 @@ class ArticleFinishTest extends TestCase
         $this->assertStringNotContainsString('本文に出てこない用語', implode("\n", $finished['notes']));
     }
 
+    public function test_markup_flagged_by_pagespeed_insights_is_fixed(): void
+    {
+        Media::create(['blog_id' => $this->blog->id, 'wordpress_id' => 3388, 'source_url' => 'https://blog.example.test/wp-content/uploads/2026/10/dom.png', 'width' => 1200, 'height' => 800]);
+        $content = implode("\n", [
+            '<div class="point-box">', '<h3>この記事で分かること</h3>', '<ul><li>DOM</li></ul>', '</div>',
+            '<h2>DOMとは</h2>',
+            // メディアライブラリの画像（ID・縮小版の URL）と、メディアライブラリにない画像
+            '<p><img src="https://blog.example.test/wp-content/uploads/2026/10/dom.png" alt="DOMの図" class="wp-image-3388"></p>',
+            '<p><img src="/wp-content/uploads/2026/10/dom-300x200.png" alt="DOMの図（小）"></p>',
+            '<p><img decoding="async" src="/wp-content/img/JavaScript/DOM_Tree.PNG" alt="DOMツリー"></p>',
+            '<h4>細かい話</h4>', '<p>説明</p>',
+            '<table>', '<tbody>', '<tr><td>項目</td><td>説明</td></tr>', '<tr><td>DOM</td><td>文書の木</td></tr>', '</tbody>', '</table>',
+            '<ul>', '<li>親</li>', '<ul><li>子</li></ul>', '<li>次の親</li>', '</ul>',
+            '<p><a href="https://example.test/x"><img src="/wp-content/img/icon.png" alt=""></a></p>',
+        ]);
+
+        $finished = app(ArticleHtmlFinisher::class)->finish($this->blog, $content);
+        $html = $finished['content'];
+        $notes = implode("\n", $finished['notes']);
+
+        // 画像の幅・高さ：メディアの大きさ、縮小版は URL の大きさ。メディアライブラリにない画像は知らせる
+        $this->assertStringContainsString('<img width="1200" height="800" src="https://blog.example.test/wp-content/uploads/2026/10/dom.png"', $html);
+        $this->assertStringContainsString('<img width="300" height="200" src="/wp-content/uploads/2026/10/dom-300x200.png"', $html);
+        $this->assertStringContainsString('<img decoding="async" src="/wp-content/img/JavaScript/DOM_Tree.PNG"', $html);
+        $this->assertStringContainsString('幅・高さの分からない画像があります（メディアライブラリにない画像のため）：/wp-content/img/JavaScript/DOM_Tree.PNG、/wp-content/img/icon.png', $notes);
+
+        // 見出しの順番：h1 の次（本文の最初）の h3 は h2 に、h2 の次の h4 は h3 に
+        $this->assertStringContainsString('<h2>この記事で分かること</h2>', $html);
+        $this->assertStringContainsString('<h3>細かい話</h3>', $html);
+        $this->assertStringContainsString('「この記事で分かること」h3 → h2、「細かい話」h4 → h3', $notes);
+
+        // 表：1行目を見出しに
+        $this->assertStringContainsString("<table>\n<thead>\n<tr><th>項目</th><th>説明</th></tr>\n</thead>\n<tbody>\n\n<tr><td>DOM</td><td>文書の木</td></tr>\n</tbody>\n</table>", $html);
+        $this->assertStringContainsString('見出しのセル（th）のない表 1件の、1行目を見出し（thead・th）にしました', $notes);
+
+        // リストの入れ子：直前の li の中へ
+        $this->assertStringContainsString("<li>親\n<ul><li>子</li></ul></li>\n<li>次の親</li>", $html);
+        $this->assertStringContainsString('li の外にあった入れ子のリスト 1件', $notes);
+
+        // 名前のないリンク：知らせるだけ
+        $this->assertStringContainsString('文字も画像の alt もないリンクがあります：https://example.test/x', $notes);
+
+        // 仕上げ直しても変わらない
+        $this->assertSame($html, app(ArticleHtmlFinisher::class)->finish($this->blog, $html)['content']);
+    }
+
     public function test_revision_output_creates_image_requests_and_blocks_push_until_resolved(): void
     {
         $this->post(route('ai.generations.store'), ['selected_blog_id' => $this->blog->id, 'mode' => 'revision', 'target' => "posts:{$this->post->id}"])->assertRedirect();
