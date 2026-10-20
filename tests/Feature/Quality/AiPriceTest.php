@@ -60,10 +60,14 @@ class AiPriceTest extends TestCase
             'gpt-6-sol'   => $solPage ?? $this->modelPage('2.00', '0.20', '2.50', '10.00'),
             'gpt-6-astra' => $this->modelPage('10.00', '1.00', '12.50', '50.00'),
             'pricing'     => "<td>Web search (all models)</td><td>\${$webSearch} / 1k calls</td>"
-                // 画像モデル（標準の処理の表）
-                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$2.00</td><td>$30.00</td></tr><tr><td>Text</td><td>$5.00</td><td>$1.25</td><td>-</td></tr>'
-                // 音声の操作のモデル（D-68-02）：リアルタイム会話の表と、聞き取りの表（公式のページと同じ並び）
-                . '<h2>Realtime and audio generation models</h2><tr><td>gpt-realtime-2.1</td><td>Audio</td><td>$32.00</td><td>$0.40</td><td>$64.00</td></tr>'
+                // 画像モデル（標準の処理の表が先、Batch の表が後）。列の並びは表の見出しから読む（2026-10-21 からの公式のページの並び：入力・出力・キャッシュ。D-86-01）
+                . '<h2>Image generation models</h2><tr><th>Model</th><th>Modality</th><th>Input</th><th>Output</th><th>Cached input</th></tr>'
+                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$30.00</td><td>$2.00</td></tr><tr><td>Text</td><td>$5.00</td><td>-</td><td>$1.25</td></tr>'
+                . '<h3>Batch</h3><tr><th>Model</th><th>Modality</th><th>Input</th><th>Output</th><th>Cached input</th></tr>'
+                . '<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$4.00</td><td>$15.00</td><td>$1.00</td></tr><tr><td>Text</td><td>$2.50</td><td>-</td><td>$0.625</td></tr>'
+                // 音声の操作のモデル（D-68-02）：リアルタイム会話の表（以前の並び：入力・キャッシュ・出力）と、聞き取りの表
+                . '<h2>Realtime and audio generation models</h2><tr><th>Model</th><th>Modality</th><th>Input</th><th>Cached input</th><th>Output / cost</th></tr>'
+                . '<tr><td>gpt-realtime-2.1</td><td>Audio</td><td>$32.00</td><td>$0.40</td><td>$64.00</td></tr>'
                 . '<tr><td>Text</td><td>$4.00</td><td>$0.40</td><td>$24.00</td></tr><tr><td>Image</td><td>$5.00</td><td>$0.50</td><td>-</td></tr>'
                 . '<tr><td>gpt-realtime-2.1-mini</td><td>Audio</td><td>$' . ($voice['realtime_audio_input'] ?? '10.00') . '</td><td>$0.30</td><td>$20.00</td></tr>'
                 . '<tr><td>Text</td><td>$0.60</td><td>$0.06</td><td>$2.40</td></tr><tr><td>Image</td><td>$0.80</td><td>$0.08</td><td>-</td></tr>'

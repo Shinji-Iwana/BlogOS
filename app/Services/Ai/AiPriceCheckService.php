@@ -177,7 +177,57 @@ class AiPriceCheckService
     }
 
     /**
-     * 画像モデルの料金（料金ページの「{モデル}Image $入力 $キャッシュ $出力 Text $入力 $キャッシュ」。最初の表が標準の処理）
+     * 料金ページの表（Model・Modality の列のある表）の、モデルの行の料金。最初に出てくる表（標準の処理。Batch の表は後）を読む。
+     * 列の並び（Input・Output・Cached input）は、表の見出しから読む（2026-10-21 に「入力・キャッシュ・出力」から「入力・出力・キャッシュ」に変わった。D-86-01）。
+     * 「-」の欄は null
+     *
+     * @param list<string> $modalities 読む行（例：['Audio', 'Text']）。この順で並んでいること
+     * @return array<string, array{input: float|null, output: float|null, cached_input: float|null}> Modality => 料金
+     *
+     * @throws AiException
+     */
+    protected function modalityRows(string $model, array $modalities, string $what): array
+    {
+        $text = $this->pricingPageText();
+        $cell = '(\$[0-9.]+|-)';
+        $row = fn (string $modality) => '\s*' . preg_quote($modality, '/') . '\s*' . $cell . '\s*' . $cell . '\s*' . $cell;
+
+        // モデル名のすぐ後の文字（最初の Modality）で、ほかのモデル（例：gpt-realtime-2.1 と gpt-realtime-2.1-mini）と取り違えない
+        if (! preg_match('/' . preg_quote($model, '/') . implode('', array_map($row, $modalities)) . '/u', $text, $m, PREG_OFFSET_CAPTURE)) {
+            throw new AiException("料金ページから、{$what}の料金（" . implode('・', $modalities) . ' の行）を読み取れませんでした。ページの形が変わった可能性があります。');
+        }
+
+        // その表の見出し（モデルの行より前で、一番近い「ModelModality…」）から、列の並びを読む
+        $before = substr($text, 0, $m[0][1]);
+        $header = strrpos($before, 'ModelModality');
+        $columns = [];
+        if ($header !== false && preg_match('/^ModelModality\s*((?:\s*(?:Cached input|Output(?:\s*\/\s*cost)?|Input))+)/u', substr($before, $header), $h)) {
+            preg_match_all('/Cached input|Output|Input/u', $h[1], $names);
+            $columns = array_map(fn (string $name) => match ($name) {
+                'Input'        => 'input',
+                'Output'       => 'output',
+                'Cached input' => 'cached_input',
+            }, $names[0]);
+        }
+        if (count($columns) !== 3 || count(array_unique($columns)) !== 3) {
+            throw new AiException("料金ページの{$what}の表の見出し（Input・Output・Cached input）を読み取れませんでした。ページの形が変わった可能性があります。");
+        }
+
+        $result = [];
+        foreach ($modalities as $index => $modality) {
+            $values = [];
+            foreach ($columns as $column => $name) {
+                $value = $m[1 + $index * 3 + $column][0];
+                $values[$name] = $value === '-' ? null : (float) ltrim($value, '$');
+            }
+            $result[$modality] = $values;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 画像モデルの料金（料金ページの Image generation の表の「{モデル}」の Image・Text の行。最初の表が標準の処理）
      *
      * @return array<string, float>
      *
@@ -185,12 +235,9 @@ class AiPriceCheckService
      */
     public function imageModelPrices(string $model): array
     {
-        $text = $this->pricingPageText();
-
-        if (! preg_match('/' . preg_quote($model, '/') . '\s*Image\s*\$([0-9.]+)\s*\$([0-9.]+)\s*\$([0-9.]+)\s*Text\s*\$([0-9.]+)\s*\$([0-9.]+)/u', $text, $m)) {
-            throw new AiException('料金ページから、画像モデルの料金（Image・Text の入力・キャッシュ・出力）を読み取れませんでした。ページの形が変わった可能性があります。');
-        }
-        [$imageInput, $imageCached, $output, $textInput, $textCached] = array_map('floatval', array_slice($m, 1, 5));
+        $rows = $this->modalityRows($model, ['Image', 'Text'], '画像モデル');
+        [$imageInput, $imageCached, $output] = [(float) $rows['Image']['input'], (float) $rows['Image']['cached_input'], (float) $rows['Image']['output']];
+        [$textInput, $textCached] = [(float) $rows['Text']['input'], (float) $rows['Text']['cached_input']];
         if ($imageInput <= 0 || $output <= 0 || $textInput <= 0 || $imageCached > $imageInput || $textCached > $textInput || $output > 1000) {
             throw new AiException("料金ページから読み取った画像モデルの料金が、ありえない値でした（画像の入力 {$imageInput}・出力 {$output}・文章の入力 {$textInput}）。");
         }
@@ -226,7 +273,8 @@ class AiPriceCheckService
     }
 
     /**
-     * リアルタイム会話のモデルの料金（料金ページの Realtime and audio generation models の表の「{モデル}Audio $入力 $キャッシュ $出力 Text $入力 $キャッシュ $出力」）
+     * リアルタイム会話のモデルの料金（料金ページの Realtime and audio generation models の表の「{モデル}」の Audio・Text の行。
+     * Image の行（画像の入力）は、BlogOS の音声の操作では使わないため読まない）
      *
      * @return array<string, float>
      *
@@ -234,13 +282,9 @@ class AiPriceCheckService
      */
     public function realtimePrices(string $model): array
     {
-        $text = $this->pricingPageText();
-
-        // モデル名のすぐ後の文字（Audio）で、ほかのモデル（例：gpt-realtime-2.1 と gpt-realtime-2.1-mini）と取り違えない
-        if (! preg_match('/' . preg_quote($model, '/') . '\s*Audio\s*\$([0-9.]+)\s*\$([0-9.]+)\s*\$([0-9.]+)\s*Text\s*\$([0-9.]+)\s*\$([0-9.]+)\s*\$([0-9.]+)/u', $text, $m)) {
-            throw new AiException('料金ページから、リアルタイム会話のモデルの料金（Audio・Text の入力・キャッシュ・出力）を読み取れませんでした。ページの形が変わった可能性があります。');
-        }
-        [$audioInput, $audioCached, $audioOutput, $textInput, $textCached, $textOutput] = array_map('floatval', array_slice($m, 1, 6));
+        $rows = $this->modalityRows($model, ['Audio', 'Text'], 'リアルタイム会話のモデル');
+        [$audioInput, $audioCached, $audioOutput] = [(float) $rows['Audio']['input'], (float) $rows['Audio']['cached_input'], (float) $rows['Audio']['output']];
+        [$textInput, $textCached, $textOutput] = [(float) $rows['Text']['input'], (float) $rows['Text']['cached_input'], (float) $rows['Text']['output']];
         if ($audioInput <= 0 || $audioOutput <= 0 || $textInput <= 0 || $textOutput <= 0 || $audioCached > $audioInput || $textCached > $textInput || $audioOutput > 1000) {
             throw new AiException("料金ページから読み取ったリアルタイム会話の料金が、ありえない値でした（音声の入力 {$audioInput}・出力 {$audioOutput}・文字の入力 {$textInput}）。");
         }
