@@ -1543,6 +1543,10 @@ Chrome のタスクマネージャーで、トップページを開いている�
 
 **D-86-01 表の列の並びを、表の見出しから読む** 2026-10-21 の料金表の照合で、gpt-image-2.5-flare は読み取れず、gpt-realtime-2.1・gpt-realtime-2.1-mini は「ありえない値」になった（今の料金表のまま計算していたため、費用の計算には響いていない）。公式の料金ページを読むと、料金は変わっておらず、表の列の並びが「Input・Cached input・Output」から「Input・Output（リアルタイム会話は Output / cost）・Cached input」に変わっていた。画像モデルの表は、Text の Output が「-」のため、決め打ちの並び（$ が5つ続く）に合わなかった。リアルタイム会話の表は、キャッシュと出力を取り違えていた（例：音声の出力を 0.40 と読んだ）。料金ページの Model・Modality の表は、モデルの行より前で一番近い見出し（Model・Modality・…）から列の並びを読み、「-」の欄も読めるようにした（AiPriceCheckService::modalityRows）。見出しが読めない・列が3つでない場合は、読み取れなかったとして今の料金表のままにする（読み違えた値上がりを自動で反映しないため）。直した後の照合（反映しない実行）では、料金表は公式のページと同じだった。
 
+### 項目87：BlogOS の入口を Basic 認証で絞る（2026-10-24）
+
+**D-87-01 PHP が動く前に Basic 認証で止め、検索に載せない** PHP の欠陥（php2shell。CVE-2026-109618・109619）への対応の後、BlogOS の守りを見直した（利用者の要望）。BlogOS（admin.si-note.com。si-note.com の public_html の admin が BlogOS/public へのシンボリックリンクのため、si-note.com/admin/ からも入れる）は誰でも開け、守りはログイン画面（メールアドレスと IP アドレスごとに5回失敗で60秒待ち）だけだった。ログインより手前で起きる欠陥（PHP・Laravel・Symfony）にはログインが効かず、IP アドレスを替えた総当たりも止めきれず、サブドメインは証明書の公開の記録から見つかる。BlogOS は WordPress のアプリケーションパスワード・OpenAI と Google の鍵を持つため、入られたときの被害が大きい。外から BlogOS を呼ぶものはない（BlogOS から WordPress・OpenAI・Google へ出ていく通信だけ。Google の連携の戻りもブラウザを通る。定期実行とキューはコマンド）ため、public/.htaccess で Basic 認証をかける。IP アドレスの制限は、自宅の IP アドレスが変わり、携帯（音声の操作）から使えなくなるため採らない。パスワードのファイルは Git に入れず、公開されないホームの直下（/home/snnsk0115/.blogos-htpasswd）に置き、ファイルがあるときだけ認証をかける（`<IfFile>`。XServer の Apache で使えることを、初期ドメインで確かめた）。手元の開発環境では今までどおり認証なしで動き、本番で問題があればファイルを消せば認証は外れる。あわせて、robots.txt を全部拒否にし、X-Robots-Tag: noindex, nofollow を返す。BlogOS のコード・データベースは変えない。
+
 
 
 | 事項 | 決める時期 |

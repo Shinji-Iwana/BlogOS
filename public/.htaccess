@@ -1,3 +1,18 @@
+# 外からの入口を絞る（D-87-01）。PHP が動く前に、Basic 認証で止める（ログインより手前の欠陥への備え）。
+# パスワードのファイルがあるときだけかける（本番だけ。手元の開発環境では使わない）。
+# ファイルは Git に入れず、公開されないホームの直下に置く。消せば、認証は外れる。
+<IfFile "/home/snnsk0115/.blogos-htpasswd">
+    AuthType Basic
+    AuthName "BlogOS"
+    AuthUserFile "/home/snnsk0115/.blogos-htpasswd"
+    Require valid-user
+</IfFile>
+
+# 検索エンジンに載せない（robots.txt も全部拒否。D-87-01）
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
