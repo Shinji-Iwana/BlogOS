@@ -39,6 +39,7 @@ class NoticeService
         'broken_links' => '内部リンクのリンク切れ',
         'wordpress'    => 'WordPress の更新',
         'affiliate'    => 'アフィリエイトのリンク',
+        'environment'  => 'サーバー環境',
     ];
 
     // 最後に照合した日時の保存先（system_settings）
@@ -177,6 +178,16 @@ class NoticeService
                 . ($wordpress['updates'] ? "更新が{$wordpress['updates']}件あります。" : '')
                 . ($wordpress['closed'] ? "公開停止になったプラグインが{$wordpress['closed']}件あります。" : '');
             $add('wordpress', 'error', $message, route('wordpress-updates.index'), 'WordPress情報', "updates:{$wordpress['updates']}|closed:{$wordpress['closed']}");
+        }
+
+        // サーバー環境の点検（D-88）：すぐ対応はエラー、計画して対応は注意
+        $environment = $data['environmentNotice'] ?? ['security' => [], 'support' => []];
+        if ($environment['security'] !== [] || $environment['support'] !== []) {
+            $message = 'サーバー環境：'
+                . ($environment['security'] !== [] ? 'すぐ対応が必要なものがあります（' . implode('、', $environment['security']) . '）。' : '')
+                . ($environment['support'] !== [] ? 'サポートの終わりが近いものがあります（' . implode('、', $environment['support']) . '）。' : '');
+            $add('environment', $environment['security'] !== [] ? 'error' : 'warn', $message, route('server.index') . '#environment', 'XServer情報',
+                'security:' . implode(',', $environment['security']) . '|support:' . implode(',', $environment['support']));
         }
 
         // アフィリエイトのリンクの確認（D-33-09）

@@ -751,6 +751,18 @@ class DatabaseColumns
             'scheduled_task_run_id' => 'この計算をした定期実行の記録（定期実行の記録の番号。コマンドを SSH で直接実行したなら空）。',
             'measured_at'           => '計算した日時。',
         ],
+        'environment_checks' => [
+            'id'              => 'BlogOS の中での、この行の番号。',
+            'target'          => '対象（php_web：PHP（Web 側）、php_cli：PHP（コマンド側）、packages：BlogOS の部品、laravel：Laravel、database：DB）。',
+            'label'           => '対象の名前（画面に出す）。',
+            'current_version' => '今の版（部品は空）。',
+            'latest_version'  => '同じ系列の最新の版（参考。新しい版があるだけでは知らせない）。',
+            'support_until'   => 'セキュリティの修正の終わりの日（endoflife.date。読み取れなければ空）。',
+            'level'           => '状態（security：すぐ対応、support：計画して対応、ok：問題なし、info：参考、unknown：読み取れない）。',
+            'message'         => 'すること・状態の説明。',
+            'details'         => '見つかった脆弱性（advisories）・入っていないセキュリティの修正版（missing_security_releases）の一覧。',
+            'checked_at'      => '最後に点検した日時。',
+        ],
         'database_usage_items' => [
             'id'                            => 'BlogOS の中での、この内訳の番号。',
             'database_usage_measurement_id' => 'どの計算の内訳か（DBの使用量の計算の番号）。',
@@ -771,7 +783,7 @@ class DatabaseColumns
         'notices' => [
             'id'           => 'BlogOS の中での、このお知らせの番号。',
             'blog_id'      => 'どのブログのお知らせか（BlogOS のブログの番号。料金表・定期実行など、全体のお知らせなら空）。',
-            'kind'         => '種類（ai_credit：OpenAI の残高、ai_price：OpenAI API料金表、link_switch：リンクの切り替え・修正の編集案、schedule：定期実行、broken_links：内部リンクのリンク切れ、wordpress：WordPress の更新、affiliate：アフィリエイトのリンク など）。',
+            'kind'         => '種類（ai_credit：OpenAI の残高、ai_price：OpenAI API料金表、link_switch：リンクの切り替え・修正の編集案、schedule：定期実行、broken_links：内部リンクのリンク切れ、wordpress：WordPress の更新、affiliate：アフィリエイトのリンク、environment：サーバー環境 など）。',
             'level'        => '色（error：要対応、warn：注意）。',
             'message'      => 'お知らせの文。',
             'url'          => '確認する画面へのリンク。',

@@ -49,6 +49,13 @@ class ScheduledTasks
             'menu_label'  => 'WordPressの更新確認',
             'counts'      => '処理件数：確認した件数／変更件数：更新がある件数',
         ],
+        'environment:check' => [
+            'label'       => 'サーバー環境の点検',
+            'description' => 'PHP・BlogOS の部品・Laravel・DB の、セキュリティの修正が入っているか、サポートの終わりが近くないかを確かめる（XServer情報の画面で出す。D-88）',
+            'frequency'   => 'daily', 'weekday' => null, 'time' => '04:50',
+            'after'       => [], 'can_disable' => true, 'manual' => true,
+            'counts'      => '処理件数：確かめた対象の数／変更件数：対応が必要な数（すぐ対応・計画して対応）',
+        ],
         'google:fetch' => [
             'label'       => 'Google のデータの取得',
             'description' => 'GA4・Search Console・AdSense のデータを取得して、記事に対応付ける（Queue で1ブログずつ処理する）',
@@ -121,7 +128,7 @@ class ScheduledTasks
      * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）。
      * 「設定 → 即時実行」も、この順（D-63-25）
      */
-    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune', 'database:measure-usage'];
+    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune', 'database:measure-usage', 'environment:check'];
 
     /**
      * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。

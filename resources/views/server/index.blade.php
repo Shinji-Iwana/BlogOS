@@ -47,6 +47,44 @@
     </table>
     </section>
 
+    {{-- サーバー環境の点検（D-88）。知らせるのは「すぐ対応」と「計画して対応」だけ（ただの新しい版は知らせない） --}}
+    <section class="panel" id="environment">
+    <h2>サーバー環境の点検 @include('partials.tip', ['tip' => "毎日、定期実行で確かめます（すぐ確かめるときは、メニューの「設定 → 即時実行 → サーバー環境の点検」）。料金はかかりません。\nすぐ対応：セキュリティの修正が入っていない、または BlogOS の部品に脆弱性がある。\n計画して対応：サポート（セキュリティの修正）の終わりまで6か月以内。\n新しい版が出ただけでは知らせません（同じ系列のセキュリティの修正は入れ、大きな版はサポートの終わりの前に計画して上げる）。\nPHP の Web 側の版は、BlogOS のトップページかこの画面を開いたときに記録した版です（WordPress も同じ PHP で動きます）。"])</h2>
+    @include('partials.history-last', ['label' => '最後の点検', 'at' => $environmentRun?->started_at ?? $environment->max('checked_at'), 'result' => $environmentRun?->statusLabel() ?? ($environment->isNotEmpty() ? '成功' : null)])
+    @if ($environment->isEmpty())
+        <p>まだ点検していません。</p>
+    @else
+        <div style="overflow-x:auto;">
+            <table class="data">
+                <thead><tr><th>対象</th><th>今の版</th><th>同じ系列の最新</th><th>サポートの終わり</th><th>状態</th><th>すること・説明</th></tr></thead>
+                <tbody>
+                    @foreach ($environment as $check)
+                        <tr>
+                            <td>{{ $check->label }}</td>
+                            <td>{{ $check->current_version ?? '-' }}</td>
+                            <td>{{ $check->latest_version ?? '-' }}</td>
+                            <td style="white-space:nowrap;">{{ $check->support_until?->format('Y-m-d') ?? '-' }}</td>
+                            <td style="white-space:nowrap;">
+                                <span class="{{ ['security' => 'text-error', 'support' => 'text-warn', 'unknown' => 'text-warn', 'info' => 'text-muted'][$check->level] ?? '' }}">{{ $check->levelLabel() }}</span>
+                            </td>
+                            <td style="max-width:420px;">
+                                {!! nl2br(e($check->message ?? '')) !!}
+                                @if (! empty($check->details['advisories']))
+                                    <ul>
+                                        @foreach ($check->details['advisories'] as $advisory)
+                                            <li>{{ $advisory['package'] }}（{{ $advisory['severity'] ?? '不明' }}）：{{ $advisory['title'] }}@if ($advisory['cve']) {{ $advisory['cve'] }}@endif</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+    </section>
+
     <section class="panel">
     <h2>DB（BlogOS）</h2>
     @include('server.database', ['database' => $database, 'wordpressTables' => $wordpressTables, 'breakdown' => $breakdown, 'blogosDb' => true, 'size' => $size])

@@ -384,4 +384,22 @@ return [
         ],
     ],
 
+    /*
+     * サーバー環境の点検（D-88。定期実行 environment:check）。
+     * 「新しい版がある」だけでは知らせず、①セキュリティの修正が入っていない、②サポートの終わりが近い、ときだけ知らせる
+     */
+    'environment' => [
+        // PHP の公式の版の一覧（版ごとに、セキュリティの修正版の印 tags: security と公開日がある）
+        'php_releases_url' => 'https://www.php.net/releases/index.php',
+        // サポートの終わり（endoflife.date。{product}・{cycle} を置き換える。eolFrom がセキュリティの修正の終わり）
+        'eol_url' => 'https://endoflife.date/api/v1/products/{product}/releases/{cycle}',
+        // ① セキュリティの修正版が出てから、入っていないと知らせるまでの日数（共用サーバーでは XServer が入れるのを待つ）
+        'security_grace_days' => 7,
+        // ② サポートの終わりの何か月前から知らせるか
+        'support_warn_months' => 6,
+        // BlogOS の部品の脆弱性の確認（composer audit）。本番は BlogOS のフォルダの composer（phar）を、動いている PHP で実行する
+        'composer' => env('BLOGOS_COMPOSER_COMMAND'),
+        'composer_timeout' => 180,
+    ],
+
 ];

@@ -27,6 +27,9 @@ class DashboardController extends Controller
      */
     public function index(Request $request, NoticeService $notices)
     {
+        // サーバー環境の点検（D-88）で比べる、Web 側の PHP の版を記録する（点検はコマンドで動くため）
+        \App\Services\EnvironmentCheckService::rememberWebPhp();
+
         // お知らせの記録を更新する（D-74。お知らせの失敗で、トップページを止めない）
         try {
             $notices->refresh();

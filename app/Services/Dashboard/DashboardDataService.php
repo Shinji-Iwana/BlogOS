@@ -66,6 +66,11 @@ class DashboardDataService
                 'updates' => WordPressComponent::where('blog_id', $selectedBlog->id)->where('update_available', true)->count(),
                 'closed'  => WordPressComponent::where('blog_id', $selectedBlog->id)->where('wporg_state', 'closed')->count(),
             ] : ['updates' => 0, 'closed' => 0],
+            // サーバー環境の点検（D-88）：すぐ対応（セキュリティの修正が入っていない・部品の脆弱性）と、計画して対応（サポートの終わりが近い）
+            'environmentNotice' => [
+                'security' => \App\Models\EnvironmentCheck::where('level', \App\Models\EnvironmentCheck::SECURITY)->pluck('label')->all(),
+                'support'  => \App\Models\EnvironmentCheck::where('level', \App\Models\EnvironmentCheck::SUPPORT)->pluck('label')->all(),
+            ],
             // アフィリエイトのリンクの確認で、提携終了の疑いがあるプログラムの数（D-33-09）
             'affiliateSuspects' => $selectedBlog ? AffiliateProgram::where('blog_id', $selectedBlog->id)
                 ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])

@@ -14,8 +14,13 @@ class ServerStatusController extends Controller
     public function index(ServerStatusService $status)
     {
         $database = $status->database();
+        // サーバー環境の点検（D-88）で比べる、Web 側の PHP の版を記録する
+        \App\Services\EnvironmentCheckService::rememberWebPhp();
 
         return view('server.index', [
+            // サーバー環境の点検の最新の結果（D-88。定期実行 environment:check）
+            'environment'    => \App\Models\EnvironmentCheck::orderByRaw("field(target, '" . implode("','", \App\Models\EnvironmentCheck::TARGETS) . "')")->get(),
+            'environmentRun' => \App\Models\ScheduledTaskRun::where('task_key', 'environment:check')->latest('started_at')->latest('id')->first(),
             'machine'  => $status->machine(),
             'database' => $database,
             // ブログごとの内訳（件数は数えた値、容量は見積もり。D-71-08）。重いため、定期実行で計算した最新の結果を読む（D-71-09）
