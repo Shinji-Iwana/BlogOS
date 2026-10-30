@@ -16,7 +16,7 @@
     $scheduleSetting = $scheduleService->setting($taskKey);
     $scheduleFailed = old('_form') === $modalId && $errors->any();
     $scheduleValues = $scheduleFailed
-        ? ['frequency' => old('frequency'), 'weekday' => old('weekday') !== null ? (int) old('weekday') : null, 'time' => old('time'), 'enabled' => (bool) old('enabled')]
+        ? ['frequency' => old('frequency'), 'weekday' => old('weekday') !== null ? (int) old('weekday') : null, 'monthday' => old('monthday') !== null ? (int) old('monthday') : null, 'time' => old('time'), 'enabled' => (bool) old('enabled')]
         : $scheduleSetting;
 
     // 有効・無効をブログごとに決める定期実行（教材の定期チェック）：有効は、選択中のブログの AI の設定（D-63-03）
@@ -78,6 +78,19 @@
                 <input type="hidden" name="frequency" value="daily">
                 <input type="hidden" name="time" value="00:00">
                 @include('partials.tip', ['tip' => "決まった時刻ではなく、その日に動く定期実行（毎日のものと、毎週のうちその曜日のもの）が全て終わった後に、続けて実行します。\n「今すぐ実行」で動かしたものは数えません。"])
+            </p>
+            @elseif (\App\Support\ScheduledTasks::isMonthly($taskKey))
+            {{-- 毎月の定期実行（バックアップの作成）：毎月の日と時刻だけ変えられる（D-89） --}}
+            <p>
+                いつ：毎月
+                <input type="hidden" name="frequency" value="monthly">
+                <select name="monthday">
+                    @for ($day = 1; $day <= \App\Support\ScheduledTasks::MONTHDAY_MAX; $day++)
+                        <option value="{{ $day }}" @selected($scheduleValues['monthday'] === $day)>{{ $day }}日</option>
+                    @endfor
+                </select>
+                <input type="time" name="time" value="{{ $scheduleValues['time'] }}" step="60" required>
+                @include('partials.tip', ['tip' => '毎月のこの日の、この時刻（日本時間）に実行します（どの月にもある、1〜' . \App\Support\ScheduledTasks::MONTHDAY_MAX . '日から選びます）。'])
             </p>
             @else
             <p>

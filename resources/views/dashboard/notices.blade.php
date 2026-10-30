@@ -26,6 +26,14 @@
         <p class="text-ok">{{ session('status') }}</p>
     @endif
 
+    {{-- 月1回のバックアップを作った後、1回だけ出す（D-89。DashboardController が、出した印を付ける） --}}
+    @if ($backupCreated ?? null)
+        <p class="text-ok">
+            バックアップを作成しました（{{ \App\Support\DisplayTime::format($backupCreated->finished_at) }}・合計 {{ number_format($backupCreated->total_bytes / 1048576, 1) }} MB）。パソコンにダウンロードしてください。
+            <a href="{{ route('server.index') }}#backup">XServer情報でダウンロードする</a>
+        </p>
+    @endif
+
     {{-- 同期（テーマが別の場所に出す場合は、$withSync = false で読み込む） --}}
     @if ($selectedBlog && ($withSync ?? true))
         @include('partials.sync-status')

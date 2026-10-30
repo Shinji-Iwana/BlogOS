@@ -71,6 +71,8 @@ class DashboardDataService
                 'security' => \App\Models\EnvironmentCheck::where('level', \App\Models\EnvironmentCheck::SECURITY)->pluck('label')->all(),
                 'support'  => \App\Models\EnvironmentCheck::where('level', \App\Models\EnvironmentCheck::SUPPORT)->pluck('label')->all(),
             ],
+            // 月1回のバックアップ（D-89）：最後の作成の失敗・作れていない日数・ダウンロードしていないファイル
+            'backupNotice' => app(\App\Services\BackupService::class)->noticeState(),
             // アフィリエイトのリンクの確認で、提携終了の疑いがあるプログラムの数（D-33-09）
             'affiliateSuspects' => $selectedBlog ? AffiliateProgram::where('blog_id', $selectedBlog->id)
                 ->whereIn('status', [AffiliateProgramStatus::Active, AffiliateProgramStatus::Unconfirmed])

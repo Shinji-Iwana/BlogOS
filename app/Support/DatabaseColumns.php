@@ -763,6 +763,18 @@ class DatabaseColumns
             'details'         => '見つかった脆弱性（advisories）・入っていないセキュリティの修正版（missing_security_releases）の一覧。',
             'checked_at'      => '最後に点検した日時。',
         ],
+        'backups' => [
+            'id'            => 'BlogOS の中での、このバックアップの番号。',
+            'name'          => 'サーバーの中のフォルダの名前（作り始めた日本時間。storage/app/backups の下）。',
+            'status'        => '状態（running：作成中、succeeded：成功、failed：失敗）。',
+            'files'         => 'ファイルの一覧（種類・ファイル名・大きさ・パスワード付きか・ダウンロードした日時）。',
+            'total_bytes'   => 'ファイルの大きさの合計（バイト）。',
+            'message'       => '失敗の理由・注意。',
+            'started_at'    => '作り始めた日時。',
+            'finished_at'   => '作り終えた日時。',
+            'announced_at'  => 'トップページで「作成しました」を出した日時（1回だけ出す）。',
+            'downloaded_at' => '全てのファイルをダウンロードした日時。',
+        ],
         'database_usage_items' => [
             'id'                            => 'BlogOS の中での、この内訳の番号。',
             'database_usage_measurement_id' => 'どの計算の内訳か（DBの使用量の計算の番号）。',
@@ -774,8 +786,9 @@ class DatabaseColumns
         'scheduled_task_settings' => [
             'id'         => 'BlogOS の中での、この設定の番号（定期実行1つにつき1行）。',
             'task_key'   => 'どの定期実行か（例：blogs:sync。App\Support\ScheduledTasks のキー）。',
-            'frequency'  => '頻度（daily：毎日、weekly：毎週）。',
+            'frequency'  => '頻度（daily：毎日、weekly：毎週、monthly：毎月）。',
             'weekday'    => '毎週のときの曜日（0：日曜〜6：土曜）。',
+            'monthday'   => '毎月のときの日（1〜28）。',
             'time'       => '実行する時刻（日本時間の HH:MM）。',
             'enabled'    => '実行するか（1：する、0：しない）。',
             'updated_by' => '最後に設定を変えた人（BlogOS の利用者の番号）。',
@@ -783,7 +796,7 @@ class DatabaseColumns
         'notices' => [
             'id'           => 'BlogOS の中での、このお知らせの番号。',
             'blog_id'      => 'どのブログのお知らせか（BlogOS のブログの番号。料金表・定期実行など、全体のお知らせなら空）。',
-            'kind'         => '種類（ai_credit：OpenAI の残高、ai_price：OpenAI API料金表、link_switch：リンクの切り替え・修正の編集案、schedule：定期実行、broken_links：内部リンクのリンク切れ、wordpress：WordPress の更新、affiliate：アフィリエイトのリンク、environment：サーバー環境 など）。',
+            'kind'         => '種類（ai_credit：OpenAI の残高、ai_price：OpenAI API料金表、link_switch：リンクの切り替え・修正の編集案、schedule：定期実行、broken_links：内部リンクのリンク切れ、wordpress：WordPress の更新、affiliate：アフィリエイトのリンク、environment：サーバー環境、backup：バックアップ など）。',
             'level'        => '色（error：要対応、warn：注意）。',
             'message'      => 'お知らせの文。',
             'url'          => '確認する画面へのリンク。',

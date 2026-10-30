@@ -85,6 +85,52 @@
     @endif
     </section>
 
+    {{-- 月1回のバックアップ（D-89）。サーバーの中に作り、ここからパソコンへダウンロードする --}}
+    <section class="panel" id="backup">
+    <h2>バックアップ @include('partials.tip', ['tip' => "毎月、定期実行でサーバーの中（BlogOS の storage。ブラウザから直接は開けない場所）に作り、新しいものから" . config('blogos.backup.keep') . "回分を残します（すぐ作るときは、メニューの「設定 → 即時実行 → バックアップの作成」）。料金はかかりません。\nXServer に何かあったときのために、作ったらここからパソコンにダウンロードしてください（作ってから" . config('blogos.backup.download_days') . "日たってもダウンロードしていないと、お知らせが出ます）。\n秘密の情報（BlogOS の .env・WordPress の wp-config.php・Basic 認証のパスワードのファイル）は、パスワード付きの zip（AES-256）です。7-Zip などで、.env の BLOGOS_BACKUP_PASSPHRASE に決めたパスワード（パスワード管理アプリの控え）を入れて開きます。\n戻す手順は docs/BLOGOS_DEPLOYMENT.md の「バックアップから戻す」にあります。"])</h2>
+    @include('partials.history-last', ['label' => '最後の作成', 'at' => $backupRun?->started_at ?? $backups->max('started_at'), 'result' => $backupRun?->statusLabel() ?? $backups->first()?->statusLabel()])
+    <p class="text-muted">次の作成：{{ $backupNextRunAt ? \App\Support\DisplayTime::format($backupNextRunAt, 'Y-m-d H:i') : '定期実行が無効です' }}</p>
+    @if ($backups->isEmpty())
+        <p>まだ作っていません。</p>
+    @else
+        <div style="overflow-x:auto;">
+            <table class="data">
+                <thead><tr><th>作った日時</th><th>状態</th><th>ファイル（押すとダウンロード）</th><th>合計</th></tr></thead>
+                <tbody>
+                    @foreach ($backups as $backup)
+                        <tr>
+                            <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($backup->finished_at ?? $backup->started_at, 'Y-m-d H:i') }}</td>
+                            <td style="white-space:nowrap;">
+                                <span class="{{ [\App\Models\Backup::FAILED => 'text-error', \App\Models\Backup::RUNNING => 'text-warn'][$backup->status] ?? '' }}">{{ $backup->statusLabel() }}</span>
+                                @if ($backup->status === \App\Models\Backup::SUCCEEDED)
+                                    <br><span class="{{ $backup->downloaded_at ? 'text-muted' : 'text-warn' }}">{{ $backup->downloaded_at ? 'ダウンロード済み' : '未ダウンロードあり' }}</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($backup->status === \App\Models\Backup::SUCCEEDED)
+                                    <ul>
+                                        @foreach ($backup->files as $file)
+                                            <li>
+                                                <a href="{{ route('server.backups.download', ['backup' => $backup->id, 'key' => $file['key']]) }}">{{ $file['label'] }}</a>
+                                                （{{ $size($file['bytes']) }}）
+                                                @if ($file['downloaded_at'])<span class="text-muted">ダウンロード済み</span>@endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                                @if ($backup->message)
+                                    <span class="{{ $backup->status === \App\Models\Backup::FAILED ? 'text-error' : 'text-muted' }}">{!! nl2br(e($backup->message)) !!}</span>
+                                @endif
+                            </td>
+                            <td style="text-align:right; white-space:nowrap;">{{ $backup->total_bytes !== null ? $size($backup->total_bytes) : '-' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+    </section>
+
     <section class="panel">
     <h2>DB（BlogOS）</h2>
     @include('server.database', ['database' => $database, 'wordpressTables' => $wordpressTables, 'breakdown' => $breakdown, 'blogosDb' => true, 'size' => $size])

@@ -50,7 +50,7 @@ class ScheduledTaskController extends Controller
         $task = ScheduledTasks::get($key);
         abort_if($task === null, 404);
 
-        $warnings = $this->service->save($key, $this->validated($request), $request->user()?->id);
+        $warnings = $this->service->save($key, $this->validated($request, $key), $request->user()?->id);
 
         return $this->saved($task, $warnings);
     }
@@ -63,7 +63,7 @@ class ScheduledTaskController extends Controller
         $task = ScheduledTasks::get($key);
         abort_if($task === null || ! isset($task['blog_setting']), 404);
         $blog = $this->selectedBlog();
-        $validated = $this->validated($request);
+        $validated = $this->validated($request, $key);
 
         $warnings = $this->service->save($key, $validated, $request->user()?->id);
 
@@ -76,13 +76,16 @@ class ScheduledTaskController extends Controller
     }
 
     /**
-     * @return array{frequency: string, weekday?: int|string|null, time: string, enabled?: bool|string|null}
+     * 毎月の定期実行（バックアップの作成）は、毎月だけ（毎日・毎週には変えられない。D-89）
+     *
+     * @return array{frequency: string, weekday?: int|string|null, monthday?: int|string|null, time: string, enabled?: bool|string|null}
      */
-    protected function validated(Request $request): array
+    protected function validated(Request $request, string $key): array
     {
         return $request->validate([
-            'frequency' => ['required', Rule::in(['daily', 'weekly'])],
+            'frequency' => ['required', Rule::in(ScheduledTasks::isMonthly($key) ? ['monthly'] : ['daily', 'weekly'])],
             'weekday'   => ['nullable', 'required_if:frequency,weekly', 'integer', 'between:0,6'],
+            'monthday'  => ['nullable', 'required_if:frequency,monthly', 'integer', 'between:1,' . ScheduledTasks::MONTHDAY_MAX],
             'time'      => ['required', 'date_format:H:i'],
             'enabled'   => ['nullable', 'boolean'],
         ]);

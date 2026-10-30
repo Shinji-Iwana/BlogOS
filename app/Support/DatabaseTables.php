@@ -40,6 +40,7 @@ class DatabaseTables
         'article_media'                       => '記事が使うメディア',
         'article_relations'                   => '記事どうしの関係',
         'author_histories'                    => '投稿者の変更履歴',
+        'backups'                             => 'バックアップ',
         'blog_ai_settings'                    => 'ブログごとのAIの設定',
         'blog_credentials'                    => 'ブログの認証情報',
         'blog_google_properties'              => 'ブログとGoogleのサービスのつながり',

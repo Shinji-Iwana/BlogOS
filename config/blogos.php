@@ -402,4 +402,32 @@ return [
         'composer_timeout' => 180,
     ],
 
+    /*
+     * 月1回のバックアップ（D-89。定期実行 backup:create）。サーバーの中（storage/app/backups）に作り、XServer情報の画面からパソコンへダウンロードする。
+     * 秘密の情報（.env・wp-config.php・Basic 認証のパスワードのファイル）は、パスワード付きの zip（AES-256）にする
+     */
+    'backup' => [
+        'path' => storage_path('app/backups'),
+        // 残す回数（新しいものから。古いものは、作り終えたときに消す）
+        'keep' => 3,
+        // 秘密の情報の zip のパスワード（12文字以上。パスワード管理アプリにも控える。.env が zip の中に入るため、控えがないと開けなくなる）
+        'passphrase' => env('BLOGOS_BACKUP_PASSPHRASE'),
+        // WordPress の DB の名前と、WordPress のフォルダ（wp-content・wp-config.php がある場所）
+        'wordpress_database' => env('BLOGOS_BACKUP_WORDPRESS_DB'),
+        'wordpress_path' => env('BLOGOS_BACKUP_WORDPRESS_PATH'),
+        // 秘密の情報の zip に加えるファイル（BlogOS の .env と、WordPress の wp-config.php のほか。ないものは入れない）
+        'secret_files' => array_values(array_filter([
+            getenv('HOME') ? getenv('HOME') . '/.blogos-htpasswd' : null,
+        ])),
+        // wp-content のうち、入れないフォルダ（作り直せるもの）
+        'exclude' => ['wp-content/cache', 'wp-content/upgrade'],
+        'mysqldump' => env('BLOGOS_MYSQLDUMP', 'mysqldump'),
+        'tar' => env('BLOGOS_TAR', 'tar'),
+        // 1つのファイルを作る時間の上限（秒。即時実行の Queue の上限 1800秒 に収める）
+        'timeout' => 600,
+        // 知らせる基準：最後に作れてからの日数・作ってからダウンロードしていない日数
+        'stale_days' => 35,
+        'download_days' => 7,
+    ],
+
 ];

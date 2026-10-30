@@ -14,7 +14,8 @@ class ScheduledTaskSetting extends Model
     protected function casts(): array
     {
         return [
-            'weekday' => 'integer',
+            'weekday'  => 'integer',
+            'monthday' => 'integer',
             'enabled' => 'boolean',
         ];
     }

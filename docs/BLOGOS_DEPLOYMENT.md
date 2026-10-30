@@ -59,6 +59,8 @@ git pull
 | `GOOGLE_OAUTH_CLIENT_ID`・`GOOGLE_OAUTH_CLIENT_SECRET` | Google Cloud の OAuth クライアント |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `https://<本番のドメイン>/google/oauth/callback`（Google Cloud にも同じ URI を登録する。4章） |
 | `HTTP_CA_BUNDLE` | 空（ローカル専用。D-18-06） |
+| `BLOGOS_BACKUP_PASSPHRASE` | 月1回のバックアップの、秘密の情報の zip のパスワード（英数字で12文字以上。パスワード管理アプリにも控える。D-89） |
+| `BLOGOS_BACKUP_WORDPRESS_DB`・`BLOGOS_BACKUP_WORDPRESS_PATH` | バックアップする WordPress の DB の名前と、WordPress のフォルダ（wp-content と wp-config.php がある場所） |
 | `QUEUE_CONNECTION`・`CACHE_STORE`・`SESSION_DRIVER` | `database` |
 | `LOG_LEVEL` | `warning` 程度 |
 
@@ -139,6 +141,22 @@ OAuth クライアントの「承認済みのリダイレクト URI」に、`htt
 
 8. 必要なら、カテゴリごとのアイキャッチを登録する（画像の画面。ローカルでは未登録）。
 9. その後、本番での利用者の作業（教材の一括調査、インデックス未登録の記事・全記事の改修、記事の評価と確認）に進む。
+
+---
+
+## 6-2. バックアップから戻す（D-89）
+
+月1回のバックアップ（「情報 → XServer情報」の「バックアップ」からダウンロードしたもの）で戻す手順。戻すのは人が行う（BlogOS は戻さない）。
+まず XServer の自動バックアップ（14日分。サーバーパネルの「バックアップ」）で戻せないかを確かめ、それで足りないとき（XServer の中のデータも失ったときなど）に使う。
+
+| ファイル | 中身 | 戻し方 |
+| --- | --- | --- |
+| `…-wordpress-db.sql.gz` | WordPress の DB | サーバーパネルで空の DB を用意し、phpMyAdmin の「インポート」で読み込む（gz のままでよい）。または SSH で `gunzip -c <ファイル> \| mysql -u <ユーザー> -p <DB名>` |
+| `…-blogos-db.sql.gz` | BlogOS の DB | 同じ |
+| `…-wp-content.tar.gz` | WordPress のファイル（キャッシュを除く） | WordPress のフォルダ（`public_html`）に置き、`tar -xzf <ファイル>` で展開する（`wp-content` ができる） |
+| `…-secrets.zip` | BlogOS の `.env`（中では `blogos.env`）、WordPress の `wp-config.php`、Basic 認証のパスワードのファイル | 7-Zip などで、`BLOGOS_BACKUP_PASSPHRASE` のパスワード（パスワード管理アプリの控え）を入れて開き、元の場所に置く。`.env` の `APP_KEY` が同じでないと、BlogOS が暗号化した認証情報を読めない |
+
+WordPress の本体（`wp-admin`・`wp-includes`）は含めない。WordPress を入れ直してから、上の DB・`wp-content`・`wp-config.php` を戻す。BlogOS は、Git から配置し直してから（3章）、DB と `.env` を戻す。
 
 ---
 

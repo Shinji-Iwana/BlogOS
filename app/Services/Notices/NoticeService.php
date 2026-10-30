@@ -40,6 +40,7 @@ class NoticeService
         'wordpress'    => 'WordPress の更新',
         'affiliate'    => 'アフィリエイトのリンク',
         'environment'  => 'サーバー環境',
+        'backup'       => 'バックアップ',
     ];
 
     // 最後に照合した日時の保存先（system_settings）
@@ -188,6 +189,19 @@ class NoticeService
                 . ($environment['support'] !== [] ? 'サポートの終わりが近いものがあります（' . implode('、', $environment['support']) . '）。' : '');
             $add('environment', $environment['security'] !== [] ? 'error' : 'warn', $message, route('server.index') . '#environment', 'XServer情報',
                 'security:' . implode(',', $environment['security']) . '|support:' . implode(',', $environment['support']));
+        }
+
+        // 月1回のバックアップ（D-89）：作るのに失敗したらエラー。作れていない・ダウンロードしていないは注意
+        $backup = $data['backupNotice'] ?? ['failed' => null, 'stale' => null, 'never' => false, 'not_downloaded' => []];
+        if ($backup['failed'] !== null || $backup['stale'] !== null || $backup['never'] || $backup['not_downloaded'] !== []) {
+            $message = 'バックアップ：'
+                . ($backup['failed'] !== null ? 'バックアップの作成に失敗しました（' . $backup['failed'] . '）。' : '')
+                . ($backup['never'] && $backup['failed'] === null ? 'まだバックアップを作っていません（メニューの「設定 → 即時実行 → バックアップの作成」で作れます）。' : '')
+                // 日数は毎日変わるため、文には基準の日数を出す（内容の印を変えず、毎日新しいお知らせにしない）
+                . ($backup['stale'] !== null ? '最後に作れてから' . config('blogos.backup.stale_days') . '日以上たっています（定期実行が止まっていないか、確認してください）。' : '')
+                . ($backup['not_downloaded'] !== [] ? '最新のバックアップを、作ってから' . config('blogos.backup.download_days') . '日たってもダウンロードしていません（' . implode('、', $backup['not_downloaded']) . '）。' : '');
+            $add('backup', $backup['failed'] !== null ? 'error' : 'warn', $message, route('server.index') . '#backup', 'XServer情報',
+                'failed:' . md5((string) $backup['failed']) . '|stale:' . ($backup['stale'] !== null ? 1 : 0) . '|never:' . (int) $backup['never'] . '|download:' . implode(',', $backup['not_downloaded']));
         }
 
         // アフィリエイトのリンクの確認（D-33-09）

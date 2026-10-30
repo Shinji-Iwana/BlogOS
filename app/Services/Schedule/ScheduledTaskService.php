@@ -39,7 +39,7 @@ class ScheduledTaskService
     /**
      * 定期実行の設定（画面で変えたもの。なければ既定）
      *
-     * @return array{frequency: string, weekday: int|null, time: string, enabled: bool}
+     * @return array{frequency: string, weekday: int|null, monthday: int|null, time: string, enabled: bool}
      */
     public function setting(string $key, ?Collection $settings = null): array
     {
@@ -48,10 +48,13 @@ class ScheduledTaskService
 
         // 定期実行が全て終わった後に動くもの（after_all）は、時刻を持たない（D-71-09）
         $afterAll = $task['after_all'] ?? false;
+        $frequency = $afterAll ? 'daily' : ($row?->frequency ?? $task['frequency']);
 
         return [
-            'frequency' => $afterAll ? 'daily' : ($row?->frequency ?? $task['frequency']),
+            'frequency' => $frequency,
             'weekday'   => $afterAll ? null : ($row !== null ? $row->weekday : $task['weekday']),
+            // 毎月の日（D-89）
+            'monthday'  => $frequency === 'monthly' ? (int) ($row?->monthday ?? $task['monthday'] ?? 1) : null,
             'time'      => $afterAll ? null : ($row?->time ?? $task['time']),
             // 画面で無効にできない定期実行は、常に有効
             'enabled'   => ! $task['can_disable'] || ($row?->enabled ?? true),
@@ -61,7 +64,7 @@ class ScheduledTaskService
     /**
      * いつ・有効を保存する（メニューのポップアップ。D-44・D-63）。時刻の順番の注意を返す
      *
-     * @param  array{frequency: string, weekday?: int|string|null, time: string, enabled?: bool|string|null}  $values
+     * @param  array{frequency: string, weekday?: int|string|null, monthday?: int|string|null, time: string, enabled?: bool|string|null}  $values
      * @return list<string>
      */
     public function save(string $key, array $values, ?int $userId): array
@@ -71,6 +74,7 @@ class ScheduledTaskService
         ScheduledTaskSetting::updateOrCreate(['task_key' => $key], [
             'frequency'  => $values['frequency'],
             'weekday'    => $values['frequency'] === 'weekly' ? (int) $values['weekday'] : null,
+            'monthday'   => $values['frequency'] === 'monthly' ? (int) $values['monthday'] : null,
             'time'       => $values['time'],
             // 画面で無効にできない定期実行は、常に有効にしておく
             'enabled'    => ! $task['can_disable'] || (bool) ($values['enabled'] ?? false),
@@ -112,9 +116,11 @@ class ScheduledTaskService
                 // 前回の実行が終わっていなければ、重ねて動かさない（3時間で解除）
                 ->withoutOverlapping(ScheduledTaskRun::STALE_HOURS * 60);
 
-            $setting['frequency'] === 'weekly'
-                ? $event->weeklyOn((int) $setting['weekday'], $setting['time'])
-                : $event->dailyAt($setting['time']);
+            match ($setting['frequency']) {
+                'weekly'  => $event->weeklyOn((int) $setting['weekday'], $setting['time']),
+                'monthly' => $event->monthlyOn((int) $setting['monthday'], $setting['time']),
+                default   => $event->dailyAt($setting['time']),
+            };
         }
     }
 
@@ -130,7 +136,11 @@ class ScheduledTaskService
         }
 
         [$hour, $minute] = array_map('intval', explode(':', $setting['time']));
-        $cron = $setting['frequency'] === 'weekly' ? "{$minute} {$hour} * * {$setting['weekday']}" : "{$minute} {$hour} * * *";
+        $cron = match ($setting['frequency']) {
+            'weekly'  => "{$minute} {$hour} * * {$setting['weekday']}",
+            'monthly' => "{$minute} {$hour} {$setting['monthday']} * *",
+            default   => "{$minute} {$hour} * * *",
+        };
         $timezone = (string) config('blogos.display_timezone');
 
         return CarbonImmutable::instance((new CronExpression($cron))->getNextRunDate(now($timezone), 0, false, $timezone));
@@ -318,7 +328,7 @@ class ScheduledTaskService
      * その日の定期実行が全て終わっていれば、その後に動く定期実行（after_all）を Queue に登録する（D-71-09）。
      *
      * 定期実行が1つ終わるたびに確かめる。次の全てを満たすときだけ登録する（「今すぐ実行」は数えない）：
-     * - 今日（日本時間）動く予定の定期実行（有効で、毎日のもの・毎週のうち今日の曜日のもの）が、今日の定期実行として全て終わっている
+     * - 今日（日本時間）動く予定の定期実行（有効で、毎日のもの・毎週のうち今日の曜日のもの・毎月のうち今日の日のもの）が、今日の定期実行として全て終わっている
      * - 動いている定期実行がない（3時間より前に始まったまま止まったものは除く）
      * - その after_all の定期実行を、今日はまだ定期実行として登録していない
      */
@@ -333,7 +343,11 @@ class ScheduledTaskService
             $setting = $this->setting($key, $settings);
 
             return ! in_array($key, $afterAll, true) && $setting['enabled']
-                && ($setting['frequency'] === 'daily' || (int) $setting['weekday'] === $today->dayOfWeek);
+                && match ($setting['frequency']) {
+                    'weekly'  => (int) $setting['weekday'] === $today->dayOfWeek,
+                    'monthly' => (int) $setting['monthday'] === $today->day,
+                    default   => true,
+                };
         }));
 
         $todayRuns = ScheduledTaskRun::where('trigger', 'scheduled')->where('started_at', '>=', $today->utc());

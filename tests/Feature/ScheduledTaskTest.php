@@ -45,9 +45,11 @@ class ScheduledTaskTest extends TestCase
     {
         // 既定（日本時間 3:00 = UTC 18:00、月曜 6:45 = UTC 日曜 21:45）
         $events = $this->registered();
-        $this->assertCount(11, $events);
+        $this->assertCount(12, $events);
         $this->assertSame('0 3 * * *', $events['blogs:sync']);
         $this->assertSame('45 6 * * 1', $events['affiliate:check-links']);
+        // 毎月（バックアップの作成。毎月1日 5:10。D-89）
+        $this->assertSame('10 5 1 * *', $events['backup:create']);
 
         // 画面「定期実行」はなくした（設定はメニューの「設定 → 定期実行」、今すぐ実行は「設定 → 即時実行」。D-63-10）
         $this->get('/scheduled-tasks')->assertNotFound();
@@ -172,7 +174,7 @@ class ScheduledTaskTest extends TestCase
         // 保存した後は、開いていた画面に戻る
         $this->from(route('drafts.index'))->put(route('scheduled-tasks.update', ['key' => 'blogs:sync']), ['_form' => 'scheduled-blogs-sync-modal', 'frequency' => 'daily', 'time' => '05:20'])
             ->assertRedirect(route('drafts.index'));
-        $this->assertSame(['frequency' => 'daily', 'weekday' => null, 'time' => '05:20', 'enabled' => false], app(\App\Services\Schedule\ScheduledTaskService::class)->setting('blogs:sync'));
+        $this->assertSame(['frequency' => 'daily', 'weekday' => null, 'monthday' => null, 'time' => '05:20', 'enabled' => false], app(\App\Services\Schedule\ScheduledTaskService::class)->setting('blogs:sync'));
 
         // 入力の誤りで戻ったときは、ポップアップを開いたままにする
         $this->from(route('home'))->put(route('scheduled-tasks.update', ['key' => 'blogs:sync']), ['_form' => 'scheduled-blogs-sync-modal', 'frequency' => 'daily', 'time' => '25:00']);
@@ -200,7 +202,7 @@ class ScheduledTaskTest extends TestCase
 
         // 時刻は変えられ、有効のまま
         $this->put(route('scheduled-tasks.update', ['key' => 'model:prune']), ['_form' => 'scheduled-model-prune-modal', 'frequency' => 'daily', 'time' => '02:30'])->assertSessionHasNoErrors();
-        $this->assertSame(['frequency' => 'daily', 'weekday' => null, 'time' => '02:30', 'enabled' => true], app(\App\Services\Schedule\ScheduledTaskService::class)->setting('model:prune'));
+        $this->assertSame(['frequency' => 'daily', 'weekday' => null, 'monthday' => null, 'time' => '02:30', 'enabled' => true], app(\App\Services\Schedule\ScheduledTaskService::class)->setting('model:prune'));
     }
 
     public function test_material_check_popup_saves_time_and_blog_setting(): void
@@ -271,12 +273,12 @@ class ScheduledTaskTest extends TestCase
         // 今すぐ実行のある定期実行を全て、メニューの「定期実行」と同じ順に出す（料金がかかる2つは出さない）
         preg_match('/>即時実行<\/summary>(.*?)<\/ul>/s', $html, $runNow);
         preg_match_all('/data-menu-confirm="[^"]*">([^<]+)<\/a>/', $runNow[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除', 'DBの使用量の計算', 'サーバー環境の点検'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '古い記録の削除', 'DBの使用量の計算', 'サーバー環境の点検', 'バックアップの作成'], $labels[1]);
 
         // メニューの「定期実行」の順（D-63-25）
         preg_match('/>定期実行<\/summary>(.*?)<\/ul>/s', $html, $schedule);
         preg_match_all('/data-modal-open="scheduled-[^"]*" >([^<]+)<\/a>/', $schedule[1], $labels);
-        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除', 'DBの使用量の計算', 'サーバー環境の点検'], $labels[1]);
+        $this->assertSame(['WordPressとの同期', 'WordPressの更新確認', 'Googleとの同期', 'Googleのインデックス確認', 'PageSpeed Insightsとの同期', 'OpenAI API料金表との同期', 'アフィリエイト提携先との同期', '教材情報の同期', '記事の再評価', '古い記録の削除', 'DBの使用量の計算', 'サーバー環境の点検', 'バックアップの作成'], $labels[1]);
 
         // 開いていた画面に戻り、Queue に登録する
         $this->from(route('drafts.index'))->post($url)->assertRedirect(route('drafts.index'))

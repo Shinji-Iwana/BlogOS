@@ -6,6 +6,7 @@ namespace App\Support;
  * 定期実行の一覧と既定の時刻（D-44）。時刻は日本時間。
  *
  * 画面で変えた時刻・有効かは scheduled_task_settings にあり、なければここの既定で動く。
+ * - frequency：daily（毎日）・weekly（毎週。weekday の曜日）・monthly（毎月。monthday の日。毎月のものは、毎日・毎週に変えられない。D-89）
  * - after：この定期実行の前に終わっていてほしい定期実行（時刻の順番の注意に使う）
  * - can_disable：画面で無効にできるか（古い記録の削除は止めると DB が増え続けるため不可。料金がかかる2つは AI の設定で有効・無効を決める）
  * - manual：画面の「今すぐ実行」を出すか（料金がかかるものは出さない）
@@ -119,16 +120,36 @@ class ScheduledTasks
             'after'       => [], 'can_disable' => true, 'manual' => true,
             'counts'      => '処理件数：計算したテーブルの数',
         ],
+        'backup:create' => [
+            'label'       => 'バックアップの作成',
+            'description' => 'WordPress と BlogOS の DB・WordPress のファイル（wp-content）・秘密の情報（パスワード付き zip）のバックアップを、サーバーの中に作る（新しいものから3回分を残す。XServer情報の画面からダウンロードする。D-89）',
+            // 毎月の決まった日（monthday）に動く。毎日・毎週には変えられない
+            'frequency'   => 'monthly', 'weekday' => null, 'monthday' => 1, 'time' => '05:10',
+            'after'       => [], 'can_disable' => true, 'manual' => true,
+            'tip'         => '作った後、トップページに1回だけ「作成しました」と出ます。XServer情報の画面からパソコンにダウンロードしてください（作ってから7日たってもダウンロードしていないと、お知らせが出ます）。',
+            'counts'      => '処理件数：作ったファイルの数',
+        ],
     ];
 
     public const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+    // 毎月の定期実行の日に選べる範囲（どの月にもある日だけ）
+    public const MONTHDAY_MAX = 28;
+
+    /**
+     * 毎月だけで動く定期実行か（既定が毎月のもの。毎日・毎週には変えられない。D-89）
+     */
+    public static function isMonthly(string $key): bool
+    {
+        return (self::TASKS[$key]['frequency'] ?? null) === 'monthly';
+    }
 
     /**
      * メニューの「設定 → 定期実行」に出す定期実行（この順。押すと、いつ・有効の設定のポップアップを開く。D-63）。
      * 教材の定期チェックの有効・無効は、選択中のブログの設定（blog_setting）。自動の再評価（記事の再評価）は、専用のポップアップ（modal_view）。
      * 「設定 → 即時実行」も、この順（D-63-25）
      */
-    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune', 'database:measure-usage', 'environment:check'];
+    public const MENU = ['blogs:sync', 'wordpress:check-updates', 'google:fetch', 'google:inspect-index', 'pagespeed:measure', 'ai:check-prices', 'affiliate:check-links', 'materials:check', 'ai:auto-reevaluate', 'model:prune', 'database:measure-usage', 'environment:check', 'backup:create'];
 
     /**
      * メニューの「設定 → 即時実行」に出す定期実行（押すと、確認してから今すぐ Queue に登録する。D-63-09）。

@@ -49,7 +49,22 @@ class DashboardController extends Controller
             'systemBusy'   => $this->statusService->busy($data),
             'linkGroups'   => DashboardLinks::groups($data['selectedBlog'] !== null),
             'noticePopup'  => $this->noticePopup($request, $notices),
+            'backupCreated' => $this->backupCreated(),
         ]);
+    }
+
+    /**
+     * 月1回のバックアップを作った後、トップページに1回だけ出す「作成しました」（D-89。ダウンロードを促す）
+     */
+    protected function backupCreated(): ?\App\Models\Backup
+    {
+        try {
+            return app(\App\Services\BackupService::class)->announce();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 
     /**

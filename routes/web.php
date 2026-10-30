@@ -240,6 +240,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::post('/notices/confirm', [NoticeController::class, 'confirm'])->name('notices.confirm');
     // XServer情報（メニューの「情報 → XServer情報」。読み取りだけ。全ブログ共通。D-71）
     Route::get('/server', [ServerStatusController::class, 'index'])->name('server.index');
+    // 月1回のバックアップのダウンロード（XServer情報の「バックアップ」。D-89）
+    Route::get('/server/backups/{backup}/{key}', [ServerStatusController::class, 'downloadBackup'])->whereNumber('backup')
+        ->whereIn('key', array_keys(\App\Services\BackupService::FILES))->name('server.backups.download');
     Route::get('/ai/credits', [AiCreditController::class, 'index'])->name('ai.credits.index');
 
     Route::middleware(EnsureSelectedBlog::class)->group(function () {
