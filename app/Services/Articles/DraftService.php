@@ -45,15 +45,17 @@ class DraftService
     /**
      * 既存記事の編集案を作る。記事の現在の内容（DB）を写し、その版を編集の起点とする（D-01-08）。
      *
+     * $alongsideActive は、作ってすぐに反映する BlogOS の内部の編集案（古い画像の URL の置き換え。D-90）だけに使う。
+     *
      * @throws PushException 作業中の編集案が既にある場合
      */
-    public function createFromArticle(Post|Page $article, ?RevisionScope $scope, ?int $userId, ?int $aiGenerationId = null): ArticleDraft
+    public function createFromArticle(Post|Page $article, ?RevisionScope $scope, ?int $userId, ?int $aiGenerationId = null, bool $alongsideActive = false): ArticleDraft
     {
         if ($article->wordpress_deleted_at !== null) {
             throw new PushException('WordPress側で削除された記事には、編集案を作れません。');
         }
 
-        if ($existing = $this->drafts->activeFor($article)) {
+        if (! $alongsideActive && $existing = $this->drafts->activeFor($article)) {
             throw new PushException("この記事には、作業中の編集案（#{$existing->id}）が既にあります。");
         }
 

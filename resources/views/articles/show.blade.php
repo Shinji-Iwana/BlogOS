@@ -524,8 +524,90 @@
         </div></div>
     @endif
 
-    {{-- 反映記録 --}}
+    {{-- 古い画像（/wp-content/img/）の移し替え（D-90）。古い画像がある記事だけに出す --}}
     </section>
+    @if ($legacyImages !== [] && ! $article->wordpress_deleted_at)
+    <section class="panel" id="legacy-images">
+    <h2 data-code="LEGACY IMAGES">古い画像の移し替え（{{ count($legacyImages) }}件） @include('partials.tip', ['tip' => "本文で使っている、メディアライブラリにない古い画像（/wp-content/img/…）です。\n1. 取り込む：サイトから読み込み、BlogOS の画像にします。\n2. 名前・alt・ファイル名を入れて、確認済みにします。\n3. WordPress のメディアに登録します（人の承認）。\n4. 置き換える：公開中の記事の URL だけを置き換えて反映し、作業中の編集案の URL も置き換えます。\n5. 古い画像の削除の画面で、どこにも使われなくなったファイルを消すコマンドを出します（SSH で人が実行）。"])</h2>
+    <div style="overflow-x:auto;">
+        <table class="data">
+            <thead><tr><th>画像</th><th>古いファイル</th><th>状態と入力</th></tr></thead>
+            <tbody>
+                @foreach ($legacyImages as $row)
+                    <tr>
+                        <td style="width:140px;">
+                            <a href="{{ $row['url'] }}" target="_blank" rel="noopener"><img src="{{ $row['url'] }}" alt="" loading="lazy" style="max-width:120px; max-height:90px;"></a>
+                        </td>
+                        <td style="word-break:break-all;">
+                            {{ $row['path'] }}
+                            @if ($row['others'] !== [])
+                                <br><span class="text-muted">ほかに使っている記事：
+                                    @foreach ($row['others'] as $other)
+                                        <a href="{{ route('articles.show', ['type' => $other instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $other->id]) }}#legacy-images">{{ $other->title_raw ?: '（タイトルなし）' }}</a>@if (! $loop->last)、@endif
+                                    @endforeach
+                                </span>
+                            @endif
+                        </td>
+                        <td>
+                            @if (! $row['image'])
+                                未取り込み
+                                <form method="POST" action="{{ route('articles.legacy-images.import', ['type' => $type, 'id' => $article->id]) }}" style="display:inline;">
+                                    @csrf
+                                    @include('partials.selected-blog-field')
+                                    <input type="hidden" name="path" value="{{ $row['path'] }}">
+                                    <button type="submit" class="btn-secondary">取り込む</button>
+                                </form>
+                            @elseif ($row['image']->media)
+                                <span class="text-ok">WordPress に登録済み</span>：<a href="{{ $row['image']->media->source_url }}" target="_blank" rel="noopener">{{ basename((string) parse_url($row['image']->media->source_url, PHP_URL_PATH)) }}</a>
+                                <br><span class="text-muted">alt：{{ $row['image']->alt }}</span>
+                            @else
+                                {{ $row['image']->status->label() }}（<a href="{{ route('images.show', ['id' => $row['image']->id]) }}">画像 #{{ $row['image']->id }}</a>）
+                                <form method="POST" action="{{ route('articles.legacy-images.update', ['type' => $type, 'id' => $article->id, 'imageId' => $row['image']->id]) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    @include('partials.selected-blog-field')
+                                    <select name="kind">
+                                        @foreach ([\App\Enums\ImageKind::Screenshot, \App\Enums\ImageKind::Illustration, \App\Enums\ImageKind::Diagram] as $kind)
+                                            <option value="{{ $kind->value }}" @selected($row['image']->kind === $kind)>{{ $kind->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="text" name="title" value="{{ $row['image']->title }}" placeholder="名前（何の画像か）" required maxlength="255" style="width:100%;">
+                                    <input type="text" name="alt" value="{{ $row['image']->alt }}" placeholder="alt（画像の代わりの文章）" required maxlength="1000" style="width:100%;">
+                                    <input type="text" name="filename" value="{{ $row['image']->filename }}" placeholder="ファイル名（英小文字・数字・ハイフン。例：excel-vlookup-result）" required maxlength="100" style="width:100%;">
+                                    <button type="submit" class="btn-secondary">保存して確認済みにする</button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <p>
+        @if (collect($legacyImages)->contains(fn ($row) => ! $row['image']))
+            <form method="POST" action="{{ route('articles.legacy-images.import', ['type' => $type, 'id' => $article->id]) }}" style="display:inline;">
+                @csrf
+                @include('partials.selected-blog-field')
+                <button type="submit" class="btn-secondary">まとめて取り込む（{{ collect($legacyImages)->filter(fn ($row) => ! $row['image'])->count() }}件）</button>
+            </form>
+        @endif
+        @if (collect($legacyImages)->contains(fn ($row) => $row['image'] && ! $row['image']->media && $row['image']->status === \App\Enums\ImageStatus::Ready))
+            <form method="POST" action="{{ route('articles.legacy-images.upload', ['type' => $type, 'id' => $article->id]) }}" style="display:inline;">
+                @csrf
+                @include('partials.selected-blog-field')
+                <button type="submit">確認済みの画像を WordPress に登録する（{{ collect($legacyImages)->filter(fn ($row) => $row['image'] && ! $row['image']->media && $row['image']->status === \App\Enums\ImageStatus::Ready)->count() }}件）</button>
+            </form>
+        @endif
+        @if (collect($legacyImages)->contains(fn ($row) => $row['image']?->media))
+            <a href="{{ route('articles.legacy-images.confirm', ['type' => $type, 'id' => $article->id]) }}">登録済みの画像で置き換える（{{ collect($legacyImages)->filter(fn ($row) => $row['image']?->media)->count() }}件）</a>
+        @endif
+        ・<a href="{{ route('images.legacy') }}">古い画像の削除と、古い画像が残っている記事</a>
+    </p>
+    </section>
+    @endif
+
+    {{-- 反映記録 --}}
     <section class="panel">
     <h2 data-code="PUSH LOG">反映記録</h2>
     <ul>

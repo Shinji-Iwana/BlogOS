@@ -39,6 +39,7 @@ use App\Http\Controllers\Google\GoogleIndexController;
 use App\Http\Controllers\Google\GoogleSettingsController;
 use App\Http\Controllers\Images\EyecatchController;
 use App\Http\Controllers\Images\ImageController;
+use App\Http\Controllers\Images\LegacyImageController;
 use App\Http\Controllers\Materials\MaterialAiController;
 use App\Http\Controllers\Materials\MaterialController;
 use App\Http\Controllers\Materials\AffiliateProgramController;
@@ -133,6 +134,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
     Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
     Route::get('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.confirm');
+    Route::get('/articles/{type}/{id}/legacy-images/replace', [LegacyImageController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.confirm');
 
     // 編集案と反映（ARCHITECTURE 13-5・17-5）
     Route::get('/drafts', [DraftController::class, 'index'])->name('drafts.index');
@@ -155,6 +157,11 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::post('/articles/{type}/{id}/relations', [ArticleManagementController::class, 'storeRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.relations.store');
         Route::delete('/articles/{type}/{id}/relations/{relationId}', [ArticleManagementController::class, 'destroyRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'relationId'])->name('articles.relations.destroy');
         Route::post('/articles/{type}/{id}/trash', [ArticleTrashController::class, 'destroy'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.trash.destroy');
+        // 古い画像（/wp-content/img/）の移し替え（D-90）
+        Route::post('/articles/{type}/{id}/legacy-images/import', [LegacyImageController::class, 'import'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.import');
+        Route::put('/articles/{type}/{id}/legacy-images/{imageId}', [LegacyImageController::class, 'update'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'imageId'])->name('articles.legacy-images.update');
+        Route::post('/articles/{type}/{id}/legacy-images/upload', [LegacyImageController::class, 'upload'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.upload');
+        Route::post('/articles/{type}/{id}/legacy-images/replace', [LegacyImageController::class, 'replace'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.replace');
 
         Route::post('/drafts', [DraftController::class, 'store'])->name('drafts.store');
         Route::put('/drafts/{id}', [DraftController::class, 'update'])->whereNumber('id')->name('drafts.update');
@@ -302,6 +309,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     // 記事で使う画像（D-32）
     Route::get('/images', [ImageController::class, 'index'])->name('images.index');
     Route::get('/images/eyecatches', [EyecatchController::class, 'index'])->name('images.eyecatches');
+    Route::get('/images/legacy', [LegacyImageController::class, 'index'])->name('images.legacy');
     Route::get('/images/{id}', [ImageController::class, 'show'])->whereNumber('id')->name('images.show');
     Route::get('/images/{id}/file', [ImageController::class, 'file'])->whereNumber('id')->name('images.file');
 

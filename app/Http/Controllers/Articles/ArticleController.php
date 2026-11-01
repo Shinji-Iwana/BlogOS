@@ -125,6 +125,8 @@ class ArticleController extends Controller
             // ページの速さ（PageSpeed Insights。D-78）：端末ごとの最新の結果と、測定の記録
             'pagespeed'        => app(PageSpeedReportService::class)->latestForArticle($article),
             'pagespeedHistory' => app(PageSpeedReportService::class)->historyForArticle($article),
+            // 古い画像（/wp-content/img/）の移し替え（D-90）
+            'legacyImages'     => app(\App\Services\Images\LegacyImageService::class)->entries($blog, $article),
             'relatedQuery'  => $relatedKeyword,
             'relatedType'   => $relatedType,
             'candidates'    => $candidates,
