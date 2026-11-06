@@ -28,7 +28,7 @@
             <p>削除できるファイルはありません。</p>
         @else
             <p>
-                次の {{ count($deletion['deletable']) }}件は、BlogOS の記事・作業中の編集案、WordPress の DB（投稿の版を除く全ての文字の列）、テーマのファイルのどこにも使われていません。
+                次の {{ count($deletion['deletable']) }}件（以前 WordPress が作った縮小版（名前-幅x高さ）を含む）は、BlogOS の記事・作業中の編集案、WordPress の DB（投稿の版を除く全ての文字の列）、テーマのファイルのどこにも使われていません。
                 SSH で実行してください（月1回のバックアップに、元のファイルが残ります）。実行すると、次に開いたときに一覧から消えます。
             </p>
             <textarea readonly rows="{{ min(12, count($deletion['deletable']) + 1) }}" style="width:100%; font-family:monospace;">{{ $deletion['command'] }}</textarea>
@@ -38,7 +38,7 @@
             <h3>まだ使われているファイル（{{ count($deletion['used']) }}件）</h3>
             <ul>
                 @foreach ($deletion['used'] as $row)
-                    <li style="word-break:break-all;">{{ $row['image']->legacy_path }}：{{ implode('、', $row['places']) }}</li>
+                    <li style="word-break:break-all;">{{ $row['path'] }}：{{ implode('、', $row['places']) }}</li>
                 @endforeach
             </ul>
         @endif

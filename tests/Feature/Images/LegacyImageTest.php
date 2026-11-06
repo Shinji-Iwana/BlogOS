@@ -224,12 +224,14 @@ class LegacyImageTest extends TestCase
             DB::table("{$schema}.wp_options")->insert([
                 ['option_name' => 'home', 'option_value' => 'https://blog.example.test'],
                 ['option_name' => 'widget_text', 'option_value' => 'a:1:{s:4:"text";s:40:"<img src=\"/wp-content/img/widget.png\">";}'],
+                ['option_name' => 'widget_block', 'option_value' => '<img src="/wp-content/img/gone-300x200.png">'],
             ]);
             DB::table("{$schema}.wp_posts")->insert([
                 ['post_content' => '<img src="/wp-content/img/revision.png">', 'post_type' => 'revision'],
             ]);
 
-            foreach (['JavaScript/a.png', 'b.png', 'widget.png', 'revision.png', 'theme.png', 'it\'s.png'] as $file) {
+            // 縮小版（名前-幅x高さ）：gone は元のファイルを消した後で、縮小版だけが残っている。gone-other は別の画像
+            foreach (['JavaScript/a.png', 'b.png', 'widget.png', 'revision.png', 'revision-100x100.png', 'theme.png', 'it\'s.png', 'gone-150x150.png', 'gone-300x200.png', 'gone-other.png', 'b-768x421.png'] as $file) {
                 File::ensureDirectoryExists(dirname("{$root}/wp-content/img/{$file}"));
                 file_put_contents("{$root}/wp-content/img/{$file}", 'x');
             }
@@ -254,7 +256,14 @@ class LegacyImageTest extends TestCase
                 ->assertDontSee("{$root}/wp-content/img/JavaScript/a.png'")
                 ->assertDontSee("{$root}/wp-content/img/widget.png'")
                 ->assertDontSee("{$root}/wp-content/img/theme.png'")
-                ->assertDontSee('gone.png')
+                ->assertDontSee("{$root}/wp-content/img/gone.png'")
+                // 縮小版も、使われていなければ消せる（元のファイルを消した後も）。使われている縮小版と、別の画像は消さない
+                ->assertSee("rm -f -- '{$root}/wp-content/img/revision-100x100.png'")
+                ->assertSee("rm -f -- '{$root}/wp-content/img/gone-150x150.png'")
+                ->assertSee("rm -f -- '{$root}/wp-content/img/b-768x421.png'")
+                ->assertDontSee("{$root}/wp-content/img/gone-300x200.png'")
+                ->assertSee('/wp-content/img/gone-300x200.png：WordPress の DB：wp_options.option_value')
+                ->assertDontSee('gone-other.png')
                 ->assertSee('WordPress の DB：wp_options.option_value')
                 ->assertSee('テーマ：si' . DIRECTORY_SEPARATOR . 'style.css')
                 ->assertSee('BlogOS の記事「Title 101」');

@@ -389,9 +389,10 @@ class LegacyImageService
     /**
      * WordPress のメディアに登録した古いファイルのうち、どこにも使われていないもの（削除のコマンドを出す）と、まだ使われているもの。
      * BlogOS の記事・編集案に加えて、WordPress の DB（全てのテーブルの文字の列。投稿の版（revision）は除く）とテーマのファイルも調べる。
-     * WordPress の DB かテーマを読めないときは、一覧を出さない（記事以外での使用を見落とさないため）
+     * WordPress の DB かテーマを読めないときは、一覧を出さない（記事以外での使用を見落とさないため）。
+     * 古いファイルの横にある縮小版（名前-幅x高さ.拡張子。以前 WordPress が作ったもの）も、1つずつ同じように調べる（元のファイルを消した後も出す）
      *
-     * @return array{available: bool, reason: string|null, deletable: list<array{image: Image, file: string}>, used: list<array{image: Image, places: list<string>}>, command: string}
+     * @return array{available: bool, reason: string|null, deletable: list<array{image: Image, path: string, file: string}>, used: list<array{image: Image, path: string, places: list<string>}>, command: string}
      */
     public function deletion(Blog $blog): array
     {
@@ -405,10 +406,13 @@ class LegacyImageService
             return $empty + ['reason' => 'このブログの WordPress の DB を読めません。'];
         }
 
-        // 登録済みで、古いファイルがまだ残っているもの
-        $candidates = Image::with('media')->where('blog_id', $blog->id)->whereNotNull('legacy_path')->whereNotNull('media_id')->orderBy('legacy_path')->get()
-            ->filter(fn (Image $image) => is_file($root . $image->legacy_path))
-            ->keyBy('legacy_path');
+        // 登録済みの画像の、まだ残っている古いファイルと縮小版（パスをキーにする）
+        $candidates = collect();
+        foreach (Image::with('media')->where('blog_id', $blog->id)->whereNotNull('legacy_path')->whereNotNull('media_id')->orderBy('legacy_path')->get() as $image) {
+            foreach ($this->legacyFiles($root, $image->legacy_path) as $path) {
+                $candidates->put($path, $image);
+            }
+        }
         if ($candidates->isEmpty()) {
             return ['available' => true, 'reason' => null, 'deletable' => [], 'used' => [], 'command' => ''];
         }
@@ -441,9 +445,9 @@ class LegacyImageService
         $used = [];
         foreach ($candidates as $path => $image) {
             if (isset($places[$path])) {
-                $used[] = ['image' => $image, 'places' => array_values(array_unique($places[$path]))];
+                $used[] = ['image' => $image, 'path' => $path, 'places' => array_values(array_unique($places[$path]))];
             } else {
-                $deletable[] = ['image' => $image, 'file' => $root . $path];
+                $deletable[] = ['image' => $image, 'path' => $path, 'file' => $root . $path];
             }
         }
 
@@ -486,6 +490,27 @@ class LegacyImageService
     protected function pathOf(Blog $blog, string $url): ?string
     {
         return preg_match($this->pattern($blog), trim($url), $match) === 1 && str_ends_with(trim($url), $match[1]) ? rawurldecode($match[1]) : null;
+    }
+
+    /**
+     * 古いファイルと、その縮小版（名前-幅x高さ.拡張子）のうち、残っているもののパス
+     *
+     * @return list<string>
+     */
+    protected function legacyFiles(string $root, string $path): array
+    {
+        $directory = dirname($path);
+        $name = pathinfo($path, PATHINFO_FILENAME);
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+
+        $paths = is_file($root . $path) ? [$path] : [];
+        foreach (is_dir($root . $directory) ? (scandir($root . $directory) ?: []) : [] as $file) {
+            if (preg_match('/^' . preg_quote($name, '/') . '-\d+x\d+\.' . preg_quote($extension, '/') . '$/', $file) === 1 && is_file("{$root}{$directory}/{$file}")) {
+                $paths[] = "{$directory}/{$file}";
+            }
+        }
+
+        return $paths;
     }
 
     /**
