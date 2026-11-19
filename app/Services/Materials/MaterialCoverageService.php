@@ -65,7 +65,7 @@ class MaterialCoverageService
      *
      * @param Collection<int, Material> $materials
      * @param Collection<int, Category> $categories
-     * @return array<int, array{posts: int, own: array<string, int>, inherited: array<string, int>, unusable: int}>
+     * @return array<int, array{posts: int, own: array<string, int>, inherited: array<string, int>, basic: int, unusable: int}> basic：基礎の教材（基礎から体系的に学びたい）の数
      */
     public function coverage(int $blogId, Collection $materials, Collection $categories): array
     {
@@ -79,7 +79,7 @@ class MaterialCoverageService
         $rows = [];
         foreach ($categories as $category) {
             $scope = $this->withAncestors((int) $category->id, $categories);
-            $row = ['posts' => (int) ($posts[$category->id] ?? 0), 'own' => $empty, 'inherited' => $empty, 'unusable' => 0];
+            $row = ['posts' => (int) ($posts[$category->id] ?? 0), 'own' => $empty, 'inherited' => $empty, 'basic' => 0, 'unusable' => 0];
             foreach ($materials as $material) {
                 $ids = $material->categories->pluck('id')->map(fn ($id) => (int) $id)->all();
                 if (array_intersect($ids, $scope) === []) {
@@ -91,6 +91,10 @@ class MaterialCoverageService
                     continue;
                 }
                 $row[in_array((int) $category->id, $ids, true) ? 'own' : 'inherited'][$material->kind->value]++;
+                // カテゴリの基礎の教材（集客記事で、記事に合う教材がないときに紹介する。D-91）
+                if (in_array('systematic', (array) $material->scenes, true)) {
+                    $row['basic']++;
+                }
             }
             $rows[$category->id] = $row;
         }

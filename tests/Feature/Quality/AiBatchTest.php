@@ -85,10 +85,13 @@ class AiBatchTest extends TestCase
         return ['auto_revision_enabled' => 0, 'auto_revision_model' => 'gpt-6-luna', 'auto_revision_reasoning_effort' => 'medium'];
     }
 
-    protected function fakeOpenAi(): void
+    /**
+     * @param array<string, string> $overrides 項目ごとの判定（ほかの項目は △）
+     */
+    protected function fakeOpenAi(array $overrides = []): void
     {
         $standard = app(QualityStandardLoader::class)->load('si-note');
-        $judgments = fn (array $keys) => array_map(fn () => ['judgment' => '△', 'comment' => '一部不足'], array_flip($keys));
+        $judgments = fn (array $keys) => array_combine($keys, array_map(fn ($key) => ['judgment' => $overrides[$key] ?? '△', 'comment' => '一部不足'], $keys));
         $diagnosis = json_encode(['required' => $judgments(array_keys($standard->required)), 'items' => $judgments(array_keys($standard->items)), 'summary' => '要改善'], JSON_UNESCAPED_UNICODE);
 
         Http::fake(['api.openai.com/v1/responses' => function (Request $request) use ($diagnosis) {
@@ -208,7 +211,8 @@ class AiBatchTest extends TestCase
 
     public function test_no_drafts_when_scores_meet_the_standard_or_follow_up_is_off(): void
     {
-        $this->fakeOpenAi();
+        // 教材の紹介（mon.fit）は ○（△ だと点数に関係なく改修する。D-91）
+        $this->fakeOpenAi(['mon.fit' => '○']);
 
         // 基準を50点にすると、診断の結果（50点）は基準未満ではない。件数の上限で1件だけ実行する
         $this->get(route('ai.batches.create', ['mode' => 'quality_diagnosis', 'limit' => 1]))->assertSee('対象：1件');
@@ -224,6 +228,20 @@ class AiBatchTest extends TestCase
         ]));
         $this->assertSame(2, AiBatch::count());
         $this->assertSame(0, ArticleDraft::count());
+    }
+
+    public function test_article_without_material_is_revised_even_when_the_score_meets_the_standard(): void
+    {
+        // 点数は基準以上だが、教材の紹介（mon.fit）が △（候補があるのに紹介していない集客記事など）→ 改修する（D-91）
+        $this->fakeOpenAi();
+
+        $this->post(route('ai.batches.store'), $this->selected([
+            'mode' => 'quality_diagnosis', 'target' => 'all', 'model' => 'gpt-6-luna', 'reasoning_effort' => 'medium',
+            'follow_up_revision' => 1, 'follow_up_below_score' => 50, 'limit' => 1,
+        ]));
+
+        $this->assertSame(1, AiBatch::where('purpose', 'revision')->count());
+        $this->assertSame(1, ArticleDraft::count());
     }
 
     public function test_revision_scope_by_score(): void
@@ -525,7 +543,8 @@ class AiBatchTest extends TestCase
             } else {
                 $ratio = $goodRatios[min($diagnoses, count($goodRatios) - 1)];
                 $diagnoses++;
-                $text = json_encode(['required' => $judgments(array_keys($standard->required), $ratio), 'items' => $judgments(array_keys($standard->items), $ratio), 'summary' => '要改善'], JSON_UNESCAPED_UNICODE);
+                // 教材の紹介（mon.fit）を先頭にして、○ の割合が0でなければ ○ にする（△ だと点数に関係なく改修するため。D-91）
+                $text = json_encode(['required' => $judgments(array_keys($standard->required), $ratio), 'items' => $judgments(array_values(array_unique(array_merge(['mon.fit'], array_keys($standard->items)))), $ratio), 'summary' => '要改善'], JSON_UNESCAPED_UNICODE);
             }
 
             return Http::response([
@@ -645,6 +664,10 @@ class AiBatchTest extends TestCase
         $this->assertStringContainsString('BlogOS が入れる部分（広告を含むことの表示 `pr-note`', $prompt);
         $this->assertStringContainsString('実際に動かした結果・確認した環境・公式情報と照らし合わせた結果がないことは、この項目の理由にしないでください', $prompt);
         $this->assertStringContainsString('説明の対象にしない箇所', $prompt);
+        // 教材の候補の数と、集客記事が候補があるのに紹介していないときの mon.fit の判定（D-91）
+        $this->assertStringContainsString('- 教材の候補（BlogOS が選んだ、この記事で紹介できる教材）：なし', $prompt);
+        $this->assertStringContainsString('「mon.fit」は、ブログ別の定義（article-types.md 4-4）に従ってください。', $prompt);
+        $this->assertStringContainsString('教材は1件以上紹介する。記事に合う教材がなければ、カテゴリの基礎の教材から1件を紹介する', $prompt);
     }
 
     public function test_orphan_only_failure_is_not_revised_and_not_a_finding(): void

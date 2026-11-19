@@ -110,6 +110,13 @@ class PromptBuilder
             $values = $this->materialValues->values($mode, $blog, $article, $material, $parameters, $webSearch) + $values;
         }
 
+        // 品質診断：紹介できる教材の候補の数（集客記事は、候補があれば教材を1件以上紹介する。article-types.md 4-4。D-91）
+        if ($mode === AiMode::QualityDiagnosis && $article instanceof Post) {
+            ['count' => $count, 'basic' => $basic] = $this->materialMatcher->candidateCounts($blog, $article);
+            $values['article_info'] .= "\n- 教材の候補（BlogOS が選んだ、この記事で紹介できる教材）："
+                . ($count === 0 ? 'なし' : "{$count}件（うちカテゴリの基礎の教材 {$basic}件）");
+        }
+
         // 記事改修・新規記事作成（D-34）：紹介してよい教材の候補と、この記事の画像
         if (in_array($mode, [AiMode::Revision, AiMode::NewArticle], true)) {
             $values['material_candidates'] = MaterialMatcher::describe($this->materialMatcher->candidates($blog, $article, [

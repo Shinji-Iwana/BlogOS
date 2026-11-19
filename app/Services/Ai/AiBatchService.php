@@ -383,7 +383,7 @@ class AiBatchService
             }
 
             $note = match (true) {
-                (float) $evaluation->score >= $belowScore && $this->requirementsPassedOrUnfixable($evaluation) => null,
+                (float) $evaluation->score >= $belowScore && $this->requirementsPassedOrUnfixable($evaluation) && ! $this->lacksMaterial($evaluation) => null,
                 $item->score_before !== null && (float) $evaluation->score <= (float) $item->score_before   => '改修しても点数が上がらなかったため、繰り返しを止めました。人が確認してください。',
                 $round >= $maxRounds                                                                          => "上限の{$maxRounds}回まで改修しましたが、基準に届きませんでした。人が確認してください。",
                 default                                                                                       => false,
@@ -461,6 +461,16 @@ class AiBatchService
     }
 
     /**
+     * 教材の紹介（mon.fit）が △・× か。集客記事で教材の候補があるのに紹介していない場合など（品質診断で △ にする。D-91）。
+     * 点数が基準以上でも改修の対象にする（教材の紹介は1点のため、点数だけでは改修に回らないため）
+     */
+    protected function lacksMaterial(ArticleEvaluation $evaluation): bool
+    {
+        return $evaluation->details()->where('item_key', 'mon.fit')
+            ->whereIn('judgment', [\App\Enums\Judgment::Partial->value, \App\Enums\Judgment::Bad->value])->exists();
+    }
+
+    /**
      * 品質診断の結果、基準に満たなかった記事（点数が基準未満、または必須条件を満たさない）の編集案を作る。
      * 費用の上限・取り消しで止まった品質診断では行わない。登録できなかった理由は、元のまとめて実行に残す
      */
@@ -481,7 +491,8 @@ class AiBatchService
                 continue;
             }
             // 記事の改修では直せない必須条件（孤立記事でない）だけを満たさない記事は、改修しない（ロードマップで直す。D-70）
-            if (($evaluation->score !== null && $evaluation->score < $belowScore) || ! $this->requirementsPassedOrUnfixable($evaluation)) {
+            // 点数が基準以上でも、教材の紹介（mon.fit）が △・× の記事は改修する（集客記事は教材を必ず1件紹介する。D-91）
+            if (($evaluation->score !== null && $evaluation->score < $belowScore) || ! $this->requirementsPassedOrUnfixable($evaluation) || $this->lacksMaterial($evaluation)) {
                 // 編集案を診断した場合（記事の再評価。D-65）：AI が作ったままの編集案は、その編集案を改修する。人が手を入れた編集案は改修しない
                 if ($evaluation->article_draft_id !== null) {
                     $draft = ArticleDraft::find($evaluation->article_draft_id);

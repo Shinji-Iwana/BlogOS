@@ -113,6 +113,18 @@ class MaterialRepository
     }
 
     /**
+     * 教材ごとの、紹介している記事の数（同じ教材が多くの記事に並ばないように、候補に添える。D-91）
+     *
+     * @return array<int, int> 教材ID => 記事の数
+     */
+    public function usageCounts(int $blogId): array
+    {
+        return ArticleMaterial::where('blog_id', $blogId)
+            ->groupBy('material_id')->selectRaw('material_id, count(*) as c')
+            ->pluck('c', 'material_id')->map(fn ($count) => (int) $count)->all();
+    }
+
+    /**
      * @return Collection<int, ArticleMaterial>
      */
     public function articlesUsing(Material $material): Collection

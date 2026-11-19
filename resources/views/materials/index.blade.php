@@ -36,10 +36,11 @@
         <summary><strong>カテゴリごとの、記事で紹介に使える教材の数</strong></summary>
         <p class="text-muted" style="margin:4px 0;">
             記事の改修・新規記事作成では、記事のカテゴリと親カテゴリに登録した教材のうち、情報を調べてあり、提携中のリンクがある教材が候補になります。
-            数は「このカテゴリに登録（＋親カテゴリに登録）」。記事があるのに0件の種類は赤字です（すべての種類が必要なわけではありません）。
+            数は「このカテゴリに登録（＋親カテゴリに登録）」。記事があるのに0件の種類は赤字です（すべての種類が必要なわけではありません）。<br>
+            「基礎の教材」は、向いている場面が「基礎から体系的に学びたい」の教材の数（親カテゴリの分を含む）です。集客記事は教材を必ず1件紹介し、記事に合う教材がなければ基礎の教材から選びます（D-91）。記事があるのに0件のカテゴリ（赤字）は、基礎の書籍を登録してください。
         </p>
         <table class="data data-compact" style="font-size:90%;">
-            <thead><tr><th>カテゴリ</th><th>記事</th>@foreach ($kinds as $option)<th>{{ $option->label() }}</th>@endforeach<th>使えない教材</th></tr></thead>
+            <thead><tr><th>カテゴリ</th><th>記事</th><th>基礎の教材</th>@foreach ($kinds as $option)<th>{{ $option->label() }}</th>@endforeach<th>使えない教材</th></tr></thead>
             <tbody>
                 @foreach ($categories as $row)
                     @php $c = $coverage[$row->id] ?? null; @endphp
@@ -47,6 +48,7 @@
                     <tr @if ($category?->id === $row->id) class="row-current" @endif>
                         <td style="padding-left:{{ 4 + ($row->depth ?? 0) * 16 }}px;"><a href="{{ route('materials.index', ['category' => $row->id]) }}">{{ $row->name }}</a></td>
                         <td>{{ $c['posts'] }}</td>
+                        <td @if ($c['posts'] > 0 && $c['basic'] === 0) class="text-error" @endif>{{ $c['basic'] }}</td>
                         @foreach ($kinds as $option)
                             @php $own = $c['own'][$option->value]; $inherited = $c['inherited'][$option->value]; @endphp
                             <td @if ($c['posts'] > 0 && $own + $inherited === 0) class="text-error" @endif>{{ $own }}@if ($inherited > 0)（+{{ $inherited }}）@endif</td>
