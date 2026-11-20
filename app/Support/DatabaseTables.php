@@ -66,6 +66,7 @@ class DatabaseTables
         'google_adsense_page_daily'           => 'AdSenseのページごとの日ごとの値',
         'google_adsense_site_daily'           => 'AdSenseのサイト全体の日ごとの値',
         'google_analytics_page_channel_daily' => 'アナリティクスのページ・チャネルごとの日ごとの値',
+        'google_analytics_outbound_click_daily' => 'アナリティクスのページ・外部リンクごとの日ごとのクリック（アフィリエイトのリンクが押された回数）',
         'google_analytics_page_daily'         => 'アナリティクスのページごとの日ごとの値',
         'google_analytics_site_daily'         => 'アナリティクスのサイト全体の日ごとの値',
         'google_fetch_runs'                   => 'Googleのデータの取得の記録',

@@ -116,7 +116,7 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" onclick="document.querySelectorAll('.material-check').forEach(c => c.checked = this.checked)"></th>
-                            <th>種類</th><th>名前</th><th>版・出版日</th><th>カテゴリ・分野の語句</th><th>レベル・向いている場面</th><th>状態</th><th>記事で紹介に使えるか</th><th>使っている記事</th><th>AIで調べた日</th>
+                            <th>種類</th><th>名前</th><th>版・出版日</th><th>カテゴリ・分野の語句</th><th>レベル・向いている場面</th><th>状態</th><th>記事で紹介に使えるか</th><th>使っている記事</th><th title="GA4 の離脱クリックのうち、この教材のリンクと決められたもの（購入された数ではありません）">リンクのクリック（28日・90日）</th><th>AIで調べた日</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -155,7 +155,8 @@
                                     {{ $material->article_materials_count }}件
                                     @if ($needsReview[$material->id] ?? 0)<br><a href="{{ route('materials.reviews.index') }}" class="text-warn">見直し {{ $needsReview[$material->id] }}件</a>@endif
                                 </td>
-                                <td>{{ $material->researched_at ? \App\Support\DisplayTime::format($material->researched_at) : '未調査' }}</td>
+                                <td style="text-align:right; white-space:nowrap;">{{ number_format($clicks28[$material->id] ?? 0) }}・{{ number_format($clicks90[$material->id] ?? 0) }}</td>
+                                <td>{{ $material->researched_at ?\App\Support\DisplayTime::format($material->researched_at) : '未調査' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

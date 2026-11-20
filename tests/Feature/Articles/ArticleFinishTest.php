@@ -110,9 +110,10 @@ class ArticleFinishTest extends TestCase
         $this->assertStringContainsString('<h2>動画で学びたい方へ（Udemy講座） <span class="pr-label">PR</span></h2>', $html);
 
         // 目印の置き換え
-        $this->assertStringContainsString('class="amazon-btn">Amazonで見る</a>', $html);
-        $this->assertStringContainsString('class="rakuten-btn">楽天で見る</a>', $html);
-        $this->assertStringContainsString('<p>→ <a href="https://trk.udemy.com/AgEabK" rel="nofollow sponsored">初心者のためのJavaScript 完全入門（Udemy）</a></p>', $html);
+        // 教材のリンクには、教材の目印の class（blogos-m{ID}）を足す。リンクの URL は変えない（D-91-08）
+        $this->assertStringContainsString('url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4295005924" rel="nofollow sponsored" class="amazon-btn blogos-m' . $this->book->id . '">Amazonで見る</a>', $html);
+        $this->assertStringContainsString('class="rakuten-btn blogos-m' . $this->book->id . '">楽天で見る</a>', $html);
+        $this->assertStringContainsString('<p>→ <a href="https://trk.udemy.com/AgEabK" rel="nofollow sponsored" class="blogos-m' . $this->udemy->id . '">初心者のためのJavaScript 完全入門（Udemy）</a></p>', $html);
         $this->assertStringContainsString('<a href="/js/24.html">JavaScriptとは？</a>', $html);
         $this->assertStringContainsString('<!-- blogos:記事:50 -->下書きの記事<!-- /blogos -->', $html);
         $this->assertStringContainsString('<p><img src="https://blog.example.test/wp-content/uploads/js-roles.png" alt="HTML・CSS・JavaScriptの役割" width="1600" height="900" class="wp-image-3400"></p>', $html);

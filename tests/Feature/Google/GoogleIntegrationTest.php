@@ -46,6 +46,12 @@ class GoogleIntegrationTest extends TestCase
     /** GA4 が失敗を返すか */
     protected bool $ga4Fails = false;
 
+    /** GA4 にカスタムディメンション link_classes が登録されているか（D-91-08） */
+    protected bool $ga4LinkClasses = true;
+
+    /** 教材の目印の class（blogos-m{ID}）を付けたリンクのクリックを返すときの教材ID（D-91-08） */
+    protected ?int $markedMaterialId = null;
+
     /** トークンの更新が失敗するか（更新用のトークンの失効） */
     protected bool $tokenFails = false;
 
@@ -100,6 +106,11 @@ class GoogleIntegrationTest extends TestCase
             return Http::response(['sites' => [['domain' => 'blog.example.test']]]);
         }
 
+        // GA4 getMetadata：カスタムディメンション link_classes が登録されているか（D-91-08）
+        if (str_ends_with($url, 'properties/123/metadata')) {
+            return Http::response(['dimensions' => array_merge([['apiName' => 'date'], ['apiName' => 'linkUrl']], $this->ga4LinkClasses ? [['apiName' => 'customEvent:link_classes']] : [])]);
+        }
+
         // GA4 runReport：日付は期間の始まりの日だけを返す
         if (str_contains($url, ':runReport')) {
             if ($this->ga4Fails) {
@@ -109,6 +120,19 @@ class GoogleIntegrationTest extends TestCase
             $date = str_replace('-', '', $body['dateRanges'][0]['startDate']);
             $dimensions = array_column($body['dimensions'], 'name');
             $metrics = array_map(fn () => ['value' => '10'], $body['metrics']);
+            // 外部リンクのクリック（D-91-07）：もしも（GA4 が100文字で切った URL）・アフィリエイトでないリンク・リンクのない行。
+            // link_classes を受け取るときは、class のない行は (not set)。教材の目印の class を付けたもしものリンクも返す（D-91-08）
+            if (array_slice($dimensions, 0, 4) === ['date', 'pagePath', 'linkUrl', 'linkDomain']) {
+                $classes = in_array('customEvent:link_classes', $dimensions, true);
+                $moshimo = 'https://af.moshimo.com/af/c/click?a_id=1234567&p_id=170&pc_id=185&pl_id=4062&url=https%3A%2F%2Fwww.amazon.c';
+                $links = [[$moshimo, 'af.moshimo.com', '(not set)'], ['https://developer.mozilla.org/ja/', 'developer.mozilla.org', '(not set)'], ['(not set)', '(not set)', '(not set)']];
+                if ($classes && $this->markedMaterialId !== null) {
+                    $links[] = [$moshimo, 'af.moshimo.com', "amazon-btn blogos-m{$this->markedMaterialId}"];
+                }
+                $rows = array_map(fn ($link) => ['dimensionValues' => array_map(fn ($value) => ['value' => $value], array_merge([$date, '/post-100/', $link[0], $link[1]], $classes ? [$link[2]] : [])), 'metricValues' => $metrics], $links);
+
+                return Http::response(['rows' => $rows, 'rowCount' => count($rows)]);
+            }
             $rows = match ($dimensions) {
                 ['date'] => [['dimensionValues' => [['value' => $date]], 'metricValues' => $metrics]],
                 ['date', 'pagePath'] => [
@@ -271,6 +295,15 @@ class GoogleIntegrationTest extends TestCase
         $this->assertSame(2, DB::table('google_analytics_page_channel_daily')->where('post_id', $post->id)->count());
         $this->assertSame(10, (int) DB::table('google_analytics_site_daily')->value('new_users'));
 
+        // GA4 の外部リンクのクリック（イベント click だけ）：記事に結びつけ、アフィリエイトのプログラムを読み取る。リンクのない行は保存しない（D-91-07）
+        $clickRequest = collect($this->requests)->first(fn ($r) => str_contains($r['url'], ':runReport') && in_array('linkUrl', array_column($r['body']['dimensions'] ?? [], 'name'), true));
+        $this->assertSame(['filter' => ['fieldName' => 'eventName', 'stringFilter' => ['matchType' => 'EXACT', 'value' => 'click']]], $clickRequest['body']['dimensionFilter']);
+        $this->assertSame(2, DB::table('google_analytics_outbound_click_daily')->where('post_id', $post->id)->count());
+        $this->assertSame('moshimo:170', DB::table('google_analytics_outbound_click_daily')->where('link_domain', 'af.moshimo.com')->value('program'));
+        $this->assertNull(DB::table('google_analytics_outbound_click_daily')->where('link_domain', 'developer.mozilla.org')->value('program'));
+        $totals = app(\App\Repositories\GoogleMetricRepository::class)->articleTotals($this->blog->id, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10'));
+        $this->assertSame(10, (int) $totals->firstWhere('post_id', $post->id)->affiliate_clicks);
+
         // Search Console：ページ×日・ページ×クエリ×日
         $this->assertSame($post->id, DB::table('google_search_console_page_daily')->value('post_id'));
         $this->assertSame(2, DB::table('google_search_console_query_daily')->where('post_id', $post->id)->count());
@@ -286,6 +319,65 @@ class GoogleIntegrationTest extends TestCase
         app(GoogleFetchService::class)->run($this->blog, SyncTrigger::Manual, null, null, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10'));
         $this->assertSame(3, DB::table('google_analytics_page_daily')->count());
         $this->assertSame(2, DB::table('google_search_console_query_daily')->count());
+    }
+
+    /**
+     * 教材ごとのクリック（D-91-08）：class の目印の教材と、記事の教材との照合（同じプログラムの教材が1件だけ）で決める
+     */
+    public function test_outbound_clicks_are_attributed_to_materials(): void
+    {
+        $this->configureAll($this->connectAccount());
+        $post = $this->createArticles();
+        $moshimoBook = fn (string $name, string $asin) => \App\Models\Material::create([
+            'blog_id' => $this->blog->id, 'kind' => \App\Enums\MaterialKind::Book, 'status' => \App\Enums\MaterialStatus::Active, 'name' => $name,
+            'amazon_url' => "https://af.moshimo.com/af/c/click?a_id=1234567&p_id=170&pc_id=185&pl_id=4062&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F{$asin}",
+        ]);
+        $used = $moshimoBook('記事で使っている本', '4297000001');
+        $marked = $moshimoBook('目印を付けた本', '4297000002');
+        \App\Models\ArticleMaterial::create(['blog_id' => $this->blog->id, 'post_id' => $post->id, 'material_id' => $used->id, 'source' => 'detected']);
+        $this->markedMaterialId = $marked->id;
+
+        app(GoogleFetchService::class)->run($this->blog, SyncTrigger::Manual, null, null, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10'));
+
+        $clickRequest = collect($this->requests)->first(fn ($r) => str_contains($r['url'], ':runReport') && in_array('linkUrl', array_column($r['body']['dimensions'] ?? [], 'name'), true));
+        $this->assertContains('customEvent:link_classes', array_column($clickRequest['body']['dimensions'], 'name'));
+        $table = DB::table('google_analytics_outbound_click_daily');
+        $this->assertSame($marked->id, (clone $table)->where('link_classes', "amazon-btn blogos-m{$marked->id}")->value('material_id'));
+        // class のない（(not set) は空にする）もしものリンク：記事の教材で、もしもの広告 170 のリンクを持つのは1件だけ
+        $this->assertSame($used->id, (clone $table)->where('link_domain', 'af.moshimo.com')->where('link_classes', '')->value('material_id'));
+        $this->assertNull((clone $table)->where('link_domain', 'developer.mozilla.org')->value('material_id'));
+        $this->assertSame([$used->id => 10, $marked->id => 10], app(\App\Repositories\GoogleMetricRepository::class)->materialClicks($this->blog->id, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10')));
+
+        // 画面：記事の画面の押された外部リンクに教材の名前、教材の一覧にリンクのクリック
+        Carbon::setTestNow(Carbon::parse('2026-09-12 12:00:00', 'UTC'));
+        $this->actingAs($this->user)->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSee('教材「', false)->assertSee('記事で使っている本')->assertSee('目印を付けた本');
+        $this->actingAs($this->user)->get(route('materials.index'))->assertOk()->assertSee('リンクのクリック（28日・90日）');
+        $this->actingAs($this->user)->get(route('materials.edit', ['id' => $used->id]))->assertOk()->assertSee('リンクのクリック 10回');
+
+        // 記事の教材が2件とも同じプログラムなら、class のないリンクは決められない
+        \App\Models\ArticleMaterial::create(['blog_id' => $this->blog->id, 'post_id' => $post->id, 'material_id' => $marked->id, 'source' => 'detected']);
+        app(GoogleFetchService::class)->run($this->blog, SyncTrigger::Manual, null, null, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10'));
+        $this->assertNull(DB::table('google_analytics_outbound_click_daily')->where('link_domain', 'af.moshimo.com')->where('link_classes', '')->value('material_id'));
+    }
+
+    /**
+     * link_classes が登録されていない GA4（D-91-08）：class なしで取り込み、取り込みの記録に注記する
+     */
+    public function test_outbound_clicks_without_link_classes_dimension(): void
+    {
+        $this->configureAll($this->connectAccount());
+        $this->createArticles();
+        $this->ga4LinkClasses = false;
+
+        $results = app(GoogleFetchService::class)->run($this->blog, SyncTrigger::Manual, null, null, Carbon::parse('2026-09-10'), Carbon::parse('2026-09-10'));
+
+        $this->assertSame(SyncStatus::Succeeded, $results['ga4']['status']);
+        $clickRequest = collect($this->requests)->first(fn ($r) => str_contains($r['url'], ':runReport') && in_array('linkUrl', array_column($r['body']['dimensions'] ?? [], 'name'), true));
+        $this->assertNotContains('customEvent:link_classes', array_column($clickRequest['body']['dimensions'], 'name'));
+        $this->assertSame(2, DB::table('google_analytics_outbound_click_daily')->count());
+        $this->assertSame('', DB::table('google_analytics_outbound_click_daily')->value('link_classes'));
+        $this->assertStringContainsString('link_classes', (string) DB::table('google_fetch_runs')->where('service', 'ga4')->latest('id')->value('message'));
     }
 
     public function test_initial_range_and_refetch_range(): void
@@ -448,7 +540,14 @@ class GoogleIntegrationTest extends TestCase
         $this->actingAs($this->user)->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))
             ->assertOk()
             ->assertSee('php 入門')
-            ->assertSee('Organic Search');
+            ->assertSee('Organic Search')
+            // 押された外部リンク（アフィリエイトが先。D-91-07）
+            ->assertSeeInOrder(['アフィリエイトのクリック', '押された外部リンク', '10回：', 'moshimo:170', 'https://af.moshimo.com/af/c/click?a_id=1234567&amp;p_id=170', '10回：', 'https://developer.mozilla.org/ja/'], false);
+
+        // 記事の実績：アフィリエイトのクリックの列と、多い順の並び替え（D-91-07）
+        $this->actingAs($this->user)->get(route('analytics.performance', ['sort' => 'affiliate']))->assertOk()
+            ->assertSee('期間の合計 10回')
+            ->assertSee('<strong>アフィリエイトのクリックの多い順</strong>', false);
     }
 
     public function test_fetch_from_run_now_is_recorded_as_manual(): void

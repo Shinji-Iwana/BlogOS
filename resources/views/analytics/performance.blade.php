@@ -23,8 +23,17 @@
         <p>
             期間：
             @foreach ([28, 90] as $option)
-                <a href="{{ route('analytics.performance', ['days' => $option, 'action' => $action]) }}">@if ($days === $option)<strong>{{ $option }}日</strong>@else{{ $option }}日@endif</a>@if (! $loop->last)・@endif
+                <a href="{{ route('analytics.performance', ['days' => $option, 'action' => $action, 'sort' => $sort]) }}">@if ($days === $option)<strong>{{ $option }}日</strong>@else{{ $option }}日@endif</a>@if (! $loop->last)・@endif
             @endforeach
+            ・並び順：
+            @if ($sort === 'affiliate')
+                <a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action]) }}">次にやることがある順</a>・<strong>アフィリエイトのクリックの多い順</strong>
+            @else
+                <strong>次にやることがある順</strong>・<a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action, 'sort' => 'affiliate']) }}">アフィリエイトのクリックの多い順</a>
+            @endif
+        </p>
+        <p class="text-muted">
+            アフィリエイトのクリック：期間の合計 {{ number_format($affiliateTotal) }}回。GA4 の拡張計測（離脱クリック）で記録した、アフィリエイトのリンク（もしも・Udemy・楽天・Amazon）が押された回数です（購入された数ではありません。この数は、2026年11月20日の更新の後に Google から取り込んだ日の分だけです）。
         </p>
 
         <table class="data" style="margin-bottom:12px;">
@@ -32,20 +41,21 @@
             <tbody>
                 @foreach ($actions as $key => $definition)
                     <tr @if ($action === $key) class="row-current" @endif>
-                        <td><a href="{{ route('analytics.performance', ['days' => $days, 'action' => $key]) }}">{{ $definition['label'] }}</a></td>
+                        <td><a href="{{ route('analytics.performance', ['days' => $days, 'action' => $key, 'sort' => $sort]) }}">{{ $definition['label'] }}</a></td>
                         <td>{{ $counts[$key] }}件</td>
                         <td class="text-muted">{{ $definition['advice'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-        @if ($action)<p><a href="{{ route('analytics.performance', ['days' => $days]) }}">絞り込みを外す</a></p>@endif
+        @if ($action)<p><a href="{{ route('analytics.performance', ['days' => $days, 'sort' => $sort]) }}">絞り込みを外す</a></p>@endif
 
         <div style="overflow-x:auto;">
             <table class="data" style="font-size:90%;">
                 <thead>
                     <tr>
                         <th>記事</th><th>インデックス</th><th>表示回数</th><th>クリック</th><th>クリック率（目安）</th><th>平均掲載順位</th><th>ページビュー</th><th>エンゲージ率</th>
+                        <th title="アフィリエイトのリンク（もしも・Udemy・楽天・Amazon）が押された回数。下はページビューに対する割合">@if ($sort === 'affiliate')<strong>アフィリエイトのクリック</strong>@else<a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action, 'sort' => 'affiliate']) }}">アフィリエイトのクリック</a>@endif</th>
                         <th>品質評価（検索結果で選ばれるか・検索意図）</th><th>次にやること</th>
                     </tr>
                 </thead>
@@ -69,6 +79,7 @@
                             <td style="text-align:right;">{{ $m['position'] !== null ? number_format($m['position'], 1) : '-' }}</td>
                             <td style="text-align:right;">{{ number_format($m['views']) }}</td>
                             <td style="text-align:right;">{{ $m['engagement_rate'] !== null ? number_format($m['engagement_rate'] * 100) . '%' : '-' }}</td>
+                            <td style="text-align:right; white-space:nowrap;">{{ number_format($m['affiliate_clicks']) }}@if ($m['views'] > 0 && $m['affiliate_clicks'] > 0)<br><span class="text-muted">{{ number_format($m['affiliate_clicks'] / $m['views'] * 100, 1) }}%</span>@endif</td>
                             <td style="white-space:nowrap;">
                                 @if ($evaluation)
                                     <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>

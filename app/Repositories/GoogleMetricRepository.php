@@ -26,6 +26,7 @@ class GoogleMetricRepository
     public const PAGE_TABLES = [
         'google_analytics_page_daily'         => 'page_path',
         'google_analytics_page_channel_daily' => 'page_path',
+        'google_analytics_outbound_click_daily' => 'page_path',
         'google_search_console_page_daily'    => 'page_url',
         'google_search_console_query_daily'   => 'page_url',
         'google_adsense_page_daily'           => 'page_url',
@@ -156,7 +157,7 @@ class GoogleMetricRepository
     /**
      * 記事ごとの期間の合計（表示回数・クリック・収益）
      *
-     * @return Collection<int, object{post_id: int|null, page_id: int|null, views: int, clicks: int, impressions: int, position: float|null, earnings: float}>
+     * @return Collection<int, object{post_id: int|null, page_id: int|null, views: int, clicks: int, impressions: int, position: float|null, earnings: float, affiliate_clicks: int}>
      */
     public function articleTotals(int $blogId, Carbon $from, Carbon $to): Collection
     {
@@ -166,7 +167,7 @@ class GoogleMetricRepository
         $add = function ($rows, array $fields) use (&$result) {
             foreach ($rows as $row) {
                 $key = $row->post_id ? "post:{$row->post_id}" : "page:{$row->page_id}";
-                $result[$key] ??= (object) ['post_id' => $row->post_id, 'page_id' => $row->page_id, 'views' => 0, 'clicks' => 0, 'impressions' => 0, 'position' => null, 'earnings' => 0.0];
+                $result[$key] ??= (object) ['post_id' => $row->post_id, 'page_id' => $row->page_id, 'views' => 0, 'clicks' => 0, 'impressions' => 0, 'position' => null, 'earnings' => 0.0, 'affiliate_clicks' => 0];
                 foreach ($fields as $field) {
                     $result[$key]->{$field} = $row->{$field};
                 }
@@ -184,6 +185,10 @@ class GoogleMetricRepository
         $add($articleRows('google_analytics_page_daily', 'sum(screen_page_views) as views'), ['views']);
         $add($articleRows('google_search_console_page_daily', 'sum(clicks) as clicks, sum(impressions) as impressions, sum(position * impressions) / nullif(sum(impressions), 0) as position'), ['clicks', 'impressions', 'position']);
         $add($articleRows('google_adsense_page_daily', 'sum(estimated_earnings) as earnings'), ['earnings']);
+        // アフィリエイトのリンクが押された回数（D-91-07）
+        $add(DB::table('google_analytics_outbound_click_daily')->where('blog_id', $blogId)->whereBetween('date', $range)->whereNotNull('program')
+            ->where(fn ($q) => $q->whereNotNull('post_id')->orWhereNotNull('page_id'))
+            ->groupBy('post_id', 'page_id')->selectRaw('post_id, page_id, sum(clicks) as affiliate_clicks')->get(), ['affiliate_clicks']);
 
         return collect(array_values($result));
     }
@@ -219,7 +224,49 @@ class GoogleMetricRepository
             'adsense' => DB::table('google_adsense_page_daily')->where($column, $articleId)->whereBetween('date', $range)
                 ->selectRaw('count(*) as days, sum(estimated_earnings) as earnings, sum(page_views) as page_views, max(currency_code) as currency_code')
                 ->first(),
+            // 押された外部リンク（アフィリエイトを先に、多い順。D-91-07）
+            'outbound' => DB::table('google_analytics_outbound_click_daily')->where($column, $articleId)->whereBetween('date', $range)
+                ->groupBy('link_url_hash', 'link_url', 'program', 'material_id')
+                ->selectRaw('link_url, program, material_id, sum(clicks) as clicks')
+                ->orderByRaw('program is null')
+                ->orderByDesc('clicks')
+                ->limit(30)
+                ->get(),
         ];
+    }
+
+    /**
+     * 教材ごとの、リンクが押された回数（期間の合計。D-91-08）。どの教材か決められなかったクリックは含めない
+     *
+     * @return array<int, int> 教材ID => クリック
+     */
+    public function materialClicks(int $blogId, Carbon $from, Carbon $to): array
+    {
+        return DB::table('google_analytics_outbound_click_daily')
+            ->where('blog_id', $blogId)
+            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->whereNotNull('material_id')
+            ->groupBy('material_id')
+            ->selectRaw('material_id, sum(clicks) as clicks')
+            ->pluck('clicks', 'material_id')
+            ->map(fn ($clicks) => (int) $clicks)
+            ->all();
+    }
+
+    /**
+     * 教材のリンクが押された回数（記事ごと。期間の合計の多い順。D-91-08）
+     *
+     * @return Collection<int, object{post_id: int|null, page_id: int|null, clicks: int}>
+     */
+    public function materialClicksByArticle(int $materialId, Carbon $from, Carbon $to): Collection
+    {
+        return DB::table('google_analytics_outbound_click_daily')
+            ->where('material_id', $materialId)
+            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('post_id', 'page_id')
+            ->selectRaw('post_id, page_id, sum(clicks) as clicks')
+            ->orderByDesc('clicks')
+            ->get();
     }
 
     /**
@@ -250,7 +297,7 @@ class GoogleMetricRepository
     {
         $counts = [];
         foreach ([
-            'google_analytics_site_daily', 'google_analytics_page_daily', 'google_analytics_page_channel_daily',
+            'google_analytics_site_daily', 'google_analytics_page_daily', 'google_analytics_page_channel_daily', 'google_analytics_outbound_click_daily',
             'google_search_console_site_daily', 'google_search_console_page_daily', 'google_search_console_query_daily',
             'google_adsense_site_daily', 'google_adsense_page_daily',
         ] as $table) {

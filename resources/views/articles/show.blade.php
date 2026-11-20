@@ -150,9 +150,28 @@
             <tr><th style="text-align:left;">検索のクリック</th><td>{{ number_format((int) $sc->clicks) }}</td><td>{{ number_format((int) $scPrev->clicks) }}</td></tr>
             <tr><th style="text-align:left;">検索の表示回数</th><td>{{ number_format((int) $sc->impressions) }}</td><td>{{ number_format((int) $scPrev->impressions) }}</td></tr>
             <tr><th style="text-align:left;">平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}</td><td>{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}</td></tr>
+            <tr><th style="text-align:left;">アフィリエイトのクリック</th><td>{{ number_format((int) $google['outbound']->whereNotNull('program')->sum('clicks')) }}</td><td>{{ number_format((int) $googlePrevious['outbound']->whereNotNull('program')->sum('clicks')) }}</td></tr>
             <tr><th style="text-align:left;">収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}</td><td>{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) . ' ' . ($adPrev->currency_code ?? $ad->currency_code) : '-' }}</td></tr>
         </tbody>
     </table>
+
+    {{-- 押された外部リンク（GA4 の離脱クリック。D-91-07） --}}
+    @if ($google['outbound']->isNotEmpty())
+        <p style="margin-bottom:0;">押された外部リンク（直近28日。アフィリエイトのリンクが先）：</p>
+        <ul style="margin-top:0;">
+            @foreach ($google['outbound'] as $link)
+                <li style="word-break:break-all;">
+                    {{ number_format((int) $link->clicks) }}回：@if ($link->program)<strong>{{ $programNames[$link->program] ?? $link->program }}</strong> @endif
+                    @if ($link->material_id && isset($outboundMaterials[$link->material_id]))
+                        教材「<a href="{{ route('materials.edit', ['id' => $link->material_id]) }}">{{ $outboundMaterials[$link->material_id] }}</a>」
+                    @elseif ($link->program)
+                        <span class="text-muted">（教材不明）</span>
+                    @endif
+                    {{ $link->link_url }}
+                </li>
+            @endforeach
+        </ul>
+    @endif
 
     @if ($google['channels']->isNotEmpty())
         <p>流入元：

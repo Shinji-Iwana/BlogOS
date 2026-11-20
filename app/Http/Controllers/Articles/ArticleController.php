@@ -95,6 +95,8 @@ class ArticleController extends Controller
         [$from, $to] = AnalyticsController::period(28);
         [$previousFrom, $previousTo] = AnalyticsController::period(28, 28);
 
+        $google = $this->metrics->articleSummary($column, $article->id, $from, $to);
+
         return view('articles.show', [
             'blog'          => $blog,
             'type'          => $type,
@@ -114,11 +116,15 @@ class ArticleController extends Controller
             'relationTypes' => RelationType::cases(),
             'evaluations'    => $this->evaluations->forArticle($article),
             'generations'    => $this->generations->forArticle($article),
-            'google'         => $this->metrics->articleSummary($column, $article->id, $from, $to),
+            'google'         => $google,
             'googlePrevious' => $this->metrics->articleSummary($column, $article->id, $previousFrom, $previousTo),
             'googlePeriod'   => [$from, $to],
             // その前の28日の期間（Googleの指標の表の列の見出し。D-82-05）
             'googlePreviousPeriod' => [$previousFrom, $previousTo],
+            // 押されたアフィリエイトのリンクのプログラムの名前（D-91-07）
+            'programNames'   => app(\App\Services\Materials\AffiliateProgramService::class)->programs($blog->id)->map(fn ($program) => $program->name)->all(),
+            // 押されたリンクの教材の名前（D-91-08）
+            'outboundMaterials' => \App\Models\Material::where('blog_id', $blog->id)->whereIn('id', $google['outbound']->pluck('material_id')->filter()->all())->pluck('name', 'id')->all(),
             // 記事で使っている教材と、最新の見直しの結果（D-30）
             'articleMaterials' => $this->materials->forArticle($article),
             'materialReview'   => $this->materials->latestReviewFor($article),

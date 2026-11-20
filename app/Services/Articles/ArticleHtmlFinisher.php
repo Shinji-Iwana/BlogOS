@@ -10,6 +10,7 @@ use App\Models\Image;
 use App\Models\Material;
 use App\Models\Page;
 use App\Models\Post;
+use App\Services\Google\OutboundClickMaterialResolver;
 use App\Services\Materials\AffiliateProgramService;
 use App\Support\ArticlePlaceholders;
 
@@ -312,11 +313,13 @@ class ArticleHtmlFinisher
         }
 
         $e = fn (string $value) => htmlspecialchars($value, ENT_QUOTES);
+        // 教材の目印の class（GA4 の離脱クリックの link_classes で、どの教材が押されたかを数える。リンクの URL は変えない。D-91-08）
+        $marker = OutboundClickMaterialResolver::className($material->id);
         if ($material->kind === MaterialKind::Book) {
             $buttons = [];
             foreach (['Amazon' => ['amazon-btn', 'Amazonで見る'], '楽天' => ['rakuten-btn', '楽天で見る']] as $label => [$class, $text]) {
                 if (isset($links[$label])) {
-                    $buttons[] = "    <a href=\"{$e($links[$label])}\" rel=\"nofollow sponsored\" class=\"{$class}\">{$text}</a>";
+                    $buttons[] = "    <a href=\"{$e($links[$label])}\" rel=\"nofollow sponsored\" class=\"{$class} {$marker}\">{$text}</a>";
                 }
             }
 
@@ -326,7 +329,7 @@ class ArticleHtmlFinisher
         $url = $links['リンク'] ?? reset($links);
         $suffix = $material->kind === MaterialKind::Udemy ? '（Udemy）' : '';
 
-        return "<p>→ <a href=\"{$e($url)}\" rel=\"nofollow sponsored\">{$e($material->name)}{$suffix}</a></p>";
+        return "<p>→ <a href=\"{$e($url)}\" rel=\"nofollow sponsored\" class=\"{$marker}\">{$e($material->name)}{$suffix}</a></p>";
     }
 
     /**

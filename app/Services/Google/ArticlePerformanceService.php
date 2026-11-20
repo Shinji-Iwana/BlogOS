@@ -165,6 +165,7 @@ class ArticlePerformanceService
                 'position'    => $row->position !== null ? round((float) $row->position, 1) : null,
                 'sessions'    => 0,
                 'engagement_rate' => null,
+                'affiliate_clicks' => (int) $row->affiliate_clicks,
             ];
         }
 
@@ -188,6 +189,6 @@ class ArticlePerformanceService
      */
     protected function empty(): array
     {
-        return ['views' => 0, 'clicks' => 0, 'impressions' => 0, 'ctr' => 0.0, 'position' => null, 'sessions' => 0, 'engagement_rate' => null];
+        return ['views' => 0, 'clicks' => 0, 'impressions' => 0, 'ctr' => 0.0, 'position' => null, 'sessions' => 0, 'engagement_rate' => null, 'affiliate_clicks' => 0];
     }
 }

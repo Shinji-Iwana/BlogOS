@@ -109,6 +109,10 @@ class GoogleFetchService
             foreach ($fetcher->pageTables() as $table) {
                 $this->metrics->resolveArticles($blog->id, $table);
             }
+            // 押された外部リンクが、どの教材のリンクか（記事と対応付けた後に決める。D-91-08）
+            if (in_array('google_analytics_outbound_click_daily', $fetcher->pageTables(), true)) {
+                app(OutboundClickMaterialResolver::class)->resolve($blog->id);
+            }
         } catch (GoogleApiException $e) {
             $this->fail($blog, $property, $run, $rows, $e->getMessage(), $e->status, $e->body);
 

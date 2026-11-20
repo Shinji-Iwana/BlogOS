@@ -64,6 +64,9 @@ class MaterialController extends Controller
             'kind'             => $kind,
             'materials'        => $materials,
             'needsReview'      => $needsReview,
+            // 教材のリンクが押された回数（直近28日・90日。D-91-08）
+            'clicks28'         => app(\App\Repositories\GoogleMetricRepository::class)->materialClicks($blog->id, ...\App\Http\Controllers\Analytics\AnalyticsController::period(28)),
+            'clicks90'         => app(\App\Repositories\GoogleMetricRepository::class)->materialClicks($blog->id, ...\App\Http\Controllers\Analytics\AnalyticsController::period(90)),
             'programProblems'  => $materials->mapWithKeys(fn (Material $material) => [$material->id => $this->programs->problems($material)])->filter()->all(),
             'pendingSuggestions' => $this->materials->countPendingSuggestions($blog->id),
             'api'              => $this->apiSummary(),
@@ -110,6 +113,9 @@ class MaterialController extends Controller
             'categories' => $this->categories($blog),
             'previousOptions' => $this->materials->allForBlog($blog->id)->where('id', '!=', $material->id),
             'articles'   => $this->materials->articlesUsing($material),
+            // この教材のリンクが押された回数（記事ごと。直近28日。D-91-08）
+            'articleClicks' => app(\App\Repositories\GoogleMetricRepository::class)->materialClicksByArticle($material->id, ...\App\Http\Controllers\Analytics\AnalyticsController::period(28))
+                ->mapWithKeys(fn ($row) => [($row->post_id !== null ? "post:{$row->post_id}" : "page:{$row->page_id}") => (int) $row->clicks])->all(),
             'api'        => $this->apiSummary(),
             'rakuten'    => RakutenBooksClient::fromConfig()->isConfigured(),
         ]);

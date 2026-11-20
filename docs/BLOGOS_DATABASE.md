@@ -946,6 +946,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `google_analytics_site_daily` | ブログ×日 | `active_users`、`new_users`、`sessions`、`engaged_sessions`、`screen_page_views`、`user_engagement_duration`（秒） |
 | `google_analytics_page_daily` | ページ×日 | `page_path`、`screen_page_views`、`active_users`、`sessions`、`engaged_sessions`、`user_engagement_duration` |
 | `google_analytics_page_channel_daily` | ページ×流入元×日 | 上に加えて `channel_group`（GA4の既定のチャネルグループ） |
+| `google_analytics_outbound_click_daily` | ページ×外部リンク×日 | `page_path`、`link_url`（GA4 は100文字で切る）、`link_domain`、`link_classes`（押されたリンクの class。GA4 のカスタムディメンション。一意キーに含む。教材のリンクには `blogos-m{教材ID}`）、`program`（アフィリエイトのプログラム。`AffiliateLink::programKey`。アフィリエイトでなければ NULL）、`material_id`（どの教材のリンクか。決められなければ NULL。D-91-08）、`clicks`（イベント click の数）。GA4 の拡張計測の離脱クリック。アフィリエイトのリンクが記事ごとに押された回数（D-91-07） |
 | `google_search_console_site_daily` | ブログ×日 | `clicks`、`impressions`、`ctr`、`position` |
 | `google_search_console_page_daily` | ページ×日 | `page_url`、`clicks`、`impressions`、`ctr`、`position` |
 | `google_search_console_query_daily` | ページ×検索クエリ×日 | 上に加えて `query` |
@@ -954,7 +955,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 | `google_adsense_dimension_daily` | 分け方×値×日 | `dimension`（`ad_unit` 広告ユニット / `country` 国 / `bid_type` 入札方法 / `traffic_source` トラフィックソース）、`value`（その名前）、`currency_code`・`estimated_earnings`・`impressions`・`clicks`。画面「AdSense」のカード（D-67）。毎日の同期で、直近28日以上を取り直す |
 
 * ページ単位の表は、`normalized_path`、`post_id` / `page_id`（多くとも一方）を持つ。URL・パス・クエリは長さの制限がないため、一意キーには、値のハッシュ（`*_hash`、SHA-1）を使う。
-* 全ての表は `blog_id`、`date`（集計の対象日。GA4・Search Consoleはプロパティのタイムゾーン、AdSenseはアカウントのタイムゾーン）、`fetched_at` を持ち、一意キーは `blog_id + date + （ページ・流入元・クエリ）` とする。
+* 全ての表は `blog_id`、`date`（集計の対象日。GA4・Search Consoleはプロパティのタイムゾーン、AdSenseはアカウントのタイムゾーン）、`fetched_at` を持ち、一意キーは `blog_id + date + （ページ・流入元・クエリ・リンク）` とする。
 * 平均や率（`ctr`、`position` 等）はGoogleが返した値を保存し、期間の集計では表示回数などで重み付けする。ユーザー数は日をまたいで足し合わせられないため、期間のユーザー数は表示しない（日ごとの値だけを示す）。
 * Googleの数値は数日のあいだ更新されるため、取得のたびに直近の数日を取得し直し、その日の行を置き換える。
 * 保存期間は無期限とする（Search Consoleは16か月より前をGoogleから取り直せないため）。量はDB確認画面で確認し、必要になったら見直す。

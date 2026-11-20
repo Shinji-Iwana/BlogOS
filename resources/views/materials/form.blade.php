@@ -214,6 +214,7 @@
     @unless ($isNew)
         <section class="panel">
         <h2>この教材を使っている記事：{{ $articles->count() }}件</h2>
+        <p class="text-muted">リンクのクリック（直近28日）：合計 {{ number_format(array_sum($articleClicks)) }}回。GA4 の離脱クリックのうち、この教材のリンクと決められたものです（購入された数ではありません）。</p>
         @if ($articles->isNotEmpty())
             <ul>
                 @foreach ($articles as $record)
@@ -222,6 +223,7 @@
                         <li>
                             <a href="{{ route('articles.show', ['type' => $record->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw }}</a>
                             （{{ $record->source->label() }}）
+                            @if ($clicks = $articleClicks[($record->post_id ? 'post:' . $record->post_id : 'page:' . $record->page_id)] ?? 0)リンクのクリック {{ number_format($clicks) }}回 @endif
                             @if ($reason = $record->reviewReason())<span class="text-warn">見直し：{{ $reason }}</span>@endif
                         </li>
                     @endif

@@ -22,6 +22,11 @@ class PerformanceController extends Controller
         $action = array_key_exists((string) $request->query('action'), ArticlePerformanceService::ACTIONS) ? (string) $request->query('action') : null;
 
         $rows = $service->rows($blog, $days);
+        // アフィリエイトのリンクが押された回数の多い順（どの記事が収益につながっているかを見る。D-91-07）
+        $sort = $request->query('sort') === 'affiliate' ? 'affiliate' : null;
+        if ($sort === 'affiliate') {
+            usort($rows, fn ($a, $b) => [-$a['metrics']['affiliate_clicks'], -$a['metrics']['views']] <=> [-$b['metrics']['affiliate_clicks'], -$b['metrics']['views']]);
+        }
         $counts = array_fill_keys(array_keys(ArticlePerformanceService::ACTIONS), 0);
         foreach ($rows as $row) {
             foreach ($row['actions'] as $key) {
@@ -36,6 +41,8 @@ class PerformanceController extends Controller
             'rows'     => $action !== null ? array_values(array_filter($rows, fn ($row) => in_array($action, $row['actions'], true))) : $rows,
             'counts'   => $counts,
             'action'   => $action,
+            'sort'     => $sort,
+            'affiliateTotal' => array_sum(array_map(fn ($row) => $row['metrics']['affiliate_clicks'], $rows)),
             'actions'  => ArticlePerformanceService::ACTIONS,
             'standard' => $loader->load($blog->quality_profile),
         ]);
