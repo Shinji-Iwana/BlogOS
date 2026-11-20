@@ -74,6 +74,10 @@ class DatabaseTablesTest extends TestCase
         $this->get(route('database.tables.index', ['table' => 'sync_run_resources', 'column' => 'sync_run_id', 'value' => $old]))->assertOk()
             ->assertSee('sync_run_id が ' . $old . ' の行');
 
+        // XServer情報の DB の一覧から開くテーブルだけ「XServer情報に戻る」を出す。取り込んだ WordPress のデータのテーブル（投稿など）は出さない（D-97-03）
+        $this->get(route('database.tables.index', ['table' => 'sync_runs']))->assertSee('XServer情報に戻る');
+        $this->get(route('database.tables.index', ['table' => 'posts', 'column' => 'id', 'value' => 1]))->assertOk()->assertDontSee('XServer情報に戻る');
+
         // 存在しないテーブル・行は 404
         $this->get(route('database.tables.index', ['table' => 'no_such_table']))->assertNotFound();
         $this->get(route('database.tables.show', ['table' => 'sync_runs', 'id' => 999999]))->assertNotFound();

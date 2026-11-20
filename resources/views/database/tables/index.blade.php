@@ -9,7 +9,10 @@
 
     <h1>{{ $label ? "{$label}（{$table}）" : $table }}</h1>
 
-    <p><a href="{{ route('server.index') }}">XServer情報に戻る</a></p>
+    {{-- XServer情報の DB の一覧から開くテーブルだけ、戻るリンクを出す。取り込んだ WordPress のデータのテーブル（投稿など）は、レコードの詳細の「参照している行」からだけ開くため出さない（D-97-03） --}}
+    @if (! \App\Support\DatabaseTables::isWordPress($table))
+        <p><a href="{{ route('server.index') }}">XServer情報に戻る</a></p>
+    @endif
 
     {{-- 絞り込みの条件（取り込んだ WordPress のデータの一覧と同じ形。パネルの題名の英字の札（data-code）は、ironman だけで出す） --}}
     <section class="panel">
