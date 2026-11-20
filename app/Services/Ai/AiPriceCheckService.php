@@ -68,7 +68,17 @@ class AiPriceCheckService
 
         // 音声の操作のモデル（D-68-02）：聞き取りとリアルタイム会話は料金ページの表、返事の声はモデルのページ
         $voiceChecks = [
-            [VoicePrices::transcribeModels(), fn (string $model) => ['per_call' => $this->transcriptionPrice($model)]],
+            [VoicePrices::transcribeModels(), function (string $model) use (&$messages) {
+                $value = $this->transcriptionPrice($model);
+                if ($value === null) {
+                    // 非推奨のモデル：照合できないが、失敗にはしない（今の料金表の値を使い続ける）
+                    $messages[] = "{$model}：非推奨のモデルになり、公式のページに1分あたりの料金が載っていないため、照合しませんでした（今の料金表の値を使います）。";
+
+                    return [];
+                }
+
+                return ['per_call' => $value];
+            }],
             [VoicePrices::ttsModels(), fn (string $model) => $this->ttsPrices($model)],
             [VoicePrices::realtimeModels(), fn (string $model) => $this->realtimePrices($model)],
         ];
@@ -169,7 +179,8 @@ class AiPriceCheckService
     {
         $text = $this->pricingPageText();
 
-        if (! preg_match('/Web search \(all models\)\s*\$([0-9.]+)\s*\/\s*1k calls/u', $text, $m) || (float) $m[1] <= 0 || (float) $m[1] > 1000) {
+        // 表の見出しは「Web search (all models)」から「Web search (incl. images)」に変わった（2026-11）。「Web search preview」の行とは取り違えない
+        if (! preg_match('/Web search\s*\((?:all models|incl\. images)\)\s*\$([0-9.]+)\s*\/\s*1k calls/u', $text, $m) || (float) $m[1] <= 0 || (float) $m[1] > 1000) {
             throw new AiException('料金ページから、Web検索の料金（Web search (all models) … / 1k calls）を読み取れませんでした。');
         }
 
@@ -193,8 +204,22 @@ class AiPriceCheckService
         $row = fn (string $modality) => '\s*' . preg_quote($modality, '/') . '\s*' . $cell . '\s*' . $cell . '\s*' . $cell;
 
         // モデル名のすぐ後の文字（最初の Modality）で、ほかのモデル（例：gpt-realtime-2.1 と gpt-realtime-2.1-mini）と取り違えない
-        if (! preg_match('/' . preg_quote($model, '/') . implode('', array_map($row, $modalities)) . '/u', $text, $m, PREG_OFFSET_CAPTURE)) {
+        if (! preg_match_all('/' . preg_quote($model, '/') . implode('', array_map($row, $modalities)) . '/u', $text, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             throw new AiException("料金ページから、{$what}の料金（" . implode('・', $modalities) . ' の行）を読み取れませんでした。ページの形が変わった可能性があります。');
+        }
+
+        // 通常の処理の表の行だけを読む。Batch・Flex の表（見出しの直前が「Batch」「Flex」）は安い料金のため読まない。
+        // 古くなったモデルは、通常の表から消えて Batch の表にだけ残ることがある（2026-11 の gpt-image-2.5-flare。半額を値下がりと誤って読んでいた）
+        $m = null;
+        foreach ($all as $candidate) {
+            $header = strrpos(substr($text, 0, $candidate[0][1]), 'ModelModality');
+            if ($header === false || ! preg_match('/(?:Batch|Flex)\s*$/u', substr($text, max(0, $header - 20), min(20, $header)))) {
+                $m = $candidate;
+                break;
+            }
+        }
+        if ($m === null) {
+            throw new AiException("料金ページの通常の処理の表に、{$what}（{$model}）の行がありません（Batch の表にだけあります）。");
         }
 
         // その表の見出し（モデルの行より前で、一番近い「ModelModality…」）から、列の並びを読む
@@ -235,7 +260,12 @@ class AiPriceCheckService
      */
     public function imageModelPrices(string $model): array
     {
-        $rows = $this->modalityRows($model, ['Image', 'Text'], '画像モデル');
+        try {
+            $rows = $this->modalityRows($model, ['Image', 'Text'], '画像モデル');
+        } catch (AiException $e) {
+            // 料金ページの通常の表にない（新しい版が出て外れた）モデルは、モデルのページの料金を読む
+            $rows = $this->imageModelPageRows($model) ?? throw $e;
+        }
         [$imageInput, $imageCached, $output] = [(float) $rows['Image']['input'], (float) $rows['Image']['cached_input'], (float) $rows['Image']['output']];
         [$textInput, $textCached] = [(float) $rows['Text']['input'], (float) $rows['Text']['cached_input']];
         if ($imageInput <= 0 || $output <= 0 || $textInput <= 0 || $imageCached > $imageInput || $textCached > $textInput || $output > 1000) {
@@ -256,15 +286,25 @@ class AiPriceCheckService
      *
      * @throws AiException
      */
-    public function transcriptionPrice(string $model): float
+    public function transcriptionPrice(string $model): ?float
     {
         $text = $this->pricingPageText();
 
         // 入力・出力の列は、料金（$…）か「-」。モデル名のすぐ後の文字（Transcription）で、ほかのモデルと取り違えない
-        if (! preg_match('/' . preg_quote($model, '/') . '\s*(?:Live\s*)?Transcription\s*(?:-|\$[0-9.]+)\s*(?:-|\$[0-9.]+)\s*\$([0-9.]+)\s*\/\s*minute/u', $text, $m)) {
-            throw new AiException('料金ページから、聞き取りのモデルの料金（Transcription … / minute）を読み取れませんでした。ページの形が変わった可能性があります。');
+        if (preg_match('/' . preg_quote($model, '/') . '\s*(?:Live\s*)?Transcription\s*(?:-|\$[0-9.]+)\s*(?:-|\$[0-9.]+)\s*\$([0-9.]+)\s*\/\s*minute/u', $text, $m)) {
+            $value = (float) $m[1];
+        } else {
+            // 料金ページの表にないモデル（2026-11 から gpt-transcribe など）は、モデルのページの「Transcription audio duration Per minute Price $0.0045」
+            $page = $this->pageText(str_replace('{model}', $model, (string) config('blogos.ai.api.price_check.model_url')));
+            if (preg_match('/Transcription audio duration\s*Per minute\s*Price\s*\$([0-9.]+)/u', $page, $m)) {
+                $value = (float) $m[1];
+            } elseif (self::isDeprecatedModelPage($page)) {
+                // 非推奨になったモデル（gpt-4o-transcribe など）は、1分あたりの料金が載らず、トークン単位の料金だけになった。照合できないため null
+                return null;
+            } else {
+                throw new AiException('料金ページ・モデルのページから、聞き取りのモデルの1分あたりの料金を読み取れませんでした。ページの形が変わった可能性があります。');
+            }
         }
-        $value = (float) $m[1];
         if ($value <= 0 || $value > 1) {
             throw new AiException("料金ページから読み取った聞き取りの料金が、ありえない値でした（1分 {$value}）。");
         }
@@ -319,6 +359,35 @@ class AiPriceCheckService
         }
 
         return ['input' => $textInput, 'audio_output' => $audioOutput];
+    }
+
+    /**
+     * 画像モデルのページの料金（「Text tokens Per 1M tokens Input $5.00 Cached input $1.25 Image tokens Per 1M tokens Input $8.00 Cached input $2.00 Output $30.00」。
+     * 「∙Batch API price」は切り替えの文字で、表示される値は通常の処理の料金）。読み取れなければ null
+     *
+     * @return array<string, array{input: float|null, output: float|null, cached_input: float|null}>|null
+     */
+    protected function imageModelPageRows(string $model): ?array
+    {
+        $page = $this->pageText(str_replace('{model}', $model, (string) config('blogos.ai.api.price_check.model_url')));
+        $price = '\s*\$([0-9.]+)';
+        $label = '\s*Per 1M tokens\s*(?:∙\s*Batch API price)?\s*';
+        if (! preg_match("/Text tokens{$label}Input{$price}\s*Cached input{$price}\s*Image tokens{$label}Input{$price}\s*Cached input{$price}\s*Output{$price}/u", $page, $m)) {
+            return null;
+        }
+
+        return [
+            'Image' => ['input' => (float) $m[3], 'output' => (float) $m[5], 'cached_input' => (float) $m[4]],
+            'Text'  => ['input' => (float) $m[1], 'output' => null, 'cached_input' => (float) $m[2]],
+        ];
+    }
+
+    /**
+     * モデルのページで、モデルが非推奨（Deprecated）と示されているか（見出しの「Models{モデルの名前}Deprecated」）
+     */
+    public static function isDeprecatedModelPage(string $text): bool
+    {
+        return (bool) preg_match('/Models\s*[A-Za-z0-9 .\-]{1,60}?Deprecated/u', $text);
     }
 
     /**

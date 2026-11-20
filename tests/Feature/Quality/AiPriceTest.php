@@ -145,6 +145,40 @@ class AiPriceTest extends TestCase
         $this->assertSame(0, AiPriceChange::where('status', AiPriceChangeStatus::Pending)->count());
     }
 
+    /**
+     * 2026-11 の公式のページの形：Web検索の見出しが「Web search (incl. images)」になり、聞き取りの表から gpt-transcribe などが消えた。
+     * gpt-transcribe はモデルのページの1分あたりの料金で照合し、非推奨のモデルは照合せず（失敗にしない）、今の料金表の値を使い続ける
+     */
+    public function test_new_page_layout_for_web_search_and_transcription(): void
+    {
+        $this->fakePages(['0.10', '0.01', '0.125', '0.50']);
+        $this->pages['pricing'] = str_replace('<td>Web search (all models)</td>', '<td>Web search</td><td>Web search (incl. images)</td>', $this->pages['pricing']);
+        $this->pages['pricing'] = str_replace('<td>Web search (incl. images)</td><td>$10.00 / 1k calls</td>', '<td>Web search (incl. images)</td><td>$10.00 / 1k calls</td><td>Web search preview (other models)</td><td>$25.00 / 1k calls</td>', $this->pages['pricing']);
+        $this->pages['pricing'] = preg_replace('#<tr><td>gpt-(?:4o-(?:mini-)?)?transcribe</td>.*?</tr>#', '', $this->pages['pricing']);
+        $this->pages['gpt-transcribe'] = '<h1>Models</h1><h2>GPT Transcribe</h2><h2>Pricing</h2><p>Transcription audio duration</p><p>Per minute</p><div>Price</div><div>$0.0045</div>';
+        foreach (['gpt-4o-transcribe' => 'GPT-4o Transcribe', 'gpt-4o-mini-transcribe' => 'GPT-4o Mini Transcribe'] as $model => $name) {
+            $this->pages[$model] = "<p>Models</p><h1>{$name}</h1><span>Deprecated</span><h2>Pricing</h2><p>Audio tokens</p><p>Per 1M tokens</p><div>Input</div><div>$1.25</div>";
+        }
+
+        // 画像モデル：通常の処理の表から gpt-image-2.5-flare が消え（新しい版だけになり）、Batch の表（半額）にだけ残る。
+        // Batch の行を読まず（値下がりと誤らない）、モデルのページの料金で照合する
+        $this->pages['pricing'] = str_replace('<tr><td>gpt-image-2.5-flare</td><td>Image</td><td>$8.00</td><td>$30.00</td><td>$2.00</td></tr><tr><td>Text</td><td>$5.00</td><td>-</td><td>$1.25</td></tr><h3>Batch</h3>',
+            '<tr><td>gpt-image-2.6-flare</td><td>Image</td><td>$8.00</td><td>$30.00</td><td>$2.00</td></tr><tr><td>Text</td><td>$5.00</td><td>-</td><td>$1.25</td></tr><h3>Batch</h3>', $this->pages['pricing']);
+        $this->pages['gpt-image-2.5-flare'] = '<h2>Pricing</h2><p>Text tokens</p><p>Per 1M tokens</p><span>∙</span><span>Batch API price</span><div>Input</div><div>$5.00</div><div>Cached input</div><div>$1.25</div>'
+            . '<p>Image tokens</p><p>Per 1M tokens</p><span>∙</span><span>Batch API price</span><div>Input</div><div>$8.00</div><div>Cached input</div><div>$2.00</div><div>Output</div><div>$30.00</div>';
+
+        $this->artisan('ai:check-prices')->assertSuccessful();
+
+        $this->assertTrue(AiPriceCheck::sole()->succeeded());
+        $this->assertSame(30.0, AiPrice::where('price_key', 'gpt-image-2.5-flare')->value('output') + 0.0);
+        $this->assertSame(0.01, AiPrice::where('price_key', AiPrice::WEB_SEARCH)->value('per_call') + 0.0);
+        $this->assertSame(0.0045, AiPrice::where('price_key', 'gpt-transcribe')->value('per_call') + 0.0);
+        // 非推奨のモデルは、今の料金表の値のまま（値下がりの確認待ちも作らない）
+        $this->assertSame(0.006, AiPrice::where('price_key', 'gpt-4o-transcribe')->value('per_call') + 0.0);
+        $this->assertSame(0, AiPriceChange::count());
+        $this->assertStringContainsString('gpt-4o-transcribe：非推奨のモデルになり', implode("\n", AiPriceCheck::sole()->messages));
+    }
+
     public function test_unreadable_page_keeps_prices_and_warns(): void
     {
         // sol のページの形が変わった（料金を読み取れない）・luna はありえない値
