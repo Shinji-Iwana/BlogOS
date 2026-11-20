@@ -59,7 +59,7 @@
 
     <section class="panel">
     {{-- 音声の操作のモデルの料金（D-58・D-68。料金表の値で、毎日の公式のページとの照合の対象。D-68-02） --}}
-    <h2>音声の操作のモデル @include('partials.tip', ['tip' => '方式 A の判断（' . config('blogos.voice.text_model') . "）は、上の表の文章のモデルの料金で計算します。\n音声の操作のモデルの料金も、ほかのモデルと同じく毎日公式のページと照合します（聞き取りとリアルタイム会話は料金のページ、返事の声はモデルのページ）。"])</h2>
+    <h2>音声の操作のモデル @include('partials.tip', ['tip' => '方式 A の判断（' . config('blogos.voice.text_model') . "）は、上の表の文章のモデルの料金で計算します。\n音声の操作のモデルの料金も、ほかのモデルと同じく毎日公式のページと照合します（リアルタイム会話は料金のページ、聞き取りと返事の声はモデルのページ）。"])</h2>
     @php
         $voice = config('blogos.voice');
         $voicePrices = app(\App\Services\Voice\VoicePrices::class);

@@ -358,7 +358,8 @@ return [
         // 聞き取りは1分あたり。返事の声は100万トークンあたり（文字の入力・音声の出力）で、1分あたりは音声の出力 × tts_audio_tokens_per_minute
         // （話す時間は文字数から見積もる）
         'prices' => [
-            'transcribe_per_minute'       => ['gpt-transcribe' => 0.0045, 'gpt-4o-mini-transcribe' => 0.003, 'gpt-4o-transcribe' => 0.006],
+            // 聞き取りのモデル（照合・料金表に出す）。gpt-4o-mini-transcribe・gpt-4o-transcribe は非推奨になり、1分あたりの料金が公式に載らなくなったため外した（D-96-02）
+            'transcribe_per_minute'       => ['gpt-transcribe' => 0.0045],
             'tts'                         => ['gpt-4o-mini-tts' => ['text_input' => 0.60, 'audio_output' => 12.00]],
             'tts_audio_tokens_per_minute' => 1250,
         ],
@@ -370,8 +371,9 @@ return [
                 'd' => env('BLOGOS_VOICE_REALTIME_MODEL_D', 'gpt-realtime-2.1-mini'),
                 'e' => env('BLOGOS_VOICE_REALTIME_MODEL_E', 'gpt-realtime-2.1'),
             ],
-            // 会話の欄に出す、利用者の発言の文字起こし（会話とは別に、1分あたりの料金がかかる）
-            'transcription_model' => env('BLOGOS_VOICE_REALTIME_TRANSCRIPTION_MODEL', 'gpt-4o-mini-transcribe'),
+            // 会話の欄に出す、利用者の発言の文字起こし（会話とは別に、1分あたりの料金がかかる）。
+            // 以前の gpt-4o-mini-transcribe は非推奨になったため、方式 A の聞き取りと同じ gpt-transcribe にした（D-96-02）
+            'transcription_model' => env('BLOGOS_VOICE_REALTIME_TRANSCRIPTION_MODEL', 'gpt-transcribe'),
             // 会話を開いておく上限（秒）と、話しかけがないと終える時間（秒）。費用の使いすぎを防ぐ
             'max_session_seconds' => 300,
             'idle_seconds'        => 60,

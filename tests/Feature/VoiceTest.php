@@ -316,8 +316,9 @@ class VoiceTest extends TestCase
 
         $turn = VoiceTurn::sole();
         $this->assertSame('d', $turn->mode);
-        // mini：音声 600×$10 + 文字 2000×$0.6 + 音声の出力 1200×$20 + 文字の出力 50×$2.4（100万トークンあたり）＋ 文字起こし 60秒×$0.003/分
-        $this->assertEqualsWithDelta((600 * 10 + 2000 * 0.6 + 1200 * 20 + 50 * 2.4) / 1_000_000 + 0.003, $turn->estimated_cost, 0.000001);
+        // mini：音声 600×$10 + 文字 2000×$0.6 + 音声の出力 1200×$20 + 文字の出力 50×$2.4（100万トークンあたり）＋ 文字起こし（gpt-transcribe。D-96-02）60秒×$0.0045/分
+        $this->assertEqualsWithDelta((600 * 10 + 2000 * 0.6 + 1200 * 20 + 50 * 2.4) / 1_000_000 + 0.0045, $turn->estimated_cost, 0.000001);
+        $this->assertSame('gpt-transcribe', $turn->transcribe_model);
         $this->assertEqualsWithDelta($turn->estimated_cost, app(AiGenerationRepository::class)->apiCostSince(now()->subDay()), 0.000001);
     }
 

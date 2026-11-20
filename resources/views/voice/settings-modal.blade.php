@@ -25,8 +25,8 @@
         'modes' => [
             'c' => 'ボタンを押して話し、もう一度押すか、少し黙ると送ります（1回 ' . config('blogos.voice.max_seconds') . "秒まで。発言のたびにボタンを押す）。\n"
                 . '聞き取りは ' . config('blogos.voice.transcribe_model') . '、判断は ' . config('blogos.voice.text_model') . '、返事の声は ' . config('blogos.voice.tts_model') . '（OpenAI）。',
-            'd' => "ボタンを押すと会話が始まり、そのまま続けて話せます。{$realtimeEnd}\nモデルは " . config('blogos.voice.realtime.models.d') . '（OpenAI）。',
-            'e' => "ボタンを押すと会話が始まり、そのまま続けて話せます。{$realtimeEnd}\nモデルは " . config('blogos.voice.realtime.models.e') . '（OpenAI）。B より返事の質が高く、費用は高めです。',
+            'd' => "ボタンを押すと会話が始まり、そのまま続けて話せます。{$realtimeEnd}\nモデルは " . config('blogos.voice.realtime.models.d') . '、会話の欄の文字起こしは ' . config('blogos.voice.realtime.transcription_model') . '（OpenAI）。',
+            'e' => "ボタンを押すと会話が始まり、そのまま続けて話せます。{$realtimeEnd}\nモデルは " . config('blogos.voice.realtime.models.e') . '、会話の欄の文字起こしは ' . config('blogos.voice.realtime.transcription_model') . '（OpenAI）。B より返事の質が高く、費用は高めです。',
         ],
         'voice' => "返事の声（OpenAI の声。返事は AI が作った音声です）。\n落ち着いた男性の声：cedar・onyx。女性の声：marin・nova・shimmer など。",
         'instructions' => '返事の声の話し方（例：落ち着いた執事のように、ゆっくり）。方式 B・C では、会話の指示にも加えます。',

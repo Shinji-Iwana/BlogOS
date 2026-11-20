@@ -151,6 +151,9 @@ class AiPriceTest extends TestCase
      */
     public function test_new_page_layout_for_web_search_and_transcription(): void
     {
+        // 非推奨のモデルは設定の一覧から外した（D-96-02）が、一覧に残っていた場合の扱いを確かめるため、ここでは入れておく
+        config(['blogos.voice.prices.transcribe_per_minute' => ['gpt-transcribe' => 0.0045, 'gpt-4o-mini-transcribe' => 0.003, 'gpt-4o-transcribe' => 0.006]]);
+        AiPrice::updateOrCreate(['price_key' => 'gpt-4o-transcribe'], ['per_call' => 0.006]);
         $this->fakePages(['0.10', '0.01', '0.125', '0.50']);
         $this->pages['pricing'] = str_replace('<td>Web search (all models)</td>', '<td>Web search</td><td>Web search (incl. images)</td>', $this->pages['pricing']);
         $this->pages['pricing'] = str_replace('<td>Web search (incl. images)</td><td>$10.00 / 1k calls</td>', '<td>Web search (incl. images)</td><td>$10.00 / 1k calls</td><td>Web search preview (other models)</td><td>$25.00 / 1k calls</td>', $this->pages['pricing']);
