@@ -11,7 +11,6 @@
 
     <h1>ブログ情報の同期履歴 @include('partials.tip', ['tip' => "ブログの情報（BlogOS 側の情報と、WordPress のサイト設定）が変わった記録です。\n変わった項目ごとに1行で、「変更のまとまり」が同じ行は、同時に起きた変更です。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.history-last', ['label' => '最後の同期', 'at' => $latestSync?->started_at, 'result' => $latestSync?->status->label()])
 

@@ -19,7 +19,7 @@
 
     <h1>PageSpeed Insights情報 @include('partials.tip', ['tip' => "選択中のブログの記事とトップページを、PageSpeed Insights で測った結果のまとめです（定期実行で毎週。記事ごとの記録は「履歴 → PageSpeed Insightsとの同期履歴」）。\n点数（0〜100）は、90以上が良好・50以上が改善が必要・50未満が不良です。\nGoogle は携帯の表示で評価するため、携帯の結果を主に見てください。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a> ／ <a href="{{ route('pagespeed.runs.index') }}">PageSpeed Insightsとの同期履歴</a></p>
+    <p><a href="{{ route('pagespeed.runs.index') }}">PageSpeed Insightsとの同期履歴</a></p>
 
     @unless ($configured)
         <p class="text-error">PageSpeed Insights の APIキーが設定されていません（.env の GOOGLE_PAGESPEED_API_KEY）。設定するまで測りません。</p>

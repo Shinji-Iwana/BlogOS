@@ -229,7 +229,7 @@ class AiPriceTest extends TestCase
         $this->blog->update(['is_selected' => false]);
         $html = $this->get(route('ai.prices.index'))->assertOk()
             ->assertSee('<h1>OpenAI API料金表情報 <span class="tip"', false)
-            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertDontSee('トップページに戻る')
             ->assertSee('文字の入力 $0.6・音声の出力 $16', false)
             ->assertSee('<h2>音声の操作のモデル <span class="tip"', false)
             ->getContent();
@@ -238,7 +238,7 @@ class AiPriceTest extends TestCase
         // 変更の記録は、画面「OpenAI API料金表との同期履歴」（D-63-27）。ブログを選んでいなくても開ける
         $this->get(route('ai.prices.history'))->assertOk()
             ->assertSee('<h1>OpenAI API料金表との同期履歴', false)
-            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertDontSee('トップページに戻る')
             ->assertSee('<h2>料金表の変更の記録</h2>', false)
             ->assertSee('件（新しい順、最大50件。全')
             ->assertSee('<th>確認した人</th>', false)

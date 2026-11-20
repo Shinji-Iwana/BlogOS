@@ -10,8 +10,7 @@
     <h1>AIの費用と残高（OpenAI）</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('ai.prices.index') }}">OpenAI API料金表情報</a>
+        <a href="{{ route('ai.prices.index') }}">OpenAI API料金表情報</a>
         ・<a href="{{ route('ai.generations.index') }}">AI実行記録</a>
     </p>
 

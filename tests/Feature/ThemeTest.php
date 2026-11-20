@@ -130,7 +130,7 @@ class ThemeTest extends TestCase
         $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期履歴 <span class="tip"', false);
         $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報 <span class="tip"', false)->assertSee('<h2 data-code="WORDPRESS">WordPress 本体</h2>', false)->assertSee('<h2 data-code="PLUGIN">プラグイン</h2>', false)->assertSee('<h2 data-code="THEME">テーマ</h2>', false);
         $this->get(route('wp-api.home'))->assertOk()->assertSee('<h1>WordPress API情報</h1>', false)
-            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)->assertDontSee('設定ページに戻る');
+            ->assertDontSee('トップページに戻る')->assertDontSee('設定ページに戻る');
 
         // トップページの「管理」には、WordPress情報・定期実行履歴の入口を出さない（メニューから開く。D-63-11）
         $routes = array_column(array_merge(...array_column(\App\Support\DashboardLinks::GROUPS, 'links')), 'route');

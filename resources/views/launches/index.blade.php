@@ -8,7 +8,7 @@
 
     <h1>カテゴリの立ち上げ</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ route('topics.index') }}">記事の企画</a></p>
+    <p><a href="{{ route('topics.index') }}">記事の企画</a></p>
 
     @include('partials.flash')
 

@@ -9,8 +9,7 @@
     <h1>AIのまとめて実行</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'quality_diagnosis']) }}">品質診断をまとめて実行する</a>
+        <a href="{{ route('ai.batches.create', ['mode' => 'quality_diagnosis']) }}">品質診断をまとめて実行する</a>
         ・<a href="{{ route('ai.batches.create', ['mode' => 'revision']) }}">記事改修をまとめて実行する</a>
         ・<a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
         ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>

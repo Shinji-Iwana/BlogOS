@@ -12,8 +12,7 @@
     <h1>カテゴリ：{{ $categories->count() }}件</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('launches.index') }}">カテゴリの立ち上げ（新しいカテゴリを作る）</a>
+        <a href="{{ route('launches.index') }}">カテゴリの立ち上げ（新しいカテゴリを作る）</a>
         ・<a href="{{ route('database.wordpress-records.index', ['table' => 'categories']) }}">DBの値と変更履歴</a>
     </p>
 

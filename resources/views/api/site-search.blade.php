@@ -12,7 +12,6 @@
 
     <h1>サイト内検索</h1>
 
-    <p><a href="{{ url('/') }}">トップページに戻る</a></p>
 
     <form method="GET" action="{{ route('api-site-search') }}" class="panel" data-code="SEARCH">
         <input type="text" name="q" value="{{ $keyword }}" placeholder="検索したいキーワードを入力" style="width:100%; max-width:480px;">

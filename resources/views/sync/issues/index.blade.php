@@ -11,8 +11,6 @@
     <h1>同期の問題</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・
         @if ($showResolved)
             <a href="{{ route('sync.issues.index') }}">未解決の問題を見る</a>
         @else

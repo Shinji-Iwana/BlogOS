@@ -9,8 +9,7 @@
     <h1>編集案の一覧</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿の一覧</a>
+        <a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿の一覧</a>
         ・<a href="{{ route('push-operations.index') }}">反映記録</a>
         ・<a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>
         ・

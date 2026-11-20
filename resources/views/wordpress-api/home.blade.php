@@ -10,7 +10,6 @@
 
     <h1>WordPress API情報</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @if ($selectedBlog)
         <section class="panel">

@@ -10,7 +10,6 @@
 
     <h1>OpenAI API料金表との同期履歴 @include('partials.tip', ['tip' => "API実行の料金表を、OpenAI の公式のページと照合して変えた記録です。\n値上がりは自動で反映し、値下がりは AIの設定の画面で確認してから反映します（確認待ちのものは、ここには出しません）。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.history-last', ['label' => '最後の照合', 'at' => $latestPriceCheck?->created_at, 'result' => $latestPriceCheck ? ($latestPriceCheck->succeeded() ? '成功' : '一部失敗') : null])
 

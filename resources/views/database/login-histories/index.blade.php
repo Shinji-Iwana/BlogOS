@@ -12,7 +12,6 @@
 
     <h1>ログイン履歴 @include('partials.tip', ['tip' => "BlogOS へのログインの成功・失敗と、ログアウトの記録です。\n心当たりのないログインの成功や、繰り返しのログインの失敗がないかを確かめるために使います。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.history-last', ['label' => '最後の記録', 'at' => $latest?->occurred_at, 'result' => match ($latest?->event) {
         \App\Enums\LoginEvent::LoginSucceeded => 'ログイン成功',

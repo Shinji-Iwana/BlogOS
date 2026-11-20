@@ -8,7 +8,7 @@
 
     <h1>タイトル・メタディスクリプションの改善の候補</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a>・<a href="{{ route('analytics.index') }}">分析</a></p>
+    <p><a href="{{ route('analytics.index') }}">分析</a></p>
 
     <p class="text-muted">
         公開中の記事 {{ count($rows) }}件のうち、ルールに合わない点がある記事は {{ $withIssues }}件です

@@ -10,8 +10,7 @@
     <h1>AIの設定</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('ai.batches.index') }}">まとめて実行の一覧</a>
+        <a href="{{ route('ai.batches.index') }}">まとめて実行の一覧</a>
         ・<a href="{{ route('ai.credits.index') }}">AIの費用と残高</a>
     </p>
 

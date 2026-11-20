@@ -9,8 +9,7 @@
     <h1>管理情報の案の確認：{{ $rows->count() }}件</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
+        <a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
     </p>
 
     @include('partials.flash')

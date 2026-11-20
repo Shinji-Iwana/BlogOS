@@ -9,8 +9,7 @@
     <h1>AI実行記録</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
+        <a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
         ・<a href="{{ route('ai.generations.create', ['mode' => 'structure']) }}">AIで記事の構成を作る</a>
         ・<a href="{{ route('ai.batches.index') }}">まとめて実行</a>
         ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>

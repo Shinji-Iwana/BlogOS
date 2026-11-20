@@ -9,7 +9,6 @@
 
     <h1>WordPressとの同期履歴 @include('partials.tip', ['tip' => "選択中のブログの WordPress から、記事・カテゴリ・タグなどを取り込んだ記録です。\n実行の行を押すと、対象ごとの結果が開きます。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.history-last', ['label' => '最後の同期', 'at' => $latest?->started_at, 'result' => $latest?->status->label()])
 

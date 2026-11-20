@@ -103,7 +103,7 @@ class LoginHistoryTest extends TestCase
             ->assertSee('<h1>ログイン履歴 <span class="tip"', false)
             ->assertSee('<h2>ログインの記録</h2>', false)
             ->assertSee('件（新しい順、最大50件。全')
-            ->assertSee('<a href="' . route('home') . '">トップページに戻る</a>', false)
+            ->assertDontSee('トップページに戻る')
             ->assertDontSee('設定ページに戻る');
 
         // メニューの「履歴」の「ログイン履歴」の下に「ブログ情報の同期履歴」（順は D-63-26）。設定の画面には、セキュリティの欄を出さない（D-63-13）

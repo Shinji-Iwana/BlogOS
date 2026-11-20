@@ -27,9 +27,8 @@
     <h1>XServer情報 @include('partials.tip', ['tip' => "BlogOS が動いているサーバーの、今の状態です（この画面を開いたときに読み取ります。料金はかかりません）。\n読み取るだけで、DB への書き込み・削除はしません。契約上のディスクの残りと、CPU・メモリーの使用量は読み取れないため、XServer のサーバーパネルで確認してください。"])</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
         @if (config('blogos.server.panel_url'))
-            ／ <a href="{{ config('blogos.server.panel_url') }}" target="_blank" rel="noopener">XServer のサーバーパネルを開く</a>
+            <a href="{{ config('blogos.server.panel_url') }}" target="_blank" rel="noopener">XServer のサーバーパネルを開く</a>
         @endif
     </p>
 

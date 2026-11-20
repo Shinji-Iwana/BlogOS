@@ -9,8 +9,7 @@
     <h1>教材：{{ $materials->count() }}件</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・登録する：<a href="{{ route('materials.create', ['kind' => 'book']) }}">書籍</a>
+        登録する：<a href="{{ route('materials.create', ['kind' => 'book']) }}">書籍</a>
         ／<a href="{{ route('materials.create', ['kind' => 'udemy']) }}">Udemy</a>
         ／<a href="{{ route('materials.create', ['kind' => 'school']) }}">スクール</a>
         ／<a href="{{ route('materials.create', ['kind' => 'question_bank']) }}">問題集・オンライン教材</a>

@@ -9,8 +9,7 @@
     <h1>取り込んだWordPressのデータ</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('database.sync-runs.index') }}">WordPressとの同期履歴</a>
+        <a href="{{ route('database.sync-runs.index') }}">WordPressとの同期履歴</a>
     </p>
 
     <table class="data">

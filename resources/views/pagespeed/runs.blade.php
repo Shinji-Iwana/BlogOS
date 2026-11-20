@@ -11,7 +11,6 @@
 
     <h1>PageSpeed Insightsとの同期履歴 @include('partials.tip', ['tip' => "選択中のブログの記事とトップページを、PageSpeed Insights で測った記録です（定期実行で毎週。メニューの「設定 → 即時実行」からも測れます）。\n点数（0〜100）は、パフォーマンス・ユーザー補助・おすすめの方法・SEO の4つの区分です。試しに開いた値は、測るたびに数点ぶれます。\n実際の利用者の値は、Chrome の利用者の記録（直近28日の75パーセンタイル）で、アクセスが少ない記事にはありません。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @unless ($configured)
         <p class="text-error">PageSpeed Insights の APIキーが設定されていません（.env の GOOGLE_PAGESPEED_API_KEY）。設定するまで測りません。</p>

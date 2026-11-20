@@ -14,8 +14,7 @@
     <h1>AdSense</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('analytics.index') }}">分析</a>
+        <a href="{{ route('analytics.index') }}">分析</a>
     </p>
 
     @if ($property === null)

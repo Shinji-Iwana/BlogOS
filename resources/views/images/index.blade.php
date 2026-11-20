@@ -9,8 +9,7 @@
     <h1>画像：{{ $images->count() }}件</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('images.eyecatches') }}">カテゴリごとのアイキャッチ</a>
+        <a href="{{ route('images.eyecatches') }}">カテゴリごとのアイキャッチ</a>
         ・<a href="{{ route('images.legacy') }}">古い画像（/wp-content/img/）の移し替え</a>
     </p>
 

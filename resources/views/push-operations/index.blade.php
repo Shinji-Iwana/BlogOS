@@ -9,8 +9,7 @@
     <h1>反映記録</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('drafts.index') }}">編集案の一覧</a>
+        <a href="{{ route('drafts.index') }}">編集案の一覧</a>
     </p>
 
     @include('partials.flash')

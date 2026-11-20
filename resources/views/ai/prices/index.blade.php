@@ -11,7 +11,6 @@
 
     <h1>OpenAI API料金表情報 @include('partials.tip', ['tip' => "費用の目安と月の上限の判定に使う料金です（全ブログ共通）。毎日、定期実行で OpenAI の公式のページと照合します（AIは使わないため、料金はかかりません。すぐ照合するときは、メニューの「設定 → 即時実行 → OpenAI API料金表との同期」）。\n値上がりは自動で反映し、値下がりは AIの設定の画面で確認してから反映します。実際の請求は OpenAI の画面で確認してください。\n変更の記録は、メニューの「履歴 → OpenAI API料金表との同期履歴」にあります。"])</h1>
 
-    <p><a href="{{ route('home') }}">トップページに戻る</a></p>
 
     @include('partials.history-last', ['label' => '最後の照合', 'at' => $latestPriceCheck?->created_at, 'result' => $latestPriceCheck ? ($latestPriceCheck->succeeded() ? '成功' : '一部失敗') : null])
 

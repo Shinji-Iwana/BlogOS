@@ -9,8 +9,7 @@
     <h1>{{ $type === 'posts' ? '投稿' : '固定ページ' }}の一覧</h1>
 
     <p>
-        <a href="{{ route('home') }}">トップページに戻る</a>
-        ・<a href="{{ route('articles.index', ['type' => $type === 'posts' ? 'pages' : 'posts']) }}">{{ $type === 'posts' ? '固定ページ' : '投稿' }}の一覧へ</a>
+        <a href="{{ route('articles.index', ['type' => $type === 'posts' ? 'pages' : 'posts']) }}">{{ $type === 'posts' ? '固定ページ' : '投稿' }}の一覧へ</a>
         ・<a href="{{ route('drafts.index') }}">編集案の一覧</a>
     </p>
 
