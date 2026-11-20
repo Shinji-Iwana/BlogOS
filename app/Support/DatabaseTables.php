@@ -101,6 +101,7 @@ class DatabaseTables
         'sync_run_resources'                  => '同期の対象ごとの結果',
         'sync_runs'                           => 'WordPressとの同期の記録',
         'system_settings'                     => 'BlogOSの設定',
+        'revenue_article_links'               => '収益記事へのリンクを集客記事に入れた記録',
         'tag_histories'                       => 'タグの変更履歴',
         'taxonomy_histories'                  => 'タクソノミーの定義の変更履歴',
         'topic_suggestions'                   => '記事の題材の提案',

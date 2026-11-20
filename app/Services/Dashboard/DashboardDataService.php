@@ -54,8 +54,8 @@ class DashboardDataService
                 'failed'  => $latestCheck !== null && ! $latestCheck->succeeded(),
                 'applied' => $this->priceRepository->appliedSince(now()->subDays(7)),
             ],
-            // 公開された記事へのリンクに切り替える編集案（D-39）
-            'linkSwitchDrafts' => $selectedBlog ? ArticleDraft::where('blog_id', $selectedBlog->id)->where('auto_reason', LinkSwitchService::REASON)
+            // 公開された記事へのリンクに切り替える編集案（D-39）と、収益記事へのリンクを入れる編集案（D-93-02）
+            'linkSwitchDrafts' => $selectedBlog ? ArticleDraft::where('blog_id', $selectedBlog->id)->whereIn('auto_reason', [LinkSwitchService::REASON, \App\Services\Articles\RevenueLinkService::REASON])
                 ->whereIn('state', [DraftState::Editing->value, DraftState::Review->value])->count() : 0,
             // 定期実行（D-44）：前回が失敗した定期実行と、定期実行が長く動いていないこと（cron の停止の疑い）
             'scheduleNotice' => $this->scheduleNotice(),

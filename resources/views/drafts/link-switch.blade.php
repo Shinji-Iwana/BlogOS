@@ -72,4 +72,26 @@
         </section>
     @endif
 
+    @if ($revenueLinks->isNotEmpty())
+        <section class="panel">
+        <h2>収益記事へのリンク</h2>
+        <p class="text-muted">
+            収益記事が公開されると、同じカテゴリの集客記事の教材の紹介の最後に、収益記事へのリンクの1文を入れます（品質基準 article-types.md 4-4。AIは使いません）。
+            作業中の編集案がある記事は、その編集案に足しています（その編集案から反映してください）。教材の紹介の枠がない記事は、次の改修で AI が入れます（枠ができたら、BlogOS が入れ直します）。
+        </p>
+        <ul>
+            @foreach ($revenueLinks as $link)
+                <li>
+                    「{{ $link->post?->title_raw }}」→ 収益記事「{{ $link->revenuePost?->title_raw }}」：
+                    @if ($link->status === \App\Models\RevenueArticleLink::NO_BOX)
+                        <span class="text-warn">教材の紹介の枠がないため、入れていません</span>
+                    @else
+                        作業中の編集案に足しました ・<a href="{{ route('drafts.edit', ['id' => $link->article_draft_id]) }}">編集案 #{{ $link->article_draft_id }}</a>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+        </section>
+    @endif
+
 @endsection

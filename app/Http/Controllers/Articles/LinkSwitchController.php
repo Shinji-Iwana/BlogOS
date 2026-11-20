@@ -34,6 +34,13 @@ class LinkSwitchController extends Controller
             // リンクの文字の直し（D-46）は、作業中の編集案をその場で直すため、ここには出さない
             'skipped' => array_values(array_filter($service->pending($blog), fn ($row) => $row['active_draft'] !== null && $row['active_draft']->auto_reason !== LinkSwitchService::REASON
                 && ($row['titles'] !== [] || $row['fixes'] !== []))),
+            // 収益記事へのリンク（D-93-02）：作業中の編集案に足した記事と、教材の紹介の枠がないため入れていない記事
+            'revenueLinks' => \App\Models\RevenueArticleLink::with(['revenuePost:id,title_raw', 'post:id,title_raw', 'draft:id,auto_reason,state'])
+                ->where('blog_id', $blog->id)->whereIn('status', [\App\Models\RevenueArticleLink::ADDED, \App\Models\RevenueArticleLink::NO_BOX])
+                ->orderBy('revenue_post_id')->orderBy('post_id')->get()
+                ->filter(fn ($link) => $link->status === \App\Models\RevenueArticleLink::NO_BOX
+                    || ($link->draft !== null && $link->draft->auto_reason !== \App\Services\Articles\RevenueLinkService::REASON && in_array($link->draft->state, \App\Enums\DraftState::active(), true)))
+                ->values(),
         ]);
     }
 
@@ -78,7 +85,8 @@ class LinkSwitchController extends Controller
      */
     protected function drafts(int $blogId)
     {
-        return ArticleDraft::where('blog_id', $blogId)->where('auto_reason', LinkSwitchService::REASON)
+        // 収益記事へのリンクを入れる編集案（D-93-02）も、同じ一覧でまとめて反映する
+        return ArticleDraft::where('blog_id', $blogId)->whereIn('auto_reason', [LinkSwitchService::REASON, \App\Services\Articles\RevenueLinkService::REASON])
             ->whereIn('state', [DraftState::Editing->value, DraftState::Review->value])->orderBy('id')->get();
     }
 }

@@ -17,6 +17,7 @@ use App\Repositories\ArticleRepository;
 use App\Repositories\GoogleMetricRepository;
 use App\Models\Image;
 use App\Services\Articles\InternalLinkChecker;
+use App\Services\Articles\RevenueLinkService;
 use App\Services\Images\ImagePromptValues;
 use App\Services\Materials\MaterialMatcher;
 use App\Services\Materials\MaterialPromptValues;
@@ -26,6 +27,7 @@ use App\Services\Quality\QualityStandardLoader;
 use App\Services\Quality\RevisionFindingService;
 use App\Support\QualityProfiles;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -47,7 +49,7 @@ class PromptBuilder
     /**
      * 人が画面で入力した情報のうち、BlogOSが使うだけで、指示文の「人が提供した情報」に入れないもの
      */
-    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値', '記事の企画の値', '立ち上げの子の値', '細分類の値'];
+    public const HIDDEN_PARAMETERS = ['記事種類の値', 'カテゴリの値', '教材の種類の値', '形式の値', '企画の単位の値', '記事の企画の値', '立ち上げの子の値', '細分類の値', '比べる教材の値'];
 
     public function __construct(
         protected QualityStandardLoader $loader,
@@ -119,13 +121,20 @@ class PromptBuilder
 
         // 記事改修・新規記事作成（D-34）：紹介してよい教材の候補と、この記事の画像
         if (in_array($mode, [AiMode::Revision, AiMode::NewArticle], true)) {
-            $values['material_candidates'] = MaterialMatcher::describe($this->materialMatcher->candidates($blog, $article, [
-                'category_ids' => ctype_digit((string) ($parameters['カテゴリの値'] ?? '')) ? [(int) $parameters['カテゴリの値']] : [],
-                'keywords'     => array_values(array_filter(array_merge([$parameters['メインキーワード'] ?? null], preg_split('/\R/u', (string) ($parameters['サブキーワード'] ?? ''))))),
-                'title'        => $parameters['メインキーワード'] ?? null,
-                'article_type' => $parameters['記事種類の値'] ?? null,
-            ]));
+            // 収益記事の新規作成で、人が比べる教材を選んだときは、その教材だけを渡す（D-93-01）
+            $compared = $mode === AiMode::NewArticle && ($parameters['記事種類の値'] ?? null) === 'revenue' && filled($parameters['比べる教材の値'] ?? null)
+                ? $this->materialMatcher->comparisonRows($blog, array_map('intval', explode(',', (string) $parameters['比べる教材の値'])))
+                : [];
+            $values['material_candidates'] = $compared !== []
+                ? "（収益記事で比べる教材です。人が選びました。この教材をすべて取り上げて比べてください）\n\n" . MaterialMatcher::describe($compared)
+                : MaterialMatcher::describe($this->materialMatcher->candidates($blog, $article, [
+                    'category_ids' => ctype_digit((string) ($parameters['カテゴリの値'] ?? '')) ? [(int) $parameters['カテゴリの値']] : [],
+                    'keywords'     => array_values(array_filter(array_merge([$parameters['メインキーワード'] ?? null], preg_split('/\R/u', (string) ($parameters['サブキーワード'] ?? ''))))),
+                    'title'        => $parameters['メインキーワード'] ?? null,
+                    'article_type' => $parameters['記事種類の値'] ?? null,
+                ]));
             $values['image_list'] = $this->imageList($blog, $draft, (string) $values['article_content']);
+            $values['revenue_articles'] = $this->revenueArticles($blog, $article, $parameters);
         }
 
         // 記事の企画（D-40）
@@ -331,6 +340,22 @@ class PromptBuilder
         }
 
         return $lines === [] ? '（なし）' : implode("\n", $lines);
+    }
+
+    /**
+     * 同じカテゴリ（と親のカテゴリ）の、公開中の収益記事（集客記事の教材の紹介の最後に、比べて選びたい読者のためのリンクを置く。article-types.md 4-4。D-93-03）
+     *
+     * @param array<string, string|null> $parameters
+     */
+    protected function revenueArticles(Blog $blog, Post|Page|null $article, array $parameters): string
+    {
+        $categoryIds = $article instanceof Post
+            ? DB::table('post_categories')->where('post_id', $article->id)->pluck('category_id')->map(fn ($id) => (int) $id)->all()
+            : (ctype_digit((string) ($parameters['カテゴリの値'] ?? '')) ? [(int) $parameters['カテゴリの値']] : []);
+        $posts = app(RevenueLinkService::class)->revenueForCategories($blog->id, $categoryIds)
+            ->reject(fn (Post $post) => $article instanceof Post && $post->id === $article->id);
+
+        return $posts->isEmpty() ? '（なし）' : $posts->map(fn (Post $post) => "- [[記事:{$post->wordpress_id}]] {$post->title_raw}")->implode("\n");
     }
 
     /**

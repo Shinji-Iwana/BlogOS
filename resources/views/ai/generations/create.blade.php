@@ -98,6 +98,28 @@
                         </select>
                     </label>
                 </p>
+                @if ($mode === \App\Enums\AiMode::NewArticle)
+                    {{-- 収益記事で比べる教材（D-93-01） --}}
+                    <details @if ($selectedMaterials !== [] || old('article_type', request('article_type')) === 'revenue') open @endif style="margin-bottom:12px;">
+                        <summary>比べる教材（記事種類が「収益記事」のときだけ使います）</summary>
+                        <p class="text-muted">
+                            収益記事で比べる教材を、3〜5件選んでください（3件より少ないと、比べる記事として弱くなります）。AI は、選んだ教材だけを比べます。
+                            選べるのは、使う教材のうち、提携中のリンクがあり、情報を調べた教材です。選ばなければ、BlogOS がカテゴリなどから教材の候補を選びます。
+                        </p>
+                        @if ($comparable->isEmpty())
+                            <p>選べる教材がありません（<a href="{{ route('materials.index') }}">教材</a>）。</p>
+                        @else
+                            <ul style="list-style:none; padding-left:0; columns:2; max-width:900px;">
+                                @foreach ($comparable as $material)
+                                    <li><label><input type="checkbox" name="materials[]" value="{{ $material->id }}" @checked(in_array($material->id, $selectedMaterials, true))> {{ $material->kind->label() }}：{{ $material->name }} <span class="text-muted">（{{ $material->categories->pluck('name')->implode('、') ?: 'カテゴリなし' }}）</span></label></li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </details>
+                    @if (request('topic_suggestion_id') || old('topic_suggestion_id'))
+                        <input type="hidden" name="topic_suggestion_id" value="{{ old('topic_suggestion_id', request('topic_suggestion_id')) }}">
+                    @endif
+                @endif
             @endif
 
             @if (! in_array($mode, [\App\Enums\AiMode::QualityDiagnosis, \App\Enums\AiMode::ManagementSuggestion], true))

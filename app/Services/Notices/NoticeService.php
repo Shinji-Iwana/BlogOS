@@ -154,7 +154,7 @@ class NoticeService
 
         // 公開された記事へのリンクの切り替え（D-39）
         if (($count = $data['linkSwitchDrafts'] ?? 0) > 0) {
-            $add('link_switch', 'warn', "リンクの切り替え・修正の編集案が{$count}件あります（公開された記事へのリンク、古い URL など）。", route('drafts.link-switch'), '確認して反映する', (string) $count);
+            $add('link_switch', 'warn', "リンクの切り替え・修正の編集案が{$count}件あります（公開された記事へのリンク、収益記事へのリンク、古い URL など）。", route('drafts.link-switch'), '確認して反映する', (string) $count);
         }
 
         // 定期実行（D-44）

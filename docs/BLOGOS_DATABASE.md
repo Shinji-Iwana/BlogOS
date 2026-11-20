@@ -742,6 +742,10 @@ WordPress 本体・プラグイン・テーマのバージョン（D-38）。ブ
 
 記事の企画の案（D-40）。`blog_id`、`ai_generation_id`、`type`（`article`：記事の案 / `category`：子カテゴリの案）、`category_id`（記事の案はそのカテゴリ、子カテゴリの案は親カテゴリ）、`parent_suggestion_id`（子カテゴリの案の最初の記事の案）、`title`（タイトル案・カテゴリの名前）、`slug`、`main_keyword`、`sub_keywords`（JSON）、`search_intent`、`article_type`、`article_subtype`、`roadmap_step`（記事の案はステップ、子カテゴリの案は位置）、`scope`、`priority`（`high` / `medium` / `low`）、`reason`、`sources`（JSON）、`duplicate_note`（既存の記事・カテゴリと重なる可能性）、`status`（`App\Enums\SuggestionStatus`）、`reviewed_by` / `reviewed_at`。
 
+## 9-9-7-2. revenue_article_links
+
+収益記事へのリンクを、集客記事に入れた記録（D-93-02）。収益記事×集客記事で1行。`blog_id`、`revenue_post_id`（収益記事）、`post_id`（リンクを入れる集客記事）、`article_draft_id`（リンクを入れた編集案。null 可）、`status`（`added`：編集案に入れた / `linked`：もうリンクがある / `no_box`：教材の紹介の枠がない。`no_box` は次の処理で入れ直す）。一意キー：`revenue_post_id` + `post_id`。
+
 ## 9-9-8. category_launches / category_launch_children
 
 カテゴリの立ち上げ（D-41）。`category_launches`：`blog_id`、`parent_category_id`、`status`（`active` / `completed` / `cancelled`）、`created_by`。`category_launch_children`：`category_launch_id`、`category_id`（既存の子カテゴリ。WordPress にまだない子カテゴリは null）、`topic_suggestion_id`（採用した子カテゴリの案）、`name`・`slug`・`scope`、`roadmap_draft_id`（子ロードマップの編集案）。あわせて `topic_suggestions` に `launch_child_id`（立ち上げの子カテゴリの記事の案）・`article_draft_id`（この案から作った編集案）・`article_generation_id`（作成中の AI 実行）、`article_drafts` に `category_launch_child_id`（公開のときにカテゴリ・親のページを設定するため）を加えた。(b) で、`article_drafts.wordpress_parent_id`（固定ページの親のページ。WordPress の ID）と `category_launches.parent_roadmap_draft_id`（親ロードマップの編集案）を加えた。

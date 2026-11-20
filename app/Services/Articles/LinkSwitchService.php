@@ -156,6 +156,13 @@ class LinkSwitchService
             $created++;
         }
 
+        // 公開された収益記事へのリンクを、集客記事に入れる（同期・反映の後の同じ時に行う。D-93-02）
+        try {
+            app(RevenueLinkService::class)->apply($blog, $userId);
+        } catch (\Throwable $e) {
+            Log::error('収益記事へのリンクの編集案を作れませんでした。', ['blog_id' => $blog->id, 'message' => $e->getMessage()]);
+        }
+
         return $created;
     }
 

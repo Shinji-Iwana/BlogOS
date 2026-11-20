@@ -495,6 +495,16 @@ class DatabaseColumns
             'media_id'    => 'アイキャッチにするメディア（BlogOS のメディアの番号）。',
             'updated_by'  => '最後に変えた人（BlogOS の利用者の番号）。',
         ],
+        'revenue_article_links' => [
+            'id'               => 'BlogOS の中での、この記録の番号。',
+            'blog_id'          => 'ブログの番号。',
+            'revenue_post_id'  => '収益記事（BlogOS の投稿の番号）。',
+            'post_id'          => 'リンクを入れる集客記事（BlogOS の投稿の番号）。',
+            'article_draft_id' => 'リンクを入れた編集案（新しく作ったもの、または作業中だったもの）。',
+            'status'           => 'added：編集案に入れた、linked：もうリンクがある、no_box：教材の紹介の枠がない（次の改修で AI が入れる。枠ができたら入れ直す）。D-93-02。',
+            'created_at'       => '最初に処理した日時。',
+            'updated_at'       => '最後に処理した日時。',
+        ],
         'topic_suggestions' => [
             'id'                    => 'BlogOS の中での、この案の番号。',
             'ai_generation_id'      => 'この案を出した AI の生成（AI の生成の番号）。',

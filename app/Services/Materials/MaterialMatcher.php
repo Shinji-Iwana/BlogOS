@@ -91,6 +91,40 @@ class MaterialMatcher
     }
 
     /**
+     * 収益記事で比べる教材として選べる教材（使う教材のうち、提携中のリンクがあり、情報を調べたもの。候補の条件と同じ。D-93-01）
+     *
+     * @return \Illuminate\Support\Collection<int, Material>
+     */
+    public function comparable(Blog $blog)
+    {
+        return $this->materials->activeForBlog($blog->id)
+            ->filter(fn (Material $material) => $this->programs->isUsable($material) && filled($material->summary))
+            ->sortBy([fn ($a, $b) => $a->kind->value <=> $b->kind->value, fn ($a, $b) => $a->name <=> $b->name])
+            ->values();
+    }
+
+    /**
+     * 人が選んだ、収益記事で比べる教材（指示文の教材の候補の形。選べない教材は除く。D-93-01）
+     *
+     * @param list<int> $ids
+     * @return list<array{material: Material, score: int, reasons: list<string>, used: bool, basic: bool, usage: int}>
+     */
+    public function comparisonRows(Blog $blog, array $ids): array
+    {
+        $usage = $this->materials->usageCounts($blog->id);
+        $comparable = $this->comparable($blog)->keyBy('id');
+
+        return array_values(array_map(fn (int $id) => [
+            'material' => $comparable[$id],
+            'score'    => 0,
+            'reasons'  => ['収益記事で比べる教材（人が選んだ）'],
+            'used'     => false,
+            'basic'    => false,
+            'usage'    => $usage[$id] ?? 0,
+        ], array_values(array_filter(array_unique($ids), fn (int $id) => $comparable->has($id)))));
+    }
+
+    /**
      * 紹介できる教材の候補の数（品質診断で、集客記事が教材を紹介していないことを判定するため。D-91）
      *
      * @return array{count: int, basic: int}

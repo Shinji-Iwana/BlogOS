@@ -533,6 +533,19 @@ class ArticleHtmlFinisher
     }
 
     /**
+     * 本文の最後の教材の紹介の枠（book-box など。一番外側の div）の、閉じるタグ（</div>）の位置。枠がなければ null（D-93-02）
+     */
+    public function lastMaterialBoxClose(string $content): ?int
+    {
+        $boxes = array_values(array_filter($this->topLevel($content)['divs'], fn ($div) => in_array($div['class'], self::MATERIAL_BOX_CLASSES, true)));
+        if ($boxes === []) {
+            return null;
+        }
+
+        return end($boxes)['end'] - strlen('</div>');
+    }
+
+    /**
      * @param list<array{start: int, end: int, class: string}> $divs
      */
     protected function followsMaterialBox(array $divs, int $offset, string $content): bool

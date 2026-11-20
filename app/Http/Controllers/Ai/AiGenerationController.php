@@ -67,6 +67,9 @@ class AiGenerationController extends Controller
             'scopes'       => RevisionScope::cases(),
             'articleTypes' => QualityProfiles::articleTypes($blog->quality_profile),
             'categories'   => $mode === AiMode::NewArticle ? Category::where('blog_id', $blog->id)->existing()->orderBy('name')->get(['id', 'name']) : collect(),
+            // 収益記事で比べる教材（D-93-01）。企画の案から開いたときは、案の教材を選んでおく
+            'comparable'   => $mode === AiMode::NewArticle ? app(\App\Services\Materials\MaterialMatcher::class)->comparable($blog) : collect(),
+            'selectedMaterials' => array_map('intval', (array) old('materials', array_filter(explode(',', (string) $request->query('materials'))))),
             'method'       => config("blogos.ai.methods.{$mode->value}", 'manual'),
             'api'          => $this->apiSummary($mode),
         ]);
@@ -88,6 +91,10 @@ class AiGenerationController extends Controller
             'sub_keywords'    => ['nullable', 'string', 'max:2000'],
             'search_intent'   => ['nullable', 'string', 'max:2000'],
             'notes'           => ['nullable', 'string', 'max:20000'],
+            // 収益記事で比べる教材と、元にした記事の企画の案（D-93-01）
+            'materials'           => ['nullable', 'array'],
+            'materials.*'         => ['integer'],
+            'topic_suggestion_id' => ['nullable', 'integer'],
             // 実行方式は実行ごとに選べる（D-24）。モデル・推論の深さが選べるものかは AiApiPolicy で確かめる
             'execution_method' => ['nullable', Rule::enum(AiExecutionMethod::class)],
             'model'            => ['nullable', 'string', 'max:100'],
@@ -107,6 +114,13 @@ class AiGenerationController extends Controller
         $category = $mode === AiMode::NewArticle && filled($validated['category_id'] ?? null)
             ? Category::where('blog_id', $blog->id)->existing()->find((int) $validated['category_id']) : null;
 
+        // 収益記事で比べる教材（選べる教材だけ。D-93-01）と、元にした記事の企画の案（作った編集案と結び付ける）
+        $compared = $mode === AiMode::NewArticle && ($validated['article_type'] ?? null) === 'revenue'
+            ? array_map(fn ($row) => $row['material'], app(\App\Services\Materials\MaterialMatcher::class)->comparisonRows($blog, array_map('intval', $validated['materials'] ?? [])))
+            : [];
+        $suggestion = $mode === AiMode::NewArticle && filled($validated['topic_suggestion_id'] ?? null)
+            ? \App\Models\TopicSuggestion::where('blog_id', $blog->id)->find((int) $validated['topic_suggestion_id']) : null;
+
         // 指示文の「人が提供した情報」（D-14-10：実体験・検証の内容は、人が提供したものだけを使う）
         $parameters = array_filter([
             '記事の種類'                         => $mode === AiMode::NewArticle ? ($validated['target_type'] ?? '投稿') : null,
@@ -119,6 +133,9 @@ class AiGenerationController extends Controller
             'メインキーワード'                   => $validated['main_keyword'] ?? null,
             'サブキーワード'                     => $validated['sub_keywords'] ?? null,
             '検索意図'                           => $validated['search_intent'] ?? null,
+            '比べる教材'                         => $compared !== [] ? implode('、', array_map(fn ($material) => $material->name, $compared)) : null,
+            '比べる教材の値'                     => $compared !== [] ? implode(',', array_map(fn ($material) => $material->id, $compared)) : null,
+            '記事の企画の値'                     => $suggestion !== null ? (string) $suggestion->id : null,
             '補足（実体験・検証の結果・伝えたいこと）' => $validated['notes'] ?? null,
         ], fn ($value) => filled($value));
 
