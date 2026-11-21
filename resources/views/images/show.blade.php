@@ -15,7 +15,7 @@
     <h1>画像：{{ $image->title }}</h1>
 
     <p>
-        <a href="{{ route('images.index') }}">画像の一覧に戻る</a>
+        <a href="{{ route('images.index') }}">画像一覧に戻る</a>
         @if ($image->variantOf) ・比べる元の画像：<a href="{{ route('images.show', ['id' => $image->variantOf->id]) }}">{{ $image->variantOf->title }}</a>@endif
     </p>
 

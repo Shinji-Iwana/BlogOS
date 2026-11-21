@@ -11,7 +11,7 @@
     <h1>AI実行記録 #{{ $generation->id }}：{{ $generation->purpose->label() }}（{{ $generation->status->label() }}）</h1>
 
     <p>
-        <a href="{{ route('ai.generations.index') }}">AI実行記録の一覧</a>
+        <a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
         @if ($generation->draft) ・<a href="{{ route('drafts.edit', ['id' => $generation->draft->id]) }}">対象の編集案 #{{ $generation->draft->id }}</a>@endif
         @if ($article) ・<a href="{{ route('articles.show', ['type' => $generation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">対象の記事「{{ $article->title_raw }}」</a>@endif
         @if ($generation->material) ・<a href="{{ route('materials.edit', ['id' => $generation->material->id]) }}">対象の教材「{{ $generation->material->name }}」</a>@endif

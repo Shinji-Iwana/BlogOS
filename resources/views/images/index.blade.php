@@ -1,12 +1,12 @@
 {{--
-    記事で使う画像の一覧（D-32）：AI で図を作る・画像をアップロードする
+    画像一覧（D-32。見出しは D-102）：AI で図を作る・画像をアップロードする
 --}}
 
 @extends('layouts.app')
 
 @section('content')
 
-    <h1>画像：{{ $images->count() }}件</h1>
+    <h1>画像一覧</h1>
 
     <p>
         <a href="{{ route('images.eyecatches') }}">カテゴリごとのアイキャッチ</a>
@@ -86,6 +86,7 @@
     @if ($images->isEmpty())
         <p>画像はまだありません。</p>
     @else
+        @include('partials.history-count', ['paginator' => $images])
         <div style="display:flex; flex-wrap:wrap; gap:12px;">
             @foreach ($images as $image)
                 <div class="bordered" style="width:220px; padding:6px;">
@@ -107,6 +108,7 @@
                 </div>
             @endforeach
         </div>
+        {{ $images->links() }}
     @endif
 
     @include('images.partials.resize-script')

@@ -9,7 +9,7 @@
     <h1>AIのまとめて実行：{{ $mode->label() }}</h1>
 
     <p>
-        <a href="{{ route('ai.batches.index') }}">まとめて実行の一覧</a>
+        <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
         ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
     </p>
 

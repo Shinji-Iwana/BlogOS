@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\CategoryEyecatch;
 use App\Models\Image;
 use App\Models\Media;
+use App\Support\ListPage;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -17,17 +19,16 @@ use Illuminate\Support\Facades\DB;
 class ImageRepository
 {
     /**
-     * @return Collection<int, Image>
+     * 画像一覧（1ページ最大50件。新しい順。D-98-01・D-102-05）
      */
-    public function listForBlog(int $blogId, ?ImageKind $kind = null, ?ImageStatus $status = null): Collection
+    public function listForBlog(int $blogId, ?ImageKind $kind = null, ?ImageStatus $status = null): LengthAwarePaginator
     {
         return Image::with(['media:id,wordpress_id,source_url', 'variantOf:id,title'])
             ->where('blog_id', $blogId)
             ->when($kind, fn ($query) => $query->where('kind', $kind))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->latest('id')
-            ->limit(300)
-            ->get();
+            ->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     public function findForBlog(int $blogId, int $id): ?Image

@@ -38,12 +38,30 @@ class ListPageTest extends TestCase
 
         // 1ページ目は50件。件数は全件。2ページ目に残りの1件
         $this->get(route('materials.index'))->assertOk()
-            ->assertSee('<h1>教材：51件</h1>', false)
+            ->assertSee('<h1>教材一覧</h1>', false)
             ->assertSee('表示件数：50件（種類・名前の順、最大50件。全51件をページに分けて表示）')
             ->assertSee('教本50')->assertDontSee('教本51');
         $this->get(route('materials.index', ['page' => 2]))->assertOk()
             ->assertSee('表示件数：1件（種類・名前の順、最大50件。全51件をページに分けて表示）')
             ->assertSee('教本51')->assertDontSee('教本50');
+    }
+
+    public function test_image_list_is_paged_by_fifty(): void
+    {
+        $blog = \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        foreach (range(1, 51) as $n) {
+            \App\Models\Image::create(['blog_id' => $blog->id, 'kind' => \App\Enums\ImageKind::Illustration, 'status' => \App\Enums\ImageStatus::Draft, 'title' => sprintf('図%02d', $n)]);
+        }
+        $this->actingAs(\App\Models\User::factory()->create());
+
+        // 新しい順。1ページ目は50件（図51〜図02）、2ページ目に残りの1件（図01）
+        $this->get(route('images.index'))->assertOk()
+            ->assertSee('<h1>画像一覧</h1>', false)
+            ->assertSee('表示件数：50件（新しい順、最大50件。全51件をページに分けて表示）')
+            ->assertSee('図51')->assertDontSee('図01');
+        $this->get(route('images.index', ['page' => 2]))->assertOk()
+            ->assertSee('表示件数：1件（新しい順、最大50件。全51件をページに分けて表示）')
+            ->assertSee('図01')->assertDontSee('図02');
     }
 
     public function test_count_line_is_short_below_fifty_and_full_from_fifty(): void

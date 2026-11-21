@@ -16,7 +16,7 @@
     <h1>{{ $isNew ? '教材を登録する' : "教材：{$material->name}" }}</h1>
 
     <p>
-        <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
+        <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
         @unless ($isNew)
             ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
         @endunless

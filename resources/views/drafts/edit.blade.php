@@ -11,7 +11,7 @@
     <h1>編集案 #{{ $draft->id }}（{{ $draft->state->label() }}）</h1>
 
     <p>
-        <a href="{{ route('drafts.index') }}">編集案の一覧</a>
+        <a href="{{ route('drafts.index') }}">編集案一覧</a>
         @if ($article)
             ・対象：<a href="{{ route('articles.show', ['type' => $draft->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw ?: '（タイトルなし）' }}</a>
         @else
@@ -27,7 +27,7 @@
     @endif
 
     @if ($locked)
-        <p class="text-error"><strong>結果が確定していない反映記録があるため、編集・反映できません。</strong> <a href="{{ route('push-operations.index') }}">反映記録を確認する</a></p>
+        <p class="text-error"><strong>結果が確定していない反映記録があるため、編集・反映できません。</strong> <a href="{{ route('push-operations.index') }}">WordPress反映履歴一覧で確認する</a></p>
     @endif
 
     @php $editable = $draft->state->isActive() && ! $locked; @endphp

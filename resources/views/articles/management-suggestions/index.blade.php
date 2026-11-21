@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>管理情報の案の確認：{{ $rows->total() }}件</h1>
+    <h1>管理情報の案の確認</h1>
 
     <p>
         <a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>

@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <h1>カテゴリ：{{ $categories->count() }}件</h1>
+    <h1>カテゴリ</h1>
 
     <p>
         <a href="{{ route('launches.index') }}">カテゴリの立ち上げ（新しいカテゴリを作る）</a>

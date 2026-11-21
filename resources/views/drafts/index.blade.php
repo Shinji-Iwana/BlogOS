@@ -1,16 +1,16 @@
 {{--
-    編集案の一覧
+    編集案一覧
 --}}
 
 @extends('layouts.app')
 
 @section('content')
 
-    <h1>編集案の一覧</h1>
+    <h1>編集案一覧</h1>
 
     <p>
-        <a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿の一覧</a>
-        ・<a href="{{ route('push-operations.index') }}">反映記録</a>
+        <a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿一覧</a>
+        ・<a href="{{ route('push-operations.index') }}">WordPress反映履歴一覧</a>
         ・<a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>
         ・
         @if ($includeClosed)

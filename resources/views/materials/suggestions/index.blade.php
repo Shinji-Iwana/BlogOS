@@ -6,10 +6,10 @@
 
 @section('content')
 
-    <h1>教材の案の確認：{{ $suggestions->count() }}件</h1>
+    <h1>教材の案の確認</h1>
 
     <p>
-        <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
+        <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
         ・<a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
     </p>
 

@@ -8,7 +8,7 @@
 
     <h1>リンクの切り替え</h1>
 
-    <p><a href="{{ route('drafts.index') }}">編集案の一覧</a></p>
+    <p><a href="{{ route('drafts.index') }}">編集案一覧</a></p>
 
     @include('partials.flash')
 

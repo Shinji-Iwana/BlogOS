@@ -11,7 +11,7 @@
     <h1>AIの実行：{{ $mode->label() }}</h1>
 
     <p>
-        <a href="{{ route('ai.generations.index') }}">AI実行記録の一覧</a>
+        <a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
         @if ($draft) ・対象：<a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}「{{ $draft->title_raw }}」</a>
         @elseif ($article) ・対象：<a href="{{ route('articles.show', ['type' => $article instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw }}</a>
         @endif
@@ -107,7 +107,7 @@
                             選べるのは、使う教材のうち、提携中のリンクがあり、情報を調べた教材です。選ばなければ、BlogOS がカテゴリなどから教材の候補を選びます。
                         </p>
                         @if ($comparable->isEmpty())
-                            <p>選べる教材がありません（<a href="{{ route('materials.index') }}">教材</a>）。</p>
+                            <p>選べる教材がありません（<a href="{{ route('materials.index') }}">教材一覧</a>）。</p>
                         @else
                             <ul style="list-style:none; padding-left:0; columns:2; max-width:900px;">
                                 @foreach ($comparable as $material)

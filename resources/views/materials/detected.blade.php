@@ -8,7 +8,7 @@
 
     <h1>既存の記事のリンクから教材を登録する</h1>
 
-    <p><a href="{{ route('materials.index') }}">教材の一覧に戻る</a></p>
+    <p><a href="{{ route('materials.index') }}">教材一覧に戻る</a></p>
 
     @include('partials.flash')
 

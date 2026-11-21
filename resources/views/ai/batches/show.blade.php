@@ -18,8 +18,8 @@
     <h1>まとめて実行 #{{ $batch->id }}：{{ $batch->purpose->label() }}（{{ $batch->status->label() }}）</h1>
 
     <p>
-        <a href="{{ route('ai.batches.index') }}">まとめて実行の一覧</a>
-        ・<a href="{{ route('ai.generations.index') }}">AI実行記録の一覧</a>
+        <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
+        ・<a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
     </p>
 
     @include('partials.flash')

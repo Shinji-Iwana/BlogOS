@@ -6,14 +6,14 @@
 
 @section('content')
 
-    <h1>AIのまとめて実行</h1>
+    <h1>AIまとめて実行履歴一覧</h1>
 
     <p>
         <a href="{{ route('ai.batches.create', ['mode' => 'quality_diagnosis']) }}">品質診断をまとめて実行する</a>
         ・<a href="{{ route('ai.batches.create', ['mode' => 'revision']) }}">記事改修をまとめて実行する</a>
         ・<a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
         ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
-        ・<a href="{{ route('ai.generations.index') }}">AI実行記録</a>
+        ・<a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
     </p>
 
     @include('partials.flash')

@@ -6,10 +6,10 @@
 
 @section('content')
 
-    <h1>反映記録</h1>
+    <h1>WordPress反映履歴一覧</h1>
 
     <p>
-        <a href="{{ route('drafts.index') }}">編集案の一覧</a>
+        <a href="{{ route('drafts.index') }}">編集案一覧</a>
     </p>
 
     @include('partials.flash')

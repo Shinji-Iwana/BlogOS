@@ -6,11 +6,11 @@
 
 @section('content')
 
-    <h1>アフィリエイトのプログラム：{{ $programs->count() }}件</h1>
+    <h1>アフィリエイトのプログラム</h1>
     @php $programPage = \App\Support\ListPage::of($programs)->fragment('programs'); @endphp
 
     <p>
-        <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
+        <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
     </p>
 
     @include('partials.flash')

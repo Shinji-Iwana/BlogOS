@@ -9,7 +9,7 @@
     <h1>カテゴリごとのアイキャッチ</h1>
 
     <p>
-        <a href="{{ route('images.index') }}">画像の一覧に戻る</a>
+        <a href="{{ route('images.index') }}">画像一覧に戻る</a>
     </p>
 
     @include('partials.flash')

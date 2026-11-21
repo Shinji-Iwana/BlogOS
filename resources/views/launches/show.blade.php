@@ -8,7 +8,7 @@
 
     <h1>カテゴリの立ち上げ：{{ $launch->parentCategory?->name }}（{{ \App\Models\CategoryLaunch::STATUSES[$launch->status] ?? $launch->status }}）</h1>
 
-    <p><a href="{{ route('launches.index') }}">立ち上げの一覧</a>・<a href="{{ route('topics.index') }}">記事の企画</a>・<a href="{{ route('drafts.index') }}">編集案の一覧</a></p>
+    <p><a href="{{ route('launches.index') }}">立ち上げの一覧</a>・<a href="{{ route('topics.index') }}">記事の企画</a>・<a href="{{ route('drafts.index') }}">編集案一覧</a></p>
 
     @include('partials.flash')
     @include('partials.ai-credit-notice')

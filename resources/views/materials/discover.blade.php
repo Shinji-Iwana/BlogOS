@@ -9,7 +9,7 @@
     <h1>AIで新しい教材の候補を探す</h1>
 
     <p>
-        <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
+        <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
         ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
     </p>
 

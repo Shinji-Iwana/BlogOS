@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>教材：{{ $materials->total() }}件</h1>
+    <h1>教材一覧</h1>
 
     <p>
         登録する：<a href="{{ route('materials.create', ['kind' => 'book']) }}">書籍</a>

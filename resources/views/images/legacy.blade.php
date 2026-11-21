@@ -8,7 +8,7 @@
 
     <h1>古い画像の移し替え</h1>
 
-    <p><a href="{{ route('images.index') }}">画像の一覧</a></p>
+    <p><a href="{{ route('images.index') }}">画像一覧</a></p>
 
     @include('partials.flash')
 

@@ -8,7 +8,7 @@
 
     <h1>記事の実績と次にやること</h1>
 
-    <p><a href="{{ route('analytics.index') }}">分析</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('ai.batches.index') }}">まとめて実行</a></p>
+    <p><a href="{{ route('analytics.index') }}">分析</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a></p>
 
     @include('partials.flash')
 

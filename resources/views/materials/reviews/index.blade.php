@@ -9,7 +9,7 @@
     <h1>記事の教材の見直し</h1>
 
     <p>
-        <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
+        <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
         ・<a href="{{ route('ai.batches.create', ['mode' => 'material_review']) }}">AIでまとめて見直す</a>
     </p>
 
