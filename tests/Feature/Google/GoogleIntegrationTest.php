@@ -513,14 +513,14 @@ class GoogleIntegrationTest extends TestCase
         $this->actingAs($this->user)->from(route('analytics.index'))->put(route('google.properties.update', ['service' => 'ga4']), [
             'selected_blog_id' => $this->blog->id, '_form' => 'google-ga4-modal', 'google_account_id' => $account->id, 'resource_name' => '123',
         ])->assertRedirect(route('analytics.index'))->assertSessionHasErrors('resource_name');
-        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-autoopen/', $this->actingAs($this->user)->get(route('analytics.index'))->getContent());
+        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen/', $this->actingAs($this->user)->get(route('analytics.index'))->getContent());
 
         $this->actingAs($this->user)->from(route('analytics.index'))->put(route('google.properties.update', ['service' => 'ga4']), [
             'selected_blog_id' => $this->blog->id, 'google_account_id' => $account->id, 'resource_name' => 'properties/123', 'display_name' => 'si-note',
         ])->assertSessionHasNoErrors()->assertRedirect(route('analytics.index'))->assertSessionHas('google_modal', 'google-ga4-modal');
         $this->assertSame('properties/123', BlogGoogleProperty::sole()->resource_name);
         $after = $this->actingAs($this->user)->get(route('analytics.index'))->getContent();
-        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?Google Analytics 4の対応先を保存しました/s', $after);
+        $this->assertMatchesRegularExpression('/id="google-ga4-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?Google Analytics 4の対応先を保存しました/s', $after);
 
         // 接続の解除で、対応先の設定も解除する（ブログを選んでいなくてもできる）
         $this->actingAs($this->user)->from(route('scheduled-tasks.runs'))->delete(route('google.accounts.destroy', ['id' => $account->id]))

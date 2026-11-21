@@ -48,6 +48,7 @@
 <div
     id="{{ $modalId }}"
     class="blog-switch-modal site-modal reevaluation-modal"
+    data-modal-mode="edit"
     @if ($reevaluationFailed) data-modal-autoopen @endif
 >
 
@@ -55,10 +56,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            {{ $title }}
-            @include('partials.tip', ['tip' => $tips['title']])
-        </h2>
+        @include('partials.modal-title', ['title' => $title, 'tip' => $tips['title']])
 
         @unless ($apiPolicy->isConfigured())
             <p class="text-error">APIキーが設定されていないため、有効にしても実行されません（.env の OPENAI_API_KEY）。</p>
@@ -180,12 +178,8 @@
                 class="blog-switch-actions"
             >
 
-                {{-- 保存 --}}
-                <button
-                    type="submit"
-                >
-                    保存
-                </button>
+                {{-- 更新（ボタンの名前はモードで決める。D-100-02） --}}
+                @include('partials.modal-submit', ['mode' => 'edit'])
 
                 {{-- キャンセル --}}
                 <button

@@ -160,7 +160,7 @@ class BlogRegistrationTest extends TestCase
         // メニューの「設定」の「画面のテーマ」の下に「ブログ」。その中に「ブログを登録」「認証情報」。押すとポップアップを開く（D-63-21・D-63-22）
         $html = $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/data-modal-open="theme-switch-modal" >画面のテーマ<\/a><\/li>\s*<li class="site-menu-sub">\s*<details>\s*<summary>ブログ<\/summary>.*?data-modal-open="blog-register-modal" >ブログを登録<\/a><\/li>\s*<li><a href="#"\s+data-modal-open="blog-credential-modal" >認証情報<\/a>/s', $html);
-        $this->assertMatchesRegularExpression('/id="blog-register-modal".*?<h2>\s*ブログを登録/s', $html);
+        $this->assertMatchesRegularExpression('/id="blog-register-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">ブログを登録/s', $html);
         $this->assertFalse(\Illuminate\Support\Facades\Route::has('blogs.create'));
 
         // WordPress を確認できなければ、開いていた画面に戻り、ポップアップを開いたままにして誤りを出す（パスワードは入れ直す）
@@ -168,7 +168,7 @@ class BlogRegistrationTest extends TestCase
             '_form' => 'blog-register', 'url' => 'https://blog.example.test/', 'username' => 'admin', 'application_password' => 'abcd efgh ijkl mnop',
         ])->assertRedirect(route('scheduled-tasks.runs'));
         $html = $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent();
-        $this->assertMatchesRegularExpression('/id="blog-register-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?class="text-error".*?value="https:\/\/blog.example.test\/"/s', $html);
+        $this->assertMatchesRegularExpression('/id="blog-register-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?class="text-error".*?value="https:\/\/blog.example.test\/"/s', $html);
         $this->assertStringNotContainsString('abcd efgh', $html);
     }
 }

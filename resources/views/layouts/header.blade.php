@@ -205,6 +205,7 @@
     <div
         id="blog-switch-modal"
         class="blog-switch-modal"
+        data-modal-mode="switch"
     >
 
         {{-- ======================================================
@@ -215,9 +216,7 @@
             class="blog-switch-dialog"
         >
 
-            <h2>
-                ブログ切替
-            </h2>
+            @include('partials.modal-title', ['title' => 'ブログ切替'])
 
 
             {{-- ==================================================
@@ -269,12 +268,8 @@
                     class="blog-switch-actions"
                 >
 
-                    {{-- ブログ切替 --}}
-                    <button
-                        type="submit"
-                    >
-                        切替
-                    </button>
+                    {{-- ブログ切替（ボタンの名前はモードで決める。D-100-02） --}}
+                    @include('partials.modal-submit', ['mode' => 'switch'])
 
                     {{-- キャンセル --}}
                     <button
@@ -314,15 +309,14 @@
 <div
     id="theme-switch-modal"
     class="blog-switch-modal site-modal theme-switch-modal"
+    data-modal-mode="switch"
 >
 
     <div
         class="blog-switch-dialog"
     >
 
-        <h2>
-            画面のテーマ
-        </h2>
+        @include('partials.modal-title', ['title' => '画面のテーマ'])
 
         <form
             method="POST"
@@ -367,12 +361,8 @@
                 class="blog-switch-actions"
             >
 
-                {{-- テーマ切替 --}}
-                <button
-                    type="submit"
-                >
-                    切替
-                </button>
+                {{-- テーマ切替（ボタンの名前はモードで決める。D-100-02） --}}
+                @include('partials.modal-submit', ['mode' => 'switch'])
 
                 {{-- キャンセル --}}
                 <button
@@ -590,12 +580,29 @@
      ・data-modal-open="ポップアップのid" を付けた要素を押す → そのポップアップを表示（リンクの移動はしない）
      ・data-modal-close を付けたボタン、背景、Esc → 閉じる（class="site-modal" のポップアップ）
      ・data-modal-autoopen を付けたポップアップ → 画面を開いたときに表示（入力の誤りで戻ったとき）
+     ・開く要素に data-modal-mode="create|edit|switch|info" を付けると、そのモードで開く（題名の左のアイコンと、送るボタンの名前が変わる。D-100-03）
      ============================================================== --}}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
         const close = (modal) => { modal.style.display = 'none'; };
+
+        // ポップアップのモード（D-100）：アイコンは CSS（data-modal-mode）が切り替え、送るボタンの名前はここで書き換える。
+        // 名前は App\Support\ModalMode::SUBMIT_LABELS（情報のモードは、送るボタンを隠す）
+        const submitLabels = @json(\App\Support\ModalMode::SUBMIT_LABELS);
+        const setModalMode = function (modal, mode) {
+            if (! ['create', 'edit', 'switch', 'info'].includes(mode)) {
+                return;
+            }
+            modal.dataset.modalMode = mode;
+            modal.querySelectorAll('[data-modal-submit]').forEach(function (button) {
+                button.hidden = ! submitLabels[mode];
+                button.textContent = submitLabels[mode] || '';
+            });
+        };
+        // ほかの画面の JavaScript からも、モードを変えて開けるようにする
+        window.blogosSetModalMode = setModalMode;
 
         document.querySelectorAll('[data-modal-open]').forEach(function (opener) {
             opener.addEventListener('click', function (event) {
@@ -618,6 +625,10 @@
                     }).formatToParts(new Date()).map((part) => [part.type, part.value]));
                     input.value = parts.year + '-' + parts.month + '-' + parts.day + 'T' + parts.hour + ':' + parts.minute;
                 });
+                // 開く要素がモードを決めているときは、そのモードにする（D-100-03）
+                if (opener.dataset.modalMode) {
+                    setModalMode(modal, opener.dataset.modalMode);
+                }
                 modal.style.display = 'block';
             });
         });

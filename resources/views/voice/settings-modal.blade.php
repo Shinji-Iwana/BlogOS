@@ -36,6 +36,7 @@
 <div
     id="voice-settings-modal"
     class="blog-switch-modal site-modal voice-settings-modal"
+    data-modal-mode="edit"
     @if ($voiceFailed) data-modal-autoopen @endif
 >
 
@@ -43,9 +44,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            音声操作
-        </h2>
+        @include('partials.modal-title', ['title' => '音声操作'])
 
         @unless (app(\App\Services\Ai\AiApiPolicy::class)->isConfigured())
             <p class="text-warn">OpenAI の API キー（.env の OPENAI_API_KEY）が設定されていないため、使えません。</p>
@@ -104,12 +103,8 @@
                 class="blog-switch-actions"
             >
 
-                {{-- 保存 --}}
-                <button
-                    type="submit"
-                >
-                    保存
-                </button>
+                {{-- 更新（ボタンの名前はモードで決める。D-100-02） --}}
+                @include('partials.modal-submit', ['mode' => 'edit'])
 
                 {{-- キャンセル --}}
                 <button

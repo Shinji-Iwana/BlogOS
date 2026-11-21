@@ -24,6 +24,7 @@
 <div
     id="google-account-modal"
     class="blog-switch-modal site-modal google-modal"
+    data-modal-mode="info"
     @if ($googleOpen === 'google-account-modal') data-modal-autoopen @endif
 >
 
@@ -31,10 +32,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            Googleアカウント
-            @include('partials.tip', ['tip' => "GA4・Search Console・AdSense のデータを取得するための、Googleアカウントの接続です。\n接続を解除すると、そのアカウントを使う対応先の設定も解除します（取得済みのデータは残ります）。"])
-        </h2>
+        @include('partials.modal-title', ['title' => 'Googleアカウント', 'tip' => "GA4・Search Console・AdSense のデータを取得するための、Googleアカウントの接続です。\n接続を解除すると、そのアカウントを使う対応先の設定も解除します（取得済みのデータは残ります）。"])
 
         @if ($googleOpen === 'google-account-modal')
             @include('partials.flash')
@@ -106,6 +104,7 @@
     <div
         id="{{ $googleModalId }}"
         class="blog-switch-modal site-modal google-modal"
+        data-modal-mode="edit"
         @if ($googleOpen === $googleModalId) data-modal-autoopen @endif
     >
 
@@ -113,10 +112,7 @@
             class="blog-switch-dialog"
         >
 
-            <h2>
-                {{ $service->label() }}
-                @include('partials.tip', ['tip' => "選択中のブログの、{$service->label()}の対応先です。\n「候補を読み込む」を押すと、選んだアカウントで見られる対応先を候補に出します（Google API を呼びます）。候補を読み込まずに、値を直接入力することもできます。\n解除しても、取得済みのデータは残ります。"])
-            </h2>
+            @include('partials.modal-title', ['title' => $service->label(), 'tip' => "選択中のブログの、{$service->label()}の対応先です。\n「候補を読み込む」を押すと、選んだアカウントで見られる対応先を候補に出します（Google API を呼びます）。候補を読み込まずに、値を直接入力することもできます。\n解除しても、取得済みのデータは残ります。"])
 
             @if ($googleOpen === $googleModalId)
                 @include('partials.flash')
@@ -190,7 +186,7 @@
                         <div
                             class="blog-switch-actions"
                         >
-                            <button type="submit">保存</button>
+                            @include('partials.modal-submit', ['mode' => 'edit'])
                             @if ($property)
                                 <button class="btn-danger" type="submit" name="remove" value="1" onclick="return confirm('対応先を解除しますか？（取得済みのデータは残ります）');">解除</button>
                             @endif

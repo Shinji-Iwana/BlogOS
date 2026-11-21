@@ -14,6 +14,7 @@
 <div
     id="affiliate-program-modal"
     class="blog-switch-modal site-modal affiliate-program-modal"
+    data-modal-mode="create"
     @if ($programOpen) data-modal-autoopen @endif
 >
 
@@ -21,10 +22,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            アフィリエイト提携先を登録
-            @include('partials.tip', ['tip' => "選択中のブログに、まだ記事で使っていないプログラム（申請中・否認を含む）を登録します。\n状態が「申請中・否認・提携終了」のプログラムのリンクは、記事で紹介に使いません（AIの教材の候補から外します）。\n登録したプログラムは、画面「アフィリエイトのプログラム」で確認・変更できます。"])
-        </h2>
+        @include('partials.modal-title', ['title' => 'アフィリエイト提携先を登録', 'tip' => "選択中のブログに、まだ記事で使っていないプログラム（申請中・否認を含む）を登録します。\n状態が「申請中・否認・提携終了」のプログラムのリンクは、記事で紹介に使いません（AIの教材の候補から外します）。\n登録したプログラムは、画面「アフィリエイトのプログラム」で確認・変更できます。"])
 
         @if ($programOpen)
             @include('partials.flash')
@@ -90,7 +88,7 @@
                 <div
                     class="blog-switch-actions"
                 >
-                    <button type="submit">登録する</button>
+                    @include('partials.modal-submit', ['mode' => 'create'])
                     <button type="button" class="btn-secondary" data-modal-close>キャンセル</button>
                 </div>
 

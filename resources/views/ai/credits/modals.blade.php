@@ -16,7 +16,6 @@
             'tip'    => "OpenAI の API は前払い（チャージした残高から引かれる）です。BlogOS は OpenAI の残高を直接取得できないため、OpenAI の画面で見た残高を登録し、その後のAPI実行の費用の目安を引いて、残高を見込みます。\n登録すると、残高の見込みはこの額から計算し直します（その時点の見込みとの差を記録します）。",
             'amount' => ['label' => '残高（米ドル）', 'tip' => 'OpenAI の Billing の画面の Credit balance。'],
             'at'     => '見た日時（日本時間）',
-            'submit' => '残高を登録する',
         ],
         'purchase' => [
             'title'  => '課金額を登録',
@@ -24,7 +23,6 @@
             'tip'    => "OpenAI で課金した額を登録すると、残高の見込みに加えます。\n課金の直後に残高も見た場合は、「OpenAIの画面で見た残高を登録」だけでもかまいません。",
             'amount' => ['label' => '課金した額（米ドル）', 'tip' => '残高に加わった額（税を除く）。'],
             'at'     => '課金した日時（日本時間）',
-            'submit' => '課金を登録する',
         ],
     ];
     $atTip = '日本時間。初めは、このポップアップを開いた時刻が入っています。前に見た・課金した場合は、その日時に直してください（今より後は登録できません）。';
@@ -36,6 +34,7 @@
     <div
         id="credit-{{ $kind }}-modal"
         class="blog-switch-modal site-modal credit-modal"
+        data-modal-mode="create"
         @if ($creditFailed) data-modal-autoopen @endif
     >
 
@@ -43,10 +42,7 @@
             class="blog-switch-dialog"
         >
 
-            <h2>
-                {{ $form['title'] }}
-                @include('partials.tip', ['tip' => $form['tip']])
-            </h2>
+            @include('partials.modal-title', ['title' => $form['title'], 'tip' => $form['tip']])
 
             @if ($creditFailed)
                 <ul class="text-error">
@@ -83,12 +79,8 @@
                     class="blog-switch-actions"
                 >
 
-                    {{-- 登録 --}}
-                    <button
-                        type="submit"
-                    >
-                        {{ $form['submit'] }}
-                    </button>
+                    {{-- 登録（ボタンの名前はモードで決める。D-100-02） --}}
+                    @include('partials.modal-submit', ['mode' => 'create'])
 
                     {{-- キャンセル --}}
                     <button

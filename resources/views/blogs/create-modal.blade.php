@@ -15,6 +15,7 @@
 <div
     id="blog-register-modal"
     class="blog-switch-modal site-modal blog-register-modal"
+    data-modal-mode="create"
     @if ($blogRegisterFailed) data-modal-autoopen @endif
 >
 
@@ -22,10 +23,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            ブログを登録
-            @include('partials.tip', ['tip' => "WordPress のブログを BlogOS に登録します。サイト名などは WordPress から読み取ります。\n登録すると、そのブログを選び、投稿などの初回取得を始めます（完了まで数分かかることがあります）。"])
-        </h2>
+        @include('partials.modal-title', ['title' => 'ブログを登録', 'tip' => "WordPress のブログを BlogOS に登録します。サイト名などは WordPress から読み取ります。\n登録すると、そのブログを選び、投稿などの初回取得を始めます（完了まで数分かかることがあります）。"])
 
         @if ($blogRegisterFailed)
             <ul class="text-error">
@@ -75,7 +73,8 @@
             <div
                 class="blog-switch-actions"
             >
-                <button type="submit">確認して登録する</button>
+                {{-- 登録するときに、これまでどおり WordPress との接続を確認する（ボタンの名前はモードで決める。D-100-02） --}}
+                @include('partials.modal-submit', ['mode' => 'create'])
                 <button type="button" class="btn-secondary" data-modal-close>キャンセル</button>
             </div>
 

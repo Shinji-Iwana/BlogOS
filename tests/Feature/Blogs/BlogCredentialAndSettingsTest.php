@@ -49,7 +49,7 @@ class BlogCredentialAndSettingsTest extends TestCase
                 'application_password' => 'new secret',
             ])
             ->assertRedirect(route('scheduled-tasks.runs'));
-        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?認証情報を更新しました/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
+        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?認証情報を更新しました/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
 
         $this->assertSame('new secret', BlogCredential::sole()->secret);
         Http::assertSent(fn ($request) => $request->hasHeader('Authorization'));
@@ -98,7 +98,7 @@ class BlogCredentialAndSettingsTest extends TestCase
             ->post(route('blogs.credentials.verify'), ['selected_blog_id' => $this->blog->id])
             ->assertRedirect(route('scheduled-tasks.runs'));
         // 失敗も、ポップアップを開いて出す
-        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?class="text-error"/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
+        $this->assertMatchesRegularExpression('/id="blog-credential-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?class="text-error"/s', $this->actingAs($this->user)->get(route('scheduled-tasks.runs'))->getContent());
 
         $credential = BlogCredential::sole();
         $this->assertNotNull($credential->last_failed_at);

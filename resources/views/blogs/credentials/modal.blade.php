@@ -16,6 +16,7 @@
 <div
     id="blog-credential-modal"
     class="blog-switch-modal site-modal blog-credential-modal"
+    data-modal-mode="edit"
     @if ($credentialOpen) data-modal-autoopen @endif
 >
 
@@ -23,10 +24,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            認証情報
-            @include('partials.tip', ['tip' => "選択中のブログの、WordPress の Application Password です。\n登録済みの Application Password は表示しません。変えるときは、上書きします（接続を確認してから保存します）。"])
-        </h2>
+        @include('partials.modal-title', ['title' => '認証情報', 'tip' => "選択中のブログの、WordPress の Application Password です。\n登録済みの Application Password は表示しません。変えるときは、上書きします（接続を確認してから保存します）。"])
 
         @if ($credentialOpen)
             @include('partials.flash')
@@ -93,7 +91,8 @@
                 <div
                     class="blog-switch-actions"
                 >
-                    <button type="submit">接続を確認して保存する</button>
+                    {{-- 接続を確認してから保存する（ボタンの名前はモードで決める。D-100-02） --}}
+                    @include('partials.modal-submit', ['mode' => 'edit'])
                     <button type="button" class="btn-secondary" data-modal-close>キャンセル</button>
                 </div>
             </form>

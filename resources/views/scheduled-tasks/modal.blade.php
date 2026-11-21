@@ -35,6 +35,7 @@
 <div
     id="{{ $modalId }}"
     class="blog-switch-modal site-modal schedule-modal"
+    data-modal-mode="edit"
     @if ($scheduleFailed) data-modal-autoopen @endif
 >
 
@@ -42,10 +43,7 @@
         class="blog-switch-dialog"
     >
 
-        <h2>
-            {{ $title }}
-            @include('partials.tip', ['tip' => "定期実行：{$scheduledTask['description']}。\n" . (isset($scheduledTask['tip']) ? $scheduledTask['tip'] . "\n" : '') . "時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行はメニューの「設定 → 即時実行」、実行の記録はメニューの「履歴 → 定期実行履歴」にあります。"])
-        </h2>
+        @include('partials.modal-title', ['title' => $title, 'tip' => "定期実行：{$scheduledTask['description']}。\n" . (isset($scheduledTask['tip']) ? $scheduledTask['tip'] . "\n" : '') . "時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行はメニューの「設定 → 即時実行」、実行の記録はメニューの「履歴 → 定期実行履歴」にあります。"])
 
         @if ($scheduleFailed)
             <ul class="text-error">
@@ -139,12 +137,8 @@
                 class="blog-switch-actions"
             >
 
-                {{-- 保存 --}}
-                <button
-                    type="submit"
-                >
-                    保存
-                </button>
+                {{-- 更新（ボタンの名前はモードで決める。D-100-02） --}}
+                @include('partials.modal-submit', ['mode' => 'edit'])
 
                 {{-- キャンセル --}}
                 <button

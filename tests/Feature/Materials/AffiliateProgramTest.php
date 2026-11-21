@@ -158,7 +158,7 @@ class AffiliateProgramTest extends TestCase
         // メニューの「設定」の「OpenAI」の下に「アフィリエイト提携先を登録」（順は D-63-26）。押すとポップアップを開く（D-63-20）
         $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?data-modal-open="affiliate-program-modal" >アフィリエイト提携先を登録<\/a><\/li>\s*<li class="site-menu-sub">\s*<details>\s*<summary>即時実行<\/summary>/s', $html);
-        $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2>\s*アフィリエイト提携先を登録/s', $html);
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">アフィリエイト提携先を登録/s', $html);
         // 画面「アフィリエイトのプログラム」には、登録の欄を出さない
         $this->get(route('materials.programs.index'))->assertOk()->assertDontSee('<h2>プログラムを登録する</h2>', false);
 
@@ -166,7 +166,7 @@ class AffiliateProgramTest extends TestCase
         $this->from(route('scheduled-tasks.runs'))->post(route('materials.programs.store'), $this->selected([
             '_form' => 'affiliate-program', 'asp' => 'moshimo', 'external_id' => '9999', 'name' => 'CodeCamp（もしも）', 'material_kind' => 'school', 'status' => 'applying',
         ]))->assertRedirect(route('scheduled-tasks.runs'))->assertSessionHas('affiliate_program_modal', true);
-        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?プログラム「CodeCamp（もしも）」を登録しました/s', $this->get(route('scheduled-tasks.runs'))->getContent());
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?プログラム「CodeCamp（もしも）」を登録しました/s', $this->get(route('scheduled-tasks.runs'))->getContent());
 
         $program = AffiliateProgram::where('program_key', 'moshimo:9999')->sole();
         $this->assertSame(AffiliateProgramStatus::Applying, $program->status);
@@ -177,6 +177,6 @@ class AffiliateProgramTest extends TestCase
             ->assertRedirect(route('scheduled-tasks.runs'));
         // 入力の誤りは、ポップアップを開いたままにして、誤りと入力した値を出す
         $html = $this->get(route('scheduled-tasks.runs'))->getContent();
-        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-autoopen.*?登録済みです.*?value="重複"/s', $html);
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal"\s+class="[^"]*"\s+data-modal-mode="\w+"\s+data-modal-autoopen.*?登録済みです.*?value="重複"/s', $html);
     }
 }

@@ -181,7 +181,7 @@ class AiCreditTest extends TestCase
         $this->assertStringContainsString('value="' . now(config('blogos.display_timezone'))->format('Y-m-d\TH:i') . '"', $home);
         // メニューの名前は「OpenAI」「課金額を登録」（D-63-24）。ポップアップの題名も同じ
         $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?data-modal-open="credit-purchase-modal" >課金額を登録<\/a>/s', $home);
-        $this->assertMatchesRegularExpression('/id="credit-purchase-modal".*?<h2>\s*課金額を登録/s', $home);
+        $this->assertMatchesRegularExpression('/id="credit-purchase-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">課金額を登録/s', $home);
         // 「AIの費用と残高」の画面には、もう登録の欄はない
         $this->get(route('ai.credits.index'))->assertOk()->assertDontSee('<h2>登録する</h2>', false)->assertDontSee('空なら今');
 

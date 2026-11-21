@@ -6,9 +6,9 @@
     受け取る値：$noticePopup（null なら出さない）＝ ['count' => 件数, 'notices' => 新しいもの数件]
 --}}
 @if ($noticePopup ?? null)
-    <div id="notice-popup" class="blog-switch-modal site-modal notice-popup" data-modal-autoopen>
+    <div id="notice-popup" class="blog-switch-modal site-modal notice-popup" data-modal-mode="info" data-modal-autoopen>
         <div class="blog-switch-dialog">
-            <h2>未確認のお知らせがあります</h2>
+            @include('partials.modal-title', ['title' => '未確認のお知らせがあります'])
             <p>未確認のお知らせが {{ $noticePopup['count'] }}件あります。</p>
             <ul class="notice-popup-list">
                 @foreach ($noticePopup['notices'] as $notice)

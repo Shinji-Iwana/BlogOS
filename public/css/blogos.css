@@ -383,6 +383,64 @@ table.data.data-compact > * > tr > td {
 
 
 /* ==========================================================
+   ポップアップの題名とモード（D-100。partials/modal-title・partials/modal-submit・App\Support\ModalMode）
+   ----------------------------------------------------------
+   ・題名の左に、モードのアイコン（新規：＋・編集：鉛筆・切替：回る矢印・情報：i）を、ヘッダーのアイコンと同じ枠で囲んで出す
+   ・4つのアイコンを全て置いておき、ポップアップの data-modal-mode に合うものだけを見せる（開くときにモードを変えられる）
+   ・アイコン・題名・「?」は、縦の中央でそろえる
+   ・ポップアップのアイコンは、押す部品ではないため、ヘッダーのアイコンのような動き（マウスを乗せたときの光など）は付けない
+   各テーマは枠の形だけを変える（ironman：css/components/header.css）
+   ========================================================== */
+
+.modal-title {
+    display: flex;
+    align-items: center;
+}
+
+/* 題名が長いとき（狭い画面）は、題名の中で折り返す（アイコン・「?」だけが別の行にならないように） */
+.modal-title-text {
+    min-width: 0;
+}
+
+/* 題名と「?」の間（題名の後ろの空白の代わり） */
+.modal-title > .tip {
+    flex-shrink: 0;
+    margin-left: calc(4px + 0.3em);
+}
+
+/* モードが付いていないポップアップは、アイコンを出さない */
+.modal-mode-icon {
+    display: none;
+}
+
+[data-modal-mode] .modal-mode-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 30px;
+    height: 28px;
+    margin-right: 10px;
+    /* ヘッダーのお知らせ・ログアウトのアイコンと同じ枠 */
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.modal-mode-icon > svg {
+    display: none;
+}
+
+[data-modal-mode="create"] .modal-mode-icon > [data-modal-icon="create"],
+[data-modal-mode="edit"] .modal-mode-icon > [data-modal-icon="edit"],
+[data-modal-mode="switch"] .modal-mode-icon > [data-modal-icon="switch"],
+[data-modal-mode="info"] .modal-mode-icon > [data-modal-icon="info"] {
+    display: block;
+}
+
+
+/* ==========================================================
    画面の区切りとボタンの種類（D-49-11）
    ----------------------------------------------------------
    blank では何もしない（見た目は標準のまま）。テーマの CSS で見た目を決める。
