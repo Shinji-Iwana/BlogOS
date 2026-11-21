@@ -147,38 +147,35 @@
                         <p>
                             <button type="button" class="btn-secondary" data-google-candidates="{{ route('google.candidates', ['service' => $service->value]) }}">候補を読み込む</button>
                         </p>
-                        <p>
-                            <label>アカウント
-                                <select name="google_account_id">
-                                    @foreach ($googleAccounts as $account)
-                                        <option value="{{ $account->id }}" @selected((int) ($googleFailed ? old('google_account_id') : $property?->google_account_id) === $account->id)>{{ $account->email }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                        </p>
-                        <p data-google-candidates-result hidden>
-                            <label>候補
-                                <select data-google-candidate-select>
-                                    <option value="">（選ぶ）</option>
-                                </select>
-                            </label>
-                        </p>
+                        {{-- 上にラベル、下に入力欄（D-99-01） --}}
+                        <label class="modal-field">
+                            <span class="modal-label">アカウント</span>
+                            <select name="google_account_id">
+                                @foreach ($googleAccounts as $account)
+                                    <option value="{{ $account->id }}" @selected((int) ($googleFailed ? old('google_account_id') : $property?->google_account_id) === $account->id)>{{ $account->email }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <label class="modal-field" data-google-candidates-result hidden>
+                            <span class="modal-label">候補</span>
+                            <select data-google-candidate-select>
+                                <option value="">（選ぶ）</option>
+                            </select>
+                        </label>
                         <p class="text-error" data-google-candidates-error hidden></p>
 
-                        <p>
-                            <label>対応先
-                                <input type="text" name="resource_name" value="{{ $googleFailed ? old('resource_name') : $property?->resource_name }}" style="width:260px; max-width:100%;"
-                                       placeholder="{{ ['ga4' => 'properties/123456789', 'search_console' => 'sc-domain:example.com', 'adsense' => 'accounts/pub-0000000000000000'][$service->value] }}">
-                            </label>
-                        </p>
+                        <label class="modal-field">
+                            <span class="modal-label">対応先</span>
+                            <input type="text" name="resource_name" value="{{ $googleFailed ? old('resource_name') : $property?->resource_name }}"
+                                   placeholder="{{ ['ga4' => 'properties/123456789', 'search_console' => 'sc-domain:example.com', 'adsense' => 'accounts/pub-0000000000000000'][$service->value] }}">
+                        </label>
                         <input type="hidden" name="display_name" value="{{ $googleFailed ? old('display_name') : $property?->display_name }}">
 
                         @if ($service === \App\Enums\GoogleService::Adsense)
-                            <p>
-                                <label>集計するドメイン
-                                    <input type="text" name="adsense_domain" value="{{ $googleFailed ? old('adsense_domain') : ($property?->adsense_domain ?? $googleBlogHost) }}" style="width:200px; max-width:100%;">
-                                </label>
-                            </p>
+                            <label class="modal-field">
+                                <span class="modal-label">集計するドメイン</span>
+                                <input type="text" name="adsense_domain" value="{{ $googleFailed ? old('adsense_domain') : ($property?->adsense_domain ?? $googleBlogHost) }}">
+                            </label>
                         @endif
 
                         @if ($googleRun)

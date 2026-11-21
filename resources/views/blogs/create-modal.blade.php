@@ -43,40 +43,34 @@
             @csrf
             <input type="hidden" name="_form" value="blog-register">
 
-            <p>
-                <label>
-                    ブログのURL<br>
-                    <input type="url" name="url" value="{{ $blogRegisterFailed ? old('url') : '' }}" placeholder="https://example.com" required style="width:100%; max-width:420px;">
-                </label>
-            </p>
+            {{-- 上にラベル、下に入力欄（D-99-01） --}}
+            <label class="modal-field">
+                <span class="modal-label">ブログのURL</span>
+                <input type="url" name="url" value="{{ $blogRegisterFailed ? old('url') : '' }}" placeholder="https://example.com" required>
+            </label>
 
-            <p>
-                <label>
-                    WordPressのユーザー名<br>
-                    <input type="text" name="username" value="{{ $blogRegisterFailed ? old('username') : '' }}" autocomplete="off" required style="width:100%; max-width:420px;">
-                </label>
-            </p>
+            <label class="modal-field">
+                <span class="modal-label">WordPressのユーザー名</span>
+                <input type="text" name="username" value="{{ $blogRegisterFailed ? old('username') : '' }}" autocomplete="off" required>
+            </label>
 
-            <p>
-                <label>
+            <label class="modal-field">
+                <span class="modal-label">
                     Application Password
                     @include('partials.tip', ['tip' => "WordPressの「ユーザー → プロフィール → アプリケーションパスワード」で、「BlogOS」という名前で発行したものを入力してください。\n登録後は画面に表示しません。"])
-                    <br>
-                    <input type="password" name="application_password" autocomplete="new-password" required style="width:100%; max-width:420px;">
-                </label>
-            </p>
+                </span>
+                <input type="password" name="application_password" autocomplete="new-password" required>
+            </label>
 
-            <p>
-                <label>
-                    品質基準（ブログ別の定義）<br>
-                    <select name="quality_profile">
-                        <option value="">（未設定）</option>
-                        @foreach (\App\Support\QualityProfiles::available() as $profile)
-                            <option value="{{ $profile }}" @selected($blogRegisterFailed && old('quality_profile') === $profile)>{{ $profile }}</option>
-                        @endforeach
-                    </select>
-                </label>
-            </p>
+            <label class="modal-field">
+                <span class="modal-label">品質基準（ブログ別の定義）</span>
+                <select name="quality_profile">
+                    <option value="">（未設定）</option>
+                    @foreach (\App\Support\QualityProfiles::available() as $profile)
+                        <option value="{{ $profile }}" @selected($blogRegisterFailed && old('quality_profile') === $profile)>{{ $profile }}</option>
+                    @endforeach
+                </select>
+            </label>
 
             <div
                 class="blog-switch-actions"

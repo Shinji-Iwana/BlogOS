@@ -13,6 +13,19 @@
 
 
 /* ==========================================================
+   画面の横のはみ出し（D-99-01）
+   ----------------------------------------------------------
+   飾りの線などが少しでも右にはみ出すと、スマホでは画面全体の幅が広がり、
+   ポップアップ・横から出るパネルの右が切れる。画面の横は、はみ出した分を切る（横には動かない）。
+   ========================================================== */
+
+html,
+body {
+    overflow-x: clip;
+}
+
+
+/* ==========================================================
    文字の色（意味ごと）
    ========================================================== */
 
@@ -194,6 +207,9 @@ table.data.data-compact > * > tr > td {
     display: flex;
     align-items: center;
     gap: 10px;
+    /* 狭い画面では左（ブログ名）を縮め、右のお知らせ・ログアウトを画面に収める。
+       はみ出すと画面全体の幅が広がり、ポップアップの右が切れるため（D-99-01） */
+    min-width: 0;
 }
 
 .site-title {
@@ -233,6 +249,7 @@ table.data.data-compact > * > tr > td {
     align-items: center;
     gap: 8px;
     min-width: 0;
+    flex-shrink: 0;
 }
 
 .logout-form {
@@ -277,10 +294,13 @@ table.data.data-compact > * > tr > td {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 500px;
+    /* 全てのポップアップで同じ幅（D-99-02） */
+    width: 720px;
     max-width: calc(100% - 40px);
     max-height: calc(100% - 40px);
     overflow-y: auto;
+    /* 幅に内側の余白を含める（狭い画面で、ポップアップが画面からはみ出さない。D-99-01） */
+    box-sizing: border-box;
     padding: 20px;
     background: #fff;
     border-radius: 6px;
@@ -300,6 +320,65 @@ table.data.data-compact > * > tr > td {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
+}
+
+/* ==========================================================
+   ポップアップの入力欄（D-99-01。docs/BLOGOS_UI.md 4章）
+   ----------------------------------------------------------
+   ・項目は「上にラベル、下に入力欄」の1組（.modal-field の中に .modal-label と入力欄）。
+     ツールチップ（?）は、ポップアップの題名の右か、ラベルの右に置く
+   ・1行の文字の入力欄は、ポップアップの幅いっぱい
+   ・複数行の入力欄（rows="3"）は3行が見える高さ。それより長いときは、欄の中でスクロール
+   ・選ぶ欄・日時の欄は、値が全部見える幅のまま（ポップアップの幅は超えない）
+   ・1つの項目で選ぶ欄をいくつも使うとき（いつ：毎日・時刻）は、ラベルの下の1行に並べる（.modal-controls）
+   ========================================================== */
+
+.site-modal .modal-field {
+    display: block;
+    margin: 0 0 14px;
+}
+
+.site-modal .modal-field[hidden] {
+    display: none;
+}
+
+.site-modal .modal-label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.site-modal .modal-field input[type="text"],
+.site-modal .modal-field input[type="email"],
+.site-modal .modal-field input[type="password"],
+.site-modal .modal-field input[type="number"],
+.site-modal .modal-field input[type="url"],
+.site-modal .modal-field input[type="search"],
+.site-modal .modal-field input:not([type]),
+.site-modal .modal-field textarea {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.site-modal .modal-field select,
+.site-modal .modal-field input[type="date"],
+.site-modal .modal-field input[type="time"],
+.site-modal .modal-field input[type="datetime-local"] {
+    max-width: 100%;
+}
+
+.site-modal .modal-field textarea {
+    height: auto;
+    resize: none;
+    overflow-y: auto;
+}
+
+.site-modal .modal-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
 }
 
 
@@ -795,17 +874,6 @@ body.voice-speaking .screen-drawer-signal {
 
 
 /* ==========================================================
-   音声操作ポップアップ（D-61。layouts/header・voice/settings-modal）
-   ----------------------------------------------------------
-   説明の文と、話し方の指示の入力欄があるため、テーマ切替・ブログ切替のポップアップより広くする。
-   ========================================================== */
-
-.voice-settings-dialog {
-    width: 720px;
-}
-
-
-/* ==========================================================
    説明のツールチップ（D-61-02。partials/tip と public/js/blogos.js）
    ----------------------------------------------------------
    ・項目の横の「?」の丸。マウスを乗せる・押す・Tab で選ぶと、説明の枠（.tip-box）を出す
@@ -856,10 +924,6 @@ body.voice-speaking .screen-drawer-signal {
     display: none;
 }
 
-/* 記事の再評価のポップアップ（D-64）：モデルなどの選択が並ぶため、広くする */
-.reevaluation-dialog {
-    width: 720px;
-}
 
 
 /* ==========================================================

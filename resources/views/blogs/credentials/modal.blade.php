@@ -79,19 +79,16 @@
                 @include('partials.selected-blog-field')
                 <input type="hidden" name="_form" value="blog-credential">
 
-                <p>
-                    <label>
-                        WordPressのユーザー名<br>
-                        <input type="text" name="username" value="{{ $credentialFailed ? old('username') : $blogCredential?->username }}" autocomplete="off" required style="width:100%; max-width:420px;">
-                    </label>
-                </p>
+                {{-- 上にラベル、下に入力欄（D-99-01） --}}
+                <label class="modal-field">
+                    <span class="modal-label">WordPressのユーザー名</span>
+                    <input type="text" name="username" value="{{ $credentialFailed ? old('username') : $blogCredential?->username }}" autocomplete="off" required>
+                </label>
 
-                <p>
-                    <label>
-                        Application Password<br>
-                        <input type="password" name="application_password" autocomplete="new-password" required style="width:100%; max-width:420px;">
-                    </label>
-                </p>
+                <label class="modal-field">
+                    <span class="modal-label">Application Password</span>
+                    <input type="password" name="application_password" autocomplete="new-password" required>
+                </label>
 
                 <div
                     class="blog-switch-actions"

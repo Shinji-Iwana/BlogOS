@@ -256,7 +256,8 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
         // その日の定期実行が全て終わった後に動くもの（D-71-09）
         $this->assertStringContainsString('次の実行：その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
-        $this->assertStringContainsString('いつ：毎日、その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
+        // 上にラベル「いつ」、下に値（D-99-01）
+        $this->assertMatchesRegularExpression('/<span class="modal-label">いつ .*?<\/span>\s*毎日、その日の定期実行が全て終わった後/su', $popup('scheduled-database-measure-usage-modal'));
         // 記事の再評価（専用のポップアップ）にも出す
         $this->assertStringContainsString('次の実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
     }

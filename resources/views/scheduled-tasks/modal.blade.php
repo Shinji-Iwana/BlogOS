@@ -73,16 +73,18 @@
 
             {{-- その日の定期実行が全て終わった後に動くもの（after_all）は、時刻を変えられない。検証のため、決まった値を送る（保存しても使わない。D-71-09） --}}
             @if ($scheduledTask['after_all'] ?? false)
-            <p>
-                いつ：毎日、その日の定期実行が全て終わった後
+            <div class="modal-field">
+                <span class="modal-label">いつ @include('partials.tip', ['tip' => "決まった時刻ではなく、その日に動く定期実行（毎日のものと、毎週のうちその曜日のもの）が全て終わった後に、続けて実行します。\n「今すぐ実行」で動かしたものは数えません。"])</span>
+                毎日、その日の定期実行が全て終わった後
                 <input type="hidden" name="frequency" value="daily">
                 <input type="hidden" name="time" value="00:00">
-                @include('partials.tip', ['tip' => "決まった時刻ではなく、その日に動く定期実行（毎日のものと、毎週のうちその曜日のもの）が全て終わった後に、続けて実行します。\n「今すぐ実行」で動かしたものは数えません。"])
-            </p>
+            </div>
             @elseif (\App\Support\ScheduledTasks::isMonthly($taskKey))
             {{-- 毎月の定期実行（バックアップの作成）：毎月の日と時刻だけ変えられる（D-89） --}}
-            <p>
-                いつ：毎月
+            <div class="modal-field">
+                <span class="modal-label">いつ @include('partials.tip', ['tip' => '毎月のこの日の、この時刻（日本時間）に実行します（どの月にもある、1〜' . \App\Support\ScheduledTasks::MONTHDAY_MAX . '日から選びます）。'])</span>
+                <span class="modal-controls">
+                毎月
                 <input type="hidden" name="frequency" value="monthly">
                 <select name="monthday">
                     @for ($day = 1; $day <= \App\Support\ScheduledTasks::MONTHDAY_MAX; $day++)
@@ -90,11 +92,12 @@
                     @endfor
                 </select>
                 <input type="time" name="time" value="{{ $scheduleValues['time'] }}" step="60" required>
-                @include('partials.tip', ['tip' => '毎月のこの日の、この時刻（日本時間）に実行します（どの月にもある、1〜' . \App\Support\ScheduledTasks::MONTHDAY_MAX . '日から選びます）。'])
-            </p>
+                </span>
+            </div>
             @else
-            <p>
-                いつ：
+            <div class="modal-field">
+                <span class="modal-label">いつ @include('partials.tip', ['tip' => '毎日、または毎週の決まった曜日の、この時刻（日本時間）に実行します。'])</span>
+                <span class="modal-controls">
                 <select name="frequency" onchange="this.form.querySelector('.weekday').style.display = this.value === 'weekly' ? '' : 'none'">
                     <option value="daily" @selected($scheduleValues['frequency'] === 'daily')>毎日</option>
                     <option value="weekly" @selected($scheduleValues['frequency'] === 'weekly')>毎週</option>
@@ -105,8 +108,8 @@
                     @endforeach
                 </select>
                 <input type="time" name="time" value="{{ $scheduleValues['time'] }}" step="60" required>
-                @include('partials.tip', ['tip' => '毎日、または毎週の決まった曜日の、この時刻（日本時間）に実行します。'])
-            </p>
+                </span>
+            </div>
             @endif
 
             @if ($blogColumn !== null)

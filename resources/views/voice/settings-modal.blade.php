@@ -40,7 +40,7 @@
 >
 
     <div
-        class="blog-switch-dialog voice-settings-dialog"
+        class="blog-switch-dialog"
     >
 
         <h2>
@@ -73,7 +73,7 @@
                 @include('partials.tip', ['tip' => $tips['enabled']])
             </p>
 
-            <p>方式：@include('partials.tip', ['tip' => $tips['mode']])</p>
+            <p class="modal-label">方式 @include('partials.tip', ['tip' => $tips['mode']])</p>
             @foreach (\App\Services\Voice\VoiceSettings::MODES as $value => $label)
                 <label class="blog-switch-option">
                     <input type="radio" name="mode" value="{{ $value }}" @checked(($voiceFailed ? old('mode') : $voiceSettings->mode()) === $value) @disabled(! in_array($value, \App\Services\Voice\VoiceSettings::READY_MODES, true))>
@@ -84,23 +84,21 @@
                 </label>
             @endforeach
 
-            <p>
-                <label>声：
-                    <select name="voice">
-                        @foreach (config('blogos.voice.voices') as $voiceName)
-                            <option value="{{ $voiceName }}" @selected(($voiceFailed ? old('voice') : $voiceSettings->voice()) === $voiceName)>{{ $voiceName }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                @include('partials.tip', ['tip' => $tips['voice']])
-            </p>
+            {{-- 上にラベル、下に入力欄（D-99-01） --}}
+            <label class="modal-field">
+                <span class="modal-label">声 @include('partials.tip', ['tip' => $tips['voice']])</span>
+                <select name="voice">
+                    @foreach (config('blogos.voice.voices') as $voiceName)
+                        <option value="{{ $voiceName }}" @selected(($voiceFailed ? old('voice') : $voiceSettings->voice()) === $voiceName)>{{ $voiceName }}</option>
+                    @endforeach
+                </select>
+            </label>
 
-            <p>
-                <label for="voice-instructions">話し方の指示</label>
-                @include('partials.tip', ['tip' => $tips['instructions']])
-                <br>
-                <textarea id="voice-instructions" name="instructions" rows="2" style="width:100%;">{{ $voiceFailed ? old('instructions') : $voiceSettings->instructions() }}</textarea>
-            </p>
+            {{-- 複数行の入力欄は3行の高さ。長いときは欄の中でスクロール（D-99-01） --}}
+            <label class="modal-field">
+                <span class="modal-label">話し方の指示 @include('partials.tip', ['tip' => $tips['instructions']])</span>
+                <textarea id="voice-instructions" name="instructions" rows="3">{{ $voiceFailed ? old('instructions') : $voiceSettings->instructions() }}</textarea>
+            </label>
 
             <div
                 class="blog-switch-actions"
