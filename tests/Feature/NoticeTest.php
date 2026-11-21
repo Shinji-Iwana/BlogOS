@@ -106,7 +106,7 @@ class NoticeTest extends TestCase
         $this->plugins(2);
 
         // ログインして最初にトップページを開いたとき
-        $this->get(route('home'))->assertOk()->assertSee('id="notice-popup"', false)->assertSee('未確認のお知らせがあります');
+        $this->get(route('home'))->assertOk()->assertSee('id="notice-popup"', false)->assertSee('<span class="modal-title-text">未確認のお知らせ</span>', false);
         // 2回目は開かない
         $this->get(route('home'))->assertOk()->assertDontSee('id="notice-popup"', false);
 

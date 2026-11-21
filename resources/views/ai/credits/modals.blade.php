@@ -11,14 +11,14 @@
 @php
     $creditForms = [
         'balance' => [
-            'title'  => 'OpenAIの画面で見た残高を登録',
+            'title'  => 'OpenAIの画面で見た残高',
             'route'  => 'ai.credits.balance',
             'tip'    => "OpenAI の API は前払い（チャージした残高から引かれる）です。BlogOS は OpenAI の残高を直接取得できないため、OpenAI の画面で見た残高を登録し、その後のAPI実行の費用の目安を引いて、残高を見込みます。\n登録すると、残高の見込みはこの額から計算し直します（その時点の見込みとの差を記録します）。",
             'amount' => ['label' => '残高（米ドル）', 'tip' => 'OpenAI の Billing の画面の Credit balance。'],
             'at'     => '見た日時（日本時間）',
         ],
         'purchase' => [
-            'title'  => '課金額を登録',
+            'title'  => '課金額',
             'route'  => 'ai.credits.purchase',
             'tip'    => "OpenAI で課金した額を登録すると、残高の見込みに加えます。\n課金の直後に残高も見た場合は、「OpenAIの画面で見た残高を登録」だけでもかまいません。",
             'amount' => ['label' => '課金した額（米ドル）', 'tip' => '残高に加わった額（税を除く）。'],

@@ -57,6 +57,11 @@ class ModalModeTest extends TestCase
             $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>' . ModalMode::SUBMIT_LABELS[$mode] . '<\/button>/u', $modal, $id);
         }
 
+        // 題名（D-100-04）：新規のポップアップの題名から「～を登録」を外し、テーマは「テーマ切替」（ブログ切替とそろえる）
+        foreach (['credit-balance-modal' => 'OpenAIの画面で見た残高', 'credit-purchase-modal' => '課金額', 'blog-register-modal' => 'ブログ', 'theme-switch-modal' => 'テーマ切替'] as $id => $title) {
+            $this->assertStringContainsString('<span class="modal-title-text">' . $title . '</span>', $this->modalHtml($html, $id), $id);
+        }
+
         // これまでのボタンの名前は、もう出さない
         foreach (['残高を登録する', '課金を登録する', '確認して登録する', '接続を確認して保存する'] as $old) {
             $this->assertStringNotContainsString('>' . $old . '<', $html, $old);

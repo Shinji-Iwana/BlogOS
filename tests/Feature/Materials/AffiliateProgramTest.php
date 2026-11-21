@@ -158,7 +158,7 @@ class AffiliateProgramTest extends TestCase
         // メニューの「設定」の「OpenAI」の下に「アフィリエイト提携先を登録」（順は D-63-26）。押すとポップアップを開く（D-63-20）
         $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?data-modal-open="affiliate-program-modal" >アフィリエイト提携先を登録<\/a><\/li>\s*<li class="site-menu-sub">\s*<details>\s*<summary>即時実行<\/summary>/s', $html);
-        $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">アフィリエイト提携先を登録/s', $html);
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">アフィリエイト提携先<\/span>/s', $html);
         // 画面「アフィリエイトのプログラム」には、登録の欄を出さない
         $this->get(route('materials.programs.index'))->assertOk()->assertDontSee('<h2>プログラムを登録する</h2>', false);
 

@@ -23,7 +23,7 @@
         class="blog-switch-dialog"
     >
 
-        @include('partials.modal-title', ['title' => 'ブログを登録', 'tip' => "WordPress のブログを BlogOS に登録します。サイト名などは WordPress から読み取ります。\n登録すると、そのブログを選び、投稿などの初回取得を始めます（完了まで数分かかることがあります）。"])
+        @include('partials.modal-title', ['title' => 'ブログ', 'tip' => "WordPress のブログを BlogOS に登録します。サイト名などは WordPress から読み取ります。\n登録すると、そのブログを選び、投稿などの初回取得を始めます（完了まで数分かかることがあります）。"])
 
         @if ($blogRegisterFailed)
             <ul class="text-error">

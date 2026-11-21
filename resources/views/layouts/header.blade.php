@@ -316,7 +316,7 @@
         class="blog-switch-dialog"
     >
 
-        @include('partials.modal-title', ['title' => '画面のテーマ'])
+        @include('partials.modal-title', ['title' => 'テーマ切替'])
 
         <form
             method="POST"
