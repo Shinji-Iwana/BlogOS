@@ -438,7 +438,7 @@ class AiBatchTest extends TestCase
         // 初期値は無効・gpt-6-luna・medium
         // 設定は、メニューの「設定 → 定期実行 → 記事の再評価」のポップアップ（D-64）。画面「AIの設定」は今日の対象を出す
         $this->get(route('ai.settings.edit'))->assertOk()->assertSee('対象になる記事：3件')->assertDontSee('<h2>条件による自動の再評価</h2>', false);
-        $this->get(route('home'))->assertOk()->assertSee('name="auto_reevaluation_enabled" value="1" >', false);
+        $this->get(route('home'))->assertOk()->assertSee('name="auto_reevaluation_enabled" value="1" data-enable-switch="reevaluation" >', false);
         $this->artisan('ai:auto-reevaluate')->assertSuccessful();
         $this->assertSame(0, AiBatch::count());
         $this->artisan('ai:auto-reevaluate', ['--dry-run' => true])->expectsOutputToContain('[未評価] 記事1')->assertSuccessful();
@@ -498,7 +498,7 @@ class AiBatchTest extends TestCase
         $this->fakeOpenAi();
 
         // 初期値は、診断の後の編集案の作成が有効
-        $this->get(route('home'))->assertSee('name="auto_revision_enabled" value="1" checked', false);
+        $this->get(route('home'))->assertSee('name="auto_revision_enabled" value="1" data-enable-switch="revision" checked', false);
 
         $this->put(route('ai.settings.update'), $this->selected([
             'auto_reevaluation_enabled' => 1, 'auto_model' => 'gpt-6-luna', 'auto_reasoning_effort' => 'medium',

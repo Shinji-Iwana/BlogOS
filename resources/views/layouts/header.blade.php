@@ -455,7 +455,8 @@
     @include(\App\Support\ScheduledTasks::get($scheduledKey)['modal_view'] ?? 'scheduled-tasks.modal', [
         'taskKey'          => $scheduledKey,
         'modalId'          => \App\Support\ScheduledTasks::modalId($scheduledKey),
-        'title'            => \App\Support\ScheduledTasks::menuLabel($scheduledKey) . '（定期実行）',
+        // 題名に「（定期実行）」を付けない。定期実行であることは、題名の左のアイコンで示す（D-103-01）
+        'title'            => \App\Support\ScheduledTasks::menuLabel($scheduledKey),
         'scheduleSettings' => $scheduleSettingsAll,
         'lastRun'          => $scheduleLastRuns->get($scheduledKey),
     ])
@@ -603,6 +604,31 @@
         };
         // ほかの画面の JavaScript からも、モードを変えて開けるようにする
         window.blogosSetModalMode = setModalMode;
+
+        // 有効のチェックで、その設定を押せる・押せないにする（D-103-03・D-103-04）。
+        // data-enable-switch="名前" のチェックを外すと、data-enabled-by="名前" の部分の入力欄を押せなくし、薄く出す。
+        // 押せない部分の中にあるチェック（例：記事の再評価の「診断の後の編集案の作成」）は、外したのと同じに扱い、その下も押せなくする（並びの順に決める）。
+        // 押せなくした欄も値は残し、送るときに押せる状態に戻して送る（押せない欄は送られず、保存の確認で誤りになるため）
+        const enableFields = 'input:not([type=hidden]), select, textarea';
+        const syncEnableSwitches = function (form) {
+            form.querySelectorAll('[data-enable-switch]').forEach(function (enableSwitch) {
+                const on = enableSwitch.checked && ! enableSwitch.disabled;
+                form.querySelectorAll('[data-enabled-by="' + enableSwitch.dataset.enableSwitch + '"]').forEach(function (area) {
+                    area.classList.toggle('is-switched-off', ! on);
+                    area.querySelectorAll(enableFields).forEach((field) => { field.disabled = ! on; });
+                });
+            });
+        };
+        document.querySelectorAll('form').forEach(function (form) {
+            if (! form.querySelector('[data-enable-switch]')) {
+                return;
+            }
+            form.querySelectorAll('[data-enable-switch]').forEach((enableSwitch) => enableSwitch.addEventListener('change', () => syncEnableSwitches(form)));
+            form.addEventListener('submit', function () {
+                form.querySelectorAll('[data-enabled-by]').forEach((area) => area.querySelectorAll(enableFields).forEach((field) => { field.disabled = false; }));
+            });
+            syncEnableSwitches(form);
+        });
 
         document.querySelectorAll('[data-modal-open]').forEach(function (opener) {
             opener.addEventListener('click', function (event) {

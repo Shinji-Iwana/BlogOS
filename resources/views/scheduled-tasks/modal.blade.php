@@ -43,7 +43,7 @@
         class="blog-switch-dialog"
     >
 
-        @include('partials.modal-title', ['title' => $title, 'tip' => "定期実行：{$scheduledTask['description']}。\n" . (isset($scheduledTask['tip']) ? $scheduledTask['tip'] . "\n" : '') . "時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行はメニューの「設定 → 即時実行」、実行の記録はメニューの「履歴 → 定期実行履歴」にあります。"])
+        @include('partials.modal-title', ['title' => $title, 'kindIcon' => 'schedule', 'tip' => "定期実行：{$scheduledTask['description']}。\n" . (isset($scheduledTask['tip']) ? $scheduledTask['tip'] . "\n" : '') . "時刻は日本時間です。変えると、次の定期実行から反映されます（サーバーでの作業は要りません）。\n今すぐ実行はメニューの「設定 → 即時実行」、実行の記録はメニューの「履歴 → 定期実行履歴」にあります。"])
 
         @if ($scheduleFailed)
             <ul class="text-error">
@@ -69,9 +69,30 @@
                 @include('partials.selected-blog-field')
             @endif
 
+            {{-- 並びは、有効 → 設定値 → 次回実行 → 前回実行（D-103-02） --}}
+            @if ($blogColumn !== null)
+                <p>
+                    <label><input type="checkbox" name="enabled" value="1" @checked($scheduleValues['enabled'])> 有効（{{ $selectedBlog?->display_name ?? 'ブログが選ばれていません' }}）</label>
+                    @include('partials.tip', ['tip' => $blogTip])
+                </p>
+            @elseif ($scheduledTask['can_disable'])
+                <p>
+                    <label><input type="checkbox" name="enabled" value="1" data-enable-switch="schedule" @checked($scheduleValues['enabled'])> 有効</label>
+                    @include('partials.tip', ['tip' => '外すと、定期実行をしません（メニューの「設定 → 即時実行」は使えます）。'])
+                </p>
+            @else
+                {{-- 止められない定期実行（古い記録の削除）：有効のまま変えられない。送らない（保存の処理が、常に有効にする） --}}
+                <p>
+                    <label><input type="checkbox" checked disabled> 有効</label>
+                    @include('partials.tip', ['tip' => $scheduledTask['manual']
+                        ? 'この定期実行は止められません（止めると、保存期間を過ぎた記録が削除されず、データベースが増え続けるため）。時刻は変えられます。'
+                        : '有効・無効は、画面「AIの設定」で決めます。時刻は変えられます。'])
+                </p>
+            @endif
+
             {{-- その日の定期実行が全て終わった後に動くもの（after_all）は、時刻を変えられない。検証のため、決まった値を送る（保存しても使わない。D-71-09） --}}
             @if ($scheduledTask['after_all'] ?? false)
-            <div class="modal-field">
+            <div class="modal-field" @if ($blogColumn === null && $scheduledTask['can_disable']) data-enabled-by="schedule" @endif>
                 <span class="modal-label">いつ @include('partials.tip', ['tip' => "決まった時刻ではなく、その日に動く定期実行（毎日のものと、毎週のうちその曜日のもの）が全て終わった後に、続けて実行します。\n「今すぐ実行」で動かしたものは数えません。"])</span>
                 毎日、その日の定期実行が全て終わった後
                 <input type="hidden" name="frequency" value="daily">
@@ -79,7 +100,7 @@
             </div>
             @elseif (\App\Support\ScheduledTasks::isMonthly($taskKey))
             {{-- 毎月の定期実行（バックアップの作成）：毎月の日と時刻だけ変えられる（D-89） --}}
-            <div class="modal-field">
+            <div class="modal-field" @if ($blogColumn === null && $scheduledTask['can_disable']) data-enabled-by="schedule" @endif>
                 <span class="modal-label">いつ @include('partials.tip', ['tip' => '毎月のこの日の、この時刻（日本時間）に実行します（どの月にもある、1〜' . \App\Support\ScheduledTasks::MONTHDAY_MAX . '日から選びます）。'])</span>
                 <span class="modal-controls">
                 毎月
@@ -93,7 +114,7 @@
                 </span>
             </div>
             @else
-            <div class="modal-field">
+            <div class="modal-field" @if ($blogColumn === null && $scheduledTask['can_disable']) data-enabled-by="schedule" @endif>
                 <span class="modal-label">いつ @include('partials.tip', ['tip' => '毎日、または毎週の決まった曜日の、この時刻（日本時間）に実行します。'])</span>
                 <span class="modal-controls">
                 <select name="frequency" onchange="this.form.querySelector('.weekday').style.display = this.value === 'weekly' ? '' : 'none'">
@@ -110,27 +131,8 @@
             </div>
             @endif
 
-            @if ($blogColumn !== null)
-                <p>
-                    <label><input type="checkbox" name="enabled" value="1" @checked($scheduleValues['enabled'])> 有効（{{ $selectedBlog?->display_name ?? 'ブログが選ばれていません' }}）</label>
-                    @include('partials.tip', ['tip' => $blogTip])
-                </p>
-            @elseif ($scheduledTask['can_disable'])
-                <p>
-                    <label><input type="checkbox" name="enabled" value="1" @checked($scheduleValues['enabled'])> 有効</label>
-                    @include('partials.tip', ['tip' => '外すと、定期実行をしません（メニューの「設定 → 即時実行」は使えます）。'])
-                </p>
-            @else
-                {{-- 止められない定期実行（古い記録の削除）：有効のまま変えられない。送らない（保存の処理が、常に有効にする） --}}
-                <p>
-                    <label><input type="checkbox" checked disabled> 有効</label>
-                    @include('partials.tip', ['tip' => $scheduledTask['manual']
-                        ? 'この定期実行は止められません（止めると、保存期間を過ぎた記録が削除されず、データベースが増え続けるため）。時刻は変えられます。'
-                        : '有効・無効は、画面「AIの設定」で決めます。時刻は変えられます。'])
-                </p>
-            @endif
 
-            {{-- 次の実行と前回（D-63-06。ボタンの上） --}}
+            {{-- 次回実行と前回実行（D-63-06。ボタンの上） --}}
             @include('scheduled-tasks.run-info')
 
             <div

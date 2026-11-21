@@ -56,7 +56,7 @@
         class="blog-switch-dialog"
     >
 
-        @include('partials.modal-title', ['title' => $title, 'tip' => $tips['title']])
+        @include('partials.modal-title', ['title' => $title, 'kindIcon' => 'schedule', 'tip' => $tips['title']])
 
         @unless ($apiPolicy->isConfigured())
             <p class="text-error">APIキーが設定されていないため、有効にしても実行されません（.env の OPENAI_API_KEY）。</p>
@@ -89,6 +89,16 @@
             @include('partials.selected-blog-field')
             <input type="hidden" name="_form" value="{{ $modalId }}">
 
+            {{-- 並びは、有効 → 設定値 → 次回実行 → 前回実行（D-103-02）。
+                 いつ（時刻）は全ブログ共通のため、選択中のブログの有効を外しても押せる（D-103-03）。
+                 モデル・推論の深さと、診断の後の編集案の作成は、有効のときだけ押せる。
+                 編集案の作成の下の設定（モデル・推論の深さ・改修範囲・改修の繰り返し）は、編集案の作成も有効のときだけ押せる（D-103-04） --}}
+            <p>
+                <input type="hidden" name="auto_reevaluation_enabled" value="0">
+                <label><input type="checkbox" name="auto_reevaluation_enabled" value="1" data-enable-switch="reevaluation" @checked($value('auto_reevaluation_enabled', $reevaluationSetting->auto_reevaluation_enabled))> 有効（{{ $selectedBlog->display_name }}）</label>
+                @include('partials.tip', ['tip' => $tips['enabled']])
+            </p>
+
             {{-- 上にラベル、下に入力欄（D-99-01） --}}
             <div class="modal-field">
                 <span class="modal-label">いつ @include('partials.tip', ['tip' => $tips['time']])</span>
@@ -106,72 +116,75 @@
                 </span>
             </div>
 
-            <p>
-                <input type="hidden" name="auto_reevaluation_enabled" value="0">
-                <label><input type="checkbox" name="auto_reevaluation_enabled" value="1" @checked($value('auto_reevaluation_enabled', $reevaluationSetting->auto_reevaluation_enabled))> 有効（{{ $selectedBlog->display_name }}）</label>
-                @include('partials.tip', ['tip' => $tips['enabled']])
-            </p>
+            {{-- モデルと推論の深さは、左右に並べる（D-104-01） --}}
+            <div class="modal-field-row">
+                <label class="modal-field" data-enabled-by="reevaluation">
+                    <span class="modal-label">モデル @include('partials.tip', ['tip' => $tips['model']])</span>
+                    <select name="auto_model" data-model="diagnosis">
+                        @foreach ($reevaluationModels as $name => $price)
+                            <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($value('auto_model', $reevaluationSetting->auto_model) === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="modal-field" data-enabled-by="reevaluation">
+                    <span class="modal-label">推論の深さ</span>
+                    <select name="auto_reasoning_effort" data-effort="diagnosis">
+                        @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $effortValue => $effortLabel)
+                            <option value="{{ $effortValue }}" @selected($value('auto_reasoning_effort', $reevaluationSetting->auto_reasoning_effort) === $effortValue)>{{ $effortLabel }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
 
-            <label class="modal-field">
-                <span class="modal-label">モデル @include('partials.tip', ['tip' => $tips['model']])</span>
-                <select name="auto_model" data-model>
-                    @foreach ($reevaluationModels as $name => $price)
-                        <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($value('auto_model', $reevaluationSetting->auto_model) === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
-                    @endforeach
-                </select>
-            </label>
-            <label class="modal-field">
-                <span class="modal-label">推論の深さ</span>
-                <select name="auto_reasoning_effort" data-effort>
-                    @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $effortValue => $effortLabel)
-                        <option value="{{ $effortValue }}" @selected($value('auto_reasoning_effort', $reevaluationSetting->auto_reasoning_effort) === $effortValue)>{{ $effortLabel }}</option>
-                    @endforeach
-                </select>
-            </label>
-
-            <p>
+            <p data-enabled-by="reevaluation">
                 <strong>診断の後の編集案の作成</strong>
                 @include('partials.tip', ['tip' => $tips['revision']])
             </p>
-            <p>
+            <p data-enabled-by="reevaluation">
                 <input type="hidden" name="auto_revision_enabled" value="0">
-                <label><input type="checkbox" name="auto_revision_enabled" value="1" @checked($value('auto_revision_enabled', $reevaluationSetting->auto_revision_enabled))> 基準（{{ $reevaluationRevision['below_score'] }}点）未満の記事の編集案を作る</label>
+                <label><input type="checkbox" name="auto_revision_enabled" value="1" data-enable-switch="revision" @checked($value('auto_revision_enabled', $reevaluationSetting->auto_revision_enabled))> 基準（{{ $reevaluationRevision['below_score'] }}点）未満の記事の編集案を作る</label>
             </p>
-            <label class="modal-field">
-                <span class="modal-label">モデル</span>
-                <select name="auto_revision_model">
-                    @foreach ($reevaluationModels as $name => $price)
-                        <option value="{{ $name }}" @selected($value('auto_revision_model', $reevaluationSetting->auto_revision_model ?? $reevaluationRevision['model']) === $name)>{{ $name }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <label class="modal-field">
-                <span class="modal-label">推論の深さ</span>
-                <select name="auto_revision_reasoning_effort">
-                    @foreach (['none', 'low', 'medium', 'high'] as $effortValue)
-                        <option value="{{ $effortValue }}" @selected($value('auto_revision_reasoning_effort', $reevaluationSetting->auto_revision_reasoning_effort ?? $reevaluationRevision['effort']) === $effortValue)>{{ $effortValue }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <label class="modal-field">
-                <span class="modal-label">改修範囲 @include('partials.tip', ['tip' => $tips['scope']])</span>
-                <select name="auto_revision_scope">
-                    @foreach (\App\Services\Ai\AutoReevaluationService::scopeOptions() as $scopeValue => $scopeLabel)
-                        {{-- 点数で自動判別の、点数ごとの改修範囲は、ツールチップに出す（選択欄が長くなり、ずれるため） --}}
-                        <option value="{{ $scopeValue }}" @selected($value('auto_revision_scope', $reevaluationSetting->auto_revision_scope ?? 'auto') === $scopeValue)>{{ $scopeValue === \App\Services\Ai\AiBatchService::SCOPE_BY_SCORE ? '点数で自動判別' : $scopeLabel }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <label class="modal-field">
-                <span class="modal-label">改修の繰り返し（最大） @include('partials.tip', ['tip' => $tips['rounds']])</span>
-                <select name="auto_revision_max_rounds">
-                    @foreach (range(1, (int) $reevaluationConfig['max_revision_rounds']) as $rounds)
-                        <option value="{{ $rounds }}" @selected((int) $value('auto_revision_max_rounds', $reevaluationSetting->auto_revision_max_rounds ?? $reevaluationConfig['default_revision_rounds']) === $rounds)>{{ $rounds }}回</option>
-                    @endforeach
-                </select>
-            </label>
+            {{-- モデルと推論の深さは、左右に並べる（D-104-01） --}}
+            <div class="modal-field-row">
+                <label class="modal-field" data-enabled-by="revision">
+                    <span class="modal-label">モデル</span>
+                    <select name="auto_revision_model" data-model="revision">
+                        @foreach ($reevaluationModels as $name => $price)
+                            <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($value('auto_revision_model', $reevaluationSetting->auto_revision_model ?? $reevaluationRevision['model']) === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="modal-field" data-enabled-by="revision">
+                    <span class="modal-label">推論の深さ</span>
+                    <select name="auto_revision_reasoning_effort" data-effort="revision">
+                        @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $effortValue => $effortLabel)
+                            <option value="{{ $effortValue }}" @selected($value('auto_revision_reasoning_effort', $reevaluationSetting->auto_revision_reasoning_effort ?? $reevaluationRevision['effort']) === $effortValue)>{{ $effortLabel }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
+            {{-- 改修範囲と改修の繰り返しは、左右に並べる（D-104-01） --}}
+            <div class="modal-field-row">
+                <label class="modal-field" data-enabled-by="revision">
+                    <span class="modal-label">改修範囲 @include('partials.tip', ['tip' => $tips['scope']])</span>
+                    <select name="auto_revision_scope">
+                        @foreach (\App\Services\Ai\AutoReevaluationService::scopeOptions() as $scopeValue => $scopeLabel)
+                            {{-- 点数で自動判別の、点数ごとの改修範囲は、ツールチップに出す（選択欄が長くなり、ずれるため） --}}
+                            <option value="{{ $scopeValue }}" @selected($value('auto_revision_scope', $reevaluationSetting->auto_revision_scope ?? 'auto') === $scopeValue)>{{ $scopeValue === \App\Services\Ai\AiBatchService::SCOPE_BY_SCORE ? '点数で自動判別' : $scopeLabel }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="modal-field" data-enabled-by="revision">
+                    <span class="modal-label">改修の繰り返し（最大） @include('partials.tip', ['tip' => $tips['rounds']])</span>
+                    <select name="auto_revision_max_rounds">
+                        @foreach (range(1, (int) $reevaluationConfig['max_revision_rounds']) as $rounds)
+                            <option value="{{ $rounds }}" @selected((int) $value('auto_revision_max_rounds', $reevaluationSetting->auto_revision_max_rounds ?? $reevaluationConfig['default_revision_rounds']) === $rounds)>{{ $rounds }}回</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
 
-            {{-- 次の実行と前回（D-63-06。ボタンの上） --}}
+            {{-- 次回実行と前回実行（D-63-06。ボタンの上） --}}
             @include('scheduled-tasks.run-info')
 
             <div
@@ -194,19 +207,21 @@
 
         </form>
 
-        {{-- モデルで選べない推論の深さを、選べないようにする（以前は画面「AIの設定」にあった） --}}
+        {{-- モデルで選べない推論の深さを、選べないようにする（以前は画面「AIの設定」にあった）。
+             品質診断の組と、編集案の作成の組の両方（data-model と data-effort の値が同じものを組にする。D-105-01） --}}
         <script>
             (() => {
                 const form = document.querySelector('[data-reevaluation-form]');
-                const model = form.querySelector('[data-model]');
-                const effort = form.querySelector('[data-effort]');
-                const sync = () => {
-                    const allowed = model.selectedOptions[0].dataset.efforts.split(',');
-                    [...effort.options].forEach((option) => { option.disabled = ! allowed.includes(option.value); });
-                    if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
-                };
-                model.addEventListener('change', sync);
-                sync();
+                form.querySelectorAll('[data-model]').forEach((model) => {
+                    const effort = form.querySelector('[data-effort="' + model.dataset.model + '"]');
+                    const sync = () => {
+                        const allowed = model.selectedOptions[0].dataset.efforts.split(',');
+                        [...effort.options].forEach((option) => { option.disabled = ! allowed.includes(option.value); });
+                        if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
+                    };
+                    model.addEventListener('change', sync);
+                    sync();
+                });
             })();
         </script>
 

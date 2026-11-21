@@ -411,9 +411,10 @@
     margin-top: 0;
 }
 
-/* ポップアップの題名の左のモードのアイコン（D-100。public/css/blogos.css）：
+/* ポップアップの題名の左のモードのアイコン（D-100）と、その右の種類のアイコン（定期実行。D-103-01）（public/css/blogos.css）：
    ヘッダーのアイコン（components/voice.css）と同じく、四隅を斜めに削った枠で囲む。押す部品ではないため、光・流れる電気は付けない */
-[data-modal-mode] .modal-mode-icon {
+[data-modal-mode] .modal-mode-icon,
+.modal-kind-icon {
     --icon-cut: 6px;
 
     position: relative;
@@ -428,7 +429,8 @@
 }
 
 /* 枠の線（八角形の輪） */
-[data-modal-mode] .modal-mode-icon::after {
+[data-modal-mode] .modal-mode-icon::after,
+.modal-kind-icon::after {
     content: "";
     position: absolute;
     inset: 0;

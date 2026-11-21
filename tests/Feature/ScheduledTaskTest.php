@@ -192,7 +192,9 @@ class ScheduledTaskTest extends TestCase
         // 記事の再評価は、専用のポップアップ（D-64）。アフィリエイト提携先との同期・教材情報の同期の下（D-63-25）
         $this->assertMatchesRegularExpression('/data-modal-open="scheduled-affiliate-check-links-modal" >アフィリエイト提携先との同期<\/a>.*?>教材情報の同期<\/a>'
             . '.*?data-modal-open="scheduled-ai-auto-reevaluate-modal" >記事の再評価<\/a>/s', $html);
-        $this->assertStringContainsString('アフィリエイト提携先との同期（定期実行）', $html);
+        // 題名に「（定期実行）」を付けず、モードのアイコンの右に定期実行のアイコンを出す（D-103-01）
+        $this->assertStringNotContainsString('（定期実行）</span>', $html);
+        $this->assertMatchesRegularExpression('/id="scheduled-affiliate-check-links-modal".*?<span class="modal-kind-icon" title="定期実行" aria-hidden="true">.*?<span class="modal-title-text">アフィリエイト提携先との同期<\/span>/s', $html);
 
         // 古い記録の削除：有効は、チェックしたまま変えられない（送らない）
         preg_match('/id="scheduled-model-prune-modal".*?<\/form>/s', $html, $prune);
@@ -247,19 +249,62 @@ class ScheduledTaskTest extends TestCase
         $popup = fn (string $id) => preg_match('/id="' . $id . '".*?<\/form>/s', $html, $m) ? $m[0] : '';
 
         $sync = $popup('scheduled-blogs-sync-modal');
-        $this->assertMatchesRegularExpression('/次の実行：\d{4}-\d{2}-\d{2} 03:00/', $sync);
-        $this->assertMatchesRegularExpression('/前回：\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
+        $this->assertMatchesRegularExpression('/次回実行：\d{4}-\d{2}-\d{2} 03:00/', $sync);
+        $this->assertMatchesRegularExpression('/前回実行：\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
         $this->assertStringNotContainsString('処理 120件', $sync);
         $this->assertStringNotContainsString('記録を見る', $sync);
 
-        $this->assertStringContainsString('次の実行：無効', $popup('scheduled-google-fetch-modal'));
+        $this->assertStringContainsString('次回実行：無効', $popup('scheduled-google-fetch-modal'));
         $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
         // その日の定期実行が全て終わった後に動くもの（D-71-09）
-        $this->assertStringContainsString('次の実行：その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
+        $this->assertStringContainsString('次回実行：その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
         // 上にラベル「いつ」、下に値（D-99-01）
         $this->assertMatchesRegularExpression('/<span class="modal-label">いつ .*?<\/span>\s*毎日、その日の定期実行が全て終わった後/su', $popup('scheduled-database-measure-usage-modal'));
         // 記事の再評価（専用のポップアップ）にも出す
-        $this->assertStringContainsString('次の実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
+        $this->assertStringContainsString('次回実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
+    }
+
+    public function test_popups_put_enabled_first_and_switch_settings_by_it(): void
+    {
+        \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $html = $this->get(route('home'))->assertOk()->getContent();
+        $popup = fn (string $id) => preg_match('/id="' . $id . '".*?<\/form>/s', $html, $m) ? $m[0] : '';
+
+        // 並びは、有効 → 設定値（いつ） → 次回実行 → 前回実行（D-103-02）。有効を外すと「いつ」を押せない（D-103-03）
+        $sync = $popup('scheduled-blogs-sync-modal');
+        $this->assertMatchesRegularExpression('/name="enabled" value="1" data-enable-switch="schedule".*?<div class="modal-field"\s+data-enabled-by="schedule"\s*>\s*<span class="modal-label">いつ.*?次回実行：.*?前回実行：/s', $sync);
+
+        // 有効をブログごとに決めるもの（教材情報の同期）・止められないもの（古い記録の削除）は、時刻が全ブログ共通のため切り替えない
+        foreach (['scheduled-materials-check-modal', 'scheduled-model-prune-modal'] as $id) {
+            $this->assertStringNotContainsString('data-enable-switch', $popup($id));
+            $this->assertStringNotContainsString('data-enabled-by', $popup($id));
+            $this->assertMatchesRegularExpression('/有効.*?<span class="modal-label">いつ/s', $popup($id));
+        }
+
+        // 記事の再評価：有効 → いつ（押せるまま） → モデル・推論の深さ・編集案の作成（有効のときだけ） → その下（編集案の作成も有効のときだけ）（D-103-04）
+        $reevaluate = $popup('scheduled-ai-auto-reevaluate-modal');
+        $this->assertMatchesRegularExpression('/data-enable-switch="reevaluation".*?<div class="modal-field">\s*<span class="modal-label">いつ'
+            . '.*?data-enabled-by="reevaluation">\s*<span class="modal-label">モデル.*?data-enabled-by="reevaluation">\s*<span class="modal-label">推論の深さ'
+            . '.*?<p data-enabled-by="reevaluation">\s*<strong>診断の後の編集案の作成<\/strong>.*?<p data-enabled-by="reevaluation">.*?name="auto_revision_enabled" value="1" data-enable-switch="revision"/s', $reevaluate);
+        $this->assertSame(4, substr_count($reevaluate, 'data-enabled-by="revision"'));
+        // モデルと推論の深さ（2組）・改修範囲と改修の繰り返しは、左右に並べる（D-104-01）
+        $this->assertSame(3, substr_count($reevaluate, '<div class="modal-field-row">'));
+        foreach (['auto_model.*?auto_reasoning_effort', 'auto_revision_model.*?auto_revision_reasoning_effort', 'auto_revision_scope.*?auto_revision_max_rounds'] as $pair) {
+            $this->assertMatchesRegularExpression('/<div class="modal-field-row">(?:(?!<\/div>).)*?name="' . str_replace('.*?', '"(?:(?!<\/div>).)*?name="', $pair) . '"/s', $reevaluate);
+        }
+        foreach (['auto_revision_model', 'auto_revision_reasoning_effort', 'auto_revision_scope', 'auto_revision_max_rounds'] as $name) {
+            $this->assertMatchesRegularExpression('/data-enabled-by="revision">\s*<span class="modal-label">[^<]*(?:<span[^>]*>.*?<\/span>\s*)?<\/span>\s*<select name="' . $name . '"/s', $reevaluate);
+        }
+
+        // 編集案の作成のモデル・推論の深さも、品質診断と同じ書き方（料金・「none（推論なし）」・モデルで選べない推論の深さ。D-105-01）
+        foreach (['diagnosis' => ['auto_model', 'auto_reasoning_effort'], 'revision' => ['auto_revision_model', 'auto_revision_reasoning_effort']] as $pair => [$model, $effort]) {
+            $this->assertMatchesRegularExpression('/<select name="' . $model . '" data-model="' . $pair . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $reevaluate);
+            $this->assertMatchesRegularExpression('/<select name="' . $effort . '" data-effort="' . $pair . '">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $reevaluate);
+        }
+        $this->assertStringContainsString("form.querySelectorAll('[data-model]').forEach((model) => {", $html);
+
+        // 押せなくした欄も、送るときに押せる状態に戻して送る（layouts/header の JavaScript）
+        $this->assertStringContainsString("form.querySelectorAll('[data-enabled-by]').forEach((area) => area.querySelectorAll(enableFields).forEach((field) => { field.disabled = false; }));", $html);
     }
 
     public function test_run_now_menu_runs_the_same_as_the_screen_button(): void

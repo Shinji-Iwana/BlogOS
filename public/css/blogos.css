@@ -331,6 +331,7 @@ table.data.data-compact > * > tr > td {
    ・複数行の入力欄（rows="3"）は3行が見える高さ。それより長いときは、欄の中でスクロール
    ・選ぶ欄・日時の欄は、値が全部見える幅のまま（ポップアップの幅は超えない）
    ・1つの項目で選ぶ欄をいくつも使うとき（いつ：毎日・時刻）は、ラベルの下の1行に並べる（.modal-controls）
+   ・組になる2つの項目（モデルと推論の深さなど）は、左右に半分ずつ並べる（.modal-field-row。狭い画面では縦。D-104-01）
    ========================================================== */
 
 .site-modal .modal-field {
@@ -381,6 +382,19 @@ table.data.data-compact > * > tr > td {
     gap: 6px;
 }
 
+/* 組になる2つの項目を、左右に半分ずつ並べる（D-104-01） */
+.site-modal .modal-field-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+}
+
+@media (max-width: 560px) {
+    .site-modal .modal-field-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 
 /* ==========================================================
    ポップアップの題名とモード（D-100。partials/modal-title・partials/modal-submit・App\Support\ModalMode）
@@ -413,7 +427,8 @@ table.data.data-compact > * > tr > td {
     display: none;
 }
 
-[data-modal-mode] .modal-mode-icon {
+[data-modal-mode] .modal-mode-icon,
+.modal-kind-icon {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
@@ -437,6 +452,20 @@ table.data.data-compact > * > tr > td {
 [data-modal-mode="switch"] .modal-mode-icon > [data-modal-icon="switch"],
 [data-modal-mode="info"] .modal-mode-icon > [data-modal-icon="info"] {
     display: block;
+}
+
+/* 種類のアイコン（定期実行。D-103-01）：モードのアイコンの右に、同じ枠で出す（間は少し詰める） */
+.modal-kind-icon {
+    margin-left: -4px;
+}
+
+/* 有効のチェックを外したときの、押せない設定（D-103-03・D-103-04。layouts/header の JavaScript が付ける） */
+.is-switched-off {
+    opacity: 0.45;
+}
+
+.is-switched-off :disabled {
+    cursor: not-allowed;
 }
 
 
