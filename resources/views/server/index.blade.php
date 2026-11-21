@@ -92,11 +92,14 @@
     @if ($backups->isEmpty())
         <p>まだ作っていません。</p>
     @else
+        @php $backupPage = \App\Support\ListPage::of($backups, 'backup_page')->fragment('backups'); @endphp
+        <a id="backups"></a>
+        @include('partials.history-count', ['paginator' => $backupPage])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>作った日時</th><th>状態</th><th>ファイル（押すとダウンロード）</th><th>合計</th></tr></thead>
                 <tbody>
-                    @foreach ($backups as $backup)
+                    @foreach ($backupPage as $backup)
                         <tr>
                             <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($backup->finished_at ?? $backup->started_at, 'Y-m-d H:i') }}</td>
                             <td style="white-space:nowrap;">
@@ -127,6 +130,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $backupPage->links() }}
     @endif
     </section>
 

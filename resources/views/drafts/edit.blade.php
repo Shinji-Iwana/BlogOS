@@ -111,11 +111,14 @@
             解消 {{ $revisionFindings->where('check_status', 'resolved')->count() }}件・一部解消 {{ $revisionFindings->where('check_status', 'partial')->count() }}件・未解消 {{ $revisionFindings->where('check_status', 'unresolved')->count() }}件
             ・未確認 {{ $revisionFindings->whereNull('check_status')->count() }}件（全 {{ $revisionFindings->count() }}件）
         </p>
+        @php $findingPage = \App\Support\ListPage::of($revisionFindings, 'finding_page')->fragment('findings'); @endphp
+        <a id="findings"></a>
+        @include('partials.history-count', ['paginator' => $findingPage, 'order' => '番号の順'])
         <div style="overflow-x:auto;">
             <table class="data" style="font-size:90%;">
                 <thead><tr><th>番号</th><th>項目（改修前）</th><th>指摘</th><th>改修での対応</th><th>改修後</th></tr></thead>
                 <tbody>
-                    @foreach ($revisionFindings as $finding)
+                    @foreach ($findingPage as $finding)
                         <tr @if ($finding->check_status === 'unresolved') class="row-danger" @elseif ($finding->check_status === 'partial') class="row-attention" @endif>
                             <td>{{ $finding->number }}</td>
                             <td style="max-width:220px;">{{ $allItems[$finding->item_key]['label'] ?? $qualityStandard->required[$finding->item_key]['label'] ?? $finding->item_key }}（{{ $finding->judgment->label() }}）</td>
@@ -137,6 +140,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $findingPage->links() }}
         @if ($revisionFindings->whereIn('check_status', ['unresolved', 'partial'])->isNotEmpty() && $editable)
             <p>未解消・一部解消の指摘は、<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">もう一度AIで改修案を作る</a>と、改修後の評価の指摘として引き継がれます。</p>
         @endif
@@ -165,10 +169,13 @@
             @endif
 
             @if ($draftImages->isNotEmpty())
+                @php $imagePage = \App\Support\ListPage::of($draftImages, 'image_page')->fragment('draft-images'); @endphp
+                <a id="draft-images"></a>
+                @include('partials.history-count', ['paginator' => $imagePage, 'order' => '目印の順'])
                 <table class="data">
                     <thead><tr><th>目印</th><th>種類</th><th>名前・依頼の内容</th><th>状態</th></tr></thead>
                     <tbody>
-                        @foreach ($draftImages as $image)
+                        @foreach ($imagePage as $image)
                             <tr>
                                 <td><code>[[画像:{{ $image->id }}]]</code></td>
                                 <td>{{ $image->kind->label() }}</td>
@@ -195,6 +202,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                {{ $imagePage->links() }}
             @endif
 
             @if ($draft->finish_notes)
@@ -322,11 +330,14 @@
 
     <section class="panel">
     <h2 data-code="HISTORY">変更履歴</h2>
+    @php $historyPage = \App\Support\ListPage::of($histories, 'history_page')->fragment('history'); @endphp
+    <a id="history"></a>
+    @include('partials.history-count', ['paginator' => $historyPage])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>変更元</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
             <tbody>
-                @forelse ($histories as $history)
+                @forelse ($historyPage as $history)
                     <tr>
                         <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
                         <td>{{ $history->source->value }}{{ $history->wordpress_push_operation_id ? '（反映 #' . $history->wordpress_push_operation_id . '）' : '' }}</td>
@@ -340,6 +351,7 @@
             </tbody>
         </table>
     </div>
+    {{ $historyPage->links() }}
     </section>
 
 @endsection

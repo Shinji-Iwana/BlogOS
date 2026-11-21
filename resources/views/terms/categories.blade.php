@@ -24,6 +24,8 @@
         説明は、今のブログのテーマ（Theme-SI-Original）ではカテゴリのページに表示していません。AIOSEO の設定によっては、カテゴリのページの検索結果の説明文に使われます。BlogOS では、教材を AI で調べるときの手がかりに使います。
     </p>
 
+    @php $categoryPage = \App\Support\ListPage::of($categories); @endphp
+    @include('partials.history-count', ['paginator' => $categoryPage, 'order' => 'カテゴリの順'])
     <table class="data" style="width:100%;">
         <thead>
             <tr>
@@ -35,7 +37,7 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($categories as $category)
+            @forelse ($categoryPage as $category)
                 <tr>
                     <td style="padding-left:{{ 4 + $category->depth * 20 }}px;">
                         @if ($category->depth > 0)<span class="text-muted">└ </span>@endif
@@ -61,5 +63,6 @@
             @endforelse
         </tbody>
     </table>
+    {{ $categoryPage->links() }}
 
 @endsection

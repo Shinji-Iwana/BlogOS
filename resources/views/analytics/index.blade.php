@@ -66,7 +66,7 @@
     </section>
 
     <section class="panel">
-    <h2>記事ごと（上位100件）</h2>
+    <h2>記事ごと</h2>
     <p>
         並べ替え：
         @foreach (['views' => '表示回数（GA4）', 'clicks' => 'クリック（Search Console）', 'impressions' => '検索での表示回数', 'earnings' => '収益（AdSense）'] as $key => $label)
@@ -78,6 +78,7 @@
         @endforeach
     </p>
 
+    @include('partials.history-count', ['paginator' => $articles, 'order' => '並べ替えの順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>記事</th><th>表示回数</th><th>クリック</th><th>検索での表示回数</th><th>CTR</th><th>平均掲載順位</th><th>収益</th></tr></thead>
@@ -106,6 +107,7 @@
             </tbody>
         </table>
     </div>
+    {{ $articles->links() }}
     </section>
 
     <section class="panel">

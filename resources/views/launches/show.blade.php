@@ -40,10 +40,13 @@
             </details>
 
             @if ($items->isNotEmpty())
+                @php $itemPage = \App\Support\ListPage::of($items, "items_{$child->id}")->fragment("items-{$child->id}"); @endphp
+                <a id="items-{{ $child->id }}"></a>
+                @include('partials.history-count', ['paginator' => $itemPage, 'order' => 'ステップの順'])
                 <table class="data" style="margin-top:8px;">
                     <thead><tr><th>記事の案</th><th>ステップ・優先度</th><th>状態</th><th></th></tr></thead>
                     <tbody>
-                        @foreach ($items as $item)
+                        @foreach ($itemPage as $item)
                             <tr>
                                 <td style="max-width:440px;">
                                     {{ $item->title }}
@@ -71,6 +74,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                {{ $itemPage->links() }}
             @endif
 
             {{-- ④ 記事の編集案 --}}

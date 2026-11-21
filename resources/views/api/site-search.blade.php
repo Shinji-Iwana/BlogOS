@@ -21,6 +21,7 @@
     @if ($keyword !== '')
         <p>「{{ $keyword }}」の検索結果：{{ $total }}件</p>
 
+        @include('partials.history-count', ['paginator' => $results, 'order' => '検索の結果の順'])
         <table class="data" style="width:100%;">
             <thead>
                 <tr>
@@ -51,6 +52,7 @@
                 @endforelse
             </tbody>
         </table>
+        {{ $results->links() }}
     @endif
 
 @endsection

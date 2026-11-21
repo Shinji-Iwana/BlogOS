@@ -37,10 +37,13 @@
         @if ($rows->isEmpty())
             <p>ありません。</p>
         @else
+            {{-- 種類ごとに、50件ずつのページに分ける（D-98-01） --}}
+            @php $rowPage = \App\Support\ListPage::of($rows, $kind . '_page')->fragment($kind); @endphp
+            @include('partials.history-count', ['paginator' => $rowPage, 'order' => 'リンク元の記事の順'])
             <table class="data">
                 <thead><tr><th>リンク元の記事</th><th>リンクの文字</th><th>URL</th><th>内容</th></tr></thead>
                 <tbody>
-                    @foreach ($rows as $row)
+                    @foreach ($rowPage as $row)
                         <tr>
                             <td style="max-width:320px;"><a href="{{ route('articles.show', ['type' => $row['source'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['source']->id]) }}">{{ $row['source']->title_raw ?: '（タイトルなし）' }}</a>@if ($row['source']->status !== 'publish')（{{ $row['source']->status }}）@endif</td>
                             <td style="max-width:220px;">{{ $row['link']->anchor_text }}</td>
@@ -50,6 +53,7 @@
                     @endforeach
                 </tbody>
             </table>
+            {{ $rowPage->links() }}
         @endif
         </section>
     @endforeach

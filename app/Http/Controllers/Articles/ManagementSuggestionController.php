@@ -32,7 +32,8 @@ class ManagementSuggestionController extends Controller
     {
         $blog = $this->selectedBlog();
 
-        $rows = $this->suggestions->pendingForBlog($blog->id)->map(function ($suggestion) {
+        // 50件ずつのページに分ける。登録・不採用は、表示しているページの案だけ（D-98-01）
+        $rows = $this->suggestions->pendingForBlog($blog->id)->through(function ($suggestion) {
             $article = $suggestion->article();
 
             return [

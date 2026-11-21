@@ -7,7 +7,7 @@ use App\Repositories\ArticleRepository;
 use App\Repositories\BlogRepository;
 use App\Services\PageSpeed\PageSpeedReportService;
 use App\Services\PageSpeed\PageSpeedService;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use Illuminate\Http\Request;
 
 /**
@@ -32,7 +32,7 @@ class PageSpeedController extends Controller
             'home'       => $blog ? $report->latestForHome($blog->id, $strategy) : null,
             'summary'    => $blog ? $report->summary($blog->id, $strategy) : null,
             'failures'   => $blog ? $report->frequentFailures($blog->id, $strategy) : [],
-            'articles'   => $blog ? $report->articles($blog->id, $strategy, $sort, HistoryPage::PER_PAGE) : null,
+            'articles'   => $blog ? $report->articles($blog->id, $strategy, $sort, ListPage::PER_PAGE) : null,
             'latest'     => $blog ? PageSpeedRun::where('blog_id', $blog->id)->latest('started_at')->latest('id')->first() : null,
         ]);
     }
@@ -47,7 +47,7 @@ class PageSpeedController extends Controller
             ->where('blog_id', $blog?->id ?? 0)
             ->orderByDesc('started_at')
             ->orderByDesc('id')
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         return view('pagespeed.runs', [

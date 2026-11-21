@@ -12,6 +12,7 @@ use App\Services\Ai\AiApiPolicy;
 use App\Services\Ai\AiBatchService;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AutoReevaluationService;
+use App\Support\ListPage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -40,7 +41,7 @@ class AiBatchController extends Controller
 
         return view('ai.batches.index', [
             'blog'    => $blog,
-            'batches' => $this->batches->listForBlog($blog->id)->map(fn ($batch) => [$batch, $this->batches->progress($batch)]),
+            'batches' => $this->batches->listForBlog($blog->id)->through(fn ($batch) => [$batch, $this->batches->progress($batch)]),
         ]);
     }
 
@@ -78,6 +79,7 @@ class AiBatchController extends Controller
             'effort'        => $effort,
             'scopes'        => AutoReevaluationService::scopeOptions(),
             'targets'       => $targets,
+            'targetPage'    => ListPage::of($targets),
             'averageCost'   => $this->service->averageCost($mode, $model),
             'revisionDefaults' => $this->apiPolicy->defaults(AiMode::Revision),
             'acceptance'       => (float) config('blogos.ai.acceptance_score'),

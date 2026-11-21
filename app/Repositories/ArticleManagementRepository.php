@@ -58,7 +58,7 @@ class ArticleManagementRepository
      */
     public function historiesFor(ArticleManagement $management): Collection
     {
-        return $management->histories()->orderByDesc('changed_at')->orderByDesc('id')->limit(300)->get();
+        return $management->histories()->orderByDesc('changed_at')->orderByDesc('id')->get();
     }
 
     /**

@@ -11,6 +11,8 @@ use App\Models\ArticleDraft;
 use App\Models\Page;
 use App\Models\Post;
 use DateTimeInterface;
+use App\Support\ListPage;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -139,15 +141,14 @@ class AiGenerationRepository
     }
 
     /**
-     * @return Collection<int, AiGeneration>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function listForBlog(int $blogId, int $limit = 200): Collection
+    public function listForBlog(int $blogId): LengthAwarePaginator
     {
         return AiGeneration::with(['post:id,title_raw', 'page:id,title_raw', 'draft:id,title_raw', 'requester:id,name'])
             ->where('blog_id', $blogId)
             ->orderByDesc('id')
-            ->limit($limit)
-            ->get(['id', 'blog_id', 'post_id', 'page_id', 'article_draft_id', 'purpose', 'revision_scope', 'execution_method', 'service_plan', 'model', 'status', 'requested_by', 'created_at', 'completed_at']);
+            ->paginate(ListPage::PER_PAGE, ['id', 'blog_id', 'post_id', 'page_id', 'article_draft_id', 'purpose', 'revision_scope', 'execution_method', 'service_plan', 'model', 'status', 'requested_by', 'created_at', 'completed_at'])->withQueryString();
     }
 
     /**

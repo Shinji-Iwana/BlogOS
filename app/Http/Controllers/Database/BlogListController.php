@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Database;
 
+use App\Support\ListPage;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogRepository;
 
@@ -17,7 +18,7 @@ class BlogListController extends Controller
         $blogs = $this->blogRepository->getAll();
 
         return view('database.blog-list', [
-            'blogs' => $blogs,
+            'blogs' => ListPage::of($blogs),
             'total' => $blogs->count(),
         ]);
     }

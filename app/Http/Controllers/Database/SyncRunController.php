@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Database;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogRepository;
 use App\Repositories\SyncRunRepository;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 
 /**
  * 同期の記録（sync_runs・sync_run_resources）のDB確認画面。
@@ -25,7 +25,7 @@ class SyncRunController extends Controller
 
         return view('database.sync-runs.index', [
             'blog' => $blog,
-            'runs'   => $this->syncRunRepository->paginateForBlog($blog->id, HistoryPage::PER_PAGE),
+            'runs'   => $this->syncRunRepository->paginateForBlog($blog->id, ListPage::PER_PAGE),
             'latest' => $this->syncRunRepository->latestForBlog($blog->id),
         ]);
     }

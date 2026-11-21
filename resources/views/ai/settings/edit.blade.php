@@ -38,8 +38,9 @@
     @endif
 
     @if ($pendingPrices->isNotEmpty())
-        <p class="text-warn"><strong>値下がり（確認待ち）：{{ $pendingPrices->count() }}件</strong></p>
+        <p class="text-warn"><strong>値下がり（確認待ち）：{{ $pendingPrices->total() }}件</strong></p>
         <p class="text-muted">公式のページで値下がりを確かめてから、反映してください（ページの読み違いで料金が安くなると、使いすぎを止められなくなるため、自動では反映しません）。</p>
+        @include('partials.history-count', ['paginator' => $pendingPrices, 'order' => '見つけた順'])
         <table class="data">
             <thead><tr><th>項目</th><th>今の料金表</th><th>公式のページ</th><th>見つけた日時</th><th></th></tr></thead>
             <tbody>
@@ -65,17 +66,19 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $pendingPrices->links() }}
     @else
         <p>確認待ちはありません。</p>
     @endif
     </section>
 
     <section class="panel">
-    <h2>今日の時点で対象になる記事：{{ count($targets) }}件</h2>
+    <h2>今日の時点で対象になる記事：{{ $targets->total() }}件</h2>
     <p class="text-muted">
-        記事の再評価を有効にしていれば、このうち{{ min(count($targets), $remaining) }}件を次の実行で再評価します（今日の残り {{ $remaining }}件）。
+        記事の再評価を有効にしていれば、このうち{{ min($targets->total(), $remaining) }}件を次の実行で再評価します（今日の残り {{ $remaining }}件）。
         今すぐまとめて評価する場合は、<a href="{{ route('ai.batches.create', ['mode' => 'quality_diagnosis', 'target' => 'needs_reevaluation']) }}">まとめて実行</a>から実行できます。
     </p>
+    @include('partials.history-count', ['paginator' => $targets, 'order' => '再評価する順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>理由</th><th>記事</th><th>最新の評価</th><th>評価日</th></tr></thead>
@@ -93,6 +96,7 @@
             </tbody>
         </table>
     </div>
+    {{ $targets->links() }}
     </section>
 
 @endsection

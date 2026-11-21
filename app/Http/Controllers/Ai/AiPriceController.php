@@ -42,7 +42,7 @@ class AiPriceController extends Controller
     public function history()
     {
         return view('ai.prices.history', [
-            'priceHistory'     => $this->prices->paginateChanges(\App\Support\HistoryPage::PER_PAGE),
+            'priceHistory'     => $this->prices->paginateChanges(\App\Support\ListPage::PER_PAGE),
             'latestPriceCheck' => $this->prices->latestCheck(),
         ]);
     }

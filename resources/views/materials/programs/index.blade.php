@@ -7,6 +7,7 @@
 @section('content')
 
     <h1>アフィリエイトのプログラム：{{ $programs->count() }}件</h1>
+    @php $programPage = \App\Support\ListPage::of($programs)->fragment('programs'); @endphp
 
     <p>
         <a href="{{ route('materials.index') }}">教材の一覧に戻る</a>
@@ -73,13 +74,15 @@
     @endif
 
     @if ($programs->isNotEmpty())
+        <a id="programs"></a>
+        @include('partials.history-count', ['paginator' => $programPage, 'order' => '名前の順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>
                     <tr><th>名前</th><th>ASP・識別子</th><th>教材の種類</th><th>状態</th><th>メモ</th><th>教材</th><th>記事</th><th>リンクの確認</th><th></th></tr>
                 </thead>
                 <tbody>
-                    @foreach ($programs as $program)
+                    @foreach ($programPage as $program)
                         @php $formId = "program-{$program->id}"; @endphp
                         <tr>
                             <td><input type="text" name="name" value="{{ $program->name }}" form="{{ $formId }}" style="width:200px;"></td>
@@ -126,6 +129,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $programPage->links() }}
     @endif
 
 @endsection

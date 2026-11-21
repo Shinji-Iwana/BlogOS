@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Articles;
 
+use App\Support\ListPage;
 use App\Enums\KeywordType;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
@@ -67,7 +68,7 @@ class ArticleTitleController extends Controller
 
         return view('articles.titles', [
             'blog'  => $blog,
-            'rows'  => $rows,
+            'rows'  => ListPage::of($rows),
             'from'  => $from,
             'to'    => $to,
             'withIssues' => count(array_filter($rows, fn ($row) => $row['issues'] !== [])),

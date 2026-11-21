@@ -11,6 +11,9 @@
     $breakdown ??= null;
     $blogosDb ??= false;
     $wp = $wordpressDb ? app(\App\Support\WordPressDatabaseTables::class) : null;
+    // テーブルの一覧は50件ずつ。この欄は BlogOS の DB と WordPress の DB で2回出すため、DB ごとにページの名前を分ける（D-98-01）
+    $tablePageName = 'tables_' . preg_replace('/\W/', '_', $database['name']);
+    $tablePage = \App\Support\ListPage::of($database['tables'], $tablePageName)->fragment($tablePageName);
 @endphp
 <p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
 <table class="data">
@@ -60,8 +63,9 @@
         @endif
     </tbody>
 </table>
-<details>
+<details id="{{ $tablePageName }}" @if (request()->filled($tablePageName)) open @endif>
     <summary>テーブルごとの件数と容量（容量の大きい順）</summary>
+    @include('partials.history-count', ['paginator' => $tablePage, 'order' => '容量の大きい順'])
     <div style="overflow-x:auto;">
     <table class="data">
         <thead>
@@ -76,7 +80,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($database['tables'] as $table)
+            @foreach ($tablePage as $table)
                 @php
                     $wordpressTable = $wordpressTables[$table['name']] ?? null;
                 @endphp
@@ -114,4 +118,5 @@
         </tbody>
     </table>
     </div>
+    {{ $tablePage->links() }}
 </details>

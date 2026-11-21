@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>教材：{{ $materials->count() }}件</h1>
+    <h1>教材：{{ $materials->total() }}件</h1>
 
     <p>
         登録する：<a href="{{ route('materials.create', ['kind' => 'book']) }}">書籍</a>
@@ -31,19 +31,20 @@
 
     {{-- カテゴリごとのそろい具合（D-45） --}}
     @php $kinds = \App\Enums\MaterialKind::cases(); @endphp
-    <details @if (! $category) open @endif>
+    @php $coveragePage = \App\Support\ListPage::of($categories->filter(fn ($row) => isset($coverage[$row->id]))->values(), 'coverage_page')->fragment('coverage'); @endphp
+    <details id="coverage" @if (! $category || request()->filled('coverage_page')) open @endif>
         <summary><strong>カテゴリごとの、記事で紹介に使える教材の数</strong></summary>
         <p class="text-muted" style="margin:4px 0;">
             記事の改修・新規記事作成では、記事のカテゴリと親カテゴリに登録した教材のうち、情報を調べてあり、提携中のリンクがある教材が候補になります。
             数は「このカテゴリに登録（＋親カテゴリに登録）」。記事があるのに0件の種類は赤字です（すべての種類が必要なわけではありません）。<br>
             「基礎の教材」は、向いている場面が「基礎から体系的に学びたい」の教材の数（親カテゴリの分を含む）です。集客記事は教材を必ず1件紹介し、記事に合う教材がなければ基礎の教材から選びます（D-91）。記事があるのに0件のカテゴリ（赤字）は、基礎の書籍を登録してください。
         </p>
+        @include('partials.history-count', ['paginator' => $coveragePage, 'order' => 'カテゴリの順'])
         <table class="data data-compact" style="font-size:90%;">
             <thead><tr><th>カテゴリ</th><th>記事</th><th>基礎の教材</th>@foreach ($kinds as $option)<th>{{ $option->label() }}</th>@endforeach<th>使えない教材</th></tr></thead>
             <tbody>
-                @foreach ($categories as $row)
-                    @php $c = $coverage[$row->id] ?? null; @endphp
-                    @continue($c === null)
+                @foreach ($coveragePage as $row)
+                    @php $c = $coverage[$row->id]; @endphp
                     <tr @if ($category?->id === $row->id) class="row-current" @endif>
                         <td style="padding-left:{{ 4 + ($row->depth ?? 0) * 16 }}px;"><a href="{{ route('materials.index', ['category' => $row->id]) }}">{{ $row->name }}</a></td>
                         <td>{{ $c['posts'] }}</td>
@@ -57,6 +58,7 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $coveragePage->links() }}
     </details>
 
     @if ($category)
@@ -110,6 +112,7 @@
             @csrf
             @include('partials.selected-blog-field')
 
+            @include('partials.history-count', ['paginator' => $materials, 'order' => '種類・名前の順'])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead>
@@ -161,6 +164,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $materials->links() }}
 
             <section class="panel">
             <h2>チェックした教材を、AIでまとめて調べる</h2>

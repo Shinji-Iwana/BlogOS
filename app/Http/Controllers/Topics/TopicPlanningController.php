@@ -137,6 +137,6 @@ class TopicPlanningController extends Controller
             ->groupBy('q.query')
             ->selectRaw('q.query, sum(q.impressions) as impressions, sum(q.clicks) as clicks, sum(q.position * q.impressions) / nullif(sum(q.impressions), 0) as position, max(posts.title_raw) as title')
             ->havingRaw('sum(q.position * q.impressions) / nullif(sum(q.impressions), 0) > 20')
-            ->orderByDesc('impressions')->limit(30)->get();
+            ->orderByDesc('impressions')->get();
     }
 }

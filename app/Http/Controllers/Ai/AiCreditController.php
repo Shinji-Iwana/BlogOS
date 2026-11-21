@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ai;
 
+use App\Support\ListPage;
 use App\Enums\AiMode;
 use App\Http\Controllers\Controller;
 use App\Models\AiCreditEntry;
@@ -37,8 +38,9 @@ class AiCreditController extends Controller
 
         return view('ai.credits.index', [
             'status'     => $this->credits->status(),
-            'history'    => $this->credits->history(),
-            'usage'      => $this->generations->apiUsageByDay($from, $to),
+            'history'    => ListPage::of($this->credits->history(), 'history_page'),
+            'usage'      => $usage = $this->generations->apiUsageByDay($from, $to),
+            'usagePage'  => ListPage::of($usage, 'usage_page'),
             'byPurpose'  => $this->usageByPurpose($from, $to),
             'days'       => $days,
             'spent'      => $this->apiPolicy->spentThisMonth(),

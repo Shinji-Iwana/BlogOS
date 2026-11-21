@@ -219,7 +219,6 @@ class GoogleMetricRepository
                 ->selectRaw('query, sum(clicks) as clicks, sum(impressions) as impressions, sum(position * impressions) / nullif(sum(impressions), 0) as position')
                 ->orderByDesc('clicks')
                 ->orderByDesc('impressions')
-                ->limit(50)
                 ->get(),
             'adsense' => DB::table('google_adsense_page_daily')->where($column, $articleId)->whereBetween('date', $range)
                 ->selectRaw('count(*) as days, sum(estimated_earnings) as earnings, sum(page_views) as page_views, max(currency_code) as currency_code')

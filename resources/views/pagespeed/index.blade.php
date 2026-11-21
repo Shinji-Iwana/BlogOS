@@ -117,11 +117,14 @@
         @if ($failures === [])
             <p>ありません。</p>
         @else
+            @php $failurePage = \App\Support\ListPage::of($failures, 'failure_page')->fragment('failures'); @endphp
+            <a id="failures"></a>
+            @include('partials.history-count', ['paginator' => $failurePage, 'order' => '記事の数の多い順'])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th>項目</th><th>区分</th><th>記事の数</th></tr></thead>
                     <tbody>
-                        @foreach ($failures as $failure)
+                        @foreach ($failurePage as $failure)
                             <tr>
                                 <td>{{ $failure['title'] }}</td>
                                 <td style="white-space:nowrap;">{{ implode('・', array_map(fn ($key) => $report::AUDIT_CATEGORIES[$key] ?? $key, $failure['categories'])) }}</td>
@@ -131,6 +134,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $failurePage->links() }}
         @endif
         </section>
 

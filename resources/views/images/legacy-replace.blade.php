@@ -20,10 +20,12 @@
             今 WordPress にある本文の、次の画像の URL と、その画像の alt・幅・高さ・class（wp-image-ID）、画像を囲むリンクの URL だけを置き換えます。ほかの部分は変えません。
             作業中の編集案とは別に、すぐに反映します。
         </p>
+        @php $replacedPage = \App\Support\ListPage::of($replaced); @endphp
+        @include('partials.history-count', ['paginator' => $replacedPage, 'order' => '本文の順'])
         <table class="data">
             <thead><tr><th>古い画像</th><th>メディアの画像</th></tr></thead>
             <tbody>
-                @foreach ($replaced as $row)
+                @foreach ($replacedPage as $row)
                     <tr>
                         <td style="word-break:break-all;">{{ $row['path'] }}</td>
                         <td style="word-break:break-all;"><a href="{{ $row['url'] }}" target="_blank" rel="noopener">{{ $row['url'] }}</a></td>
@@ -31,6 +33,7 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $replacedPage->links() }}
 
         <h2>2. 作業中の編集案（BlogOS の中で置き換えます。WordPress は変えません）</h2>
         @if ($drafts->isEmpty())

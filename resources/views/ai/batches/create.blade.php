@@ -160,11 +160,12 @@
         </form>
     @endif
 
+    @include('partials.history-count', ['paginator' => $targetPage, 'order' => '実行する順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>記事</th><th>最新の評価</th><th>評価日</th>@if ($target === \App\Enums\AiBatchTarget::NeedsReevaluation)<th>理由</th>@endif</tr></thead>
             <tbody>
-                @forelse ($targets as $row)
+                @forelse ($targetPage as $row)
                     <tr>
                         <td><a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
                         <td>{{ $row['evaluation']?->score !== null ? number_format($row['evaluation']->score, 1) . '点' : '-' }}</td>
@@ -177,6 +178,7 @@
             </tbody>
         </table>
     </div>
+    {{ $targetPage->links() }}
 
     <script>
         // モデルが対応していない推論の深さ（gpt-6-astra の none など）を選べないようにする

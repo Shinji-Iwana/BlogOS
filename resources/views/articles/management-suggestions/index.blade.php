@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <h1>管理情報の案の確認：{{ $rows->count() }}件</h1>
+    <h1>管理情報の案の確認：{{ $rows->total() }}件</h1>
 
     <p>
         <a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
@@ -32,6 +32,7 @@
                 <button class="btn-secondary" type="submit" name="action" value="reject" onclick="return confirm('チェックした案を不採用にしますか？');">チェックした案を不採用にする</button>
             </p>
 
+            @include('partials.history-count', ['paginator' => $rows, 'order' => '作った順'])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th></th><th>記事</th><th>記事種類・細分類</th><th>メインキーワード</th><th>サブキーワード</th><th>主の検索意図</th><th>副の検索意図</th><th>対象のバージョン</th><th>AIの理由</th></tr></thead>
@@ -89,6 +90,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $rows->links() }}
         </form>
     @endif
 

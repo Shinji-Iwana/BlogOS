@@ -7,7 +7,7 @@ use App\Jobs\RunScheduledTaskJob;
 use App\Models\ScheduledTaskRun;
 use App\Repositories\BlogAiSettingRepository;
 use App\Services\Schedule\ScheduledTaskService;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use App\Support\ScheduledTasks;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -38,7 +38,7 @@ class ScheduledTaskController extends Controller
 
         return view('scheduled-tasks.runs', [
             'runs'   => ScheduledTaskRun::with('requester:id,name')->when($key !== null, fn ($q) => $q->where('task_key', $key))
-                ->latest('started_at')->latest('id')->paginate(HistoryPage::PER_PAGE)->withQueryString(),
+                ->latest('started_at')->latest('id')->paginate(ListPage::PER_PAGE)->withQueryString(),
             'filter' => $key,
             // 最後の実行（しぼり込んでいれば、その定期実行の）
             'latest' => ScheduledTaskRun::when($key !== null, fn ($q) => $q->where('task_key', $key))->latest('started_at')->latest('id')->first(),

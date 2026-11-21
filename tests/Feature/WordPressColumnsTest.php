@@ -65,7 +65,7 @@ class WordPressColumnsTest extends TestCase
             ->assertSee('<h2 data-code="HISTORY">変更履歴</h2>', false)
             ->assertSee('（<a href="' . route('database-blog-detail', ['id' => $blog->id]) . '">Example Blog</a>）', false)
             ->assertSee('（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>）', false)
-            ->assertSee('（新しい順、最大50件。')
+            ->assertSee('（新しい順）')
             // 変更履歴：変更後の parent_id の横に親カテゴリ、category_id の横にこのカテゴリ（変更前は空のため出さない）
             ->assertSeeInOrder(['<h2 data-code="HISTORY">', 'category_id', '（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $child->id]) . '">DOM #' . $child->id . '</a>）', 'new_value', '（<a href="' . route('database.wordpress-records.show', ['table' => 'categories', 'id' => $category->id]) . '">JavaScript #' . $category->id . '</a>）'], false);
 

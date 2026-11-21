@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use App\Support\ListPage;
 use App\Enums\SuggestionStatus;
 use App\Models\ArticleManagement;
 use App\Models\ArticleManagementSuggestion;
@@ -36,16 +38,15 @@ class ArticleManagementSuggestionRepository
     }
 
     /**
-     * @return Collection<int, ArticleManagementSuggestion>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function pendingForBlog(int $blogId, int $limit = 300): Collection
+    public function pendingForBlog(int $blogId): LengthAwarePaginator
     {
         return ArticleManagementSuggestion::with(['post:id,title_raw,link', 'page:id,title_raw,link'])
             ->where('blog_id', $blogId)
             ->where('status', SuggestionStatus::Pending)
             ->orderBy('id')
-            ->limit($limit)
-            ->get();
+            ->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     public function countPending(int $blogId): int

@@ -82,11 +82,14 @@
             </fieldset>
         </form>
 
+        @php $articlePage = \App\Support\ListPage::of($articles, 'article_page')->fragment('articles'); @endphp
+        <a id="articles"></a>
+        @include('partials.history-count', ['paginator' => $articlePage, 'order' => '記事の順'])
         <div style="overflow-x:auto; margin-top:8px;">
             <table class="data">
                 <thead><tr><th>記事</th><th>教材と理由</th><th></th></tr></thead>
                 <tbody>
-                    @foreach ($articles as $key => $row)
+                    @foreach ($articlePage as $key => $row)
                         @php $type = \App\Http\Controllers\Materials\MaterialReviewController::articleType($row['article']); @endphp
                         <tr>
                             <td><a href="{{ route('articles.show', ['type' => $type, 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
@@ -112,6 +115,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $articlePage->links() }}
     @endif
     </section>
 

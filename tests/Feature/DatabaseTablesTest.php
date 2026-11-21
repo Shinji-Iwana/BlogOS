@@ -56,7 +56,7 @@ class DatabaseTablesTest extends TestCase
             ->assertSee('<h1>WordPressとの同期の記録（sync_runs）</h1>', false)
             ->assertSee('選択中のブログ（Example Blog）の行と、どのブログにも属さない行を出します。')
             ->assertSee('<h2 data-code="FILTER">条件</h2>', false)
-            ->assertSee('（id降順、最大50件。')
+            ->assertSee('（id降順）')
             ->assertSeeInOrder(['>' . $new . '</a>', '>' . $old . '</a>'], false)
             ->assertDontSee('<th>message</th>', false)
             ->assertSee('<th>status</th>', false);
@@ -122,7 +122,8 @@ class DatabaseTablesTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        $this->get(route('server.index'))->assertOk()
+        // テーブルの一覧は50件ずつのため、全ページをつないで見る（D-98-01）
+        $this->serverPageWithAllTables()
             ->assertSee('<a href="' . route('database.tables.index', ['table' => 'sync_runs']) . '">WordPressとの同期の記録</a>（sync_runs）', false);
     }
 }

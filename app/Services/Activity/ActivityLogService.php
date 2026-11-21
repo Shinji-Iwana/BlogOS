@@ -41,7 +41,7 @@ use App\Models\Type;
 use App\Models\VoiceTurn;
 use App\Models\WordPressComponent;
 use App\Models\WordPressPushOperation;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -132,7 +132,7 @@ class ActivityLogService
             ->orderByDesc('at')
             ->orderByDesc('seq')
             ->orderByDesc('ref_id')
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         $rows->setCollection($this->describe($rows->getCollection()));

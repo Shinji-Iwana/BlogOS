@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Google;
 
+use App\Support\ListPage;
 use App\Enums\GoogleIndexCategory;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
@@ -31,10 +32,10 @@ class GoogleIndexController extends Controller
             'configured' => $service->isConfigured($blog),
             'category'   => $category,
             'counts'     => $statuses->countBy(fn ($status) => $status->category?->value ?? 'error'),
-            'statuses'   => $statuses
+            'statuses'   => ListPage::of($statuses
                 ->filter(fn ($status) => $category !== null ? $status->category === $category : $status->category !== GoogleIndexCategory::Indexed)
                 ->sortBy(fn ($status) => [$status->category?->value ?? 'zzz', ($status->post ?? $status->page)?->title_raw])
-                ->values(),
+                ->values()),
             'due'        => $service->isConfigured($blog) ? $service->due($blog)->count() : 0,
         ]);
     }

@@ -46,12 +46,13 @@
     </section>
 
     <section class="panel">
-    <h2>{{ $category ? $category->label() . 'の記事' : '登録済み以外の記事' }}（{{ $statuses->count() }}件）</h2>
+    <h2>{{ $category ? $category->label() . 'の記事' : '登録済み以外の記事' }}（{{ $statuses->total() }}件）</h2>
     @if ($category)<p><a href="{{ route('google.index-status') }}">登録済み以外の記事をすべて表示する</a></p>@endif
 
     @if ($statuses->isEmpty())
         <p>ありません。</p>
     @else
+        @include('partials.history-count', ['paginator' => $statuses, 'order' => '分類・タイトルの順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>記事</th><th>分類</th><th>最後に Google が読んだ日時</th><th>調べた日時</th><th>前の分類</th><th></th></tr></thead>
@@ -73,6 +74,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $statuses->links() }}
     @endif
     </section>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\ListPage;
 use App\Clients\WordPress\WordPressApiClient;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogRepository;
@@ -35,7 +36,7 @@ class SiteSearchController extends Controller
 
         return view('api.site-search', [
             'keyword' => $keyword,
-            'results' => $results,
+            'results' => ListPage::of($results),
             'total'   => count($results),
         ]);
     }

@@ -112,9 +112,9 @@ class AiCreditService
     /**
      * @return Collection<int, AiCreditEntry>
      */
-    public function history(int $limit = 50): Collection
+    public function history(): Collection
     {
-        return AiCreditEntry::with('creator:id,name')->latest('occurred_at')->latest('id')->limit($limit)->get();
+        return AiCreditEntry::with('creator:id,name')->latest('occurred_at')->latest('id')->get();
     }
 
     /**

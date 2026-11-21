@@ -14,8 +14,7 @@
 
     @include('partials.flash')
 
-    <p>新しい順、最大200件</p>
-
+    @include('partials.history-count', ['paginator' => $operations])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>#</th><th>対象</th><th>操作</th><th>状態</th><th>承認</th><th>日時</th><th>メッセージ</th></tr></thead>
@@ -36,5 +35,6 @@
             </tbody>
         </table>
     </div>
+    {{ $operations->links() }}
 
 @endsection

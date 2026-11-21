@@ -50,6 +50,7 @@
         </table>
         @if ($action)<p><a href="{{ route('analytics.performance', ['days' => $days, 'sort' => $sort]) }}">絞り込みを外す</a></p>@endif
 
+        @include('partials.history-count', ['paginator' => $rows, 'order' => $sort === 'affiliate' ? 'アフィリエイトのクリックの多い順' : '次にやることがある順'])
         <div style="overflow-x:auto;">
             <table class="data" style="font-size:90%;">
                 <thead>
@@ -103,6 +104,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $rows->links() }}
     @endif
 
 @endsection

@@ -114,11 +114,12 @@
             @if ($option === $days)<strong>直近{{ $option }}日</strong>@else<a href="{{ route('ai.credits.index', ['days' => $option]) }}">直近{{ $option }}日</a>@endif
         @endforeach
     </p>
+    @include('partials.history-count', ['paginator' => $usagePage, 'order' => '新しい日付順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日付（UTC）</th><th>モデル</th><th>Requests</th><th>Input tokens</th><th>うちキャッシュ済み</th><th>Output tokens</th><th>Web Searches</th><th>費用の目安</th></tr></thead>
             <tbody>
-                @forelse ($usage as $row)
+                @forelse ($usagePage as $row)
                     <tr>
                         <td>{{ $row->day }}</td>
                         <td>{{ $row->model }}</td>
@@ -146,6 +147,7 @@
             </tbody>
         </table>
     </div>
+    {{ $usagePage->links() }}
     </section>
 
     <section class="panel">
@@ -153,6 +155,7 @@
     @if ($history->isEmpty())
         <p>まだ登録はありません。</p>
     @else
+        @include('partials.history-count', ['paginator' => $history])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>日時</th><th>種類</th><th>金額</th><th>その時点の BlogOS の見込み・差</th><th>メモ</th><th>登録した人</th><th></th></tr></thead>
@@ -182,6 +185,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $history->links() }}
     @endif
     </section>
 

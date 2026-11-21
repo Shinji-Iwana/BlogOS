@@ -11,13 +11,14 @@
     <p><a href="{{ route('analytics.index') }}">分析</a></p>
 
     <p class="text-muted">
-        公開中の記事 {{ count($rows) }}件のうち、ルールに合わない点がある記事は {{ $withIssues }}件です
+        公開中の記事 {{ $rows->total() }}件のうち、ルールに合わない点がある記事は {{ $withIssues }}件です
         （品質基準 writing.md 3-1・3-2、ブログ別の定義のタイトルの型）。
         Search Console の指標は {{ $from->toDateString() }}〜{{ $to->toDateString() }}（90日）です。
         「取りこぼし」は、掲載順位ごとのクリック率の目安と比べて足りないクリックの数の目安で、多い記事ほどタイトル・メタディスクリプションを直す効果が大きいと考えられます（目安は大まかな値です）。
         表示回数が 0 の記事は、Google にインデックスされていない可能性があります。
     </p>
 
+    @include('partials.history-count', ['paginator' => $rows, 'order' => '取りこぼしの多い順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead>
@@ -50,5 +51,6 @@
             </tbody>
         </table>
     </div>
+    {{ $rows->links() }}
 
 @endsection

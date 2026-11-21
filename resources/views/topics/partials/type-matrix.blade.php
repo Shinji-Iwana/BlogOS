@@ -46,15 +46,19 @@
     }
     // 開いたときに出す行：各カテゴリと、最後に全体
     $matrixRows = [...$matrix['rows'], ['category' => null, 'depth' => 0, 'counts' => $matrix['totals'], 'total' => $matrix['total']]];
+    // 50行ずつのページに分ける（全体の行は、最後のページの最後。D-98-01）
+    $matrixPage = \App\Support\ListPage::of($matrixRows, 'matrix_page')->fragment('type-matrix');
 @endphp
 
 {{-- カテゴリで1行（カテゴリ・合計）。行を押す（Enter・スペースでも）と、すぐ下に記事種類ごとの件数の表を開く（右の引き出しの幅でも表で見るため。D-83-03） --}}
+<a id="type-matrix"></a>
+@include('partials.history-count', ['paginator' => $matrixPage, 'order' => 'カテゴリの順'])
 <table class="data type-matrix" style="width:100%;">
     <thead>
         <tr><th>カテゴリ</th><th style="width:5em;">合計</th></tr>
     </thead>
     <tbody>
-        @foreach ($matrixRows as $row)
+        @foreach ($matrixPage as $row)
             @php
                 $detailId = 'type-matrix-' . ($row['category']?->id ?? 'all');
             @endphp
@@ -111,6 +115,7 @@
         @endforeach
     </tbody>
 </table>
+{{ $matrixPage->links() }}
 </section>
 
 <script>

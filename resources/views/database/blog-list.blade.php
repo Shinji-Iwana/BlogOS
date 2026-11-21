@@ -13,6 +13,7 @@
 
     <p>登録件数：{{ $total }}件</p>
 
+    @include('partials.history-count', ['paginator' => $blogs, 'order' => '登録の順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead>
@@ -45,5 +46,6 @@
             </tbody>
         </table>
     </div>
+    {{ $blogs->links() }}
 
 @endsection

@@ -101,10 +101,13 @@
         ・<a href="{{ route('ai.generations.create', ['mode' => 'management_suggestion', 'target' => $targetKey]) }}">AIで管理情報の案を作る</a>
     </p>
     @if ($evaluations->isNotEmpty())
+        @php $evaluationsPage = \App\Support\ListPage::of($evaluations, 'evaluation_page')->fragment('evaluations'); @endphp
+        <a id="evaluations"></a>
+        @include('partials.history-count', ['paginator' => $evaluationsPage])
         <table class="data">
             <thead><tr><th>#</th><th>日時</th><th>主体</th><th>対象</th><th>点数</th><th>必須条件</th><th>確定</th></tr></thead>
             <tbody>
-                @foreach ($evaluations as $evaluation)
+                @foreach ($evaluationsPage as $evaluation)
                     <tr>
                         <td><a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->id }}</a></td>
                         <td>{{ \App\Support\DisplayTime::format($evaluation->created_at, 'Y-m-d H:i') }}</td>
@@ -117,6 +120,7 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $evaluationsPage->links() }}
     @endif
     @if ($generations->isNotEmpty())
         <p>AI実行記録：
@@ -181,7 +185,7 @@
         </p>
     @endif
 
-    <h3>検索クエリ（クリックの多い順、最大50件）</h3>
+    <h3>検索クエリ</h3>
     @php
         $queryTexts = $google['queries']->pluck('query')->map(fn ($q) => mb_strtolower($q))->all();
     @endphp
@@ -194,11 +198,15 @@
             @endforeach
         </p>
     @endif
+    @php $queries = $google['queries']; @endphp
+    @php $queriesPage = \App\Support\ListPage::of($queries, 'query_page')->fragment('queries'); @endphp
+    <a id="queries"></a>
+    @include('partials.history-count', ['paginator' => $queriesPage, 'order' => 'クリックの多い順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>検索クエリ</th><th>クリック</th><th>表示回数</th><th>平均掲載順位</th></tr></thead>
             <tbody>
-                @forelse ($google['queries'] as $query)
+                @forelse ($queriesPage as $query)
                     <tr>
                         <td>{{ $query->query }}</td>
                         <td>{{ number_format($query->clicks) }}</td>
@@ -211,6 +219,7 @@
             </tbody>
         </table>
     </div>
+    {{ $queriesPage->links() }}
 
     {{-- 管理情報（D-08-02） --}}
     </section>
@@ -226,13 +235,16 @@
     @endif
 
     @if ($pagespeedHistory->isNotEmpty())
-        <details>
-            <summary>測定の記録（新しい順、最大{{ $pagespeedHistory->count() }}件）</summary>
+        <details @if (request()->filled('pagespeed_page')) open @endif>
+            <summary>測定の記録（{{ number_format($pagespeedHistory->count()) }}件）</summary>
+            @php $pagespeedHistoryPage = \App\Support\ListPage::of($pagespeedHistory, 'pagespeed_page')->fragment('pagespeed-history'); @endphp
+            <a id="pagespeed-history"></a>
+            @include('partials.history-count', ['paginator' => $pagespeedHistoryPage])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th>日時</th><th>端末</th><th>結果</th><th>パフォーマンス</th><th>ユーザー補助</th><th>おすすめの方法</th><th>SEO</th></tr></thead>
                     <tbody>
-                        @foreach ($pagespeedHistory as $run)
+                        @foreach ($pagespeedHistoryPage as $run)
                             <tr>
                                 <td style="white-space:nowrap;">{{ \App\Support\DisplayTime::format($run->started_at) }}</td>
                                 <td>{{ $run->strategyLabel() }}</td>
@@ -246,6 +258,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $pagespeedHistoryPage->links() }}
         </details>
     @endif
 
@@ -327,6 +340,9 @@
         <p>本文に、登録済みの教材のリンクはありません。</p>
     @else
         {{-- 種類・教材・記録の元・見直しを列に分けた表（以前は「書籍：○○」の1行ずつ。D-82-04） --}}
+        @php $articleMaterialsPage = \App\Support\ListPage::of($articleMaterials, 'material_page')->fragment('materials'); @endphp
+        <a id="materials"></a>
+        @include('partials.history-count', ['paginator' => $articleMaterialsPage, 'order' => '本文の順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead>
@@ -338,7 +354,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($articleMaterials as $record)
+                    @foreach ($articleMaterialsPage as $record)
                         <tr>
                             <td style="white-space:nowrap;">{{ $record->material->kind->label() }}</td>
                             <td><a href="{{ route('materials.edit', ['id' => $record->material_id]) }}">{{ $record->material->name }}</a></td>
@@ -349,6 +365,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $articleMaterialsPage->links() }}
     @endif
     <p>
         @if ($materialReview)
@@ -372,6 +389,9 @@
     </section>
     <section class="panel">
     <h2 data-code="RELATIONS">記事同士の関係</h2>
+    @php $relationsPage = \App\Support\ListPage::of($relations, 'relation_page')->fragment('relations'); @endphp
+    <a id="relations"></a>
+    @include('partials.history-count', ['paginator' => $relationsPage, 'order' => '関係・並び順の順'])
     <table class="data">
         <thead><tr><th>関係</th><th>記事</th><th>並び順</th><th>本文からのリンク</th><th></th></tr></thead>
         <tbody>
@@ -379,7 +399,7 @@
                 $linkedPostIds = $outbound->pluck('target_post_id')->filter()->all();
                 $linkedPageIds = $outbound->pluck('target_page_id')->filter()->all();
             @endphp
-            @forelse ($relations as $relation)
+            @forelse ($relationsPage as $relation)
                 @php $related = $relation->relatedPost ?? $relation->relatedPage; @endphp
                 <tr>
                     <td>{{ $relation->relation_type->label() }}</td>
@@ -411,6 +431,7 @@
             @endforelse
         </tbody>
     </table>
+    {{ $relationsPage->links() }}
 
     <form method="GET" action="{{ route('articles.show', ['type' => $type, 'id' => $article->id]) }}" style="margin-top:8px;">
         関係を追加する記事を探す：
@@ -448,6 +469,9 @@
     <section class="panel">
     <h2 data-code="LINKS OUT">この記事からのリンク（{{ $outbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンクの文字 → リンク先」の1行。D-82-01） --}}
+    @php $outboundPage = \App\Support\ListPage::of($outbound, 'out_page')->fragment('links-out'); @endphp
+    <a id="links-out"></a>
+    @include('partials.history-count', ['paginator' => $outboundPage, 'order' => '本文の順'])
     <div style="overflow-x:auto;">
         {{-- パネルの幅いっぱいで、2つの列を同じ幅にする（D-82-05） --}}
         <table class="data" style="width:100%; table-layout:fixed; overflow-wrap:anywhere;">
@@ -459,7 +483,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($outbound as $link)
+                @forelse ($outboundPage as $link)
                     <tr>
                         <td>{{ $link->anchor_text ?: '（テキストなし）' }}</td>
                         <td>
@@ -476,11 +500,15 @@
             </tbody>
         </table>
     </div>
+    {{ $outboundPage->links() }}
     </section>
 
     <section class="panel">
     <h2 data-code="LINKS IN">この記事へのリンク（{{ $inbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンク元の記事（リンクの文字）」の1行。D-82-01） --}}
+    @php $inboundPage = \App\Support\ListPage::of($inbound, 'in_page')->fragment('links-in'); @endphp
+    <a id="links-in"></a>
+    @include('partials.history-count', ['paginator' => $inboundPage, 'order' => 'リンク元の記事の順'])
     <div style="overflow-x:auto;">
         {{-- パネルの幅いっぱいで、2つの列を同じ幅にする（D-82-05） --}}
         <table class="data" style="width:100%; table-layout:fixed; overflow-wrap:anywhere;">
@@ -492,7 +520,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($inbound as $link)
+                @forelse ($inboundPage as $link)
                     @php $source = $link->sourcePost ?? $link->sourcePage; @endphp
                     <tr>
                         <td>
@@ -510,6 +538,7 @@
             </tbody>
         </table>
     </div>
+    {{ $inboundPage->links() }}
     </section>
 
     <section class="panel">
@@ -548,11 +577,13 @@
     @if ($legacyImages !== [] && ! $article->wordpress_deleted_at)
     <section class="panel" id="legacy-images">
     <h2 data-code="LEGACY IMAGES">古い画像の移し替え（{{ count($legacyImages) }}件） @include('partials.tip', ['tip' => "本文で使っている、メディアライブラリにない古い画像（/wp-content/img/…）です。\n1. 取り込む：サイトから読み込み、BlogOS の画像にします。\n2. 名前・alt・ファイル名を入れて、確認済みにします。\n3. WordPress のメディアに登録します（人の承認）。\n4. 置き換える：公開中の記事の URL だけを置き換えて反映し、作業中の編集案の URL も置き換えます。\n5. 古い画像の削除の画面で、どこにも使われなくなったファイルを消すコマンドを出します（SSH で人が実行）。"])</h2>
+    @php $legacyImagesPage = \App\Support\ListPage::of($legacyImages, 'legacy_page')->fragment('legacy-images'); @endphp
+    @include('partials.history-count', ['paginator' => $legacyImagesPage, 'order' => '本文の順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>画像</th><th>古いファイル</th><th>状態と入力</th></tr></thead>
             <tbody>
-                @foreach ($legacyImages as $row)
+                @foreach ($legacyImagesPage as $row)
                     <tr>
                         <td style="width:140px;">
                             <a href="{{ $row['url'] }}" target="_blank" rel="noopener"><img src="{{ $row['url'] }}" alt="" loading="lazy" style="max-width:120px; max-height:90px;"></a>
@@ -602,6 +633,7 @@
             </tbody>
         </table>
     </div>
+    {{ $legacyImagesPage->links() }}
 
     <p>
         @if (collect($legacyImages)->contains(fn ($row) => ! $row['image']))
@@ -644,11 +676,14 @@
     </section>
     <section class="panel">
     <h2 data-code="HISTORY">管理情報の変更履歴</h2>
+    @php $historiesPage = \App\Support\ListPage::of($histories, 'history_page')->fragment('history'); @endphp
+    <a id="history"></a>
+    @include('partials.history-count', ['paginator' => $historiesPage])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>日時</th><th>項目</th><th>変更前</th><th>変更後</th></tr></thead>
             <tbody>
-                @forelse ($histories as $history)
+                @forelse ($historiesPage as $history)
                     <tr>
                         <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
                         <td>{{ $history->field }}</td>
@@ -661,6 +696,7 @@
             </tbody>
         </table>
     </div>
+    {{ $historiesPage->links() }}
     </section>
 
 @endsection

@@ -60,11 +60,14 @@
     @if ($pending->isEmpty())
         <p>ありません。</p>
     @else
+        @php $pendingPage = \App\Support\ListPage::of($pending, 'pending_page')->fragment('pending'); @endphp
+        <a id="pending"></a>
+        @include('partials.history-count', ['paginator' => $pendingPage, 'order' => '作った順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>カテゴリ</th><th>案</th><th>優先度</th><th>理由・重複</th><th></th></tr></thead>
                 <tbody>
-                    @foreach ($pending as $suggestion)
+                    @foreach ($pendingPage as $suggestion)
                         @include('topics.partials.row', ['suggestion' => $suggestion, 'child' => false])
                         @foreach ($suggestion->articles->where('status', \App\Enums\SuggestionStatus::Pending) as $article)
                             @include('topics.partials.row', ['suggestion' => $article, 'child' => true])
@@ -73,6 +76,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $pendingPage->links() }}
     @endif
     </section>
 
@@ -109,14 +113,18 @@
     @if ($queries->isEmpty())
         <p>ありません。</p>
     @else
+        @php $queryPage = \App\Support\ListPage::of($queries, 'query_page')->fragment('queries'); @endphp
+        <a id="queries"></a>
+        @include('partials.history-count', ['paginator' => $queryPage, 'order' => '表示回数の多い順'])
         <table class="data">
             <thead><tr><th>検索語句</th><th>表示回数</th><th>クリック</th><th>平均順位</th><th>表示された記事</th></tr></thead>
             <tbody>
-                @foreach ($queries as $query)
+                @foreach ($queryPage as $query)
                     <tr><td>{{ $query->query }}</td><td>{{ $query->impressions }}</td><td>{{ $query->clicks }}</td><td>{{ number_format((float) $query->position, 1) }}</td><td>{{ $query->title }}</td></tr>
                 @endforeach
             </tbody>
         </table>
+        {{ $queryPage->links() }}
     @endif
     </section>
 

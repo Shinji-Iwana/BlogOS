@@ -26,12 +26,14 @@
     @if ($typeComponents->isEmpty())
         <p>{{ $components->isEmpty() ? 'まだ確認していません。' : 'ありません。' }}</p>
     @else
-        <p>表示件数：{{ $typeComponents->count() }}件</p>
+        @php $componentPage = \App\Support\ListPage::of($typeComponents->values(), $type . '_page')->fragment($type); @endphp
+        <a id="{{ $type }}"></a>
+        @include('partials.history-count', ['paginator' => $componentPage, 'order' => '名前の順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>名前</th><th>状態</th><th>インストール中</th><th>最新</th><th>必要な PHP</th><th>お知らせ</th></tr></thead>
                 <tbody>
-                    @foreach ($typeComponents as $component)
+                    @foreach ($componentPage as $component)
                         <tr>
                             <td>{{ $component->name }}<br><span class="text-muted">{{ $component->slug }}</span></td>
                             <td>{{ ['active' => '有効', 'inactive' => '無効'][$component->status] ?? '' }}</td>
@@ -56,6 +58,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $componentPage->links() }}
     @endif
     </section>
     @endforeach

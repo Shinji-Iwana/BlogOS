@@ -31,6 +31,7 @@
         <form method="POST" action="{{ route('drafts.link-switch.push') }}" onsubmit="return confirm('チェックした編集案を、WordPress に反映しますか？');">
             @csrf
             @include('partials.selected-blog-field')
+            @include('partials.history-count', ['paginator' => $drafts, 'order' => '作った順'])
             <table class="data">
                 <thead><tr><th><input type="checkbox" checked onclick="document.querySelectorAll('.switch-check').forEach(c => c.checked = this.checked)"></th><th>記事</th><th>切り替える・直すリンク</th><th></th></tr></thead>
                 <tbody>
@@ -53,6 +54,7 @@
                     @endforeach
                 </tbody>
             </table>
+            {{ $drafts->links() }}
             <p><button type="submit">チェックした編集案を反映する</button></p>
         </form>
     @endif

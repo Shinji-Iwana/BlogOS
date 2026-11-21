@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Database;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlogRepository;
 use App\Support\DatabaseTables;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +50,7 @@ class TableRecordController extends Controller
                 });
             })
             ->when($key !== null, fn (Builder $query) => $query->orderByDesc($key))
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         return view('database.tables.index', [
@@ -82,7 +82,7 @@ class TableRecordController extends Controller
             [$historyTable, $historyKey] = $history;
             $histories = DB::table($historyTable)->where($historyKey, $record->{$key})
                 ->orderByDesc('changed_at')->orderByDesc('id')
-                ->paginate(HistoryPage::PER_PAGE)->withQueryString();
+                ->paginate(ListPage::PER_PAGE)->withQueryString();
         }
 
         return view('database.tables.show', [

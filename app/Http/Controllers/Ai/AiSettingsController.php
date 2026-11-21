@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ai;
 
+use App\Support\ListPage;
 use App\Enums\AiBatchTarget;
 use App\Enums\AiMode;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
@@ -43,10 +44,10 @@ class AiSettingsController extends Controller
         return view('ai.settings.edit', [
             'blog'       => $blog,
             // 今日の時点で、自動の再評価の対象になる記事（有効・無効にかかわらず表示する）
-            'targets'    => $this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation),
+            'targets'    => ListPage::of($this->batchService->targets($blog, AiMode::QualityDiagnosis, AiBatchTarget::NeedsReevaluation), 'target_page'),
             'remaining'  => $this->autoService->remainingToday($blog),
             // API実行の料金表の値下がり（確認待ち。全ブログ共通。D-31-03）。料金表は画面「OpenAI API料金表情報」（D-63-28）
-            'pendingPrices'    => $this->priceRepository->pending(),
+            'pendingPrices'    => ListPage::of($this->priceRepository->pending(), 'pending_page'),
             'latestPriceCheck' => $this->priceRepository->latestCheck(),
         ]);
     }

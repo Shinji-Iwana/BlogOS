@@ -32,11 +32,13 @@
                 <button type="submit" @disabled($unregistered === 0)>チェックした教材を登録する</button>
             </p>
 
+            @php $detectedPage = \App\Support\ListPage::of($detected); @endphp
+            @include('partials.history-count', ['paginator' => $detectedPage, 'order' => '見つけた順'])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('.detected-check:not(:disabled)').forEach(c => c.checked = this.checked)" checked></th><th>種類</th><th>名前</th><th>リンク</th><th>使っている記事</th></tr></thead>
                     <tbody>
-                        @foreach ($detected as $index => $item)
+                        @foreach ($detectedPage as $index => $item)
                             <tr @class(['text-dim' => $item['material'] !== null])>
                                 <td><input type="checkbox" class="detected-check" name="selected[]" value="{{ $index }}" @checked($item['material'] === null) @disabled($item['material'] !== null)></td>
                                 <td>
@@ -78,6 +80,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $detectedPage->links() }}
         </form>
     @endif
 

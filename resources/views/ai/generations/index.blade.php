@@ -19,6 +19,7 @@
 
     @include('partials.ai-credit-notice')
 
+    @include('partials.history-count', ['paginator' => $generations])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>#</th><th>実行モード</th><th>対象</th><th>状態</th><th>実行方式・モデル</th><th>日時</th></tr></thead>
@@ -38,5 +39,6 @@
             </tbody>
         </table>
     </div>
+    {{ $generations->links() }}
 
 @endsection

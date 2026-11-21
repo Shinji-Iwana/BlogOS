@@ -9,6 +9,8 @@ use App\Enums\AiMode;
 use App\Models\AiBatch;
 use App\Models\AiBatchItem;
 use DateTimeInterface;
+use App\Support\ListPage;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -48,22 +50,22 @@ class AiBatchRepository
     }
 
     /**
-     * @return Collection<int, AiBatchItem>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function items(AiBatch $batch): Collection
+    public function items(AiBatch $batch): LengthAwarePaginator
     {
         return AiBatchItem::with(['post:id,title_raw', 'page:id,title_raw', 'generation:id,status,estimated_cost', 'generation.evaluations:id,ai_generation_id,score', 'generation.createdDrafts:id,ai_generation_id', 'diagnosisGeneration:id,estimated_cost'])
             ->where('ai_batch_id', $batch->id)
             ->orderBy('id')
-            ->get();
+            ->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     /**
-     * @return Collection<int, AiBatch>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function listForBlog(int $blogId, int $limit = 100): Collection
+    public function listForBlog(int $blogId): LengthAwarePaginator
     {
-        return AiBatch::with('requester:id,name')->where('blog_id', $blogId)->orderByDesc('id')->limit($limit)->get();
+        return AiBatch::with('requester:id,name')->where('blog_id', $blogId)->orderByDesc('id')->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     /**

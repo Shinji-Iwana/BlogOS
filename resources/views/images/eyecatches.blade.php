@@ -24,7 +24,9 @@
         @csrf
         @method('PUT')
         @include('partials.selected-blog-field')
+        <input type="hidden" name="page" value="{{ $categories->currentPage() }}">
 
+        @include('partials.history-count', ['paginator' => $categories, 'order' => 'カテゴリの順'])
         <div style="overflow-x:auto;">
             <table class="data">
                 <thead><tr><th>カテゴリ</th><th>記事数</th><th>今の記事で多い画像</th><th>アイキャッチ</th></tr></thead>
@@ -63,6 +65,7 @@
                 </tbody>
             </table>
         </div>
+        {{ $categories->links() }}
 
         <p><button type="submit">保存する</button></p>
     </form>

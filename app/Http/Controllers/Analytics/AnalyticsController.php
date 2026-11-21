@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Analytics;
 
+use App\Support\ListPage;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Repositories\ArticleRepository;
@@ -34,9 +35,10 @@ class AnalyticsController extends Controller
         [$from, $to] = self::period($days);
         $sort = in_array($request->query('sort'), ['views', 'clicks', 'impressions', 'earnings'], true) ? $request->query('sort') : 'views';
 
-        $totals = $this->metrics->articleTotals($blog->id, $from, $to)->sortByDesc($sort)->take(100)->values();
+        // 記事ごと：並べ替えた全件を、50件ずつのページに分ける（D-98-01）
+        $totals = ListPage::of($this->metrics->articleTotals($blog->id, $from, $to)->sortByDesc($sort)->values());
 
-        $articles = $this->articles->findMany($totals->pluck('post_id')->filter()->all(), $totals->pluck('page_id')->filter()->all());
+        $articles = $this->articles->findMany($totals->getCollection()->pluck('post_id')->filter()->all(), $totals->getCollection()->pluck('page_id')->filter()->all());
 
         return view('analytics.index', [
             'blog'       => $blog,

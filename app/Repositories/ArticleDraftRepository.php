@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use App\Support\ListPage;
 use App\Enums\ChangeSource;
 use App\Enums\DraftState;
 use App\Models\ArticleDraft;
@@ -35,17 +37,16 @@ class ArticleDraftRepository
     }
 
     /**
-     * @return Collection<int, ArticleDraft>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function listForBlog(int $blogId, bool $includeClosed = false): Collection
+    public function listForBlog(int $blogId, bool $includeClosed = false): LengthAwarePaginator
     {
         return ArticleDraft::with(['post', 'page', 'creator'])
             ->where('blog_id', $blogId)
             ->when(! $includeClosed, fn ($query) => $query->active())
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
-            ->limit(500)
-            ->get();
+            ->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     /**
@@ -126,7 +127,7 @@ class ArticleDraftRepository
      */
     public function histories(ArticleDraft $draft): Collection
     {
-        return $draft->histories()->orderByDesc('changed_at')->orderByDesc('id')->limit(500)->get();
+        return $draft->histories()->orderByDesc('changed_at')->orderByDesc('id')->get();
     }
 
     protected function writeHistory(

@@ -16,7 +16,7 @@ use App\Models\Taxonomy;
 use App\Models\Type;
 use App\Models\WordPressRecord;
 use App\Repositories\BlogRepository;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use Illuminate\Http\Request;
 
 /**
@@ -96,7 +96,7 @@ class WordPressRecordController extends Controller
                 });
             })
             ->orderByDesc('id')
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         return view('database.wordpress-records.index', [
@@ -122,7 +122,7 @@ class WordPressRecordController extends Controller
         $histories = $historyClass::where($record::historyForeignKey(), $record->id)
             ->orderByDesc('changed_at')
             ->orderByDesc('id')
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         return view('database.wordpress-records.show', [

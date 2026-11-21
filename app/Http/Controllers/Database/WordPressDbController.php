@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Database;
 
 use App\Http\Controllers\Controller;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 use App\Support\WordPressDatabaseTables;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -46,7 +46,7 @@ class WordPressDbController extends Controller
                 });
             })
             ->when($key !== null, fn (Builder $query) => $query->orderByDesc($key))
-            ->paginate(HistoryPage::PER_PAGE)
+            ->paginate(ListPage::PER_PAGE)
             ->withQueryString();
 
         return view('database.wordpress-db.index', [

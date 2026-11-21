@@ -62,12 +62,12 @@ class PageSpeedReportService
      *
      * @return Collection<int, PageSpeedRun>
      */
-    public function historyForArticle(Post|Page $article, int $limit = 10): Collection
+    public function historyForArticle(Post|Page $article): Collection
     {
         $column = $article instanceof Post ? 'post_id' : 'page_id';
 
         return PageSpeedRun::where('blog_id', $article->blog_id)->where($column, $article->id)
-            ->latest('started_at')->latest('id')->limit($limit)->get();
+            ->latest('started_at')->latest('id')->get();
     }
 
     /**

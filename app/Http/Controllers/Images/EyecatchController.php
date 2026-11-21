@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Images;
 
+use App\Support\ListPage;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
@@ -44,7 +45,7 @@ class EyecatchController extends Controller
 
         return view('images.eyecatches', [
             'blog'       => $blog,
-            'categories' => $ordered->concat($categories->whereNotIn('id', $ordered->pluck('id'))),
+            'categories' => ListPage::of($ordered->concat($categories->whereNotIn('id', $ordered->pluck('id')))->values()),
             'settings'   => $this->images->eyecatches($blog->id),
             'used'       => $this->images->usedEyecatches($blog->id),
             'media'      => $media->keyBy('id'),
@@ -66,6 +67,6 @@ class EyecatchController extends Controller
             }
         }
 
-        return redirect()->route('images.eyecatches')->with('status', 'カテゴリごとのアイキャッチを保存しました。');
+        return redirect()->route('images.eyecatches', array_filter(['page' => (int) $request->input('page')]))->with('status', 'カテゴリごとのアイキャッチを保存しました。');
     }
 }

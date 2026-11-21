@@ -50,10 +50,13 @@
     @if ($remaining === [])
         <p>ありません。</p>
     @else
+        @php $remainingPage = \App\Support\ListPage::of($remaining)->fragment('remaining'); @endphp
+        <a id="remaining"></a>
+        @include('partials.history-count', ['paginator' => $remainingPage, 'order' => '記事の順'])
         <table class="data">
             <thead><tr><th>記事</th><th>古い画像</th><th>取り込み済み</th><th>WordPress に登録済み</th></tr></thead>
             <tbody>
-                @foreach ($remaining as $row)
+                @foreach ($remainingPage as $row)
                     <tr>
                         <td><a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}#legacy-images">{{ $row['article']->title_raw ?: '（タイトルなし）' }}</a></td>
                         <td>{{ $row['paths'] }}</td>
@@ -63,6 +66,7 @@
                 @endforeach
             </tbody>
         </table>
+        {{ $remainingPage->links() }}
     @endif
     </section>
 

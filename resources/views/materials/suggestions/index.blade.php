@@ -27,12 +27,14 @@
             @php $rows = $suggestions->where('type', $type); @endphp
             @continue($rows->isEmpty())
             <section class="panel">
-            <h2>{{ $type->label() }}：{{ $rows->count() }}件</h2>
+            <h2 id="{{ $type->value }}">{{ $type->label() }}：{{ $rows->count() }}件</h2>
+            @php $rowPage = \App\Support\ListPage::of($rows->values(), $type->value . '_page')->fragment($type->value); @endphp
+            @include('partials.history-count', ['paginator' => $rowPage, 'order' => '作った順'])
             <div style="overflow-x:auto;">
                 <table class="data">
                     <thead><tr><th>種類</th><th>名前</th><th>版・出版日</th><th>AIの理由</th><th>作った日時</th><th></th></tr></thead>
                     <tbody>
-                        @foreach ($rows as $suggestion)
+                        @foreach ($rowPage as $suggestion)
                             <tr>
                                 <td>{{ $suggestion->kind->label() }}</td>
                                 <td>
@@ -53,6 +55,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $rowPage->links() }}
             </section>
         @endforeach
     @endif

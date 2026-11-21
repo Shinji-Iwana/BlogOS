@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Materials;
 
+use App\Support\ListPage;
 use App\Clients\Rakuten\RakutenBooksClient;
 use App\Enums\MaterialKind;
 use App\Enums\MaterialStatus;
@@ -62,7 +63,8 @@ class MaterialController extends Controller
         return view('materials.index', [
             'blog'             => $blog,
             'kind'             => $kind,
-            'materials'        => $materials,
+            // 50件ずつ。「チェックした教材を調べる」は、表示しているページのチェックした教材だけ（D-98-01）
+            'materials'        => ListPage::of($materials->values()),
             'needsReview'      => $needsReview,
             // 教材のリンクが押された回数（直近28日・90日。D-91-08）
             'clicks28'         => app(\App\Repositories\GoogleMetricRepository::class)->materialClicks($blog->id, ...\App\Http\Controllers\Analytics\AnalyticsController::period(28)),

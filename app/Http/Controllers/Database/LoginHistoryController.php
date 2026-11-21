@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Database;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\LoginHistoryService;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 
 /**
  * ログイン履歴の確認画面（BLOGOS_DECISIONS.md D-17-03）。
@@ -21,7 +21,7 @@ class LoginHistoryController extends Controller
     public function index()
     {
         return view('database.login-histories.index', [
-            'histories' => $this->loginHistoryService->paginateLatest(HistoryPage::PER_PAGE),
+            'histories' => $this->loginHistoryService->paginateLatest(ListPage::PER_PAGE),
             'latest'    => $this->loginHistoryService->latest(),
         ]);
     }

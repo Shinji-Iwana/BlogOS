@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Analytics;
 
+use App\Support\ListPage;
 use App\Http\Controllers\Concerns\UsesSelectedBlog;
 use App\Http\Controllers\Controller;
 use App\Services\Google\ArticlePerformanceService;
@@ -38,7 +39,7 @@ class PerformanceController extends Controller
             'blog'     => $blog,
             'days'     => $days,
             'period'   => $service->period($blog, $days),
-            'rows'     => $action !== null ? array_values(array_filter($rows, fn ($row) => in_array($action, $row['actions'], true))) : $rows,
+            'rows'     => ListPage::of($action !== null ? array_values(array_filter($rows, fn ($row) => in_array($action, $row['actions'], true))) : $rows),
             'counts'   => $counts,
             'action'   => $action,
             'sort'     => $sort,

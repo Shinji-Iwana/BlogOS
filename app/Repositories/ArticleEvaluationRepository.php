@@ -63,12 +63,11 @@ class ArticleEvaluationRepository
     /**
      * @return Collection<int, ArticleEvaluation>
      */
-    public function forArticle(Post|Page $article, int $limit = 50): Collection
+    public function forArticle(Post|Page $article): Collection
     {
         return ArticleEvaluation::with('creator')
             ->where(ArticleContentRepository::articleColumn($article), $article->id)
             ->orderByDesc('id')
-            ->limit($limit)
             ->get();
     }
 

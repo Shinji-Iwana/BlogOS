@@ -76,7 +76,8 @@ class ServerStatusTest extends TestCase
         $this->assertSame(1, $saved['tables']['users']['common']['rows']);
         $this->assertNull(\App\Models\DatabaseUsageItem::where('table_name', 'users')->value('blog_id'));
 
-        $this->get(route('server.index'))->assertOk()
+        // テーブルの一覧は50件ずつのため、全ページをつないで見る（D-98-01）
+        $this->serverPageWithAllTables()
             ->assertSee(\App\Support\DisplayTime::format($measurement->measured_at, 'Y-m-d H:i') . ' 時点')
             ->assertSee('うち ブログA')->assertSee('うち 共通（ブログに属さない）')
             ->assertSee('ブログB（アーカイブ）<br><span class="text-muted">件数／容量</span>', false)
@@ -132,9 +133,9 @@ class ServerStatusTest extends TestCase
         \App\Models\Tag::create(['blog_id' => $blog->id, 'wordpress_id' => 2, 'name' => 'B', 'slug' => 'b', 'wordpress_deleted_at' => now()]);
 
         // 取り込んだ WordPress のデータのテーブルは「名前（テーブル名）」のリンクと、WordPress側で削除済みの件数を、件数と容量の間に出す（D-71-07）
-        $this->actingAs(User::factory()->create())
-            ->get(route('server.index'))
-            ->assertOk()
+        // テーブルの一覧は50件ずつのため、全ページをつないで見る（D-98-01）
+        $this->actingAs(User::factory()->create());
+        $this->serverPageWithAllTables()
             ->assertSeeInOrder(['<h2>DB（BlogOS）</h2>', '<th>テーブル</th><th>件数</th><th>うちWordPress側で削除済み</th><th>容量（データと索引）</th>'], false)
             ->assertSeeInOrder(['<a href="' . route('database.wordpress-records.index', ['table' => 'tags']) . '">タグ</a>（tags）</td>', '>2</td>', '>1</td>'], false)
             // ほかのテーブルも「日本語名（テーブル名）」で、全テーブルの一覧へつなぐ（D-80）

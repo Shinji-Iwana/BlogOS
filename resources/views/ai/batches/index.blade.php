@@ -18,6 +18,7 @@
 
     @include('partials.flash')
 
+    @include('partials.history-count', ['paginator' => $batches])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead><tr><th>#</th><th>実行モード</th><th>きっかけ</th><th>対象</th><th>モデル</th><th>状態</th><th>進み具合</th><th>費用の目安</th><th>日時</th></tr></thead>
@@ -41,5 +42,6 @@
             </tbody>
         </table>
     </div>
+    {{ $batches->links() }}
 
 @endsection

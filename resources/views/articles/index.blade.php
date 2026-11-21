@@ -48,7 +48,9 @@
         <button type="submit" class="btn-secondary">絞り込む</button>
     </form>
 
-    <p>{{ $articles->total() }}件（WordPress側で完全に削除されたものを除く）</p>
+    {{-- 表示件数の行は全画面で共通（D-98-02）。WordPress側で完全に削除されたものは数えない --}}
+    @include('partials.history-count', ['paginator' => $articles, 'order' => '公開日の新しい順'])
+    <p class="text-muted">WordPress側で完全に削除されたものは含みません。</p>
 
     <div style="overflow-x:auto;">
         <table class="data">

@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use App\Support\ListPage;
 use App\Enums\PushOperationType;
 use App\Enums\PushResourceType;
 use App\Enums\PushState;
@@ -96,15 +98,14 @@ class WordPressPushOperationRepository
     }
 
     /**
-     * @return Collection<int, WordPressPushOperation>
+     * @return LengthAwarePaginator（1ページ50件。D-98-01）
      */
-    public function listForBlog(int $blogId, int $limit = 200): Collection
+    public function listForBlog(int $blogId): LengthAwarePaginator
     {
         return WordPressPushOperation::with(['draft', 'post', 'page', 'category', 'tag', 'media', 'approver'])
             ->where('blog_id', $blogId)
             ->orderByDesc('id')
-            ->limit($limit)
-            ->get();
+            ->paginate(ListPage::PER_PAGE)->withQueryString();
     }
 
     /**

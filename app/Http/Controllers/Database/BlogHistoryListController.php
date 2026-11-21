@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\BlogHistoryRepository;
 use App\Repositories\BlogRepository;
 use App\Repositories\SyncRunRepository;
-use App\Support\HistoryPage;
+use App\Support\ListPage;
 
 /**
  * ブログ情報の同期履歴（DB確認画面。D-63-16）。
@@ -24,8 +24,8 @@ class BlogHistoryListController extends Controller
     {
         // 2つの表は、別々にページを送る（ページの番号の名前を分ける）
         return view('database.blog-history-list', [
-            'histories'        => $this->blogHistoryRepository->paginate(HistoryPage::PER_PAGE, 'page')->withQueryString(),
-            'settingHistories' => $this->blogHistoryRepository->paginateSettingHistories(HistoryPage::PER_PAGE, 'settings_page')->withQueryString(),
+            'histories'        => $this->blogHistoryRepository->paginate(ListPage::PER_PAGE, 'page')->withQueryString(),
+            'settingHistories' => $this->blogHistoryRepository->paginateSettingHistories(ListPage::PER_PAGE, 'settings_page')->withQueryString(),
             // サイト設定は、WordPress との同期で取り込む（選択中のブログの最後の同期）
             'latestSync'       => ($blog = $blogs->findSelected()) ? $syncRuns->latestForBlog($blog->id) : null,
         ]);

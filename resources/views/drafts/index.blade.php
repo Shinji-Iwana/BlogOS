@@ -22,6 +22,7 @@
 
     @include('partials.flash')
 
+    @include('partials.history-count', ['paginator' => $drafts, 'order' => '更新の新しい順'])
     <div style="overflow-x:auto;">
         <table class="data">
             <thead>
@@ -44,5 +45,6 @@
             </tbody>
         </table>
     </div>
+    {{ $drafts->links() }}
 
 @endsection
