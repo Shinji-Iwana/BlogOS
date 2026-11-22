@@ -101,9 +101,12 @@
     /**
      * 表のセルの日時を、日付で1行・時刻で1行の2行にし、折り返さない決まった幅で出す（D-111-01）。
      * 日付だけ・時刻だけのセルも、折り返さない決まった幅で出す。
-     * セルの中身が日時だけ（リンクなど1つの要素で包んだものも含む）のときだけ変える。文章の中の日時は変えない
+     * セルの中身が日時だけ（リンクなど1つの要素で包んだものも含む）のときだけ変える。文章の中の日時は変えない。
+     * 2行にするのは、列の見出しの行がある表（一覧）だけ。詳細画面の「項目名と値」の表（列の見出しの行がない）は、
+     * 列の幅を節約しなくても折れないため、1行のまま折り返さずに出す（D-111-02）
      */
     function dateTimes(table) {
+        const twoLines = headerRow(table) !== null;
         Array.from(table.tBodies).forEach((body) => {
             Array.from(body.rows).forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
@@ -121,6 +124,24 @@
 
                     let parts = null;
                     const both = text.match(DATE_TIME);
+                    if (both && !twoLines) {
+                        // 詳細の表：1行で出す。日付・時刻の途中では折らず、幅が足りない（スマホなど）ときだけ、間の空白で折れる
+                        const inline = document.createElement('span');
+                        inline.className = 'dt-inline';
+                        [both[1], both[2]].forEach((part, i) => {
+                            const piece = document.createElement('span');
+                            piece.textContent = part;
+                            inline.appendChild(piece);
+                            if (i === 0) {
+                                inline.appendChild(document.createTextNode(' '));
+                            }
+                        });
+                        target.textContent = '';
+                        target.appendChild(inline);
+                        cell.dataset.dt = '1';
+
+                        return;
+                    }
                     if (both) {
                         parts = [both[1], both[2]];
                     } else if (DATE_ONLY.test(text) || TIME_ONLY.test(text)) {

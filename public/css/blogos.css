@@ -600,6 +600,13 @@ table.data > * > tr > .cell-dt {
     display: block;
 }
 
+/* 詳細画面の「項目名と値」の表（列の見出しの行がない）の日時は1行（D-111-02）。
+   日付・時刻の途中では折らず、幅が足りない（スマホなど）ときだけ、間の空白で折れる */
+.dt-inline > span {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
 
 /* ==========================================================
    メニューバー（D-56。layouts/header の nav.site-menu）

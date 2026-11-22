@@ -89,6 +89,10 @@ class ListPageTest extends TestCase
         $this->assertStringContainsString("line.className = parts.length === 2 ? (i === 0 ? 'dt-date' : 'dt-time') : 'dt-line';", $js);
         // 幅は、一番長い行の文字数で決める
         $this->assertStringContainsString("box.style.width = (Math.max(...parts.map((part) => part.length)) + 0.3) + 'ch';", $js);
+        // 2行にするのは一覧（列の見出しの行がある表）だけ。詳細の「項目名と値」の表は1行（間の空白でだけ折れる。D-111-02）
+        $this->assertStringContainsString('const twoLines = headerRow(table) !== null;', $js);
+        $this->assertStringContainsString('if (both && !twoLines) {', $js);
+        $this->assertStringContainsString("inline.className = 'dt-inline';", $js);
         // 日時のある表は、長い文章のセルが細くなりすぎたら、カードの形にする
         $this->assertStringContainsString("if (!table.querySelector('.cell-dt')) {", $js);
 
@@ -96,5 +100,6 @@ class ListPageTest extends TestCase
         $this->assertMatchesRegularExpression('/table\.data > \* > tr > \.cell-dt \{\s+white-space: nowrap;\s+overflow-wrap: normal;\s+\}/', $css);
         $this->assertMatchesRegularExpression('/\.dt \{[^}]*display: inline-block;[^}]*white-space: nowrap;[^}]*font-variant-numeric: tabular-nums;[^}]*\}/', $css);
         $this->assertMatchesRegularExpression('/\.dt > span \{\s+display: block;\s+\}/', $css);
+        $this->assertMatchesRegularExpression('/\.dt-inline > span \{\s+white-space: nowrap;/', $css);
     }
 }
