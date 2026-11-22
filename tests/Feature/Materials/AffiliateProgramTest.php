@@ -159,6 +159,8 @@ class AffiliateProgramTest extends TestCase
         $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/<summary>OpenAI<\/summary>.*?data-modal-open="affiliate-program-modal" >アフィリエイト提携先を登録<\/a><\/li>\s*<li class="site-menu-sub">\s*<details>\s*<summary>即時実行<\/summary>/s', $html);
         $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?<h2 class="modal-title">.*?<span class="modal-title-text">アフィリエイト提携先<\/span>/s', $html);
+        // 並びは ASP → 広告ID → 教材の種類・状態（左右に並べる） → 名前 → メモ（D-106）
+        $this->assertMatchesRegularExpression('/id="affiliate-program-modal".*?name="asp".*?name="external_id".*?<div class="modal-field-row">\s*<label class="modal-field">\s*<span class="modal-label">教材の種類<\/span>.*?name="status".*?<\/label>\s*<\/div>\s*<label class="modal-field">\s*<span class="modal-label">名前<\/span>.*?name="memo"/s', $html);
         // 画面「アフィリエイトのプログラム」には、登録の欄を出さない
         $this->get(route('materials.programs.index'))->assertOk()->assertDontSee('<h2>プログラムを登録する</h2>', false);
 

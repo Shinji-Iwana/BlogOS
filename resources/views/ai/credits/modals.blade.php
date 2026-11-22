@@ -61,15 +61,17 @@
                 @include('partials.selected-blog-field')
                 <input type="hidden" name="_form" value="credit-{{ $kind }}">
 
-                {{-- 上にラベル、下に入力欄（D-99-01） --}}
-                <label class="modal-field">
-                    <span class="modal-label">{{ $form['amount']['label'] }} @include('partials.tip', ['tip' => $form['amount']['tip']])</span>
-                    <input type="number" name="amount" step="0.01" min="0" value="{{ $creditFailed ? old('amount') : '' }}" placeholder="$" required>
-                </label>
-                <label class="modal-field">
-                    <span class="modal-label">{{ $form['at'] }} @include('partials.tip', ['tip' => $atTip])</span>
-                    <input type="datetime-local" name="occurred_at" value="{{ $creditFailed ? old('occurred_at') : now(config('blogos.display_timezone'))->format('Y-m-d\TH:i') }}" @unless ($creditFailed) data-default-now="{{ config('blogos.display_timezone') }}" @endunless>
-                </label>
+                {{-- 上にラベル、下に入力欄（D-99-01）。額と日時は、左右に並べる（D-106） --}}
+                <div class="modal-field-row">
+                    <label class="modal-field">
+                        <span class="modal-label">{{ $form['amount']['label'] }} @include('partials.tip', ['tip' => $form['amount']['tip']])</span>
+                        <input type="number" name="amount" step="0.01" min="0" value="{{ $creditFailed ? old('amount') : '' }}" placeholder="$" required>
+                    </label>
+                    <label class="modal-field">
+                        <span class="modal-label">{{ $form['at'] }} @include('partials.tip', ['tip' => $atTip])</span>
+                        <input type="datetime-local" name="occurred_at" value="{{ $creditFailed ? old('occurred_at') : now(config('blogos.display_timezone'))->format('Y-m-d\TH:i') }}" @unless ($creditFailed) data-default-now="{{ config('blogos.display_timezone') }}" @endunless>
+                    </label>
+                </div>
                 <label class="modal-field">
                     <span class="modal-label">メモ</span>
                     <input type="text" name="note" value="{{ $creditFailed ? old('note') : '' }}">

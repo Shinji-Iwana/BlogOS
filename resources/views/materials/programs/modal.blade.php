@@ -59,26 +59,29 @@
                     <span class="modal-label">広告ID @include('partials.tip', ['tip' => 'もしもアフィリエイトの広告IDは、リンクの p_id= の数字です。'])</span>
                     <input type="text" name="external_id" value="{{ $programFailed ? old('external_id') : '' }}" required>
                 </label>
+                {{-- 並び：ASP → 広告ID → 教材の種類・状態（左右に並べる） → 名前 → メモ（D-106） --}}
+                <div class="modal-field-row">
+                    <label class="modal-field">
+                        <span class="modal-label">教材の種類</span>
+                        <select name="material_kind">
+                            <option value="">（決めない）</option>
+                            @foreach (\App\Enums\MaterialKind::cases() as $option)
+                                <option value="{{ $option->value }}" @selected($programFailed && old('material_kind') === $option->value)>{{ $option->label() }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="modal-field">
+                        <span class="modal-label">状態</span>
+                        <select name="status">
+                            @foreach (\App\Enums\AffiliateProgramStatus::cases() as $option)
+                                <option value="{{ $option->value }}" @selected(($programFailed ? old('status') : 'active') === $option->value)>{{ $option->label() }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                </div>
                 <label class="modal-field">
                     <span class="modal-label">名前</span>
                     <input type="text" name="name" value="{{ $programFailed ? old('name') : '' }}" required>
-                </label>
-                <label class="modal-field">
-                    <span class="modal-label">教材の種類</span>
-                    <select name="material_kind">
-                        <option value="">（決めない）</option>
-                        @foreach (\App\Enums\MaterialKind::cases() as $option)
-                            <option value="{{ $option->value }}" @selected($programFailed && old('material_kind') === $option->value)>{{ $option->label() }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <label class="modal-field">
-                    <span class="modal-label">状態</span>
-                    <select name="status">
-                        @foreach (\App\Enums\AffiliateProgramStatus::cases() as $option)
-                            <option value="{{ $option->value }}" @selected(($programFailed ? old('status') : 'active') === $option->value)>{{ $option->label() }}</option>
-                        @endforeach
-                    </select>
                 </label>
                 <label class="modal-field">
                     <span class="modal-label">メモ</span>
