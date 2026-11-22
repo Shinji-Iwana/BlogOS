@@ -539,7 +539,7 @@
         <div class="voice-panel-head">
             <span class="voice-panel-title">JARVIS</span>
             <span class="voice-panel-state" id="voice-state"></span>
-            <button type="button" class="voice-panel-close btn-secondary" id="voice-close" aria-label="閉じる">×</button>
+            <button type="button" class="voice-panel-close btn-secondary" id="voice-close" title="閉じる" aria-label="閉じる">×</button>
         </div>
         <p class="voice-line voice-line-user" id="voice-transcript" hidden></p>
         <p class="voice-line voice-line-reply" id="voice-reply" hidden></p>

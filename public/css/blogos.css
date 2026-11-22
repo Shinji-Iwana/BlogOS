@@ -443,14 +443,23 @@ table.data.data-compact > * > tr > td {
     background: #fff;
 }
 
-.modal-mode-icon > svg {
+.modal-mode-icon > [data-modal-icon] {
     display: none;
 }
 
+/* 見せるアイコンは枠いっぱいに広げ、枠のどこにマウスを乗せても名前のツールチップが出るようにする（D-108-01） */
 [data-modal-mode="create"] .modal-mode-icon > [data-modal-icon="create"],
 [data-modal-mode="edit"] .modal-mode-icon > [data-modal-icon="edit"],
 [data-modal-mode="switch"] .modal-mode-icon > [data-modal-icon="switch"],
 [data-modal-mode="info"] .modal-mode-icon > [data-modal-icon="info"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.modal-mode-icon > [data-modal-icon] > svg {
     display: block;
 }
 

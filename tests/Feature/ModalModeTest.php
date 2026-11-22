@@ -53,6 +53,10 @@ class ModalModeTest extends TestCase
             // 題名は共通の部品（4つのアイコンを置き、CSS でモードに合うものだけを見せる）
             $this->assertStringContainsString('<h2 class="modal-title">', $modal, $id);
             $this->assertStringContainsString('data-modal-icon="' . $mode . '"', $modal, $id);
+            // アイコンには、マウスを乗せるとツールチップで名前を出す（D-108-01）
+            foreach (ModalMode::ICON_LABELS as $iconMode => $label) {
+                $this->assertStringContainsString('<span data-modal-icon="' . $iconMode . '" title="' . $label . '"><svg', $modal, $id);
+            }
             // 送るボタンの名前は、モードで決める
             $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>' . ModalMode::SUBMIT_LABELS[$mode] . '<\/button>/u', $modal, $id);
         }
