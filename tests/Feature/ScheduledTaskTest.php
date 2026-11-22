@@ -301,7 +301,8 @@ class ScheduledTaskTest extends TestCase
             $this->assertMatchesRegularExpression('/<select name="' . $model . '" data-model="' . $pair . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $reevaluate);
             $this->assertMatchesRegularExpression('/<select name="' . $effort . '" data-effort="' . $pair . '">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $reevaluate);
         }
-        $this->assertStringContainsString("form.querySelectorAll('[data-model]').forEach((model) => {", $html);
+        // モデルで選べない推論の深さを選べなくするのは、全画面で共通の JavaScript（layouts/header。D-105-02）
+        $this->assertStringContainsString("document.querySelectorAll('select[data-model]').forEach(function (model) {", $html);
 
         // 押せなくした欄も、送るときに押せる状態に戻して送る（layouts/header の JavaScript）
         $this->assertStringContainsString("form.querySelectorAll('[data-enabled-by]').forEach((area) => area.querySelectorAll(enableFields).forEach((field) => { field.disabled = false; }));", $html);

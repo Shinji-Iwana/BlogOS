@@ -151,18 +151,14 @@
                 </p>
                 @if ($api['configured'])
                     <p>
-                        <label>モデル
-                            <select name="model" id="api-model">
-                                @foreach ($api['models'] as $name => $price)
-                                    <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($selectedModel === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }} / 1Mトークン）</option>
-                                @endforeach
+                        <label>モデル @include('partials.tip', ['tip' => '料金は、1Mトークンあたりの米ドル（入力・出力）。モデルによって、選べる推論の深さが変わります。'])
+                            <select name="model" id="api-model" data-model="api">
+                                @include('partials.ai-model-options', ['models' => $api['models'], 'selected' => $selectedModel])
                             </select>
                         </label>
                         <label>推論の深さ
-                            <select name="reasoning_effort" id="api-effort">
-                                @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $value => $label)
-                                    <option value="{{ $value }}" @selected($selectedEffort === $value)>{{ $label }}</option>
-                                @endforeach
+                            <select name="reasoning_effort" id="api-effort" data-effort="api">
+                                @include('partials.ai-effort-options', ['selected' => $selectedEffort])
                             </select>
                         </label>
                     </p>
@@ -172,20 +168,6 @@
                         1回の出力（推論を含む）の上限：{{ number_format($api['maxOutput']) }}トークン。<br>
                         API実行は、Queueの処理（XServerではcronの queue:work、ローカルでは <code>php artisan queue:work</code>）で動きます。
                     </p>
-                    <script>
-                        // モデルが対応していない推論の深さ（gpt-6-astra の none など）を選べないようにする
-                        (() => {
-                            const model = document.getElementById('api-model');
-                            const effort = document.getElementById('api-effort');
-                            const sync = () => {
-                                const allowed = model.selectedOptions[0].dataset.efforts.split(',');
-                                [...effort.options].forEach(o => { o.disabled = ! allowed.includes(o.value); });
-                                if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
-                            };
-                            model.addEventListener('change', sync);
-                            sync();
-                        })();
-                    </script>
                 @endif
             </fieldset>
 

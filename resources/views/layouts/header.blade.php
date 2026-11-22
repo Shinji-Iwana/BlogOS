@@ -605,6 +605,24 @@
         // ほかの画面の JavaScript からも、モードを変えて開けるようにする
         window.blogosSetModalMode = setModalMode;
 
+        // モデルで選べない推論の深さ（gpt-6-astra の none など）を、選べないようにする（全画面で共通。D-105-02）。
+        // select[data-model="名前"] と、同じフォームの select[data-effort="名前"] を組にする（選択肢は partials/ai-model-options・ai-effort-options）
+        document.querySelectorAll('select[data-model]').forEach(function (model) {
+            const effort = (model.form || document).querySelector('select[data-effort="' + model.dataset.model + '"]');
+            if (! effort) {
+                return;
+            }
+            const sync = function () {
+                const allowed = (model.selectedOptions[0]?.dataset.efforts || '').split(',');
+                [...effort.options].forEach((option) => { option.disabled = ! allowed.includes(option.value); });
+                if (effort.selectedOptions[0]?.disabled) {
+                    effort.value = allowed.includes('medium') ? 'medium' : allowed[0];
+                }
+            };
+            model.addEventListener('change', sync);
+            sync();
+        });
+
         // 有効のチェックで、その設定を押せる・押せないにする（D-103-03・D-103-04）。
         // data-enable-switch="名前" のチェックを外すと、data-enabled-by="名前" の部分の入力欄を押せなくし、薄く出す。
         // 押せない部分の中にあるチェック（例：記事の再評価の「診断の後の編集案の作成」）は、外したのと同じに扱い、その下も押せなくする（並びの順に決める）。

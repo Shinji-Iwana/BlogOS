@@ -21,18 +21,14 @@
 @endunless
 @if ($api['configured'])
     <p>
-        <label>モデル
-            <select name="model" id="{{ $prefix }}-model">
-                @foreach ($api['models'] as $name => $price)
-                    <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected(old('model', $defaults['model']) === $name)>{{ $name }}</option>
-                @endforeach
+        <label>モデル @include('partials.tip', ['tip' => '料金は、1Mトークンあたりの米ドル（入力・出力）。モデルによって、選べる推論の深さが変わります。'])
+            <select name="model" id="{{ $prefix }}-model" data-model="{{ $prefix }}">
+                @include('partials.ai-model-options', ['models' => $api['models'], 'selected' => old('model', $defaults['model'])])
             </select>
         </label>
         <label>推論の深さ
-            <select name="reasoning_effort" id="{{ $prefix }}-effort">
-                @foreach (['none', 'low', 'medium', 'high'] as $value)
-                    <option value="{{ $value }}" @selected(old('reasoning_effort', $defaults['effort']) === $value)>{{ $value }}</option>
-                @endforeach
+            <select name="reasoning_effort" id="{{ $prefix }}-effort" data-effort="{{ $prefix }}">
+                @include('partials.ai-effort-options', ['selected' => old('reasoning_effort', $defaults['effort'])])
             </select>
         </label>
         @if ($webSearch ?? false)
@@ -40,17 +36,4 @@
             <label><input type="checkbox" name="web_search" value="1" @checked(old('web_search', true))> Web検索を使う（API実行だけ。検索1回ごとに約${{ $api['webSearch']['cost_per_call'] }}、1回の実行で{{ $api['webSearch']['max_calls'] }}回まで）</label>
         @endif
     </p>
-    <script>
-        (() => {
-            const model = document.getElementById('{{ $prefix }}-model');
-            const effort = document.getElementById('{{ $prefix }}-effort');
-            const sync = () => {
-                const allowed = model.selectedOptions[0].dataset.efforts.split(',');
-                [...effort.options].forEach(o => { o.disabled = ! allowed.includes(o.value); });
-                if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
-            };
-            model.addEventListener('change', sync);
-            sync();
-        })();
-    </script>
 @endif

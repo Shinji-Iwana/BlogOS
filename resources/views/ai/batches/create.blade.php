@@ -65,18 +65,14 @@
             </label>
         </p>
         <p>
-            <label>モデル
-                <select name="model" id="batch-model">
-                    @foreach ($api['models'] as $name => $price)
-                        <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($model === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }} / 1Mトークン）</option>
-                    @endforeach
+            <label>モデル @include('partials.tip', ['tip' => '料金は、1Mトークンあたりの米ドル（入力・出力）。モデルによって、選べる推論の深さが変わります。'])
+                <select name="model" id="batch-model" data-model="batch">
+                    @include('partials.ai-model-options', ['models' => $api['models'], 'selected' => $model])
                 </select>
             </label>
             <label>推論の深さ
-                <select name="reasoning_effort" id="batch-effort">
-                    @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $value => $label)
-                        <option value="{{ $value }}" @selected($effort === $value)>{{ $label }}</option>
-                    @endforeach
+                <select name="reasoning_effort" id="batch-effort" data-effort="batch">
+                    @include('partials.ai-effort-options', ['selected' => $effort])
                 </select>
             </label>
         </p>
@@ -117,18 +113,14 @@
                         <label>基準 <input type="number" name="follow_up_below_score" value="{{ $acceptance }}" min="0" max="100" step="0.1" style="width:70px;">点未満、または必須条件を満たさない記事</label>
                     </p>
                     <p>
-                        <label>モデル
-                            <select name="follow_up_model">
-                                @foreach ($api['models'] as $name => $price)
-                                    <option value="{{ $name }}" @selected($revisionDefaults['model'] === $name)>{{ $name }}</option>
-                                @endforeach
+                        <label>モデル @include('partials.tip', ['tip' => '料金は、1Mトークンあたりの米ドル（入力・出力）。モデルによって、選べる推論の深さが変わります。'])
+                            <select name="follow_up_model" data-model="follow-up">
+                                @include('partials.ai-model-options', ['models' => $api['models'], 'selected' => $revisionDefaults['model']])
                             </select>
                         </label>
                         <label>推論の深さ
-                            <select name="follow_up_reasoning_effort">
-                                @foreach (['none', 'low', 'medium', 'high'] as $value)
-                                    <option value="{{ $value }}" @selected($revisionDefaults['effort'] === $value)>{{ $value }}</option>
-                                @endforeach
+                            <select name="follow_up_reasoning_effort" data-effort="follow-up">
+                                @include('partials.ai-effort-options', ['selected' => $revisionDefaults['effort']])
                             </select>
                         </label>
                         <label>改修範囲
@@ -180,20 +172,6 @@
     </div>
     {{ $targetPage->links() }}
 
-    <script>
-        // モデルが対応していない推論の深さ（gpt-6-astra の none など）を選べないようにする
-        (() => {
-            const model = document.getElementById('batch-model');
-            const effort = document.getElementById('batch-effort');
-            const sync = () => {
-                const allowed = model.selectedOptions[0].dataset.efforts.split(',');
-                [...effort.options].forEach(o => { o.disabled = ! allowed.includes(o.value); });
-                if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
-            };
-            model.addEventListener('change', sync);
-            sync();
-        })();
-    </script>
     </section>
 
 @endsection

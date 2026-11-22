@@ -129,11 +129,18 @@ class AiBatchTest extends TestCase
     {
         $this->fakeOpenAi();
 
-        $this->get(route('ai.batches.create', ['mode' => 'quality_diagnosis']))
+        $page = $this->get(route('ai.batches.create', ['mode' => 'quality_diagnosis']))
             ->assertOk()
             ->assertSee('対象：3件')
             ->assertSee('<option value="gpt-6-luna" data-efforts="none,low,medium,high" selected>', false)
-            ->assertDontSee('下書き');
+            ->assertDontSee('下書き')
+            ->getContent();
+        // 品質診断の組も、診断の後の改修の組も、同じ書き方（料金・「none（推論なし）」・モデルで選べない推論の深さ。D-105-02）
+        foreach (['model" id="batch-model" data-model="batch' => 'reasoning_effort" id="batch-effort" data-effort="batch', 'follow_up_model" data-model="follow-up' => 'follow_up_reasoning_effort" data-effort="follow-up'] as $model => $effort) {
+            $this->assertMatchesRegularExpression('/<select name="' . preg_quote($model, '/') . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $page);
+            $this->assertMatchesRegularExpression('/<select name="' . preg_quote($effort, '/') . '">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $page);
+        }
+        $this->assertStringNotContainsString('/ 1Mトークン）', $page);
 
         $this->post(route('ai.batches.store'), $this->selected([
             'mode' => 'quality_diagnosis', 'target' => 'all', 'model' => 'gpt-6-luna', 'reasoning_effort' => 'medium',

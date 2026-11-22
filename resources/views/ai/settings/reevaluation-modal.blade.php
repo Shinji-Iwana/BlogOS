@@ -121,17 +121,13 @@
                 <label class="modal-field" data-enabled-by="reevaluation">
                     <span class="modal-label">モデル @include('partials.tip', ['tip' => $tips['model']])</span>
                     <select name="auto_model" data-model="diagnosis">
-                        @foreach ($reevaluationModels as $name => $price)
-                            <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($value('auto_model', $reevaluationSetting->auto_model) === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
-                        @endforeach
+                        @include('partials.ai-model-options', ['models' => $reevaluationModels, 'selected' => $value('auto_model', $reevaluationSetting->auto_model)])
                     </select>
                 </label>
                 <label class="modal-field" data-enabled-by="reevaluation">
                     <span class="modal-label">推論の深さ</span>
                     <select name="auto_reasoning_effort" data-effort="diagnosis">
-                        @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $effortValue => $effortLabel)
-                            <option value="{{ $effortValue }}" @selected($value('auto_reasoning_effort', $reevaluationSetting->auto_reasoning_effort) === $effortValue)>{{ $effortLabel }}</option>
-                        @endforeach
+                        @include('partials.ai-effort-options', ['selected' => $value('auto_reasoning_effort', $reevaluationSetting->auto_reasoning_effort)])
                     </select>
                 </label>
             </div>
@@ -149,17 +145,13 @@
                 <label class="modal-field" data-enabled-by="revision">
                     <span class="modal-label">モデル</span>
                     <select name="auto_revision_model" data-model="revision">
-                        @foreach ($reevaluationModels as $name => $price)
-                            <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($value('auto_revision_model', $reevaluationSetting->auto_revision_model ?? $reevaluationRevision['model']) === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
-                        @endforeach
+                        @include('partials.ai-model-options', ['models' => $reevaluationModels, 'selected' => $value('auto_revision_model', $reevaluationSetting->auto_revision_model ?? $reevaluationRevision['model'])])
                     </select>
                 </label>
                 <label class="modal-field" data-enabled-by="revision">
                     <span class="modal-label">推論の深さ</span>
                     <select name="auto_revision_reasoning_effort" data-effort="revision">
-                        @foreach (['none' => 'none（推論なし）', 'low' => 'low', 'medium' => 'medium', 'high' => 'high'] as $effortValue => $effortLabel)
-                            <option value="{{ $effortValue }}" @selected($value('auto_revision_reasoning_effort', $reevaluationSetting->auto_revision_reasoning_effort ?? $reevaluationRevision['effort']) === $effortValue)>{{ $effortLabel }}</option>
-                        @endforeach
+                        @include('partials.ai-effort-options', ['selected' => $value('auto_revision_reasoning_effort', $reevaluationSetting->auto_revision_reasoning_effort ?? $reevaluationRevision['effort'])])
                     </select>
                 </label>
             </div>
@@ -206,24 +198,6 @@
             </div>
 
         </form>
-
-        {{-- モデルで選べない推論の深さを、選べないようにする（以前は画面「AIの設定」にあった）。
-             品質診断の組と、編集案の作成の組の両方（data-model と data-effort の値が同じものを組にする。D-105-01） --}}
-        <script>
-            (() => {
-                const form = document.querySelector('[data-reevaluation-form]');
-                form.querySelectorAll('[data-model]').forEach((model) => {
-                    const effort = form.querySelector('[data-effort="' + model.dataset.model + '"]');
-                    const sync = () => {
-                        const allowed = model.selectedOptions[0].dataset.efforts.split(',');
-                        [...effort.options].forEach((option) => { option.disabled = ! allowed.includes(option.value); });
-                        if (effort.selectedOptions[0].disabled) { effort.value = allowed.includes('medium') ? 'medium' : allowed[0]; }
-                    };
-                    model.addEventListener('change', sync);
-                    sync();
-                });
-            })();
-        </script>
 
         @endif
 

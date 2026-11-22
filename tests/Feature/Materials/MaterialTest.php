@@ -371,6 +371,15 @@ class MaterialTest extends TestCase
         $this->assertNull($this->reason($record));
     }
 
+    public function test_model_select_is_written_like_other_screens(): void
+    {
+        // 教材の AI 実行（共通部品 materials/partials/method）も、モデルは料金付き・「none（推論なし）」（D-105-02）
+        config(['services.openai.key' => 'sk-test-key']);
+        $page = $this->get(route('materials.discover.create'))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<select name="model" id="discover-model" data-model="discover">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $page);
+        $this->assertMatchesRegularExpression('/<select name="reasoning_effort" id="discover-effort" data-effort="discover">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $page);
+    }
+
     public function test_api_research_uses_web_search_and_rakuten(): void
     {
         config(['services.openai.key' => 'sk-test-key', 'blogos.ai.api.monthly_budget_usd' => 10, 'services.rakuten.application_id' => 'rakuten-app-id']);
