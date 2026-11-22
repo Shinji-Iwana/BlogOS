@@ -31,6 +31,10 @@
     // 見出しのセルが、この行数より多く折れたら「細くなりすぎ」とする（例：「ステータス」が1文字ずつ縦に並ぶ）
     const MAX_HEADER_LINES = 3;
 
+    // この文字数より長い文章のセルが、この幅（文字の大きさの何倍か。約6文字）より細くなったら「細くなりすぎ」とする（D-111-01）
+    const LONG_TEXT = 20;
+    const MIN_TEXT_EM = 6;
+
     /**
      * 列の見出しの行（thead の最後の行。thead がなければ、th だけの最初の行）
      */
@@ -89,6 +93,62 @@
         }
     }
 
+    // 中身が日時・日付・時刻だけのセル（D-111-01）。例：2026-11-22 12:34:56・2026-11-22 12:34・11-22 12:34・2026-11-22・12:34:56
+    const DATE_TIME = /^(\d{4}[-\/]\d{2}[-\/]\d{2}|\d{2}-\d{2})[ T](\d{1,2}:\d{2}(?::\d{2})?)$/;
+    const DATE_ONLY = /^\d{4}[-\/]\d{2}[-\/]\d{2}$/;
+    const TIME_ONLY = /^\d{1,2}:\d{2}(?::\d{2})?$/;
+
+    /**
+     * 表のセルの日時を、日付で1行・時刻で1行の2行にし、折り返さない決まった幅で出す（D-111-01）。
+     * 日付だけ・時刻だけのセルも、折り返さない決まった幅で出す。
+     * セルの中身が日時だけ（リンクなど1つの要素で包んだものも含む）のときだけ変える。文章の中の日時は変えない
+     */
+    function dateTimes(table) {
+        Array.from(table.tBodies).forEach((body) => {
+            Array.from(body.rows).forEach((row) => {
+                Array.from(row.cells).forEach((cell) => {
+                    if (cell.dataset.dt || cell.querySelector('.dt')) {
+                        return;
+                    }
+                    const text = cell.textContent.trim();
+                    let target = cell;
+                    if (cell.children.length === 1 && cell.children[0].textContent.trim() === text
+                        && ['A', 'SPAN', 'STRONG', 'TIME'].includes(cell.children[0].tagName) && cell.children[0].children.length === 0) {
+                        target = cell.children[0];
+                    } else if (cell.children.length > 0) {
+                        return;
+                    }
+
+                    let parts = null;
+                    const both = text.match(DATE_TIME);
+                    if (both) {
+                        parts = [both[1], both[2]];
+                    } else if (DATE_ONLY.test(text) || TIME_ONLY.test(text)) {
+                        parts = [text];
+                    }
+                    if (!parts) {
+                        return;
+                    }
+
+                    const box = document.createElement('span');
+                    box.className = 'dt';
+                    // 幅は、一番長い行の文字数で決める（数字は同じ幅で出す）
+                    box.style.width = (Math.max(...parts.map((part) => part.length)) + 0.3) + 'ch';
+                    parts.forEach((part, i) => {
+                        const line = document.createElement('span');
+                        line.className = parts.length === 2 ? (i === 0 ? 'dt-date' : 'dt-time') : 'dt-line';
+                        line.textContent = part;
+                        box.appendChild(line);
+                    });
+                    target.textContent = '';
+                    target.appendChild(box);
+                    cell.dataset.dt = '1';
+                    cell.classList.add('cell-dt');
+                });
+            });
+        });
+    }
+
     /**
      * 表が、置かれている場所の幅に収まっているか（列が細くなりすぎていないかも見る）
      */
@@ -104,10 +164,24 @@
         if (!header) {
             return true;
         }
-        const minWidth = parseFloat(window.getComputedStyle(table).fontSize) * MIN_HEADER_EM;
+        const fontSize = parseFloat(window.getComputedStyle(table).fontSize);
+        const minWidth = fontSize * MIN_HEADER_EM;
 
-        return !Array.from(header.cells).some((cell) => cell.textContent.trim().length > 2
-            && (cell.getBoundingClientRect().width < minWidth || lines(cell) > MAX_HEADER_LINES));
+        if (Array.from(header.cells).some((cell) => cell.textContent.trim().length > 2
+            && (cell.getBoundingClientRect().width < minWidth || lines(cell) > MAX_HEADER_LINES))) {
+            return false;
+        }
+
+        // 日時のセルがある表は、長い文章のセルが細くなりすぎていないかも見る（D-111-01）。
+        // 日時の列は細くならないため、ほかの列が細くなる。見出しが短い列（「名前」など）は、上の判定では見つからない
+        if (!table.querySelector('.cell-dt')) {
+            return true;
+        }
+        const minTextWidth = fontSize * MIN_TEXT_EM;
+
+        return !Array.from(table.tBodies).some((body) => Array.from(body.rows).some((row) => row !== header
+            && Array.from(row.cells).some((cell) => cell.textContent.trim().length > LONG_TEXT
+                && cell.getBoundingClientRect().width < minTextWidth)));
     }
 
     /**
@@ -124,6 +198,7 @@
     function layout() {
         const tables = Array.from(document.querySelectorAll('table.data'));
         tables.forEach(label);
+        tables.forEach(dateTimes);
 
         // いったん表の形に戻してから測る
         tables.forEach((table) => table.classList.remove('stacked'));

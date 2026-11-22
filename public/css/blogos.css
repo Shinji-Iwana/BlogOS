@@ -578,6 +578,28 @@ table.data.stacked td[data-label=""]::before {
     content: none;
 }
 
+/* 表のセルの日時（D-111-01。public/js/blogos.js が、中身が日時・日付・時刻だけのセルを .cell-dt にし、.dt で包む）
+   ・日時は、日付で1行・時刻で1行の2行にする。日付だけ・時刻だけも同じ形
+   ・折り返さない。幅は、一番長い行の文字数で決めた幅に固定する（数字は同じ幅で出す）
+   ・列の幅は、表の自動の割り振りに任せる（列を最小にすると、他の列が広がって、カードの形に切り替える判定が働かなくなるため） */
+table.data > * > tr > .cell-dt {
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+.dt {
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+}
+
+.dt > span {
+    display: block;
+}
+
 
 /* ==========================================================
    メニューバー（D-56。layouts/header の nav.site-menu）

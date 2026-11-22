@@ -75,4 +75,26 @@ class ListPageTest extends TestCase
         $this->assertSame('<p>表示件数：50件（新しい順、最大50件。全50件をページに分けて表示）</p>', $render(50));
         $this->assertSame('<p>表示件数：50件（新しい順、最大50件。全1,648件をページに分けて表示）</p>', $render(1648));
     }
+
+    /**
+     * 表のセルの日時は、日付で1行・時刻で1行の2行にし、折り返さない決まった幅で出す（D-111-01）。
+     * 全画面の表（table.data）に効かせるため、画面ごとではなく、共通の JS・CSS で行う
+     */
+    public function test_date_time_cells_are_split_into_two_lines_with_fixed_width(): void
+    {
+        $js = file_get_contents(public_path('js/blogos.js'));
+        // 中身が日時・日付・時刻だけのセルを見つけ、日付と時刻を分ける
+        $this->assertStringContainsString('tables.forEach(dateTimes);', $js);
+        $this->assertMatchesRegularExpression('/const DATE_TIME = .+;\s+const DATE_ONLY = .+;\s+const TIME_ONLY = .+;/', $js);
+        $this->assertStringContainsString("line.className = parts.length === 2 ? (i === 0 ? 'dt-date' : 'dt-time') : 'dt-line';", $js);
+        // 幅は、一番長い行の文字数で決める
+        $this->assertStringContainsString("box.style.width = (Math.max(...parts.map((part) => part.length)) + 0.3) + 'ch';", $js);
+        // 日時のある表は、長い文章のセルが細くなりすぎたら、カードの形にする
+        $this->assertStringContainsString("if (!table.querySelector('.cell-dt')) {", $js);
+
+        $css = file_get_contents(public_path('css/blogos.css'));
+        $this->assertMatchesRegularExpression('/table\.data > \* > tr > \.cell-dt \{\s+white-space: nowrap;\s+overflow-wrap: normal;\s+\}/', $css);
+        $this->assertMatchesRegularExpression('/\.dt \{[^}]*display: inline-block;[^}]*white-space: nowrap;[^}]*font-variant-numeric: tabular-nums;[^}]*\}/', $css);
+        $this->assertMatchesRegularExpression('/\.dt > span \{\s+display: block;\s+\}/', $css);
+    }
 }
