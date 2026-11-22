@@ -121,8 +121,9 @@
             @if (! $selectedBlog)
                 <p>ブログを選んでください（画面上部のブログ切り替え）。</p>
             @else
+                {{-- 「名前：値」の名前は青、値は白（D-109-01。.modal-info-label） --}}
                 <p>
-                    現在：
+                    <span class="modal-info-label">現在：</span>
                     @if ($property)
                         <strong>{{ $property->display_name ?: $property->resource_name }}</strong>（{{ $property->resource_name }}{{ $property->adsense_domain ? '、ドメイン ' . $property->adsense_domain : '' }}、{{ $property->account?->email }}）
                     @else
@@ -175,9 +176,9 @@
                         @endif
 
                         @if ($googleRun)
-                            {{-- 「最後の取得：」・日時と結果・期間と行数の3行 --}}
-                            <p class="text-muted">
-                                最後の取得：<br>
+                            {{-- 「最後の取得：」・日時と結果・期間と行数の3行。名前は青、値は白（D-109-01） --}}
+                            <p>
+                                <span class="modal-info-label">最後の取得：</span><br>
                                 {{ \App\Support\DisplayTime::format($googleRun->started_at) }}・{{ $googleRun->status->label() }}@if ($googleRun->message)（{{ $googleRun->message }}）@endif<br>
                                 {{ $googleRun->date_from?->toDateString() }}〜{{ $googleRun->date_to?->toDateString() }}・{{ $googleRun->row_count }}行
                             </p>

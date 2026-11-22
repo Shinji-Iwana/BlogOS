@@ -9,10 +9,11 @@
     $runsAfterAll = (\App\Support\ScheduledTasks::get($taskKey)['after_all'] ?? false)
         && app(\App\Services\Schedule\ScheduledTaskService::class)->setting($taskKey, $scheduleSettings ?? null)['enabled'];
 @endphp
+{{-- 「次回実行：」「前回実行：」は、入力欄のラベルと同じく青、値は白（D-109-01。.modal-info-label） --}}
 <p class="schedule-run-info">
-    次回実行：{{ $nextRun ? \App\Support\DisplayTime::format($nextRun, 'Y-m-d H:i') : ($runsAfterAll ? 'その日の定期実行が全て終わった後' : '無効') }}
+    <span class="modal-info-label">次回実行：</span>{{ $nextRun ? \App\Support\DisplayTime::format($nextRun, 'Y-m-d H:i') : ($runsAfterAll ? 'その日の定期実行が全て終わった後' : '無効') }}
     <br>
-    前回実行：
+    <span class="modal-info-label">前回実行：</span>
     @if ($lastRun ?? null)
         <span @if ($lastRun->status === 'failed' || $lastRun->isStale()) class="schedule-run-failed" @endif>{{ $lastRun->statusLabel() }}</span>
         （{{ \App\Support\DisplayTime::format($lastRun->started_at, 'm-d H:i') }} 開始・{{ $lastRun->finished_at ? \App\Services\Schedule\ScheduledTaskService::duration($lastRun->duration_seconds) : '処理中' }}）

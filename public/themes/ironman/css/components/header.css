@@ -411,6 +411,22 @@
     margin-top: 0;
 }
 
+/* ポップアップの入力欄のラベルは青、値（入力欄・選んだ値）は白（D-109-01）。
+   スマホの表のカードの列の見出し（components/table.css の td[data-label]::before）と同じ形 */
+.site-modal .modal-label {
+    font-family: var(--im-font-hud);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--im-cyan);
+}
+
+/* ポップアップの中の「名前：値」の名前（定期実行の「次回実行：」「前回実行：」）も青（D-109-01） */
+.site-modal .modal-info-label {
+    font-weight: 600;
+    color: var(--im-cyan);
+}
+
 /* ポップアップの題名の左のモードのアイコン（D-100）と、その右の種類のアイコン（定期実行。D-103-01）（public/css/blogos.css）：
    ヘッダーのアイコン（components/voice.css）と同じく、四隅を斜めに削った枠で囲む。押す部品ではないため、光・流れる電気は付けない */
 [data-modal-mode] .modal-mode-icon,

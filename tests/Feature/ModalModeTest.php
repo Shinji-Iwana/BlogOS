@@ -71,6 +71,10 @@ class ModalModeTest extends TestCase
             $this->assertStringNotContainsString('>' . $old . '<', $html, $old);
         }
 
+        // 入力欄のラベルは青、値は白（ironman。スマホの表のカードの列の見出しと同じ形。D-109-01）
+        $css = file_get_contents(public_path('themes/ironman/css/components/header.css'));
+        $this->assertMatchesRegularExpression('/\.site-modal \.modal-label \{[^}]*color: var\(--im-cyan\);/', $css);
+
         // 開く要素の data-modal-mode で、モードを変えて開ける（ボタンの名前は ModalMode の1か所から）
         $this->assertStringContainsString('opener.dataset.modalMode', $html);
         $this->assertStringContainsString('const submitLabels = ' . json_encode(ModalMode::SUBMIT_LABELS), $html);

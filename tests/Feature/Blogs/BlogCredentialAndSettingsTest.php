@@ -68,6 +68,9 @@ class BlogCredentialAndSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('id="blog-credential-modal"', false)
             ->assertSee('設定済み（ユーザー名：admin）')
+            // 「名前：値」の名前は青（.modal-info-label）、値はブログの名前（D-109-01）
+            ->assertSee('<span class="modal-info-label">対象のブログ：</span>' . e($this->blog->display_name), false)
+            ->assertDontSee('$selectedBlog', false)
             ->assertDontSee('visible-secret-value');
     }
 

@@ -132,8 +132,9 @@
                 </label>
             </div>
 
-            <p data-enabled-by="reevaluation">
-                <strong>診断の後の編集案の作成</strong>
+            {{-- 項目の名前（その下のチェックとモデルなどをまとめる）。入力欄のラベルと同じ形（D-109-01） --}}
+            <p class="modal-label" data-enabled-by="reevaluation">
+                診断の後の編集案の作成
                 @include('partials.tip', ['tip' => $tips['revision']])
             </p>
             <p data-enabled-by="reevaluation">

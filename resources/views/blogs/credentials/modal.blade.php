@@ -39,15 +39,16 @@
                 <button type="button" class="btn-secondary" data-modal-close>閉じる</button>
             </div>
         @else
-            <p>対象のブログ：{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</p>
+            {{-- 「名前：値」の名前は青、値は白（D-109-01。.modal-info-label） --}}
+            <p><span class="modal-info-label">対象のブログ：</span>{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</p>
 
             <h3>現在の状態</h3>
 
             @if ($blogCredential)
                 <p>設定済み（ユーザー名：{{ $blogCredential->username }}）</p>
-                <p>最終確認日時：{{ $blogCredential->verified_at ? \App\Support\DisplayTime::format($blogCredential->verified_at) : '未確認' }}</p>
+                <p><span class="modal-info-label">最終確認日時：</span>{{ $blogCredential->verified_at ? \App\Support\DisplayTime::format($blogCredential->verified_at) : '未確認' }}</p>
                 <p>
-                    WordPress側の拡張（新規作成の照合に使う投稿メタ）：
+                    <span class="modal-info-label">WordPress側の拡張（新規作成の照合に使う投稿メタ）：</span>
                     @if ($blogCredential->connector_extension === true)
                         有効
                     @elseif ($blogCredential->connector_extension === false)
@@ -57,7 +58,7 @@
                     @endif
                 </p>
                 @if ($blogCredential->last_failed_at)
-                    <p>最後の失敗：{{ \App\Support\DisplayTime::format($blogCredential->last_failed_at) }}（{{ $blogCredential->last_error }}）</p>
+                    <p><span class="modal-info-label">最後の失敗：</span>{{ \App\Support\DisplayTime::format($blogCredential->last_failed_at) }}（{{ $blogCredential->last_error }}）</p>
                 @endif
 
                 <form method="POST" action="{{ route('blogs.credentials.verify') }}">

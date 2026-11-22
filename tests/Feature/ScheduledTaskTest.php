@@ -249,19 +249,19 @@ class ScheduledTaskTest extends TestCase
         $popup = fn (string $id) => preg_match('/id="' . $id . '".*?<\/form>/s', $html, $m) ? $m[0] : '';
 
         $sync = $popup('scheduled-blogs-sync-modal');
-        $this->assertMatchesRegularExpression('/次回実行：\d{4}-\d{2}-\d{2} 03:00/', $sync);
-        $this->assertMatchesRegularExpression('/前回実行：\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
+        $this->assertMatchesRegularExpression('/次回実行：<\/span>\d{4}-\d{2}-\d{2} 03:00/', $sync);
+        $this->assertMatchesRegularExpression('/前回実行：<\/span>\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
         $this->assertStringNotContainsString('処理 120件', $sync);
         $this->assertStringNotContainsString('記録を見る', $sync);
 
-        $this->assertStringContainsString('次回実行：無効', $popup('scheduled-google-fetch-modal'));
+        $this->assertStringContainsString('次回実行：</span>無効', $popup('scheduled-google-fetch-modal'));
         $this->assertStringContainsString('まだ実行していません', $popup('scheduled-model-prune-modal'));
         // その日の定期実行が全て終わった後に動くもの（D-71-09）
-        $this->assertStringContainsString('次回実行：その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
+        $this->assertStringContainsString('次回実行：</span>その日の定期実行が全て終わった後', $popup('scheduled-database-measure-usage-modal'));
         // 上にラベル「いつ」、下に値（D-99-01）
         $this->assertMatchesRegularExpression('/<span class="modal-label">いつ .*?<\/span>\s*毎日、その日の定期実行が全て終わった後/su', $popup('scheduled-database-measure-usage-modal'));
         // 記事の再評価（専用のポップアップ）にも出す
-        $this->assertStringContainsString('次回実行：', $popup('scheduled-ai-auto-reevaluate-modal'));
+        $this->assertStringContainsString('<span class="modal-info-label">次回実行：</span>', $popup('scheduled-ai-auto-reevaluate-modal'));
     }
 
     public function test_popups_put_enabled_first_and_switch_settings_by_it(): void
@@ -285,7 +285,7 @@ class ScheduledTaskTest extends TestCase
         $reevaluate = $popup('scheduled-ai-auto-reevaluate-modal');
         $this->assertMatchesRegularExpression('/data-enable-switch="reevaluation".*?<div class="modal-field">\s*<span class="modal-label">いつ'
             . '.*?data-enabled-by="reevaluation">\s*<span class="modal-label">モデル.*?data-enabled-by="reevaluation">\s*<span class="modal-label">推論の深さ'
-            . '.*?<p data-enabled-by="reevaluation">\s*<strong>診断の後の編集案の作成<\/strong>.*?<p data-enabled-by="reevaluation">.*?name="auto_revision_enabled" value="1" data-enable-switch="revision"/s', $reevaluate);
+            . '.*?<p class="modal-label" data-enabled-by="reevaluation">\s*診断の後の編集案の作成.*?<p data-enabled-by="reevaluation">.*?name="auto_revision_enabled" value="1" data-enable-switch="revision"/s', $reevaluate);
         $this->assertSame(4, substr_count($reevaluate, 'data-enabled-by="revision"'));
         // モデルと推論の深さ（2組）・改修範囲と改修の繰り返しは、左右に並べる（D-104-01）
         $this->assertSame(3, substr_count($reevaluate, '<div class="modal-field-row">'));
