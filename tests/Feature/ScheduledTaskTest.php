@@ -305,7 +305,8 @@ class ScheduledTaskTest extends TestCase
         $this->assertStringContainsString("document.querySelectorAll('select[data-model]').forEach(function (model) {", $html);
 
         // 押せなくした欄も、送るときに押せる状態に戻して送る（layouts/header の JavaScript）
-        $this->assertStringContainsString("form.querySelectorAll('[data-enabled-by]').forEach((area) => area.querySelectorAll(enableFields).forEach((field) => { field.disabled = false; }));", $html);
+        // （初めから押せない欄は戻さない。D-107）
+        $this->assertStringContainsString("form.querySelectorAll('[data-enabled-by]').forEach((area) => switchableFields(area).forEach((field) => { field.disabled = false; }));", $html);
     }
 
     public function test_run_now_menu_runs_the_same_as_the_screen_button(): void

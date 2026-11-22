@@ -241,6 +241,12 @@ class VoiceTest extends TestCase
             // 説明は、各項目の「?」のツールチップに出す（D-61-02）
             ->assertSee('class="tip"', false)
             ->assertSee('data-tip="返事の声の話し方', false);
+        // 定期実行のポップアップと同じく、一番上のチェックは「有効」。外すと、その下の設定値（方式・声・話し方の指示）を押せなくする（D-107）
+        $home = $this->get(route('home'))->getContent();
+        $this->assertMatchesRegularExpression('/id="voice-settings-modal".*?<input type="checkbox" name="enabled" value="1" data-enable-switch="voice"[^>]*> 有効<\/label>.*?<div data-enabled-by="voice">.*?name="mode".*?name="voice".*?name="instructions".*?<\/textarea>\s*<\/label>\s*<\/div>/s', $home);
+        $this->assertStringNotContainsString('音声の操作を使う', $home);
+        // 初めから押せない欄（まだ使えない方式）は、有効を ON にしても押せないまま
+        $this->assertStringContainsString("field.dataset.alwaysDisabled = '1'", $home);
         $this->get(route('ai.settings.edit'))->assertOk()->assertDontSee('id="voice"', false)->assertDontSee('音声の設定を保存する');
         // API実行の料金表（画面「OpenAI API料金表情報」。D-63-28）に、音声の操作のモデルの料金も出す（D-68）
         $this->get(route('ai.prices.index'))->assertOk()

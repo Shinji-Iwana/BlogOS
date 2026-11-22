@@ -67,10 +67,13 @@
             @method('PUT')
             <input type="hidden" name="_form" value="voice">
 
+            {{-- 有効のチェック。外すと、その下の設定値を押せなくする（定期実行のポップアップと同じ。D-103-03・D-107） --}}
             <p>
-                <label><input type="checkbox" name="enabled" value="1" @checked($voiceFailed ? old('enabled') : $voiceSettings->enabled())> 音声の操作を使う</label>
+                <label><input type="checkbox" name="enabled" value="1" data-enable-switch="voice" @checked($voiceFailed ? old('enabled') : $voiceSettings->enabled())> 有効</label>
                 @include('partials.tip', ['tip' => $tips['enabled']])
             </p>
+
+            <div data-enabled-by="voice">
 
             <p class="modal-label">方式 @include('partials.tip', ['tip' => $tips['mode']])</p>
             @foreach (\App\Services\Voice\VoiceSettings::MODES as $value => $label)
@@ -98,6 +101,8 @@
                 <span class="modal-label">話し方の指示 @include('partials.tip', ['tip' => $tips['instructions']])</span>
                 <textarea id="voice-instructions" name="instructions" rows="3">{{ $voiceFailed ? old('instructions') : $voiceSettings->instructions() }}</textarea>
             </label>
+
+            </div>
 
             <div
                 class="blog-switch-actions"

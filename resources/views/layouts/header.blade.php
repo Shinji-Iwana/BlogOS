@@ -627,13 +627,15 @@
         // data-enable-switch="名前" のチェックを外すと、data-enabled-by="名前" の部分の入力欄を押せなくし、薄く出す。
         // 押せない部分の中にあるチェック（例：記事の再評価の「診断の後の編集案の作成」）は、外したのと同じに扱い、その下も押せなくする（並びの順に決める）。
         // 押せなくした欄も値は残し、送るときに押せる状態に戻して送る（押せない欄は送られず、保存の確認で誤りになるため）
+        // 初めから押せない欄（例：音声操作の、まだ使えない方式）は、有効が ON でも押せないままにし、送るときも戻さない（D-107）
         const enableFields = 'input:not([type=hidden]), select, textarea';
+        const switchableFields = (area) => Array.from(area.querySelectorAll(enableFields)).filter((field) => field.dataset.alwaysDisabled !== '1');
         const syncEnableSwitches = function (form) {
             form.querySelectorAll('[data-enable-switch]').forEach(function (enableSwitch) {
                 const on = enableSwitch.checked && ! enableSwitch.disabled;
                 form.querySelectorAll('[data-enabled-by="' + enableSwitch.dataset.enableSwitch + '"]').forEach(function (area) {
                     area.classList.toggle('is-switched-off', ! on);
-                    area.querySelectorAll(enableFields).forEach((field) => { field.disabled = ! on; });
+                    switchableFields(area).forEach((field) => { field.disabled = ! on; });
                 });
             });
         };
@@ -641,9 +643,10 @@
             if (! form.querySelector('[data-enable-switch]')) {
                 return;
             }
+            form.querySelectorAll('[data-enabled-by] input:disabled, [data-enabled-by] select:disabled, [data-enabled-by] textarea:disabled').forEach((field) => { field.dataset.alwaysDisabled = '1'; });
             form.querySelectorAll('[data-enable-switch]').forEach((enableSwitch) => enableSwitch.addEventListener('change', () => syncEnableSwitches(form)));
             form.addEventListener('submit', function () {
-                form.querySelectorAll('[data-enabled-by]').forEach((area) => area.querySelectorAll(enableFields).forEach((field) => { field.disabled = false; }));
+                form.querySelectorAll('[data-enabled-by]').forEach((area) => switchableFields(area).forEach((field) => { field.disabled = false; }));
             });
             syncEnableSwitches(form);
         });
