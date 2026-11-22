@@ -121,9 +121,27 @@ class DatabaseTablesTest extends TestCase
     public function test_server_page_links_every_table(): void
     {
         $this->actingAs(User::factory()->create());
+        // 取り込んだ WordPress のデータの11テーブルは、ブログを選んでいるときにリンクになる
+        Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
 
         // テーブルの一覧は50件ずつのため、全ページをつないで見る（D-98-01）
-        $this->serverPageWithAllTables()
-            ->assertSee('<a href="' . route('database.tables.index', ['table' => 'sync_runs']) . '">WordPressとの同期の記録</a>（sync_runs）', false);
+        $html = $this->serverPageWithAllTables()
+            ->assertSee('<a href="' . route('database.tables.index', ['table' => 'sync_runs']) . '">WordPressとの同期の記録</a>（sync_runs）', false)
+            ->getContent();
+
+        // 全てのテーブルの一覧に、XServer情報から行ける（D-110-01）
+        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => ! str_contains($html, 'href="' . e(DatabaseTables::listUrl($table)) . '"')));
+        $this->assertSame([], $missing, 'XServer情報の DB の一覧から行けないテーブルがあります。');
+    }
+
+    /**
+     * 全てのテーブルに、一覧と詳細がある（D-110-01）。
+     * 詳細は、行を決める番号（主キー）が1列のときに開ける。テーブルを足すときは、主キーを1列にする
+     */
+    public function test_every_table_has_a_detail_page(): void
+    {
+        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => DatabaseTables::primaryKey($table) === null));
+
+        $this->assertSame([], $missing, '詳細を開けないテーブル（主キーが1列でない）があります。主キーを1列にしてください。');
     }
 }
