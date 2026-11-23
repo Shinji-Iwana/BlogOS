@@ -337,7 +337,14 @@ class VoiceTest extends TestCase
             ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
             ->assertSee('id="screen-drawer"', false)
             ->assertSee('data-drawer-links', false)
-            ->assertSee('data-home-url="' . route('home') . '"', false);
+            ->assertSee('data-home-url="' . route('home') . '"', false)
+            // 「全画面で開く」と「×」の間に、パネルの中だけを読み込み直すボタン（ツールチップつき。D-112-01）
+            ->assertSeeInOrder(['id="screen-drawer-full"', 'id="screen-drawer-reload" title="再読み込み" aria-label="再読み込み"', 'id="screen-drawer-close" title="閉じる"'], false);
+
+        // 読み込み直しは、今パネルで開いている画面を開き直す（送信した後の画面でも、送り直さない）
+        $js = file_get_contents(public_path('js/blogos.js'));
+        $this->assertStringContainsString("const reload = document.getElementById('screen-drawer-reload');", $js);
+        $this->assertStringContainsString('frame.contentWindow.location.replace(frame.contentWindow.location.href);', $js);
 
         // トップページ以外：リンクは、ふつうに画面を移る
         $this->get(route('scheduled-tasks.runs'))->assertOk()->assertDontSee('data-drawer-links', false);

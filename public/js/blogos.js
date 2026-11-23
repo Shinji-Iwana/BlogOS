@@ -476,6 +476,23 @@
         });
         document.getElementById('screen-drawer-close').addEventListener('click', BlogOS.closeScreen);
 
+        // パネルの中の画面だけを読み込み直す（D-112-01）。今開いている画面を、もう一度開く
+        // （送信した後の画面でも、送り直さない。題名・パンくずリストは、同じ画面なので増えない）
+        const reload = document.getElementById('screen-drawer-reload');
+        if (reload) {
+            reload.addEventListener('click', () => {
+                if (!isDrawerOpen()) {
+                    return;
+                }
+                try {
+                    frame.contentWindow.location.replace(frame.contentWindow.location.href);
+                } catch (e) {
+                    // 中の画面を読めないとき（別のサイトなど）は、パネルで開いた画面を開き直す
+                    frame.src = frame.src;
+                }
+            });
+        }
+
         document.addEventListener('click', (event) => {
             const link = event.target.closest('[data-drawer-links] a');
             if (!link || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {

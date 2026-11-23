@@ -915,6 +915,18 @@ html.is-embedded .screen-drawer {
     padding: 0 8px;
 }
 
+/* 再読み込み（D-112-01）：閉じる（×）と同じ形のボタンに、アイコンを中央に出す */
+.screen-drawer-reload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+
+.screen-drawer-reload svg {
+    display: block;
+}
+
 /* 見出しの行とパンくずリストのまとまり（ヘッダーの BlogOS とメニューバーと同じく、下の線は1本だけ。D-75） */
 .screen-drawer-top {
     flex: none;

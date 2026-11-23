@@ -566,7 +566,11 @@
             <span class="screen-drawer-code">SCREEN</span>
             <span class="screen-drawer-title" id="screen-drawer-title"></span>
             <a href="#" class="screen-drawer-full" id="screen-drawer-full">全画面で開く</a>
-            <button type="button" class="btn-secondary screen-drawer-close" id="screen-drawer-close" aria-label="閉じる">×</button>
+            {{-- パネルの中の画面だけを読み込み直す（ブラウザの再読み込みは、トップページを開き直してパネルが消えるため。D-112-01） --}}
+            <button type="button" class="btn-secondary screen-drawer-reload" id="screen-drawer-reload" title="再読み込み" aria-label="再読み込み">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>{{-- 幅のない文字で1行の高さを持たせ、文字で決まる閉じる（×）と高さをそろえる --}}<span aria-hidden="true">&#8203;</span>
+            </button>
+            <button type="button" class="btn-secondary screen-drawer-close" id="screen-drawer-close" title="閉じる" aria-label="閉じる">×</button>
         </div>
         {{-- パンくずリスト（パネルの中で開いた画面の順番。前の画面の名前を押すと戻る。最初の画面から出す。D-75） --}}
         <nav class="screen-drawer-crumbs" id="screen-drawer-crumbs" aria-label="パネルの中で開いた画面" hidden></nav>
