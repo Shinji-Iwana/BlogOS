@@ -13,7 +13,7 @@
 
     @if ($selectedBlog)
         <section class="panel">
-        <h2 data-code="TARGET">対象のブログ：{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</h2>
+        <h2 data-code="TARGET">対象のブログ：{{ $selectedBlog->display_name }}（{{ \App\Support\UrlLink::html($selectedBlog->home) }}）</h2>
         <ul>
             @foreach ($resources as $key => $definition)
                 <li>

@@ -171,7 +171,7 @@
                     @elseif ($link->program)
                         <span class="text-muted">（教材不明）</span>
                     @endif
-                    {{ $link->link_url }}
+                    {{ \App\Support\UrlLink::html($link->link_url) }}
                 </li>
             @endforeach
         </ul>
@@ -490,7 +490,7 @@
                             @if ($link->targetPost || $link->targetPage)
                                 <a href="{{ route('articles.show', ['type' => $link->targetPost ? 'posts' : 'pages', 'id' => ($link->targetPost ?? $link->targetPage)->id]) }}">{{ ($link->targetPost ?? $link->targetPage)->title_raw }}</a>
                             @else
-                                <span class="text-error">{{ $link->target_url }}（記事が見つかりません）</span>
+                                <span class="text-error">{{ \App\Support\UrlLink::html($link->target_url) }}（記事が見つかりません）</span>
                             @endif
                         </td>
                     </tr>

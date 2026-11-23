@@ -47,7 +47,7 @@
                         <tr>
                             <td style="max-width:320px;"><a href="{{ route('articles.show', ['type' => $row['source'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['source']->id]) }}">{{ $row['source']->title_raw ?: '（タイトルなし）' }}</a>@if ($row['source']->status !== 'publish')（{{ $row['source']->status }}）@endif</td>
                             <td style="max-width:220px;">{{ $row['link']->anchor_text }}</td>
-                            <td style="word-break:break-all; max-width:280px;">{{ $row['link']->target_url }}@if ($row['fix'])<br>→ {{ $row['fix'] }}@endif</td>
+                            <td style="word-break:break-all; max-width:280px;">{{ \App\Support\UrlLink::html($row['link']->target_url) }}@if ($row['fix'])<br>→ {{ \App\Support\UrlLink::html($row['fix']) }}@endif</td>
                             <td style="max-width:320px;">{{ $row['reason'] }}</td>
                         </tr>
                     @endforeach

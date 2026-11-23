@@ -60,7 +60,7 @@
                                 </td>
                                 <td style="max-width:360px; word-break:break-all; font-size:12px;">
                                     @foreach (['Amazon' => $item['amazon_url'], '楽天' => $item['rakuten_url'], 'リンク' => $item['affiliate_url']] as $label => $url)
-                                        @if ($url)<div>{{ $label }}：{{ \App\Support\AffiliateLink::innerUrl($url) !== $url ? \App\Support\AffiliateLink::innerUrl($url) . '（もしも経由）' : $url }}</div>@endif
+                                        @if ($url)<div>{{ $label }}：{{ \App\Support\UrlLink::html(\App\Support\AffiliateLink::innerUrl($url)) }}@if (\App\Support\AffiliateLink::innerUrl($url) !== $url)（もしも経由）@endif</div>@endif
                                     @endforeach
                                     @if ($item['extra_urls'])<div class="text-muted">ほかに {{ count($item['extra_urls']) }}件の別のリンク</div>@endif
                                 </td>

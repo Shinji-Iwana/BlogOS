@@ -31,8 +31,8 @@
                             <td>{{ \App\Support\DisplayTime::format($history->changed_at) }}</td>
                             <td>{{ $history->blog?->display_name }}</td>
                             <td>{{ $history->field }}</td>
-                            <td>{{ \App\Support\DisplayTime::value($history->field, $history->old_value) }}</td>
-                            <td>{{ \App\Support\DisplayTime::value($history->field, $history->new_value) }}</td>
+                            <td>{{ \App\Support\UrlLink::html(\App\Support\DisplayTime::value($history->field, $history->old_value)) }}</td>
+                            <td>{{ \App\Support\UrlLink::html(\App\Support\DisplayTime::value($history->field, $history->new_value)) }}</td>
                             <td>{{ $history->source->value }}</td>
                             <td>{{ $history->user?->name }}</td>
                             <td><small>{{ $history->change_set_id }}</small></td>
@@ -64,8 +64,8 @@
                             <td>{{ $history->blog?->display_name }}</td>
                             <td>{{ $history->setting?->key }}</td>
                             <td>{{ $history->field }}</td>
-                            <td>{{ \App\Support\DisplayTime::value($history->field, $history->old_value) }}</td>
-                            <td>{{ \App\Support\DisplayTime::value($history->field, $history->new_value) }}</td>
+                            <td>{{ \App\Support\UrlLink::html(\App\Support\DisplayTime::value($history->field, $history->old_value)) }}</td>
+                            <td>{{ \App\Support\UrlLink::html(\App\Support\DisplayTime::value($history->field, $history->new_value)) }}</td>
                             <td>{{ $history->source->value }}</td>
                             <td><small>{{ $history->change_set_id }}</small></td>
                         </tr>

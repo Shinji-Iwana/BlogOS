@@ -47,7 +47,7 @@
             <table class="data">
                 <tr><th>ID</th><td>{{ $blog->id }}</td></tr>
                 <tr><th>表示名</th><td>{{ $blog->display_name }}</td></tr>
-                <tr><th>ホームURL</th><td>{{ $blog->home }}</td></tr>
+                <tr><th>ホームURL</th><td>{{ \App\Support\UrlLink::html($blog->home) }}</td></tr>
                 <tr><th>品質基準</th><td>{{ $blog->quality_profile ?? '（未設定）' }}</td></tr>
                 <tr><th>選択中</th><td>{{ $blog->is_selected ? '○' : '' }}</td></tr>
                 <tr><th>アーカイブ日時</th><td>{{ \App\Support\DisplayTime::format($blog->archived_at) }}</td></tr>
@@ -81,7 +81,7 @@
                     @forelse ($settings as $setting)
                         <tr>
                             <td>{{ $setting->key }}</td>
-                            <td>{{ $setting->value }}</td>
+                            <td>{{ \App\Support\UrlLink::html($setting->value) }}</td>
                             <td>{{ \App\Support\DisplayTime::format($setting->synced_at) }}</td>
                         </tr>
                     @empty

@@ -41,7 +41,7 @@
                         <td>{{ $result['subtype'] ?? '' }}</td>
                         <td>
                             @if (! empty($result['url']))
-                                <a href="{{ $result['url'] }}" target="_blank">{{ $result['url'] }}</a>
+                                <a href="{{ $result['url'] }}" target="_blank" rel="noopener">{{ $result['url'] }}</a>
                             @endif
                         </td>
                     </tr>

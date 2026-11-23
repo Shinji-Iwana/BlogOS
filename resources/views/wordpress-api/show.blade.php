@@ -86,7 +86,7 @@
         <h2 data-code="REQUEST">リクエスト</h2>
         <table class="data">
             <tr><th>HTTPメソッド</th><td>{{ $result['method'] }}</td></tr>
-            <tr><th>URL</th><td style="word-break:break-all;">{{ $result['url'] }}</td></tr>
+            <tr><th>URL</th><td style="word-break:break-all;">{{ \App\Support\UrlLink::html($result['url']) }}</td></tr>
             <tr><th>クエリ</th><td style="word-break:break-all;">{{ $result['query'] ? http_build_query($result['query']) : '（なし）' }}</td></tr>
             <tr><th>Authorization</th><td>{{ $hasAuth ? '****（ブログの認証情報を使用）' : '（なし）' }}</td></tr>
         </table>

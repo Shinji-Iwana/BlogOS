@@ -115,7 +115,7 @@
     <p>トップページ・カテゴリのページなど、記事以外のページもここに表示されます。</p>
     <ul>
         @forelse ($unresolved as $row)
-            <li>{{ $row->url }}：{{ number_format($row->value) }}</li>
+            <li>{{ \App\Support\UrlLink::html($row->url) }}：{{ number_format($row->value) }}</li>
         @empty
             <li>ありません。</li>
         @endforelse

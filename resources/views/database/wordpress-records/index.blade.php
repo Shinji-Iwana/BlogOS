@@ -42,7 +42,8 @@
                     <tr>
                         <td><a href="{{ route('database.wordpress-records.show', ['table' => $table, 'id' => $record->id]) }}">{{ $record->id }}</a></td>
                         @foreach ($definition['columns'] as $column)
-                            <td>{{ \Illuminate\Support\Str::limit((string) ($column === 'slug' ? \App\Support\Slug::display($record->getRawOriginal($column)) : $record->getRawOriginal($column)), 80) }}</td>
+                            {{-- URL の値は、別のタブで開くリンク（D-113-01） --}}
+                            <td>{{ \App\Support\UrlLink::html($column === 'slug' ? \App\Support\Slug::display($record->getRawOriginal($column)) : $record->getRawOriginal($column), 80) }}</td>
                         @endforeach
                         <td>
                             @if ($record->wordpress_deleted_at)

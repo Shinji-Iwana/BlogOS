@@ -118,6 +118,33 @@ class DatabaseTablesTest extends TestCase
             ->assertDontSee('ブログの変更履歴（blog_histories）');
     }
 
+    /**
+     * URL の値は、どの画面でもリンクにし、別のタブで開く（D-113-01）
+     */
+    public function test_url_values_are_links_that_open_in_a_new_tab(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $link = '<a href="https://blog.example.test" target="_blank" rel="noopener">https://blog.example.test</a>';
+
+        // DB の確認の画面（一覧・詳細）と、管理の画面（ブログ一覧・ブログ詳細）で、同じ出し方
+        $this->get(route('database.tables.index', ['table' => 'blogs']))->assertOk()->assertSee($link, false);
+        $this->get(route('database.tables.show', ['table' => 'blogs', 'id' => $blog->id]))->assertOk()->assertSee($link, false);
+        $this->get(route('database-blog-list'))->assertOk()->assertSee($link, false);
+        $this->get(route('database-blog-detail', ['id' => $blog->id]))->assertOk()->assertSee($link, false);
+
+        // URL でない値・秘密の値は、リンクにしない。長い URL は、見せる文字だけを縮め、リンク先は元の URL のまま
+        $this->assertSame('Example Blog', (string) \App\Support\UrlLink::html('Example Blog'));
+        $this->assertSame('/path?a=1&amp;b=2', (string) \App\Support\UrlLink::html('/path?a=1&b=2'));
+        $this->assertSame('javascript:alert(1)', (string) \App\Support\UrlLink::html('javascript:alert(1)'));
+        $this->assertSame('https://a.test x', (string) \App\Support\UrlLink::html('https://a.test x'));
+        $this->assertSame('', (string) \App\Support\UrlLink::html(null));
+        $long = 'https://example.test/' . str_repeat('a', 100);
+        $this->assertSame('<a href="' . $long . '" target="_blank" rel="noopener">' . \Illuminate\Support\Str::limit($long, 80) . '</a>', (string) \App\Support\UrlLink::html($long, 80));
+        $this->assertSame('<a href="https://a.test/?q=1&amp;r=2" target="_blank" rel="noopener">https://a.test/?q=1&amp;r=2</a>', (string) \App\Support\UrlLink::html('https://a.test/?q=1&r=2'));
+        $this->assertSame('https://a.test/&quot;&gt;', (string) \App\Support\UrlLink::html('https://a.test/">'));
+    }
+
     public function test_server_page_links_every_table(): void
     {
         $this->actingAs(User::factory()->create());

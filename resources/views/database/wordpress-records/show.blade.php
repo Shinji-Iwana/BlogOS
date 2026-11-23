@@ -59,7 +59,7 @@
                                     <pre style="white-space:pre-wrap; word-break:break-all;">{{ $value }}</pre>
                                 </details>
                             @else
-                                {{ $value }}
+                                {{ \App\Support\UrlLink::html($value) }}
                                 {{-- つながる先（関連）：値の横に「（リンク）」で出す。つながる先がなければ出さない --}}
                                 @if (! empty($relationsByColumn[$column]['items']))
                                     （{!! $relationLinks($relationsByColumn[$column]['items']) !!}）
@@ -125,7 +125,7 @@
                                             <pre style="white-space:pre-wrap; word-break:break-all;">{{ $shown }}</pre>
                                         </details>
                                     @else
-                                        {{ $shown }}
+                                        {{ \App\Support\UrlLink::html($shown) }}
                                     @endif
                                     {{-- つながる先：詳細と同じく、値の横に「（リンク）」で出す。なければ出さない（D-72-15） --}}
                                     @if (! empty($historyLinks[$history->id][$column]))

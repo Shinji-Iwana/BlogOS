@@ -39,7 +39,7 @@
                                 <pre style="white-space:pre-wrap; word-break:break-all;">{{ $shown }}</pre>
                             </details>
                         @else
-                            {{ $shown }}
+                            {{ \App\Support\UrlLink::html($shown) }}
                             @if ($key === 'slug' && \App\Support\Slug::display($shown) !== $shown)
                                 <br><span class="text-muted">（読める形：{{ \App\Support\Slug::display($shown) }}）</span>
                             @endif

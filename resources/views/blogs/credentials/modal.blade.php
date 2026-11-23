@@ -40,7 +40,7 @@
             </div>
         @else
             {{-- 「名前：値」の名前は青、値は白（D-109-01。.modal-info-label） --}}
-            <p><span class="modal-info-label">対象のブログ：</span>{{ $selectedBlog->display_name }}（{{ $selectedBlog->home }}）</p>
+            <p><span class="modal-info-label">対象のブログ：</span>{{ $selectedBlog->display_name }}（{{ \App\Support\UrlLink::html($selectedBlog->home) }}）</p>
 
             <h3>現在の状態</h3>
 

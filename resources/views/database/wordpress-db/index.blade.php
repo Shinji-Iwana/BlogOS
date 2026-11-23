@@ -59,10 +59,11 @@
                     <tr>
                         @foreach ($columns as $column)
                             @php
-                                $shown = \Illuminate\Support\Str::limit((string) $wp->display($schema, $table, $column, $row[$column], $row), 80);
+                                $value = $wp->display($schema, $table, $column, $row[$column], $row);
+                                $shown = \Illuminate\Support\Str::limit((string) $value, 80);
                             @endphp
-                            {{-- 主キーは、詳細へのリンク --}}
-                            <td>@if ($column === $primaryKey)<a href="{{ route('database.wordpress-db.show', ['schema' => $schema, 'table' => $table, 'id' => $row[$column]]) }}">{{ $shown }}</a>@else{{ $shown }}@endif</td>
+                            {{-- 主キーは、詳細へのリンク。URL の値は、別のタブで開くリンク（D-113-01） --}}
+                            <td>@if ($column === $primaryKey)<a href="{{ route('database.wordpress-db.show', ['schema' => $schema, 'table' => $table, 'id' => $row[$column]]) }}">{{ $shown }}</a>@else{{ \App\Support\UrlLink::html($value, 80) }}@endif</td>
                         @endforeach
                     </tr>
                 @empty
