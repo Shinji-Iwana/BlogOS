@@ -19,7 +19,7 @@
     @include('partials.history-last', ['label' => '最後の測定', 'at' => $latest?->started_at, 'result' => $latest ? $latest->strategyLabel() . '・' . $latest->statusLabel() : null])
 
     <section class="panel">
-    <h2 data-code="RUN">測定の記録</h2>
+    <h2>測定の記録</h2>
     @if (! $blog)
         <p>ブログが選択されていません。</p>
     @else

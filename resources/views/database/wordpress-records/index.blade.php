@@ -10,9 +10,9 @@
 
     <p><a href="{{ route('database.wordpress-records.tables') }}">データの一覧に戻る</a></p>
 
-    {{-- 絞り込みの条件（WordPress API情報の画面と同じ形。パネルの題名の英字の札（data-code）は、ironman だけで出す） --}}
+    {{-- 絞り込みの条件（WordPress API情報の画面と同じ形。ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01）） --}}
     <section class="panel">
-    <h2 data-code="FILTER">条件</h2>
+    <h2>条件</h2>
     {{-- どの行を出しているかの補足（BlogOS の DB の全テーブルの一覧と同じ。D-80-06） --}}
     <p class="text-muted">選択中のブログ（{{ $blog->display_name }}）の行を出します（WordPress側で削除済みの行も含みます）。</p>
     <form method="GET" action="{{ route('database.wordpress-records.index', ['table' => $table]) }}">
@@ -23,7 +23,7 @@
 
     {{-- レコードの一覧（1ページ最大50件。並びは、id の降順＝新しい順。D-80） --}}
     <section class="panel">
-    <h2 data-code="RECORD">レコード</h2>
+    <h2>レコード</h2>
     @include('partials.history-count', ['paginator' => $records, 'order' => 'id降順'])
 
     <div style="overflow-x:auto;">

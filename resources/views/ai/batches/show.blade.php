@@ -72,7 +72,7 @@
     @endif
 
     <section class="panel">
-    <h2 data-code="RESULTS">記事ごとの結果</h2>
+    <h2>記事ごとの結果</h2>
     @include('partials.history-count', ['paginator' => $items, 'order' => '実行する順'])
     <div style="overflow-x:auto;">
         <table class="data">

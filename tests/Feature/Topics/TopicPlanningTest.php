@@ -91,7 +91,7 @@ class TopicPlanningTest extends TestCase
         $this->assertTrue($matrix['revenue_over']);
 
         $this->get(route('topics.index'))->assertOk()
-            ->assertSee('<h2 data-code="TYPES">カテゴリごとの記事種類', false)
+            ->assertSee('<h2>カテゴリごとの記事種類', false)
             ->assertSee('収益記事の割合が目安（10%）を超えています。')
             ->assertSee(e(route('articles.index', ['type' => 'posts', 'category_id' => $this->js->id, 'kind' => 'revenue'])), false);
 

@@ -22,7 +22,7 @@
         <button type="submit">新しい{{ $type === 'posts' ? '投稿' : '固定ページ' }}の編集案を作る</button>
     </form>
 
-    <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}" class="panel" data-code="FILTER">
+    <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}" class="panel">
         {{-- 記事の企画のカテゴリごとの記事種類の表から開いたときの絞り込み（D-83-01） --}}
         @if ($category || $kindLabel)
             <p>

@@ -77,7 +77,7 @@
     {{-- 観点ごとの適合度（D-47。合否には使わない） --}}
     @if ($evaluation->axis_scores)
         <section class="panel">
-        <h2 data-code="AXES">観点ごとの適合度</h2>
+        <h2>観点ごとの適合度</h2>
         <p class="text-muted">同じ判定を観点ごとに集計した割合です（合否には使いません）。低い観点と、それを下げている項目を、改善の優先度の目安にしてください。</p>
         <table class="data">
             <thead><tr><th>観点</th><th>適合度</th><th>重要度</th><th>下げている項目</th></tr></thead>
@@ -103,14 +103,14 @@
 
     @if ($evaluation->summary)
         <section class="panel">
-        <h2 data-code="SUMMARY">総評</h2>
+        <h2>総評</h2>
         <p style="white-space:pre-wrap;">{{ $evaluation->summary }}</p>
         </section>
     @endif
 
     {{-- 必須条件：採点項目と同じく、評価項目（条件＋キー）・判定の行を押すと、理由・指摘の表が開く（必須条件には配点・判定の基準がない） --}}
     <section class="panel">
-    <h2 data-code="REQUIRED">必須条件</h2>
+    <h2>必須条件</h2>
     <div style="overflow-x:auto;">
         <table class="data evaluation-items">
             <colgroup><col><col class="evaluation-items-judgment"></colgroup>
@@ -127,7 +127,7 @@
 
     {{-- 採点項目と指摘：分類（①〜⑪）ごとに、分類名と表に分ける。評価項目・判定・得点の行を押すと、判定の基準・理由・指摘の表が開く --}}
     <section class="panel">
-    <h2 data-code="ITEMS">採点項目と指摘</h2>
+    <h2>採点項目と指摘</h2>
     @php
         // 今の品質基準の項目の順（分類の順）に並べ、今の品質基準にない項目は最後にまとめる。判定していない項目は出さない
         $scoredItems = collect($allItems + $details->except(array_merge(array_keys($allItems), array_keys($standard->required)))->map(fn ($d) => ['category' => '（今の品質基準にない項目）', 'label' => $d->item_key])->all())

@@ -77,6 +77,33 @@ class ThemeTest extends TestCase
             ->assertSee('name="password"', false);
     }
 
+    /**
+     * パネルの題名の「英字＋日本語」は、トップページのパネル・右のパネル（SCREEN）・ヘッダーのメニューだけ。
+     * ページ内のパネルの題名は日本語だけ（英字の札 data-code を付けない。D-117-01）
+     */
+    public function test_only_top_panels_drawer_and_menu_have_english_codes(): void
+    {
+        $views = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views'), \FilesystemIterator::SKIP_DOTS));
+        $withCode = [];
+        foreach ($views as $file) {
+            if (str_ends_with($file->getFilename(), '.blade.php') && str_contains(file_get_contents($file->getPathname()), 'data-code=')) {
+                $withCode[] = str_replace(resource_path('views') . DIRECTORY_SEPARATOR, '', $file->getPathname());
+            }
+        }
+        $this->assertSame([], $withCode, 'ページ内のパネルに英字の札（data-code）があります。題名は日本語だけにしてください。');
+        $this->assertStringNotContainsString('attr(data-code)', file_get_contents(public_path('themes/ironman/css/components/panel.css')));
+
+        // 英字＋日本語のまま：トップページのパネル・右のパネル・メニュー
+        app(ThemeService::class)->select('ironman', null);
+        $this->actingAs(\App\Models\User::factory()->create());
+        \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $this->get(route('home'))->assertOk()
+            ->assertSee('<span class="hud-panel-code">SYNC</span>', false)
+            ->assertSee('<span class="hud-panel-code">SYSTEM</span>', false)
+            ->assertSee('<span class="screen-drawer-code">SCREEN</span>', false)
+            ->assertSee('<span class="site-menu-code">', false);
+    }
+
     public function test_error_pages_and_site_search_use_the_theme(): void
     {
         app(ThemeService::class)->select('ironman', null);
@@ -84,8 +111,9 @@ class ThemeTest extends TestCase
         // エラーの画面（ログイン前の枠。400番台は BlogOS が添えた理由も出す）
         $this->get('/no-such-page')->assertNotFound()
             ->assertSee('/themes/ironman/css/tokens.css', false)
-            ->assertSee('ERROR 404', false)
-            ->assertSee('ページが見つかりません');
+            // パネルの題名は日本語だけ。エラーの番号は題名の後ろに出す（D-117-01）
+            ->assertSee('<h2>ページが見つかりません（404）</h2>', false)
+            ->assertDontSee('ERROR 404', false);
 
         // ブログを選んでいないときのサイト内検索（API確認画面。D-115-01）：abort(404, 'ブログが選択されていません。')
         $this->get(route('wp-api.resources.index', ['resource' => 'search']))->assertNotFound()
@@ -128,7 +156,7 @@ class ThemeTest extends TestCase
         $this->assertStringNotContainsString(route('wp-api.home'), explode('<main', $html, 2)[1] ?? '');
         \App\Models\Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
         $this->get(route('database.sync-runs.index'))->assertOk()->assertSee('<h1>WordPressとの同期履歴 <span class="tip"', false);
-        $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報 <span class="tip"', false)->assertSee('<h2 data-code="WORDPRESS">WordPress 本体</h2>', false)->assertSee('<h2 data-code="PLUGIN">プラグイン</h2>', false)->assertSee('<h2 data-code="THEME">テーマ</h2>', false);
+        $this->get(route('wordpress-updates.index'))->assertOk()->assertSee('<h1>WordPress情報 <span class="tip"', false)->assertSee('<h2>WordPress 本体</h2>', false)->assertSee('<h2>プラグイン</h2>', false)->assertSee('<h2>テーマ</h2>', false);
         $this->get(route('wp-api.home'))->assertOk()->assertSee('<h1>WordPress API情報</h1>', false)
             ->assertDontSee('トップページに戻る')->assertDontSee('設定ページに戻る');
 

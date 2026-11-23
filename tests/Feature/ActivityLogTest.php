@@ -53,7 +53,7 @@ class ActivityLogTest extends TestCase
         // 取得条件（期間）と表示条件（種類）のパネル。一覧の上に、どの条件の一覧かを出す
         $from = now('Asia/Tokyo')->subDays(6)->format('Y-m-d');
         $to = now('Asia/Tokyo')->format('Y-m-d');
-        $response->assertSeeInOrder(['<h2 data-code="QUERY">取得条件</h2>', '>取得</button>', '<h2 data-code="FILTER">表示条件</h2>', '>絞り込む</button>'], false)
+        $response->assertSeeInOrder(['<h2>取得条件</h2>', '>取得</button>', '<h2>表示条件</h2>', '>絞り込む</button>'], false)
             ->assertSee("期間：{$from} 〜 {$to}（日本時間）／種類：全て");
 
         // 種類で絞る

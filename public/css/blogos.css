@@ -483,7 +483,7 @@ table.data.data-compact > * > tr > td {
    ----------------------------------------------------------
    blank では何もしない（見た目は標準のまま）。テーマの CSS で見た目を決める。
    ・.panel：画面の区切り（<section>・<fieldset>・<form> に付ける）。最初の h2・legend が見出し。
-     data-code="EDITOR" のような英字の札を付けてよい
+     ページ内のパネルの題名は日本語だけ（英字の札は付けない。D-117-01。英字＋日本語は、トップページのパネル・右のパネル・メニューだけ）
    ・button.btn-secondary：補助の操作
    ・button.btn-danger：取り消せない・壊す操作
    ・a.button-link：主な操作へのリンク

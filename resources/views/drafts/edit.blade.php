@@ -68,7 +68,7 @@
             $checked = $revisionFindings->whereNotNull('check_status');
         @endphp
         <section class="panel">
-        <h2 data-code="FINDINGS">指摘と対応</h2>
+        <h2>指摘と対応</h2>
         <p class="text-muted">
             記事改修に渡した指摘（番号付き）と、改修での対応、改修後の品質診断での確認です。
             @if ($checked->isEmpty() && $editable)
@@ -158,7 +158,7 @@
     {{-- BlogOS の仕上げ：目印・画像の依頼・広告（D-34） --}}
     @if ($placeholders !== [] || $draftImages->isNotEmpty() || $draft->finish_notes)
         <fieldset class="panel" style="max-width:1000px;">
-            <legend data-code="FINISH">画像・目印・BlogOS が入れたもの</legend>
+            <legend>画像・目印・BlogOS が入れたもの</legend>
 
             @if ($placeholders !== [])
                 <p class="text-error">
@@ -229,7 +229,7 @@
         <p class="text-muted">編集の起点：WordPressの {{ \App\Support\DisplayTime::format($draft->base_wordpress_modified_gmt) }} の版</p>
     @endif
 
-    <form method="POST" action="{{ route('drafts.update', ['id' => $draft->id]) }}" class="panel" data-code="EDITOR">
+    <form method="POST" action="{{ route('drafts.update', ['id' => $draft->id]) }}" class="panel">
         @csrf
         @method('PUT')
         @include('partials.selected-blog-field')
@@ -304,7 +304,7 @@
 
     @if ($editable)
         <section class="panel">
-        <h2 data-code="PUBLISH">状態と反映</h2>
+        <h2>状態と反映</h2>
         <p>
             <a href="{{ route('drafts.push.confirm', ['id' => $draft->id]) }}" class="button-link"><strong>反映の確認へ</strong></a>（WordPressに送る内容を確認してから、承認して反映します）
         </p>
@@ -329,7 +329,7 @@
     @endif
 
     <section class="panel">
-    <h2 data-code="HISTORY">変更履歴</h2>
+    <h2>変更履歴</h2>
     @php $historyPage = \App\Support\ListPage::of($histories, 'history_page')->fragment('history'); @endphp
     <a id="history"></a>
     @include('partials.history-count', ['paginator' => $historyPage])

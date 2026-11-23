@@ -128,8 +128,8 @@ class WordPressDbTest extends TestCase
             ->assertSee('****（記事を読むためのパスワードを保存）')->assertDontSee('yomu-pass')
             ->assertSee('（<a href="' . route('database.wordpress-db.show', ['schema' => $s, 'table' => 'wp_users', 'id' => $userId]) . '">管理人 #' . $userId . '</a>）', false)
             ->assertSee('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $blogosPost->id]) . '">投稿 #' . $blogosPost->id . '</a>', false)
-            ->assertSeeInOrder(['<h2 data-code="RELATION">', '投稿・固定ページ・メディアなど（wp_posts）', 'post_parent', '投稿のメタ情報（wp_postmeta）', 'post_id'], false)
-            ->assertDontSee('<h2 data-code="HISTORY">', false);
+            ->assertSeeInOrder(['<h2>関連', '投稿・固定ページ・メディアなど（wp_posts）', 'post_parent', '投稿のメタ情報（wp_postmeta）', 'post_id'], false)
+            ->assertDontSee('<h2>変更履歴', false);
 
         // 関連の件数から開く一覧は、その行に絞る
         $this->get(route('database.wordpress-db.index', ['schema' => $s, 'table' => 'wp_posts', 'column' => 'post_parent', 'value' => $postId]))->assertOk()

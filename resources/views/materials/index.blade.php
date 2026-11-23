@@ -84,7 +84,7 @@
             ・<a href="{{ route('materials.index', ['kind' => $option->value, 'category' => $category?->id]) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
         @endforeach
     </p>
-    <form method="GET" action="{{ route('materials.index') }}" class="panel" data-code="FILTER" style="margin-bottom:8px;">
+    <form method="GET" action="{{ route('materials.index') }}" class="panel" style="margin-bottom:8px;">
         @if ($kind)<input type="hidden" name="kind" value="{{ $kind->value }}">@endif
         <label>カテゴリ：
             <select name="category" onchange="this.form.submit()">

@@ -48,7 +48,7 @@
 
     {{-- 編集案と、ゴミ箱・削除 --}}
     <section class="panel">
-    <h2 data-code="EDIT">編集</h2>
+    <h2>編集</h2>
     @if ($activeDraft)
         <p>作業中の編集案があります：<a href="{{ route('drafts.edit', ['id' => $activeDraft->id]) }}">編集案 #{{ $activeDraft->id }}（{{ $activeDraft->state->label() }}）</a></p>
     @elseif (! $article->wordpress_deleted_at)
@@ -78,7 +78,7 @@
     {{-- 品質評価とBlogOSのAI機能（D-06-02、D-07-01〜D-07-03） --}}
     </section>
     <section class="panel">
-    <h2 data-code="QUALITY">品質評価</h2>
+    <h2>品質評価</h2>
     @php
         $targetKey = ($isPost ? 'posts:' : 'pages:') . $article->id;
         $confirmed = $evaluations->firstWhere('is_confirmed', true);
@@ -133,7 +133,7 @@
     {{-- Googleの指標（保存済みのデータ。D-21-02〜D-21-04） --}}
     </section>
     <section class="panel">
-    <h2 data-code="GOOGLE">Googleの指標</h2>
+    <h2>Googleの指標</h2>
     @php
         $ga = $google['ga4']; $gaPrev = $googlePrevious['ga4'];
         $sc = $google['search_console']; $scPrev = $googlePrevious['search_console'];
@@ -225,7 +225,7 @@
     </section>
     {{-- ページの速さ（PageSpeed Insights。D-78）：携帯・デスクトップの最新の結果・合格しなかった項目・測定の記録・今すぐ測定 --}}
     <section class="panel">
-    <h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights） @include('partials.tip', ['tip' => "PageSpeed Insights で測った、この記事の表示の速さなどです（定期実行で毎週。下の「今すぐ測定」でも測れます）。\nGoogle は携帯の表示で評価するため、携帯の結果を主に見てください。試しに開いた値は、測るたびに数点ぶれます。"])</h2>
+    <h2>ページの速さ（PageSpeed Insights） @include('partials.tip', ['tip' => "PageSpeed Insights で測った、この記事の表示の速さなどです（定期実行で毎週。下の「今すぐ測定」でも測れます）。\nGoogle は携帯の表示で評価するため、携帯の結果を主に見てください。試しに開いた値は、測るたびに数点ぶれます。"])</h2>
     @if ($pagespeed['mobile'] || $pagespeed['desktop'])
         {{-- 表の上に、4つの区分 × 携帯・デスクトップの点数の円グラフ（D-78-09） --}}
         @include('pagespeed.gauges', ['runs' => ['携帯' => $pagespeed['mobile'], 'デスクトップ' => $pagespeed['desktop']]])
@@ -272,7 +272,7 @@
     </form>
     </section>
     <section class="panel">
-    <h2 data-code="MANAGEMENT">管理情報</h2>
+    <h2>管理情報</h2>
     <form method="POST" action="{{ route('articles.management.update', ['type' => $type, 'id' => $article->id]) }}">
         @csrf
         @method('PUT')
@@ -335,7 +335,7 @@
     {{-- 記事で使っている教材（D-30） --}}
     </section>
     <section class="panel">
-    <h2 data-code="MATERIALS">紹介している教材（{{ $articleMaterials->count() }}件）</h2>
+    <h2>紹介している教材（{{ $articleMaterials->count() }}件）</h2>
     @if ($articleMaterials->isEmpty())
         <p>本文に、登録済みの教材のリンクはありません。</p>
     @else
@@ -388,7 +388,7 @@
     {{-- 記事同士の関係（D-08-04） --}}
     </section>
     <section class="panel">
-    <h2 data-code="RELATIONS">記事同士の関係</h2>
+    <h2>記事同士の関係</h2>
     @php $relationsPage = \App\Support\ListPage::of($relations, 'relation_page')->fragment('relations'); @endphp
     <a id="relations"></a>
     @include('partials.history-count', ['paginator' => $relationsPage, 'order' => '関係・並び順の順'])
@@ -467,7 +467,7 @@
     {{-- 内部リンク（本文から抽出） --}}
     </section>
     <section class="panel">
-    <h2 data-code="LINKS OUT">この記事からのリンク（{{ $outbound->count() }}件）</h2>
+    <h2>この記事からのリンク（{{ $outbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンクの文字 → リンク先」の1行。D-82-01） --}}
     @php $outboundPage = \App\Support\ListPage::of($outbound, 'out_page')->fragment('links-out'); @endphp
     <a id="links-out"></a>
@@ -504,7 +504,7 @@
     </section>
 
     <section class="panel">
-    <h2 data-code="LINKS IN">この記事へのリンク（{{ $inbound->count() }}件）</h2>
+    <h2>この記事へのリンク（{{ $inbound->count() }}件）</h2>
     {{-- 列名で、どちらが何かを分かるようにする（以前は「リンク元の記事（リンクの文字）」の1行。D-82-01） --}}
     @php $inboundPage = \App\Support\ListPage::of($inbound, 'in_page')->fragment('links-in'); @endphp
     <a id="links-in"></a>
@@ -542,7 +542,7 @@
     </section>
 
     <section class="panel">
-    <h2 data-code="MEDIA">本文中の画像（{{ $media->count() }}件）</h2>
+    <h2>本文中の画像（{{ $media->count() }}件）</h2>
     {{-- 画像の一覧（画面「画像」）と同じく、画像を並べ、下に情報を出す（以前は URL の一覧。D-82-02）。
          画像は WordPress のサイトから読む。押すと、元の大きさの画像を別のタブで開く --}}
     @if ($media->isEmpty())
@@ -576,7 +576,7 @@
     </section>
     @if ($legacyImages !== [] && ! $article->wordpress_deleted_at)
     <section class="panel" id="legacy-images">
-    <h2 data-code="LEGACY IMAGES">古い画像の移し替え（{{ count($legacyImages) }}件） @include('partials.tip', ['tip' => "本文で使っている、メディアライブラリにない古い画像（/wp-content/img/…）です。\n1. 取り込む：サイトから読み込み、BlogOS の画像にします。\n2. 名前・alt・ファイル名を入れて、確認済みにします。\n3. WordPress のメディアに登録します（人の承認）。\n4. 置き換える：公開中の記事の URL だけを置き換えて反映し、作業中の編集案の URL も置き換えます。\n5. 古い画像の削除の画面で、どこにも使われなくなったファイルを消すコマンドを出します（SSH で人が実行）。"])</h2>
+    <h2>古い画像の移し替え（{{ count($legacyImages) }}件） @include('partials.tip', ['tip' => "本文で使っている、メディアライブラリにない古い画像（/wp-content/img/…）です。\n1. 取り込む：サイトから読み込み、BlogOS の画像にします。\n2. 名前・alt・ファイル名を入れて、確認済みにします。\n3. WordPress のメディアに登録します（人の承認）。\n4. 置き換える：公開中の記事の URL だけを置き換えて反映し、作業中の編集案の URL も置き換えます。\n5. 古い画像の削除の画面で、どこにも使われなくなったファイルを消すコマンドを出します（SSH で人が実行）。"])</h2>
     @php $legacyImagesPage = \App\Support\ListPage::of($legacyImages, 'legacy_page')->fragment('legacy-images'); @endphp
     @include('partials.history-count', ['paginator' => $legacyImagesPage, 'order' => '本文の順'])
     <div style="overflow-x:auto;">
@@ -660,7 +660,7 @@
 
     {{-- 反映記録 --}}
     <section class="panel">
-    <h2 data-code="PUSH LOG">反映記録</h2>
+    <h2>反映記録</h2>
     <ul>
         @forelse ($operations as $operation)
             <li>
@@ -675,7 +675,7 @@
     {{-- 管理情報の変更履歴 --}}
     </section>
     <section class="panel">
-    <h2 data-code="HISTORY">管理情報の変更履歴</h2>
+    <h2>管理情報の変更履歴</h2>
     @php $historiesPage = \App\Support\ListPage::of($histories, 'history_page')->fragment('history'); @endphp
     <a id="history"></a>
     @include('partials.history-count', ['paginator' => $historiesPage])

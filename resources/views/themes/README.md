@@ -56,7 +56,7 @@ public/themes/{テーマ名}/                テーマの CSS・JavaScript・画
   * 表：`<table class="data">`（余白の狭い表は `data data-compact`）
     * 表は画面の幅に収め、収まらなければ `public/js/blogos.js` が行ごとのカードの形（`table.data.stacked`）にする（D-50）。列の見出しは `<thead>` の最後の行（または th だけの最初の行）から取る。テーマの CSS では `table.data.stacked` の見た目も決める
   * 点数の棒：`bar-track`・`bar-good`・`bar-mid`・`bar-bad`、差分：`diff-added`・`diff-removed`・`diff-skip`
-  * 画面の区切り：`<section class="panel">`（`<fieldset>`・`<form>` にも付けてよい）。最初の h2・legend が見出し。`data-code="EDITOR"` のような英字の札を付けてよい
+  * 画面の区切り：`<section class="panel">`（`<fieldset>`・`<form>` にも付けてよい）。最初の h2・legend が見出し。ページ内のパネルの題名は日本語だけにし、英字の札（`data-code`）は付けない（D-117-01。英字＋日本語は、トップページのパネル・右のパネルの「SCREEN」・ヘッダーのメニューだけ）
   * ボタン：何も付けない＝主な操作、`btn-secondary`＝補助の操作、`btn-danger`＝取り消せない・壊す操作。主な操作へのリンクは `<a class="button-link">`
 * 幅・余白・文字の寄せなど、その画面だけの配置は `style="…"` に書いてよい。
 * 新しい意味の見た目が必要になったら、`blogos.css` に class を加え、各テーマの CSS でも見た目を決める。

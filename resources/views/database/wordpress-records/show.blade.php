@@ -23,9 +23,9 @@
         <p class="text-error"><strong>WordPress側で完全に削除されています（{{ \App\Support\DisplayTime::format($record->wordpress_deleted_at) }} に検知）。</strong></p>
     @endif
 
-    {{-- パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
+    {{-- ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01） --}}
     <section class="panel">
-    <h2 data-code="DETAIL">詳細</h2>
+    <h2>詳細</h2>
 
     @php
         // 列として持つつながりは、列ごとに引けるようにする。列のないつながりは、関連のパネルに出す
@@ -80,7 +80,7 @@
     {{-- 関連：レコードの値ではないが関連しているもの（列ではなく、別の表でつなぐ。投稿のカテゴリ・タグ。D-72-14） --}}
     @if ($extraRelations->isNotEmpty())
         <section class="panel">
-        <h2 data-code="RELATION">関連 @include('partials.tip', ['tip' => 'このレコードの列としては持たず、別の表でつないでいるデータです（列として持つつながりは、詳細の値の横に出しています）。'])</h2>
+        <h2>関連 @include('partials.tip', ['tip' => 'このレコードの列としては持たず、別の表でつないでいるデータです（列として持つつながりは、詳細の値の横に出しています）。'])</h2>
         <table class="data">
             <tbody>
                 @foreach ($extraRelations as $relation)
@@ -96,7 +96,7 @@
 
     {{-- 変更履歴：日時・変更の元・項目の行だけを出し、押すと、その履歴の全ての項目を開く（詳細と同じ並べ方） --}}
     <section class="panel">
-    <h2 data-code="HISTORY">変更履歴</h2>
+    <h2>変更履歴</h2>
     @include('partials.history-count', ['paginator' => $histories])
 
     @forelse ($histories as $history)

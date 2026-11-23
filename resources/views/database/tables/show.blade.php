@@ -17,9 +17,9 @@
         $relationLinks = fn (array $items) => collect($items)->map(fn ($item) => $item['url'] ? '<a href="' . e($item['url']) . '">' . e($item['text']) . '</a>' : e($item['text']))->implode('・');
     @endphp
 
-    {{-- パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
+    {{-- ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01） --}}
     <section class="panel">
-    <h2 data-code="DETAIL">詳細</h2>
+    <h2>詳細</h2>
     <div style="overflow-x:auto;">
         <table class="data">
             <tbody>
@@ -60,7 +60,7 @@
     {{-- 関連：このレコードを指しているほかのテーブルの行（1件以上のものだけ）。件数から、その行に絞った一覧を開く --}}
     @if ($references !== [])
         <section class="panel">
-        <h2 data-code="RELATION">関連 @include('partials.tip', ['tip' => 'このレコードを指している、ほかのテーブルの行の数です。件数を押すと、その行に絞った一覧を開きます。'])</h2>
+        <h2>関連 @include('partials.tip', ['tip' => 'このレコードを指している、ほかのテーブルの行の数です。件数を押すと、その行に絞った一覧を開きます。'])</h2>
         <table class="data">
             <thead><tr><th>テーブル</th><th>列</th><th>件数</th></tr></thead>
             <tbody>
@@ -79,7 +79,7 @@
     {{-- 変更履歴：日時・変更の元・項目の行だけを出し、押すと、その履歴の全ての項目を開く（取り込んだ WordPress のデータの詳細と同じ形） --}}
     @if ($histories !== null)
         <section class="panel">
-        <h2 data-code="HISTORY">変更履歴</h2>
+        <h2>変更履歴</h2>
         @include('partials.history-count', ['paginator' => $histories])
 
         @forelse ($histories as $history)

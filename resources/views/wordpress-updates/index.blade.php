@@ -21,8 +21,8 @@
         $typeComponents = $components->where('type', $type);
     @endphp
     <section class="panel">
-    {{-- パネルの題名の英字の札（data-code）は、ironman だけで出す --}}
-    <h2 data-code="{{ ['core' => 'WORDPRESS', 'plugin' => 'PLUGIN', 'theme' => 'THEME'][$type] ?? strtoupper($type) }}">{{ $typeLabel }}</h2>
+    {{-- ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01） --}}
+    <h2>{{ $typeLabel }}</h2>
     @if ($typeComponents->isEmpty())
         <p>{{ $components->isEmpty() ? 'まだ確認していません。' : 'ありません。' }}</p>
     @else

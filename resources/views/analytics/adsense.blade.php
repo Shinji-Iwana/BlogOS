@@ -46,10 +46,10 @@
             };
             $live = $report['live'];
             $dimensionTitles = [
-                'ad_unit'        => ['code' => 'AD UNITS', 'label' => '広告ユニット'],
-                'country'        => ['code' => 'COUNTRY', 'label' => '国'],
-                'bid_type'       => ['code' => 'BID TYPE', 'label' => '入札方法'],
-                'traffic_source' => ['code' => 'TRAFFIC', 'label' => 'トラフィック ソース'],
+                'ad_unit'        => ['label' => '広告ユニット'],
+                'country'        => ['label' => '国'],
+                'bid_type'       => ['label' => '入札方法'],
+                'traffic_source' => ['label' => 'トラフィック ソース'],
             ];
         @endphp
 
@@ -66,7 +66,7 @@
 
             {{-- 推定収益額 --}}
             <section class="panel adsense-wide">
-                <h2 data-code="EARNINGS">推定収益額</h2>
+                <h2>推定収益額</h2>
                 <div class="adsense-figures">
                     <div class="adsense-figure">
                         <div class="adsense-figure-label">本日（現時点まで）</div>
@@ -91,7 +91,7 @@
 
             {{-- 残高 --}}
             <section class="panel">
-                <h2 data-code="BALANCE">残高 @include('partials.tip', ['tip' => 'まだ支払われていない収益です。AdSense のアカウント全体の値で、ブログごとには分けられません。'])</h2>
+                <h2>残高 @include('partials.tip', ['tip' => 'まだ支払われていない収益です。AdSense のアカウント全体の値で、ブログごとには分けられません。'])</h2>
                 <div class="adsense-figure-value">{{ $live['balance'] ?? '-' }}</div>
                 @if ($live['lastPayment'])
                     <p class="text-muted">前回の支払い：{{ $live['lastPayment']['amount'] }}@if ($live['lastPayment']['date'])（{{ $live['lastPayment']['date'] }}）@endif</p>
@@ -100,7 +100,7 @@
 
             {{-- パフォーマンス --}}
             <section class="panel">
-                <h2 data-code="PERFORMANCE">パフォーマンス</h2>
+                <h2>パフォーマンス</h2>
                 <p class="text-muted">過去7日間（{{ $report['period']['weekFrom']->format('m-d') }}〜{{ $report['period']['weekTo']->format('m-d') }}）と、その前の7日間との比較</p>
                 @php
                     $week = $report['performance']['week'];
@@ -136,7 +136,7 @@
                 @php $rows = $report['dimensions'][$dimension] ?? []; @endphp
                 @php $max = max(array_merge([0.0], array_column($rows, 'estimated_earnings'), array_column($rows, 'previous'))) ?: 1; @endphp
                 <section class="panel">
-                    <h2 data-code="{{ $title['code'] }}">{{ $title['label'] }}</h2>
+                    <h2>{{ $title['label'] }}</h2>
                     <p class="text-muted">過去7日間の推定収益額（下の薄い線は、その前の7日間）</p>
                     @forelse ($rows as $row)
                         @php $diff = $change($row['estimated_earnings'], $row['previous']); @endphp

@@ -39,7 +39,7 @@
         <input type="hidden" name="target" value="{{ $target }}">
 
         <section class="panel">
-        <h2 data-code="REQUIRED">必須条件（1つでも × なら公開不可）</h2>
+        <h2>必須条件（1つでも × なら公開不可）</h2>
         <table class="data">
             <thead><tr><th>キー</th><th>条件</th><th>判定</th><th>理由・メモ</th></tr></thead>
             <tbody>
@@ -60,7 +60,7 @@
         </section>
 
         <section class="panel">
-        <h2 data-code="ITEMS">採点項目（○：配点どおり、△：50%、×：0点）</h2>
+        <h2>採点項目（○：配点どおり、△：50%、×：0点）</h2>
         @foreach (collect($applicable)->groupBy('category', true) as $category => $items)
             <h3>{{ $category }}</h3>
             <table class="data">
@@ -90,7 +90,7 @@
         </section>
 
         <section class="panel">
-        <h2 data-code="SUMMARY">総評</h2>
+        <h2>総評</h2>
         <textarea name="summary" rows="5" style="width:100%; max-width:800px;">{{ old('summary', $baseSummary) }}</textarea>
 
         <p>

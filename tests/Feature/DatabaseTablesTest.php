@@ -55,7 +55,7 @@ class DatabaseTablesTest extends TestCase
         $this->get(route('database.tables.index', ['table' => 'sync_runs']))->assertOk()
             ->assertSee('<h1>WordPressとの同期の記録（sync_runs）</h1>', false)
             ->assertSee('選択中のブログ（Example Blog）の行と、どのブログにも属さない行を出します。')
-            ->assertSee('<h2 data-code="FILTER">条件</h2>', false)
+            ->assertSee('<h2>条件</h2>', false)
             ->assertSee('（id降順）')
             ->assertSeeInOrder(['>' . $new . '</a>', '>' . $old . '</a>'], false)
             ->assertDontSee('<th>message</th>', false)
@@ -67,8 +67,8 @@ class DatabaseTablesTest extends TestCase
             ->assertSee('古い同期')
             ->assertSee('（<a href="' . route('database.tables.show', ['table' => 'blogs', 'id' => $blog->id]) . '">Example Blog #' . $blog->id . '</a>）', false)
             ->assertSee('（<a href="' . route('database.tables.show', ['table' => 'users', 'id' => $user->id]) . '">管理者 #' . $user->id . '</a>）', false)
-            ->assertSeeInOrder(['<h2 data-code="RELATION">', '同期の対象ごとの結果（sync_run_resources）', 'sync_run_id', '>1</a>'], false)
-            ->assertDontSee('<h2 data-code="HISTORY">', false);
+            ->assertSeeInOrder(['<h2>関連', '同期の対象ごとの結果（sync_run_resources）', 'sync_run_id', '>1</a>'], false)
+            ->assertDontSee('<h2>変更履歴', false);
 
         // 関連の件数から開く一覧は、その行に絞る
         $this->get(route('database.tables.index', ['table' => 'sync_run_resources', 'column' => 'sync_run_id', 'value' => $old]))->assertOk()
@@ -114,7 +114,7 @@ class DatabaseTablesTest extends TestCase
 
         // 変更履歴のパネル（履歴のテーブルは、関連のパネルには出さない）
         $this->get(route('database.tables.show', ['table' => 'blogs', 'id' => $blog->id]))->assertOk()
-            ->assertSeeInOrder(['<h2 data-code="HISTORY">変更履歴</h2>', '旧名'], false)
+            ->assertSeeInOrder(['<h2>変更履歴</h2>', '旧名'], false)
             // アコーディオンの題名の項目は「 / 」でつなぐ（D-114-01）
             ->assertSee(' / blogos_manual / display_name</summary>', false)
             ->assertDontSee('ブログの変更履歴（blog_histories）');

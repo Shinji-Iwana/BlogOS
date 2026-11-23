@@ -14,7 +14,7 @@
 @section('content')
 
     <section class="panel error-page" style="max-width:640px; margin-left:auto; margin-right:auto;">
-        <h2 data-code="ERROR {{ $code }}">{{ $heading }}</h2>
+        <h2>{{ $heading }}（{{ $code }}）</h2>
 
         {{-- BlogOS が添える理由は日本語。Laravel が自動で付ける英語の理由（The route ... could not be found. など）は出さない --}}
         @if ($code < 500 && isset($exception) && preg_match('/[^\x00-\x7F]/', $exception->getMessage()))

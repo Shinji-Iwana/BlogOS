@@ -95,7 +95,7 @@
 
 
     <section class="panel reactor-compare-colors">
-        <h2 data-code="COLOR">色 @include('partials.tip', ['tip' => "色は、トップページを開いている間、10秒ごとに確かめて切り替えます（AI の実行中かと一緒に）。\n重なったときの動きは、音声 ＞ AI の実行中 ＞ パネル（引き出し）の通常時 ＞ トップページの通常時 の順に優先します。"])</h2>
+        <h2>色 @include('partials.tip', ['tip' => "色は、トップページを開いている間、10秒ごとに確かめて切り替えます（AI の実行中かと一緒に）。\n重なったときの動きは、音声 ＞ AI の実行中 ＞ パネル（引き出し）の通常時 ＞ トップページの通常時 の順に優先します。"])</h2>
         <p>
             {{-- 色ごとの説明（どういう状態か）は、選択肢のツールチップに出す --}}
             @foreach ($colors as [$value, $label, $notes])
@@ -106,7 +106,7 @@
     </section>
 
     <section class="panel">
-        <h2 data-code="MOTION">状態ごとの動き</h2>
+        <h2>状態ごとの動き</h2>
         <div class="reactor-compare" data-color="normal">
             @foreach ($scenes as $sceneIndex => [$name, $params, $speeds, $when, $back])
                 <figure class="reactor-compare-item">

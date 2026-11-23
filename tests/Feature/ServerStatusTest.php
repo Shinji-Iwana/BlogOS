@@ -85,7 +85,7 @@ class ServerStatusTest extends TestCase
             ->assertSee('DBの使用量の計算</a>（database_usage_measurements）', false);
         $this->get(route('database.tables.show', ['table' => 'database_usage_measurements', 'id' => $measurement->id]))->assertOk()
             ->assertSee('data-tip="計算にかかった時間（ミリ秒）。"', false)
-            ->assertSeeInOrder(['<h2 data-code="RELATION">', 'DBの使用量の内訳（database_usage_items）'], false);
+            ->assertSeeInOrder(['<h2>関連', 'DBの使用量の内訳（database_usage_items）'], false);
     }
 
     /**

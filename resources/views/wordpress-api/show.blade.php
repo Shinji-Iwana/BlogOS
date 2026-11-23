@@ -19,11 +19,11 @@
         @endif
     </p>
 
-    {{-- 問い合わせ条件（WordPress APIのパラメータ名のまま）。パネルの題名の英字の札（data-code）は、ironman だけで出す。
+    {{-- 問い合わせ条件（WordPress APIのパラメータ名のまま）。ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01）。
          API Root・Settings（1件だけを返す。list が single）は、指定する条件がないため出さない --}}
     @unless ($definition['list'] === 'single')
     <section class="panel">
-    <h2 data-code="FILTER">条件</h2>
+    <h2>条件</h2>
     {{-- 条件は、名前（「?」付き・折り返さない）と入力欄を交互に並べた表（色・枠なし）。1行目：context・page・per_page、2行目：status・search、3行目：orderby・order（並び替えできる一覧だけ）。
          詳細の画面は context だけ。「取得」は表の下の右端 --}}
     <form method="GET" action="{{ $id ? route('wp-api.resources.show', [$resource, $id]) : route('wp-api.resources.index', $resource) }}">
@@ -102,7 +102,7 @@
     @endunless
 
     <section class="panel">
-        <h2 data-code="REQUEST">リクエスト</h2>
+        <h2>リクエスト</h2>
         <table class="data">
             <tr><th>HTTPメソッド</th><td>{{ $result['method'] }}</td></tr>
             <tr><th>URL</th><td style="word-break:break-all;">{{ \App\Support\UrlLink::html($result['url']) }}</td></tr>
@@ -112,7 +112,7 @@
     </section>
 
     <section class="panel">
-        <h2 data-code="RESPONSE">レスポンス</h2>
+        <h2>レスポンス</h2>
 
         @if ($result['error'])
             <p class="text-error">{{ $result['error'] }}</p>

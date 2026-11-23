@@ -11,7 +11,7 @@
     </div>
 @endif
 
-<form method="POST" action="{{ route('login') }}" class="panel login-form" data-code="LOGIN">
+<form method="POST" action="{{ route('login') }}" class="panel login-form">
     @csrf
 
     <p>

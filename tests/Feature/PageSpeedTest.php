@@ -179,7 +179,7 @@ class PageSpeedTest extends TestCase
         $this->succeededRun($post, 'desktop', 95);
 
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
-            ->assertSee('<h2 data-code="PAGESPEED">ページの速さ（PageSpeed Insights）', false)
+            ->assertSee('<h2>ページの速さ（PageSpeed Insights）', false)
             // 表の上に、端末ごとに4つの区分の円グラフ（点数の区切りは表と同じ。D-78-09）
             ->assertSeeInOrder(['class="score-gauge-rows"', '携帯', 'score-gauge-bad', '>45</span>', '不良', 'パフォーマンス', 'score-gauge-good', '>90</span>', 'ユーザー補助',
                 'デスクトップ', 'score-gauge-good', '>95</span>', '良好', 'パフォーマンス', '<table class="data">'], false)
@@ -221,12 +221,12 @@ class PageSpeedTest extends TestCase
 
         $this->get(route('pagespeed.index'))->assertOk()
             ->assertSee('<h1>PageSpeed Insights情報', false)
-            ->assertSee('<h2 data-code="SITE">トップページ（携帯）</h2>', false)
+            ->assertSee('<h2>トップページ（携帯）</h2>', false)
             ->assertDontSee('70（改善が必要）')
             ->assertSee('測った記事：2件（公開中の記事 3件')
             // トップページの表・記事のまとめの表の上に、4つの区分の円グラフ（まとめは平均。小数第1位まで。D-78-11）
-            ->assertSeeInOrder(['<h2 data-code="SITE">', 'class="score-gauge-rows"', 'score-gauge-mid', '>70</span>', '<table class="data">',
-                '<h2 data-code="SUMMARY">', 'class="score-gauge-rows"', '記事の平均', '2件の平均', 'score-gauge-mid', '>60.0</span>', 'パフォーマンス', '<table class="data">'], false)
+            ->assertSeeInOrder(['<h2>トップページ', 'class="score-gauge-rows"', 'score-gauge-mid', '>70</span>', '<table class="data">',
+                '<h2>記事のまとめ', 'class="score-gauge-rows"', '記事の平均', '2件の平均', 'score-gauge-mid', '>60.0</span>', 'パフォーマンス', '<table class="data">'], false)
             // パフォーマンスの平均 (80 + 40) / 2
             ->assertSeeInOrder(['パフォーマンス', '60', '0件', '1件', '1件'])
             ->assertSeeInOrder(['画像要素に [alt] 属性が指定されていません', 'ユーザー補助・SEO', '2件'])

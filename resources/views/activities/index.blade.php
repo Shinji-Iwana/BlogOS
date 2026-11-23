@@ -19,7 +19,7 @@
 
     {{-- 取得条件：期間を変えると、記録を取得し直す（種類の候補も変わる）。選んでいた種類は引き継ぐ（記録がなくなったときは「全て」に戻す） --}}
     <section class="panel">
-    <h2 data-code="QUERY">取得条件</h2>
+    <h2>取得条件</h2>
     <form method="GET" action="{{ route('activities.index') }}">
         <input type="hidden" name="kind" value="{{ $filters['kind'] }}">
         <table class="form-grid">
@@ -40,7 +40,7 @@
 
     {{-- 表示条件：取得した記録を、種類で絞り込む（候補は、取得した期間に記録がある種類だけ） --}}
     <section class="panel">
-    <h2 data-code="FILTER">表示条件</h2>
+    <h2>表示条件</h2>
     <form method="GET" action="{{ route('activities.index') }}">
         <input type="hidden" name="from" value="{{ $filters['from'] }}">
         <input type="hidden" name="to" value="{{ $filters['to'] }}">
@@ -66,7 +66,7 @@
     </div>
 
     <section class="panel">
-    <h2 data-code="ACTIVITY">作業の記録</h2>
+    <h2>作業の記録</h2>
     {{-- どの条件の一覧か --}}
     <p>期間：{{ $filters['from'] }} 〜 {{ $filters['to'] }}（日本時間）／種類：{{ \App\Services\Activity\ActivityLogService::KINDS[$filters['kind']] ?? '全て' }}</p>
     @include('partials.history-count', ['paginator' => $activities])

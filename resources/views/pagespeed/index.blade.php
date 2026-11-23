@@ -35,7 +35,7 @@
 
         {{-- 表示条件：端末 --}}
         <section class="panel">
-        <h2 data-code="FILTER">表示条件</h2>
+        <h2>表示条件</h2>
         <form method="GET" action="{{ route('pagespeed.index') }}">
             <input type="hidden" name="sort" value="{{ $sort }}">
             <table class="form-grid">
@@ -58,7 +58,7 @@
 
         {{-- サイト全体：トップページ --}}
         <section class="panel">
-        <h2 data-code="SITE">トップページ（{{ $strategyLabel }}）</h2>
+        <h2>トップページ（{{ $strategyLabel }}）</h2>
         @if ($home)
             {{-- 表の上に、4つの区分の点数の円グラフ（記事の画面と同じ。D-78-11） --}}
             @include('pagespeed.gauges', ['runs' => [$strategyLabel => $home]])
@@ -75,7 +75,7 @@
 
         {{-- 記事のまとめ --}}
         <section class="panel">
-        <h2 data-code="SUMMARY">記事のまとめ（{{ $strategyLabel }}）</h2>
+        <h2>記事のまとめ（{{ $strategyLabel }}）</h2>
         <p>測った記事：{{ number_format($summary['measured']) }}件（公開中の記事 {{ number_format($summary['published']) }}件。記事ごとの最新の結果から）</p>
         @if ($summary['measured'] > 0)
             {{-- 表の上に、区分ごとの平均の円グラフ（小数第1位まで。D-78-11） --}}
@@ -113,7 +113,7 @@
 
         {{-- 多い問題 --}}
         <section class="panel">
-        <h2 data-code="ISSUES">多い問題（{{ $strategyLabel }}）@include('partials.tip', ['tip' => "記事ごとの最新の結果で、合格しなかった記事の数の多い順です（上位20件）。\n多くの記事に出る問題は、記事ごとではなく、テーマ・プラグイン・サーバーの設定で直せることが多いです。"])</h2>
+        <h2>多い問題（{{ $strategyLabel }}）@include('partials.tip', ['tip' => "記事ごとの最新の結果で、合格しなかった記事の数の多い順です（上位20件）。\n多くの記事に出る問題は、記事ごとではなく、テーマ・プラグイン・サーバーの設定で直せることが多いです。"])</h2>
         @if ($failures === [])
             <p>ありません。</p>
         @else
@@ -140,7 +140,7 @@
 
         {{-- 記事ごとの最新の結果（点数の低い順） --}}
         <section class="panel">
-        <h2 data-code="ARTICLE">記事ごとの最新の結果（{{ $strategyLabel }}）</h2>
+        <h2>記事ごとの最新の結果（{{ $strategyLabel }}）</h2>
         @include('partials.history-count', ['paginator' => $articles, 'order' => $report::CATEGORIES[$sort] . 'の低い順'])
         <p>
             並び：

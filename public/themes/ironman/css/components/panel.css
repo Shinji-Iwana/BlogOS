@@ -7,7 +7,7 @@
    ・各画面では、<section class="panel">・<fieldset class="panel">・<form class="panel"> で区切る
      （public/css/blogos.css では何もしないため、blank の見た目は変わらない）
    ・区切りの見出し（.panel の最初の h2・legend）は、パネルの見出しの行にする。
-     data-code（英字の札。例：EDITOR）があれば、見出しの前に出す
+     英字の札は付けない（ページ内のパネルの題名は日本語だけ。D-117-01）
    ========================================================== */
 
 
@@ -65,7 +65,7 @@
     pointer-events: none;
 }
 
-/* ::before は、英字の札（data-code）だけに使う */
+/* ::before は使わない（ページ内のパネルに英字の札を出さない。D-117-01） */
 .hud-panel::before,
 .panel::before {
     content: none;
@@ -230,46 +230,8 @@ fieldset.panel > legend + * {
     clear: both;
 }
 
-/* 英字の札（data-code） */
-.panel [data-code]::before,
-.panel[data-code]::before {
-    content: attr(data-code);
-}
-
-.panel > h2[data-code]::before,
-.panel > legend[data-code]::before {
-    display: inline-block;
-    margin-right: 12px;
-    font-family: var(--im-font-logo);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    color: var(--hud-accent);
-    vertical-align: 2px;
-}
-
-/* 見出しのない区切り（form.panel など）は、札をパネルの左上の中に出す（パネルを八角形に切るため、外には出せない） */
-.panel[data-code] {
-    padding-top: 26px;
-}
-
-.panel[data-code]::before {
-    position: absolute;
-    width: auto;
-    height: auto;
-    top: 5px;
-    left: calc(var(--hud-cut) + 8px);
-    padding: 0;
-    border: 0;
-    background: none;
-    font-family: var(--im-font-logo);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    line-height: 16px;
-    color: var(--hud-accent);
-    opacity: 1;
-}
+/* ページ内のパネルの題名は日本語だけ（英字の札は付けない。D-117-01）。
+   英字＋日本語の題名は、トップページのパネル（.hud-panel-code）・右のパネル（.screen-drawer-code）・ヘッダーのメニュー（.site-menu-code）だけ */
 
 
 /* ==========================================================

@@ -18,7 +18,7 @@
     </p>
 
     <section class="panel">
-    <h2 data-code="DELETE">削除できる古いファイル</h2>
+    <h2>削除できる古いファイル</h2>
     @if (! $deletion['available'])
         <p class="text-warn">一覧を出せません：{{ $deletion['reason'] }}記事以外（ウィジェット・テーマなど）での使用を確かめられないため、削除の一覧は出しません。</p>
     @elseif ($deletion['deletable'] === [] && $deletion['used'] === [])
@@ -46,7 +46,7 @@
     </section>
 
     <section class="panel">
-    <h2 data-code="REMAINING">古い画像が残っている記事（{{ count($remaining) }}件）</h2>
+    <h2>古い画像が残っている記事（{{ count($remaining) }}件）</h2>
     @if ($remaining === [])
         <p>ありません。</p>
     @else

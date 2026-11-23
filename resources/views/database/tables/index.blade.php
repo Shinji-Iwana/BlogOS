@@ -14,9 +14,9 @@
         <p><a href="{{ route('server.index') }}">XServer情報に戻る</a></p>
     @endif
 
-    {{-- 絞り込みの条件（取り込んだ WordPress のデータの一覧と同じ形。パネルの題名の英字の札（data-code）は、ironman だけで出す） --}}
+    {{-- 絞り込みの条件（取り込んだ WordPress のデータの一覧と同じ形。ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01）） --}}
     <section class="panel">
-    <h2 data-code="FILTER">条件</h2>
+    <h2>条件</h2>
     @if ($filterColumn !== null)
         <p>
             {{ $filterColumn }} が {{ $filterValue }} の行（ブログでは絞らない）
@@ -46,7 +46,7 @@
 
     {{-- レコードの一覧（1ページ最大50件。並びは、主キーの降順＝新しい順） --}}
     <section class="panel">
-    <h2 data-code="RECORD">レコード</h2>
+    <h2>レコード</h2>
     @include('partials.history-count', ['paginator' => $records, 'order' => $primaryKey ? $primaryKey . '降順' : null])
 
     <div style="overflow-x:auto;">
