@@ -7,7 +7,6 @@ use App\Http\Controllers\Ai\AiPriceController;
 use App\Http\Controllers\Ai\AiSettingsController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Analytics\PerformanceController;
-use App\Http\Controllers\Api\SiteSearchController as ApiSiteSearchController;
 use App\Http\Controllers\Api\SyncStatusController as ApiSyncStatusController;
 use App\Http\Controllers\Articles\ArticleController;
 use App\Http\Controllers\Articles\ArticleManagementController;
@@ -223,9 +222,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/wordpress-api', [WordPressApiResourceController::class, 'home'])->name('wp-api.home');
     Route::get('/wordpress-api/{resource}', [WordPressApiResourceController::class, 'index'])->name('wp-api.resources.index');
     Route::get('/wordpress-api/{resource}/{id}', [WordPressApiResourceController::class, 'show'])->name('wp-api.resources.show');
-
-    // サイト内検索（Search API。将来の候補 D-10-05。見直しまでは現状のまま）
-    Route::get('/api/site-search', [ApiSiteSearchController::class, 'index'])->name('api-site-search');
+    // サイト内検索は、API確認画面の1つ（/wordpress-api/search。D-115-01）
 
     // 品質評価（D-06-02、D-07-03）とBlogOSのAI機能（ARCHITECTURE 18章）
     Route::get('/evaluations/create', [EvaluationController::class, 'create'])->name('evaluations.create');

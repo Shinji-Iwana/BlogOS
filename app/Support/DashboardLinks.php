@@ -58,7 +58,7 @@ class DashboardLinks
             // ブログの登録は、メニューの「設定 → ブログを登録」のポップアップ（D-63-21）
             ['label' => 'ブログ一覧', 'route' => 'database-blog-list', 'blog' => false],
             ['label' => '取り込んだWordPressのデータ（DB確認）', 'route' => 'database.wordpress-records.tables', 'blog' => true],
-            ['label' => 'サイト内検索', 'route' => 'api-site-search', 'blog' => true],
+            // サイト内検索は、WordPress API情報の一覧から開く（D-115-01）
         ]],
     ];
 

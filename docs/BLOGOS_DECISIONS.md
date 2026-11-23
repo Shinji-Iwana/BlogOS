@@ -1786,6 +1786,18 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * これからアコーディオンの題名に項目を並べるときも、「 / 」でつなぐ。
 * テスト：tests/Feature/Sync/SyncScreensTest.php、tests/Feature/DatabaseTablesTest.php。
 
+### 項目115：サイト内検索の移設（全画面の見直し。2026-11-23）
+
+**D-115-01 サイト内検索は、WordPress API情報の API確認画面の1つにする** サイト内検索の画面は、WordPress の検索の API（`/wp-json/wp/v2/search`）をその場で呼んで結果を出すだけの画面で、BlogOS の中の検索（取り込んだデータの絞り込み）とは別のもの（WORDPRESS_API 10-8）。開く入口は、トップ画面の管理パネルの「管理」だけだった（音声の「画面を開く」も、同じ入口の一覧を使っていた）。そのため、管理パネルから外し、WordPress API情報の一覧に移した（利用者の判断。確認画面のイメージ（mock-site-search）を見て決めた）。
+* 入口：トップ画面の管理パネルの「サイト内検索」をなくした（音声の「画面を開く」からも開けなくなる）。WordPress API情報の一覧の最後に、ほかの API確認画面と同じ書き方（名前のリンクと、エンドポイント）で出す。
+* 作り：ほかの API確認画面に揃えた（`ApiInspectionService::RESOURCES` の search）。URL は `/wordpress-api/search`、題名は「WordPress API情報：サイト内検索」、「WordPress API情報に戻る」、条件（context（view・embed。edit は使えない）・page・per_page・search・type・subtype）、リクエスト、レスポンス（HTTPステータス・X-WP-Total・X-WP-TotalPages・一覧・レスポンスヘッダー・レスポンス本文）。
+* 取得のしかた：ほかと同じく、指定したページを1回だけ取得する（初めは20件）。以前は、全てのページを続けて取得し、BlogOS の中で20件ずつに分けていた。
+* 一覧の列：ID・type・subtype・名前・タイトル・url。ID は、結果の種類（subtype）の API確認画面の詳細（投稿・固定ページ・カテゴリ・タグ）へのリンク（それ以外の種類はリンクにしない）。url は別のタブで開くリンク（D-113-01）。サイト内検索には詳細の画面はない。
+* 前の画面（`/api/site-search`、`App\Http\Controllers\Api\SiteSearchController`、`resources/views/api/site-search.blade.php`）はなくした。
+* 同期の対象（D-10-05）は変えない。検索の API は、API確認画面でその場で見るだけで、同期には使わない。
+* 画面の中の作りは、まだ共通のルールになっていない部分もあるが、まずは今の API確認画面の作りに揃えた（細かい見直しは、あとで利用者と決める）。
+* テスト：tests/Feature/WordPressApiListTest.php（サイト内検索）、tests/Feature/PagesSmokeTest.php、tests/Feature/ThemeTest.php。
+
 
 
 | 事項 | 決める時期 |

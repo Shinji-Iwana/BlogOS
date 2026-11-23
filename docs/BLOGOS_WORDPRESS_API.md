@@ -1,8 +1,8 @@
 # BlogOS WordPress REST API設計書
 
-**バージョン:** 2.0.0
-**最終更新日:** 2026-09-24
-**主な変更:** 2026-09-23 設計監査の決定事項（`BLOGOS_DECISIONS.md` の D-01〜D-13）を反映
+**バージョン:** 2.1.0
+**最終更新日:** 2026-11-23
+**主な変更:** 2026-11-23 10-8 に、Search を API確認画面のサイト内検索で見ることを追記（D-115-01）。2026-09-23 設計監査の決定事項（`BLOGOS_DECISIONS.md` の D-01〜D-13）を反映
 
 ---
 
@@ -230,6 +230,8 @@ Postsとほぼ同じ。`parent`、`menu_order` を持ち、`categories`・`tags`
 ## 10-8. その他（将来の候補）
 
 Revisions（WordPress側の編集履歴。BlogOSの履歴とは別物）、Comments、Search（WordPress内の検索。BlogOS内の検索とは別物）、Block関連、Themes、Templates、Navigation、Global Styles。現時点では対象外とする（D-10-05）。
+
+ただし Search は、API確認画面（ARCHITECTURE 21-2）の「サイト内検索」で、その場で呼んで結果を見る（DBには保存せず、同期にも使わない。D-115-01）。
 
 ---
 

@@ -40,6 +40,8 @@ class ResourceController extends Controller
     protected function render(Request $request, string $resource, ?string $id)
     {
         abort_unless(array_key_exists($resource, ApiInspectionService::RESOURCES), 404);
+        // 詳細の画面がない種類（サイト内検索。D-115-01）
+        abort_if($id !== null && (ApiInspectionService::RESOURCES[$resource]['detail'] ?? true) === false, 404);
 
         $blog = $this->blogRepository->findSelected();
         abort_if($blog === null, 404, 'ブログが選択されていません。');

@@ -34,7 +34,8 @@
                     <td>
                         <select name="context" id="api-context">
                             <option value="">（指定なし）</option>
-                            @foreach (['view', 'embed', 'edit'] as $context)
+                            {{-- サイト内検索は edit を使えない（D-115-01） --}}
+                            @foreach ($resource === 'search' ? ['view', 'embed'] : ['view', 'embed', 'edit'] as $context)
                                 <option value="{{ $context }}" @selected(($query['context'] ?? '') === $context)>{{ $context }}</option>
                             @endforeach
                         </select>
@@ -46,7 +47,25 @@
                         <td><input type="number" name="per_page" id="api-per-page" min="1" max="100" value="{{ $query['per_page'] ?? '' }}"></td>
                     @endunless
                 </tr>
-                @unless ($id)
+                @if (! $id && $resource === 'search')
+                    {{-- サイト内検索の2行目：search・type・subtype（D-115-01） --}}
+                    <tr>
+                        <th><label for="api-search">search</label> @include('partials.tip', ['tip' => '検索する言葉（WordPress のサイト内検索と同じ。タイトル・本文などに、その言葉を含むもの）。'])</th>
+                        <td><input type="text" name="search" id="api-search" value="{{ $query['search'] ?? '' }}"></td>
+                        <th><label for="api-type">type</label> @include('partials.tip', ['tip' => "何を検索するか。post：投稿・固定ページなど、term：カテゴリ・タグ、post-format：投稿フォーマット。\n指定なしは post。"])</th>
+                        <td>
+                            <select name="type" id="api-type">
+                                <option value="">（指定なし）</option>
+                                @foreach (['post', 'term', 'post-format'] as $option)
+                                    <option value="{{ $option }}" @selected(($query['type'] ?? '') === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <th><label for="api-subtype">subtype</label> @include('partials.tip', ['tip' => "type の中の種類（post なら post・page、term なら category・post_tag。「,」で区切って複数）。\n指定なしは全て（any）。"])</th>
+                        <td><input type="text" name="subtype" id="api-subtype" value="{{ $query['subtype'] ?? '' }}" placeholder="post,page"></td>
+                    </tr>
+                @endif
+                @unless ($id || $resource === 'search')
                     <tr>
                         <th><label for="api-status">status</label> @include('partials.tip', ['tip' => "公開の状態でしぼり込む（publish：公開、draft：下書き、pending：レビュー待ち、future：予約、private：非公開。「,」で区切って複数）。\n指定なしは公開（publish）だけ。下書きなどは、編集の権限で取得するため context を edit にする。"])</th>
                         <td><input type="text" name="status" id="api-status" value="{{ $query['status'] ?? '' }}" placeholder="publish,draft"></td>
@@ -112,7 +131,7 @@
                 {{-- 出す列と順番は、データの種類ごと（ApiInspectionService::COLUMNS）。名前・タイトル以外は折り返さない --}}
                 @php
                     $listColumns = \App\Services\WordPressApi\ApiInspectionService::COLUMNS[$resource] ?? ['id', 'slug', 'title', 'status'];
-                    $columnLabels = ['id' => 'ID', 'status' => 'status', 'slug' => 'slug', 'title' => '名前・タイトル', 'mime_type' => 'mime_type'];
+                    $columnLabels = ['id' => 'ID', 'status' => 'status', 'slug' => 'slug', 'title' => '名前・タイトル', 'mime_type' => 'mime_type', 'type' => 'type', 'subtype' => 'subtype', 'url' => 'url'];
                 @endphp
                 <div style="overflow-x:auto;">
                     <table class="data">
@@ -129,7 +148,20 @@
                                     @foreach ($listColumns as $column)
                                         @switch ($column)
                                             @case ('id')
-                                                <td style="white-space:nowrap;"><a href="{{ route('wp-api.resources.show', [$resource, $row['id']]) }}">{{ $row['id'] }}</a></td>
+                                                {{-- サイト内検索は、結果の種類（subtype）の詳細の画面へ。詳細の画面がない種類は、リンクにしない（D-115-01） --}}
+                                                @php
+                                                    $detailResource = $resource === 'search' ? (\App\Services\WordPressApi\ApiInspectionService::SEARCH_DETAIL[$row['subtype']] ?? null) : $resource;
+                                                @endphp
+                                                <td style="white-space:nowrap;">
+                                                    @if ($detailResource !== null && $row['id'] !== '')
+                                                        <a href="{{ route('wp-api.resources.show', [$detailResource, $row['id']]) }}">{{ $row['id'] }}</a>
+                                                    @else
+                                                        {{ $row['id'] }}
+                                                    @endif
+                                                </td>
+                                                @break
+                                            @case ('url')
+                                                <td style="word-break:break-all;">{{ \App\Support\UrlLink::html($row['url']) }}</td>
                                                 @break
                                             @case ('slug')
                                                 <td style="white-space:nowrap;" title="{{ $row['slug'] }}">{{ \App\Support\Slug::display($row['slug']) }}</td>

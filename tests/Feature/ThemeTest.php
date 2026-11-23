@@ -87,8 +87,8 @@ class ThemeTest extends TestCase
             ->assertSee('ERROR 404', false)
             ->assertSee('ページが見つかりません');
 
-        // ブログを選んでいないときのサイト内検索：abort(404, 'ブログが選択されていません。')
-        $this->get(route('api-site-search'))->assertNotFound()
+        // ブログを選んでいないときのサイト内検索（API確認画面。D-115-01）：abort(404, 'ブログが選択されていません。')
+        $this->get(route('wp-api.resources.index', ['resource' => 'search']))->assertNotFound()
             ->assertSee('ブログが選択されていません。')
             ->assertSee('トップページへ');
     }

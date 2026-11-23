@@ -32,12 +32,20 @@ class ApiInspectionService
         'statuses'   => ['label' => 'ステータス',     'endpoint' => '/wp-json/wp/v2/statuses',   'list' => 'map',  'title' => 'name'],
         'types'      => ['label' => '投稿タイプ',     'endpoint' => '/wp-json/wp/v2/types',      'list' => 'map',  'title' => 'name'],
         'taxonomies' => ['label' => 'タクソノミー',   'endpoint' => '/wp-json/wp/v2/taxonomies', 'list' => 'map',  'title' => 'name'],
+        // サイト内検索（WordPress の検索。BlogOS の中の検索とは別のもの。その場で見るだけで、同期には使わない。D-115-01）。
+        // 詳細の画面はない（一覧の ID は、その種類の詳細の画面へのリンク。SEARCH_DETAIL）
+        'search'     => ['label' => 'サイト内検索',   'endpoint' => '/wp-json/wp/v2/search',     'list' => 'list', 'title' => 'title', 'detail' => false],
     ];
 
     /**
      * 画面から指定できる問い合わせ条件（WordPress APIのパラメータ名のまま）
      */
-    public const QUERY_KEYS = ['context', 'page', 'per_page', 'status', 'search', 'orderby', 'order'];
+    public const QUERY_KEYS = ['context', 'page', 'per_page', 'status', 'search', 'orderby', 'order', 'type', 'subtype'];
+
+    /**
+     * サイト内検索の結果の種類（subtype）と、その種類の API確認画面（一覧の ID から詳細を開く。D-115-01）
+     */
+    public const SEARCH_DETAIL = ['post' => 'posts', 'page' => 'pages', 'category' => 'categories', 'post_tag' => 'tags'];
 
     /**
      * 並び替えに使える項目（WordPress API の orderby。配列の一覧（list）だけ。map（statuses・types・taxonomies）は並び替えできない）。
@@ -65,6 +73,7 @@ class ApiInspectionService
         'statuses'   => ['id', 'slug', 'title'],
         'types'      => ['id', 'slug', 'title'],
         'taxonomies' => ['id', 'slug', 'title'],
+        'search'     => ['id', 'type', 'subtype', 'title', 'url'],
     ];
 
     /**
@@ -153,6 +162,10 @@ class ApiInspectionService
                 'title'     => html_entity_decode(strip_tags((string) $title)),
                 'status'    => is_scalar($item['status'] ?? null) ? (string) $item['status'] : '',
                 'mime_type' => $item['mime_type'] ?? '',
+                // サイト内検索の結果だけが持つ項目
+                'type'      => is_scalar($item['type'] ?? null) ? (string) $item['type'] : '',
+                'subtype'   => is_scalar($item['subtype'] ?? null) ? (string) $item['subtype'] : '',
+                'url'       => is_scalar($item['url'] ?? null) ? (string) $item['url'] : '',
             ];
         }
 
