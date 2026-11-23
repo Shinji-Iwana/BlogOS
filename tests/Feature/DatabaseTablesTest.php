@@ -115,6 +115,8 @@ class DatabaseTablesTest extends TestCase
         // 変更履歴のパネル（履歴のテーブルは、関連のパネルには出さない）
         $this->get(route('database.tables.show', ['table' => 'blogs', 'id' => $blog->id]))->assertOk()
             ->assertSeeInOrder(['<h2 data-code="HISTORY">変更履歴</h2>', '旧名'], false)
+            // アコーディオンの題名の項目は「 / 」でつなぐ（D-114-01）
+            ->assertSee(' / blogos_manual / display_name</summary>', false)
             ->assertDontSee('ブログの変更履歴（blog_histories）');
     }
 

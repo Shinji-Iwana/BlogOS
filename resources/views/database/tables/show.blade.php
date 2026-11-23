@@ -84,7 +84,8 @@
 
         @forelse ($histories as $history)
             <details class="record-history">
-                <summary>{{ \App\Support\DisplayTime::format($history->changed_at) }}・{{ $history->source }}・{{ $history->field }}</summary>
+                {{-- 題名の項目は「 / 」でつなぐ（D-114-01） --}}
+                <summary>{{ \App\Support\DisplayTime::format($history->changed_at) }} / {{ $history->source }} / {{ $history->field }}</summary>
                 <div style="overflow-x:auto;">
                     <table class="data">
                         <tbody>

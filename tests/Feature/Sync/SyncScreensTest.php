@@ -178,7 +178,9 @@ class SyncScreensTest extends TestCase
         app(SyncService::class)->run($this->blog, SyncTrigger::Initial);
 
         $this->actingAs($this->user)->get(route('database.wordpress-records.tables'))->assertOk();
-        $this->actingAs($this->user)->get(route('database.sync-runs.index'))->assertOk()->assertSee('初回取得');
+        $runs = $this->actingAs($this->user)->get(route('database.sync-runs.index'))->assertOk()->assertSee('初回取得');
+        // アコーディオンの題名の項目は「 / 」でつなぐ（D-114-01）
+        $this->assertMatchesRegularExpression('~<summary>\s*<strong>#\d+</strong>\s+/ 初回取得\s+/ [^<]+\s+/ \d{4}-~u', $runs->getContent());
 
         $response = $this->actingAs($this->user)->get(route('database.wordpress-records.index', ['table' => $table]))->assertOk();
 
@@ -189,10 +191,12 @@ class SyncScreensTest extends TestCase
         ][$table];
         $record = $model::firstOrFail();
 
-        $this->actingAs($this->user)
+        $show = $this->actingAs($this->user)
             ->get(route('database.wordpress-records.show', ['table' => $table, 'id' => $record->id]))
             ->assertOk()
             ->assertSee('__created');
+        // 変更履歴のアコーディオンの題名も「 / 」でつなぐ（D-114-01）
+        $this->assertMatchesRegularExpression('~<summary>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} / [a-z_]+ / __created</summary>~', $show->getContent());
     }
 
     public function test_unknown_table_is_not_found(): void

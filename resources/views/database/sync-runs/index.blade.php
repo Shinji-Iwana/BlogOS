@@ -18,13 +18,14 @@
 
     @forelse ($runs as $run)
         <details class="sync-run">
+            {{-- 題名の項目は「 / 」（半角スペース＋/＋半角スペース）でつなぐ（D-114-01） --}}
             <summary>
                 <strong>#{{ $run->id }}</strong>
-                ・{{ $run->trigger->label() }}
-                ・{{ $run->status->label() }}
-                ・{{ \App\Support\DisplayTime::format($run->started_at) }} 〜 {{ $run->finished_at ? \App\Support\DisplayTime::format($run->finished_at) : '（実行中）' }}
+                / {{ $run->trigger->label() }}
+                / {{ $run->status->label() }}
+                / {{ \App\Support\DisplayTime::format($run->started_at) }} 〜 {{ $run->finished_at ? \App\Support\DisplayTime::format($run->finished_at) : '（実行中）' }}
                 @if ($run->message)
-                    ・{{ $run->message }}
+                    / {{ $run->message }}
                 @endif
             </summary>
 
