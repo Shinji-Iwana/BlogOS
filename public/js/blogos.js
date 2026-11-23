@@ -170,6 +170,49 @@
         });
     }
 
+    // 中身が ID（番号）だけのセル（D-116-01）。例：194・#181
+    const ID_VALUE = /^#?\d+$/;
+    // 中身が金額だけのセル（D-116-01）。例：$0.1・$1,234.5678・¥1,234・＋ $0.20・− $0.2693・1,234円
+    const MONEY_VALUE = /^(?:[+\-＋−▲▼]\s?)?(?:[$¥￥]\s?\d[\d,]*(?:\.\d+)?|\d[\d,]*(?:\.\d+)?\s?円)$/;
+    // 中身が数値だけのセル（件数の「件」が付くものも。D-116-02）。例：2,801・0.000・-3・12件・2,801 件
+    const NUMBER_VALUE = /^[+\-＋−]?\d[\d,]*(?:\.\d+)?(?:\s?件)?$/;
+    // 中身がバージョンだけのセル（D-116-02）。例：13.43.0・8.4.28・v1.2.3・10.6.12-MariaDB
+    const VERSION_VALUE = /^v?\d+(?:\.\d+)+(?:[-+][0-9A-Za-z.\-]+)?$/;
+    // 中身が容量だけのセル（D-116-02）。例：717.8 KB・3.2 MB・9MB・512 B・1.2GiB
+    const SIZE_VALUE = /^\d[\d,]*(?:\.\d+)?\s?(?:B|[KMGT]i?B|バイト)$/;
+    // 中身が時間（秒数など）だけのセル（D-116-02）。例：6.7秒・18ms・84分24秒・1時間2分・3日
+    const DURATION_VALUE = /^(?:\d[\d,]*(?:\.\d+)?\s?(?:ms|秒|分|時間|日))+$/;
+    // 折り返さない値（D-116-01・D-116-02）
+    const NOWRAP_VALUES = [ID_VALUE, MONEY_VALUE, NUMBER_VALUE, VERSION_VALUE, SIZE_VALUE, DURATION_VALUE];
+
+    /**
+     * 一覧の表（列の見出しの行がある表）の、中身が ID・金額・数値（件数）・バージョン・容量・時間だけのセルを、折り返さずに出す（D-116-01・D-116-02）。
+     * セルの中身がそれらの値だけ（リンクなど1つの要素で包んだものも含む）のときだけ。文章の中の値は変えない。
+     * 詳細画面の「項目名と値」の表（列の見出しの行がない）は、変えない
+     */
+    function noWraps(table) {
+        if (headerRow(table) === null) {
+            return;
+        }
+        Array.from(table.tBodies).forEach((body) => {
+            Array.from(body.rows).forEach((row) => {
+                Array.from(row.cells).forEach((cell) => {
+                    if (cell.dataset.dt || cell.classList.contains('cell-nowrap')) {
+                        return;
+                    }
+                    const text = cell.textContent.trim();
+                    if (cell.children.length > 1 || (cell.children.length === 1
+                        && (cell.children[0].textContent.trim() !== text || !['A', 'SPAN', 'STRONG', 'CODE'].includes(cell.children[0].tagName) || cell.children[0].children.length > 0))) {
+                        return;
+                    }
+                    if (NOWRAP_VALUES.some((pattern) => pattern.test(text))) {
+                        cell.classList.add('cell-nowrap');
+                    }
+                });
+            });
+        });
+    }
+
     /**
      * 表が、置かれている場所の幅に収まっているか（列が細くなりすぎていないかも見る）
      */
@@ -193,9 +236,9 @@
             return false;
         }
 
-        // 日時のセルがある表は、長い文章のセルが細くなりすぎていないかも見る（D-111-01）。
-        // 日時の列は細くならないため、ほかの列が細くなる。見出しが短い列（「名前」など）は、上の判定では見つからない
-        if (!table.querySelector('.cell-dt')) {
+        // 日時・ID・金額などの折り返さないセルがある表は、長い文章のセルが細くなりすぎていないかも見る（D-111-01・D-116）。
+        // それらの列は細くならないため、ほかの列が細くなる。見出しが短い列（「名前」など）は、上の判定では見つからない
+        if (!table.querySelector('.cell-dt, .cell-nowrap')) {
             return true;
         }
         const minTextWidth = fontSize * MIN_TEXT_EM;
@@ -220,6 +263,7 @@
         const tables = Array.from(document.querySelectorAll('table.data'));
         tables.forEach(label);
         tables.forEach(dateTimes);
+        tables.forEach(noWraps);
 
         // いったん表の形に戻してから測る
         tables.forEach((table) => table.classList.remove('stacked'));

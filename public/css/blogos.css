@@ -600,6 +600,15 @@ table.data > * > tr > .cell-dt {
     display: block;
 }
 
+/* 一覧の表の ID・金額・数値（件数）・バージョン・容量・時間のセル（D-116-01・D-116-02。public/js/blogos.js が、中身がそれらの値だけのセルを .cell-nowrap にする）
+   ・折り返さない（「1 / 9 / 4」「$0. / 1」のように縦に折れない）。数字は同じ幅で出す
+   ・詳細画面の「項目名と値」の表は対象外（js が付けない） */
+table.data > * > tr > .cell-nowrap {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    font-variant-numeric: tabular-nums;
+}
+
 /* 詳細画面の「項目名と値」の表（列の見出しの行がない）の日時は1行（D-111-02）。
    日付・時刻の途中では折らず、幅が足りない（スマホなど）ときだけ、間の空白で折れる */
 .dt-inline > span {
