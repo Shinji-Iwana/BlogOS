@@ -162,9 +162,9 @@
         @method('PUT')
         @include('partials.selected-blog-field')
         <table class="data" style="max-width:900px;">
-            <tr><th style="text-align:left;">名前</th><td><input type="text" name="title" value="{{ old('title', $image->title) }}" style="width:100%;" required></td></tr>
+            <tr><th>名前</th><td><input type="text" name="title" value="{{ old('title', $image->title) }}" style="width:100%;" required></td></tr>
             <tr>
-                <th style="text-align:left;">種類</th>
+                <th>種類</th>
                 <td>
                     <select name="kind">
                         @foreach (\App\Enums\ImageKind::cases() as $option)
@@ -173,10 +173,10 @@
                     </select>
                 </td>
             </tr>
-            <tr><th style="text-align:left; vertical-align:top;">alt（必須）</th><td><textarea name="alt" rows="2" style="width:100%;" placeholder="画像が表示されないとき・読み上げのときの代わりの文章。画像の内容が分かるように">{{ old('alt', $image->alt) }}</textarea></td></tr>
-            <tr><th style="text-align:left; vertical-align:top;">キャプション</th><td><textarea name="caption" rows="2" style="width:100%;">{{ old('caption', $image->caption) }}</textarea></td></tr>
+            <tr><th style="vertical-align:top;">alt（必須）</th><td><textarea name="alt" rows="2" style="width:100%;" placeholder="画像が表示されないとき・読み上げのときの代わりの文章。画像の内容が分かるように">{{ old('alt', $image->alt) }}</textarea></td></tr>
+            <tr><th style="vertical-align:top;">キャプション</th><td><textarea name="caption" rows="2" style="width:100%;">{{ old('caption', $image->caption) }}</textarea></td></tr>
             <tr>
-                <th style="text-align:left;">ファイル名（必須）</th>
+                <th>ファイル名（必須）</th>
                 <td>
                     <input type="text" name="filename" value="{{ old('filename', $image->filename) }}" style="width:300px;" placeholder="js-event-flow">
                     <span class="text-muted">英小文字・数字・ハイフン（内容が分かる名前）。WordPress に登録するときのファイル名になります。</span>

@@ -162,4 +162,31 @@ class ListPageTest extends TestCase
             }
         }
     }
+
+    /**
+     * 表の文字の揃え方（D-118-01）：一覧の表は、列の見出しは中央揃え・値は左揃え（数値の列は右揃え。D-118-02）。「項目名と値」の2列の表は、どちらも左揃え。
+     * 共通の CSS・JS で行い、画面ごとに style="text-align:…" を書かない
+     */
+    public function test_table_headers_are_centered_and_values_are_left_aligned(): void
+    {
+        $css = file_get_contents(public_path('css/blogos.css'));
+        $this->assertMatchesRegularExpression('/table\.data > tr > td \{\s+text-align: left;\s+\}/', $css);
+        $this->assertMatchesRegularExpression('/table\.data > thead > tr > th,\s+table\.data > \* > tr\.table-header-row > th,\s+table\.data > tr\.table-header-row > th \{\s+text-align: center;\s+\}/', $css);
+        // 数値の列は右揃え、判定の基準の記号は中央揃え（D-118-02）
+        $this->assertMatchesRegularExpression('/table\.data > \* > tr > \.cell-num,\s+table\.data > tr > \.cell-num \{\s+text-align: right;\s+\}/', $css);
+        $this->assertMatchesRegularExpression('/table\.data\.evaluation-criteria > tbody > tr > th \{\s+text-align: center;\s+\}/', $css);
+        $this->assertStringContainsString('<td class="cell-num">{{ number_format($row[\'requests\']) }}</td>', file_get_contents(resource_path('views/ai/credits/index.blade.php')));
+
+        // thead のない一覧の表の、列の見出しの行にも印を付ける
+        $this->assertMatchesRegularExpression("/if \(!header\) \{\s+return;\s+\}\s+\/\/[^\n]+\s+header\.classList\.add\('table-header-row'\);/", file_get_contents(public_path('js/blogos.js')));
+
+        $views = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views'), \FilesystemIterator::SKIP_DOTS));
+        $aligned = [];
+        foreach ($views as $file) {
+            if (str_ends_with($file->getFilename(), '.blade.php') && preg_match('/style="[^"]*text-align/', file_get_contents($file->getPathname()))) {
+                $aligned[] = $file->getFilename();
+            }
+        }
+        $this->assertSame([], $aligned, '画面に style="text-align:…" があります。表の揃え方は共通の CSS に任せてください。');
+    }
 }

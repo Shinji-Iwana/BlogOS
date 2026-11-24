@@ -25,15 +25,15 @@
     @include('partials.flash')
 
     <table class="data">
-        <tr><th style="text-align:left;">きっかけ</th><td>{{ $batch->trigger->label() }}{{ $batch->requester ? '（' . $batch->requester->name . '）' : '' }}</td></tr>
-        <tr><th style="text-align:left;">対象</th><td>{{ $batch->target->label() }}@if (isset($batch->target_parameters['below_score']))（{{ $batch->target_parameters['below_score'] }}点未満）@endif @if (isset($batch->target_parameters['revision_scope']))・改修範囲 {{ \App\Services\Ai\AutoReevaluationService::scopeOptions()[$batch->target_parameters['revision_scope']] ?? $batch->target_parameters['revision_scope'] }}@endif</td></tr>
-        <tr><th style="text-align:left;">モデル・推論の深さ</th><td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td></tr>
+        <tr><th>きっかけ</th><td>{{ $batch->trigger->label() }}{{ $batch->requester ? '（' . $batch->requester->name . '）' : '' }}</td></tr>
+        <tr><th>対象</th><td>{{ $batch->target->label() }}@if (isset($batch->target_parameters['below_score']))（{{ $batch->target_parameters['below_score'] }}点未満）@endif @if (isset($batch->target_parameters['revision_scope']))・改修範囲 {{ \App\Services\Ai\AutoReevaluationService::scopeOptions()[$batch->target_parameters['revision_scope']] ?? $batch->target_parameters['revision_scope'] }}@endif</td></tr>
+        <tr><th>モデル・推論の深さ</th><td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td></tr>
         @if ($batch->parent)
-            <tr><th style="text-align:left;">{{ $batch->parent->purpose === \App\Enums\AiMode::Revision ? '前の回の改修' : '元の品質診断' }}</th><td><a href="{{ route('ai.batches.show', ['id' => $batch->parent->id]) }}">まとめて実行 #{{ $batch->parent->id }}</a></td></tr>
+            <tr><th>{{ $batch->parent->purpose === \App\Enums\AiMode::Revision ? '前の回の改修' : '元の品質診断' }}</th><td><a href="{{ route('ai.batches.show', ['id' => $batch->parent->id]) }}">まとめて実行 #{{ $batch->parent->id }}</a></td></tr>
         @endif
         {{-- 記事の再評価で、基準を満たすまで改修と診断を繰り返す（D-65） --}}
         @if (isset($batch->target_parameters['max_rounds']))
-            <tr><th style="text-align:left;">基準を満たすまでの繰り返し</th><td>
+            <tr><th>基準を満たすまでの繰り返し</th><td>
                 {{ $batch->target_parameters['round'] ?? 1 }}回目（最大{{ $batch->target_parameters['max_rounds'] }}回。点数が上がらなかった記事は止める）
                 @foreach ($batch->children as $child)
                     →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">次の回：まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件・{{ $child->status->label() }}）</a>
@@ -41,7 +41,7 @@
             </td></tr>
         @endif
         @if (isset($batch->follow_up['revision']))
-            <tr><th style="text-align:left;">診断の後の編集案の作成</th><td>
+            <tr><th>診断の後の編集案の作成</th><td>
                 {{ $batch->follow_up['revision']['below_score'] }}点未満、または必須条件を満たさない記事を、{{ $batch->follow_up['revision']['model'] }}・{{ $batch->follow_up['revision']['effort'] }} で改修する
                 @if (($batch->follow_up['revision']['max_rounds'] ?? 1) > 1)（基準を満たすまで、最大{{ $batch->follow_up['revision']['max_rounds'] }}回）@endif
                 @forelse ($batch->children as $child)
@@ -51,15 +51,15 @@
                 @endforelse
             </td></tr>
         @endif
-        <tr><th style="text-align:left;">進み具合</th><td>
+        <tr><th>進み具合</th><td>
             全{{ $batch->total_count }}件：
             @foreach (\App\Enums\AiBatchItemStatus::cases() as $status)
                 @if (($counts[$status->value] ?? 0) > 0) {{ $status->label() }} {{ $counts[$status->value] }}件 @endif
             @endforeach
         </td></tr>
-        <tr><th style="text-align:left;">費用の目安</th><td>${{ number_format($progress['cost'], 4) }}</td></tr>
-        @if ($batch->stop_reason)<tr><th style="text-align:left;">止めた理由</th><td class="text-error">{{ $batch->stop_reason }}</td></tr>@endif
-        <tr><th style="text-align:left;">日時</th><td>{{ \App\Support\DisplayTime::format($batch->created_at) }}〜{{ \App\Support\DisplayTime::format($batch->completed_at) }}</td></tr>
+        <tr><th>費用の目安</th><td>${{ number_format($progress['cost'], 4) }}</td></tr>
+        @if ($batch->stop_reason)<tr><th>止めた理由</th><td class="text-error">{{ $batch->stop_reason }}</td></tr>@endif
+        <tr><th>日時</th><td>{{ \App\Support\DisplayTime::format($batch->created_at) }}〜{{ \App\Support\DisplayTime::format($batch->completed_at) }}</td></tr>
     </table>
 
     @if ($running)

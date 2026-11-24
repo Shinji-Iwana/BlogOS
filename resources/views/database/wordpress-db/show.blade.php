@@ -36,7 +36,7 @@
                     @endphp
                     <tr>
                         {{-- 項目名と「?」は折り返さない（列の幅は、項目名に合わせる） --}}
-                        <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                        <th style="vertical-align:top; white-space:nowrap; width:1%;">
                             {{ $column }}
                             {{-- 何を保持する列かの説明（本体のテーブルだけ。D-81-05） --}}
                             @if ($columnNote = $wp->describe($schema, $table, $column))
@@ -75,7 +75,7 @@
                     <tr>
                         <td>{{ $reference['label'] ? "{$reference['label']}（{$reference['table']}）" : $reference['table'] }}</td>
                         <td>{{ $reference['column'] }}</td>
-                        <td style="text-align:right;"><a href="{{ $reference['url'] }}">{{ number_format($reference['count']) }}</a></td>
+                        <td class="cell-num"><a href="{{ $reference['url'] }}">{{ number_format($reference['count']) }}</a></td>
                     </tr>
                 @endforeach
             </tbody>

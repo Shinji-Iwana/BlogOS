@@ -35,18 +35,18 @@
     @endif
 
     <table class="data">
-        <tr><th style="text-align:left;">対象</th><td>{{ $operation->resource_type->label() }}：{{ $operation->targetLabel() }}</td></tr>
-        <tr><th style="text-align:left;">操作</th><td>{{ $operation->operation->label() }}</td></tr>
-        <tr><th style="text-align:left;">承認</th><td>{{ $operation->approver?->name ?? '-' }}</td></tr>
-        <tr><th style="text-align:left;">日時</th><td>
+        <tr><th>対象</th><td>{{ $operation->resource_type->label() }}：{{ $operation->targetLabel() }}</td></tr>
+        <tr><th>操作</th><td>{{ $operation->operation->label() }}</td></tr>
+        <tr><th>承認</th><td>{{ $operation->approver?->name ?? '-' }}</td></tr>
+        <tr><th>日時</th><td>
             作成 {{ \App\Support\DisplayTime::format($operation->created_at) }}
             @if ($operation->sent_at) ／ 送信 {{ \App\Support\DisplayTime::format($operation->sent_at) }} @endif
             @if ($operation->completed_at) ／ 完了 {{ \App\Support\DisplayTime::format($operation->completed_at) }} @endif
             @if ($operation->failed_at) ／ 失敗 {{ \App\Support\DisplayTime::format($operation->failed_at) }} @endif
         </td></tr>
-        <tr><th style="text-align:left;">WordPressの応答</th><td>ID：{{ $operation->wordpress_id ?? '-' }} ／ 更新日時：{{ \App\Support\DisplayTime::format($operation->response_modified_gmt) }}</td></tr>
-        <tr><th style="text-align:left;">メッセージ</th><td>{{ $operation->message }}</td></tr>
-        <tr><th style="text-align:left;">送信内容（要約）</th><td><pre style="white-space:pre-wrap; word-break:break-all; margin:0;">{{ json_encode($operation->request_summary, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre></td></tr>
+        <tr><th>WordPressの応答</th><td>ID：{{ $operation->wordpress_id ?? '-' }} ／ 更新日時：{{ \App\Support\DisplayTime::format($operation->response_modified_gmt) }}</td></tr>
+        <tr><th>メッセージ</th><td>{{ $operation->message }}</td></tr>
+        <tr><th>送信内容（要約）</th><td><pre style="white-space:pre-wrap; word-break:break-all; margin:0;">{{ json_encode($operation->request_summary, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre></td></tr>
     </table>
 
     @if ($operation->error_body !== null)

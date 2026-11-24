@@ -73,7 +73,7 @@
                         {{ $row['category']->name }}
                     @endif
                 </td>
-                <td style="text-align:right;">{{ number_format($row['total']) }}</td>
+                <td class="cell-num">{{ number_format($row['total']) }}</td>
             </tr>
             <tr class="expand-row-detail" id="{{ $detailId }}" hidden>
                 <td colspan="2">
@@ -85,9 +85,9 @@
                                 <tr>
                                     @foreach ($groups as $group)
                                         @if ($group['columns'] === [null])
-                                            <th rowspan="2" style="text-align:center;">{{ $group['label'] }}</th>
+                                            <th rowspan="2">{{ $group['label'] }}</th>
                                         @else
-                                            <th colspan="{{ count($group['columns']) }}" style="text-align:center;">{{ $group['label'] }}</th>
+                                            <th colspan="{{ count($group['columns']) }}">{{ $group['label'] }}</th>
                                         @endif
                                     @endforeach
                                 </tr>
@@ -95,7 +95,7 @@
                                     @foreach ($groups as $group)
                                         @if ($group['columns'] !== [null])
                                             @foreach ($group['columns'] as $short)
-                                                <th style="text-align:center;">{{ $short }}</th>
+                                                <th>{{ $short }}</th>
                                             @endforeach
                                         @endif
                                     @endforeach
@@ -104,7 +104,7 @@
                             <tbody>
                                 <tr>
                                     @foreach (array_keys($matrix['columns']) as $key)
-                                        <td style="text-align:right;">{!! $cell($row, $key) !!}</td>
+                                        <td class="cell-num">{!! $cell($row, $key) !!}</td>
                                     @endforeach
                                 </tr>
                             </tbody>

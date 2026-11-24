@@ -137,26 +137,26 @@
     <section class="panel">
     <h2>記録</h2>
     <table class="data">
-        <tr><th style="text-align:left;">実行方式</th><td>{{ $generation->execution_method->label() }}</td></tr>
-        <tr><th style="text-align:left;">提供元・利用プラン・モデル・推論の深さ</th><td>{{ $generation->provider ?? '-' }}・{{ $generation->service_plan ?? '-' }}・{{ $generation->model ?? '-' }}・{{ $generation->reasoning_effort ?? '-' }}</td></tr>
+        <tr><th>実行方式</th><td>{{ $generation->execution_method->label() }}</td></tr>
+        <tr><th>提供元・利用プラン・モデル・推論の深さ</th><td>{{ $generation->provider ?? '-' }}・{{ $generation->service_plan ?? '-' }}・{{ $generation->model ?? '-' }}・{{ $generation->reasoning_effort ?? '-' }}</td></tr>
         @if ($isApi)
-            <tr><th style="text-align:left;">トークン数</th><td>
+            <tr><th>トークン数</th><td>
                 @if ($generation->input_tokens !== null)
                     入力 {{ number_format($generation->input_tokens) }}（うちキャッシュ {{ number_format((int) $generation->cached_input_tokens) }}）・出力 {{ number_format($generation->output_tokens) }}（うち推論 {{ number_format((int) $generation->reasoning_tokens) }}）
                 @else - @endif
             </td></tr>
             @if ($generation->use_web_search)
-                <tr><th style="text-align:left;">Web検索</th><td>使う（検索した回数：{{ $generation->web_search_calls ?? 0 }}回）</td></tr>
+                <tr><th>Web検索</th><td>使う（検索した回数：{{ $generation->web_search_calls ?? 0 }}回）</td></tr>
             @endif
-            <tr><th style="text-align:left;">費用の目安</th><td>{{ $generation->estimated_cost !== null ? '$' . number_format($generation->estimated_cost, 4) : '-' }}（設定の料金表による計算。実際の請求はOpenAIの画面で確認）</td></tr>
+            <tr><th>費用の目安</th><td>{{ $generation->estimated_cost !== null ? '$' . number_format($generation->estimated_cost, 4) : '-' }}（設定の料金表による計算。実際の請求はOpenAIの画面で確認）</td></tr>
         @endif
-        <tr><th style="text-align:left;">テンプレート</th><td>{{ $generation->template_key }} {{ $generation->template_version }}</td></tr>
-        <tr><th style="text-align:left;">品質基準</th><td>共通基準 {{ $generation->quality_common_version }}{{ $generation->quality_profile ? '、' . $generation->quality_profile . ' ' . $generation->quality_profile_version : '' }}</td></tr>
-        @if ($generation->revision_scope)<tr><th style="text-align:left;">改修範囲</th><td>{{ $generation->revision_scope->label() }}</td></tr>@endif
-        <tr><th style="text-align:left;">人が提供した情報</th><td style="white-space:pre-wrap;">@foreach ((array) $generation->parameters as $label => $value)@continue(in_array($label, \App\Services\Ai\PromptBuilder::HIDDEN_PARAMETERS, true)){{ $label }}：{{ $value }}
+        <tr><th>テンプレート</th><td>{{ $generation->template_key }} {{ $generation->template_version }}</td></tr>
+        <tr><th>品質基準</th><td>共通基準 {{ $generation->quality_common_version }}{{ $generation->quality_profile ? '、' . $generation->quality_profile . ' ' . $generation->quality_profile_version : '' }}</td></tr>
+        @if ($generation->revision_scope)<tr><th>改修範囲</th><td>{{ $generation->revision_scope->label() }}</td></tr>@endif
+        <tr><th>人が提供した情報</th><td style="white-space:pre-wrap;">@foreach ((array) $generation->parameters as $label => $value)@continue(in_array($label, \App\Services\Ai\PromptBuilder::HIDDEN_PARAMETERS, true)){{ $label }}：{{ $value }}
     </section>
 @endforeach</td></tr>
-        <tr><th style="text-align:left;">日時</th><td>{{ \App\Support\DisplayTime::format($generation->created_at) }}〜{{ \App\Support\DisplayTime::format($generation->completed_at) }}（{{ $generation->requester?->name ?? '-' }}）</td></tr>
+        <tr><th>日時</th><td>{{ \App\Support\DisplayTime::format($generation->created_at) }}〜{{ \App\Support\DisplayTime::format($generation->completed_at) }}（{{ $generation->requester?->name ?? '-' }}）</td></tr>
     </table>
 
     @if ($generation->status !== \App\Enums\AiGenerationStatus::WaitingOutput)

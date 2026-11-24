@@ -124,7 +124,7 @@
                                     <span class="{{ $backup->status === \App\Models\Backup::FAILED ? 'text-error' : 'text-muted' }}">{!! nl2br(e($backup->message)) !!}</span>
                                 @endif
                             </td>
-                            <td style="text-align:right; white-space:nowrap;">{{ $backup->total_bytes !== null ? $size($backup->total_bytes) : '-' }}</td>
+                            <td class="cell-num" style="white-space:nowrap;">{{ $backup->total_bytes !== null ? $size($backup->total_bytes) : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -174,9 +174,9 @@
                 <tr>
                     <td>{{ $item['label'] }}<br><span class="text-muted">{{ $item['table'] }}</span></td>
                     <td>{{ $item['rule'] }}</td>
-                    <td style="text-align:right;">{{ number_format($item['rows']) }}</td>
+                    <td class="cell-num">{{ number_format($item['rows']) }}</td>
                     <td>{{ $item['oldest'] ? \App\Support\DisplayTime::format($item['oldest'], 'Y-m-d') : '-' }}</td>
-                    <td style="text-align:right;">{{ number_format($item['prunable']) }}</td>
+                    <td class="cell-num">{{ number_format($item['prunable']) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -222,8 +222,8 @@
             @foreach ($files as $item)
                 <tr>
                     <td>{{ $item['label'] }}<br><span class="text-muted">{{ $item['path'] }}</span></td>
-                    <td style="text-align:right;">{{ $size($item['bytes']) }}</td>
-                    <td style="text-align:right;">{{ $item['files'] === null ? '-' : number_format($item['files']) }}</td>
+                    <td class="cell-num">{{ $size($item['bytes']) }}</td>
+                    <td class="cell-num">{{ $item['files'] === null ? '-' : number_format($item['files']) }}</td>
                 </tr>
             @endforeach
         </tbody>

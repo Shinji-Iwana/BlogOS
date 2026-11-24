@@ -39,7 +39,7 @@
                         @endphp
                         <tr>
                             <td>{{ str_repeat('　', (int) ($category->depth ?? 0)) }}{{ $category->name }}</td>
-                            <td style="text-align:right;">{{ $category->posts_count }}</td>
+                            <td class="cell-num">{{ $category->posts_count }}</td>
                             <td>
                                 @if ($usedMedia)
                                     <img src="{{ $usedMedia->source_url }}" alt="" style="width:60px; height:60px; object-fit:cover; vertical-align:middle;" loading="lazy">

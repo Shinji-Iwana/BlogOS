@@ -157,7 +157,7 @@
                                     {{ $material->article_materials_count }}件
                                     @if ($needsReview[$material->id] ?? 0)<br><a href="{{ route('materials.reviews.index') }}" class="text-warn">見直し {{ $needsReview[$material->id] }}件</a>@endif
                                 </td>
-                                <td style="text-align:right; white-space:nowrap;">{{ number_format($clicks28[$material->id] ?? 0) }}・{{ number_format($clicks90[$material->id] ?? 0) }}</td>
+                                <td class="cell-num" style="white-space:nowrap;">{{ number_format($clicks28[$material->id] ?? 0) }}・{{ number_format($clicks90[$material->id] ?? 0) }}</td>
                                 <td>{{ $material->researched_at ?\App\Support\DisplayTime::format($material->researched_at) : '未調査' }}</td>
                             </tr>
                         @endforeach

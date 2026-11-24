@@ -30,7 +30,7 @@
             <tbody>
                 @if ($criteria !== false)
                     <tr>
-                        <th style="text-align:left;">判定の基準</th>
+                        <th>判定の基準</th>
                         <td>
                             {{-- 「○ …… ／ △ ……」を、判定ごとに「判定」「補足」の行の表にする（D-79-02） --}}
                             @php
@@ -51,9 +51,9 @@
                         </td>
                     </tr>
                 @endif
-                <tr><th style="text-align:left;">理由</th><td>{{ $detail?->comment ?: '-' }}</td></tr>
+                <tr><th>理由</th><td>{{ $detail?->comment ?: '-' }}</td></tr>
                 <tr>
-                    <th style="text-align:left;">指摘</th>
+                    <th>指摘</th>
                     <td>
                         @if ($detail && ($detail->location || $detail->problem || $detail->fix))
                             @if ($detail->location)<strong>どこが：</strong>{{ $detail->location }}<br>@endif

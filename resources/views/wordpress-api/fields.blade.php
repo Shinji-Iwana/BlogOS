@@ -26,7 +26,7 @@
             @else
                 <tr>
                     {{-- 項目名と「?」は折り返さない（列の幅は、項目名に合わせる） --}}
-                    <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                    <th style="vertical-align:top; white-space:nowrap; width:1%;">
                         {{ $key }}
                         @if ($fieldNote)
                             @include('partials.tip', ['tip' => $fieldNote])

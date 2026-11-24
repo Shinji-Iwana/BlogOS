@@ -35,8 +35,8 @@
     <div class="evaluation-summary">
     @include('partials.score-gauge', ['score' => $evaluation->score !== null ? (float) $evaluation->score : null])
     <table class="data">
-        <tr><th style="text-align:left;">評価した主体</th><td>{{ $evaluation->evaluator_type->label() }}（{{ $evaluation->creator?->name ?? '-' }}、{{ \App\Support\DisplayTime::format($evaluation->created_at) }}）</td></tr>
-        <tr><th style="text-align:left;">
+        <tr><th>評価した主体</th><td>{{ $evaluation->evaluator_type->label() }}（{{ $evaluation->creator?->name ?? '-' }}、{{ \App\Support\DisplayTime::format($evaluation->created_at) }}）</td></tr>
+        <tr><th>
             点数
             {{-- AI の点数の補足は「?」に出す（D-79-06） --}}
             @if ($evaluation->evaluator_type === \App\Enums\EvaluatorType::Ai)
@@ -45,16 +45,16 @@
         </th><td>
             <strong>{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</strong>
         </td></tr>
-        <tr><th style="text-align:left;">必須条件</th><td>{{ match ($evaluation->required_conditions_passed) { true => 'すべて満たす', false => '満たしていない', default => '未確定（要人間確認あり）' } }}</td></tr>
-        <tr><th style="text-align:left;">記事の型の必須（★）</th><td>
+        <tr><th>必須条件</th><td>{{ match ($evaluation->required_conditions_passed) { true => 'すべて満たす', false => '満たしていない', default => '未確定（要人間確認あり）' } }}</td></tr>
+        <tr><th>記事の型の必須（★）</th><td>
             @if ($evaluation->type_failures)
                 <strong class="text-error">満たしていない：{{ collect($evaluation->type_failures)->map(fn ($key) => $allItems[$key]['label'] ?? $key)->implode('、') }}</strong>
             @else
                 {{ $form ? '満たしている' : '記事の型が未登録（記事の型の項目は採点していません）' }}
             @endif
         </td></tr>
-        <tr><th style="text-align:left;">判定</th><td>{{ $verdict }}</td></tr>
-        <tr><th style="text-align:left;">確定</th><td>
+        <tr><th>判定</th><td>{{ $verdict }}</td></tr>
+        <tr><th>確定</th><td>
             @if ($evaluation->is_confirmed)
                 <strong class="text-ok">人が確定した評価</strong>（{{ $evaluation->confirmer?->name }}、{{ \App\Support\DisplayTime::format($evaluation->confirmed_at) }}）
             @else
@@ -62,7 +62,7 @@
             @endif
         </td></tr>
         {{-- 1行目に品質基準のバージョン、2行目に記事種類（D-79-06） --}}
-        <tr><th style="text-align:left;">品質基準</th><td>
+        <tr><th>品質基準</th><td>
             共通基準 {{ $evaluation->quality_common_version }}{{ $evaluation->quality_profile ? '、' . $evaluation->quality_profile . ' ' . $evaluation->quality_profile_version : '' }}
             @if ($versionChanged)<strong class="text-error">（現在の品質基準とバージョンが違います）</strong>@endif
             <br>記事種類 {{ $standard->articleTypes[$evaluation->article_type] ?? ($evaluation->article_type ?: '未設定') }}@if ($evaluation->article_subtype)（{{ $evaluation->article_subtype }}）@endif

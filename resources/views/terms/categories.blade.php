@@ -55,7 +55,7 @@
                         @endif
                     </td>
                     <td>{{ \App\Support\Slug::display($category->slug) }}</td>
-                    <td style="text-align:right;">{{ $category->posts_count }}</td>
+                    <td class="cell-num">{{ $category->posts_count }}</td>
                     <td style="white-space:nowrap;"><a href="{{ route('terms.edit', ['type' => 'categories', 'id' => $category->id]) }}">編集</a></td>
                 </tr>
             @empty

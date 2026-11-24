@@ -45,7 +45,7 @@
                     @endphp
                     <tr>
                         {{-- 項目名と「?」は折り返さない（列の幅は、項目名に合わせる） --}}
-                        <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                        <th style="vertical-align:top; white-space:nowrap; width:1%;">
                             {{ $column }}
                             {{-- 何を保持する列かの説明（App\Support\WordPressColumns。D-72-08） --}}
                             @if ($columnNote = \App\Support\WordPressColumns::describe($table, $column))
@@ -85,7 +85,7 @@
             <tbody>
                 @foreach ($extraRelations as $relation)
                     <tr>
-                        <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">{{ $relation['label'] }}</th>
+                        <th style="vertical-align:top; white-space:nowrap; width:1%;">{{ $relation['label'] }}</th>
                         <td>{!! $relation['items'] !== [] ? $relationLinks($relation['items']) : 'なし' !!}</td>
                     </tr>
                 @endforeach
@@ -112,7 +112,7 @@
                                 $shown = \App\Support\DisplayTime::value(in_array($column, ['old_value', 'new_value'], true) ? (string) $history->field : $column, $value);
                             @endphp
                             <tr>
-                                <th style="text-align:left; vertical-align:top; white-space:nowrap; width:1%;">
+                                <th style="vertical-align:top; white-space:nowrap; width:1%;">
                                     {{ $column }}
                                     {{-- 何を保持する列かの説明（App\Support\WordPressColumns::describeHistory） --}}
                                     @if ($historyNote = \App\Support\WordPressColumns::describeHistory($column, $record::historyForeignKey()))

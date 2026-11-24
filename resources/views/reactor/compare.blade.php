@@ -122,7 +122,7 @@
                         <tbody>
                             @foreach ($speeds as $part => [$value, $critical])
                                 <tr>
-                                    <th style="text-align:left;">{{ $part }}</th>
+                                    <th>{{ $part }}</th>
                                     <td>
                                         @if ($critical === null)
                                             {{ $value }}

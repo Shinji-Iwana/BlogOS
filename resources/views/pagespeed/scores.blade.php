@@ -27,31 +27,31 @@
         <tbody>
             {{-- 4つの区分（パフォーマンス・ユーザー補助・おすすめの方法・SEO）の点数は、表の上の円グラフ（pagespeed/gauges）で出すため、表には出さない（D-82-05） --}}
             <tr>
-                <th style="text-align:left; white-space:nowrap;">LCP @include('partials.tip', ['tip' => 'Largest Contentful Paint：一番大きい要素（見出し・画像など）が出るまでの時間（試しに開いた値）。2.5秒以下が良好です。'])</th>
+                <th style="white-space:nowrap;">LCP @include('partials.tip', ['tip' => 'Largest Contentful Paint：一番大きい要素（見出し・画像など）が出るまでの時間（試しに開いた値）。2.5秒以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $ms($run?->lcp_ms) }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">CLS @include('partials.tip', ['tip' => 'Cumulative Layout Shift：読み込み中に画面がずれる量（試しに開いた値）。0.1以下が良好です。'])</th>
+                <th style="white-space:nowrap;">CLS @include('partials.tip', ['tip' => 'Cumulative Layout Shift：読み込み中に画面がずれる量（試しに開いた値）。0.1以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $run?->cls !== null ? number_format($run->cls, 3) : '-' }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">TBT @include('partials.tip', ['tip' => 'Total Blocking Time：読み込み中に操作できない時間の合計（試しに開いた値）。200ミリ秒以下が良好です。'])</th>
+                <th style="white-space:nowrap;">TBT @include('partials.tip', ['tip' => 'Total Blocking Time：読み込み中に操作できない時間の合計（試しに開いた値）。200ミリ秒以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $run?->tbt_ms !== null ? number_format($run->tbt_ms) . 'ms' : '-' }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">FCP @include('partials.tip', ['tip' => 'First Contentful Paint：最初に何かが表示されるまでの時間（試しに開いた値）。1.8秒以下が良好です。'])</th>
+                <th style="white-space:nowrap;">FCP @include('partials.tip', ['tip' => 'First Contentful Paint：最初に何かが表示されるまでの時間（試しに開いた値）。1.8秒以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $ms($run?->fcp_ms) }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">Speed Index @include('partials.tip', ['tip' => 'ページの中身が見えてくる速さ（試しに開いた値）。3.4秒以下が良好です。'])</th>
+                <th style="white-space:nowrap;">Speed Index @include('partials.tip', ['tip' => 'ページの中身が見えてくる速さ（試しに開いた値）。3.4秒以下が良好です。'])</th>
                 @foreach ($runs as $run)<td>{{ $ms($run?->si_ms) }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">実際の利用者（このページ） @include('partials.tip', ['tip' => "Chrome の利用者の記録（直近28日の75パーセンタイル）による判定です（Core Web Vitals）。\nLCP 2.5秒・INP 200ms・CLS 0.1 以下が良好です。アクセスが少ないページにはありません。"])</th>
+                <th style="white-space:nowrap;">実際の利用者（このページ） @include('partials.tip', ['tip' => "Chrome の利用者の記録（直近28日の75パーセンタイル）による判定です（Core Web Vitals）。\nLCP 2.5秒・INP 200ms・CLS 0.1 以下が良好です。アクセスが少ないページにはありません。"])</th>
                 @foreach ($runs as $run)<td>{{ $field($run, 'field') }}</td>@endforeach
             </tr>
             <tr>
-                <th style="text-align:left; white-space:nowrap;">実際の利用者（サイト全体）</th>
+                <th style="white-space:nowrap;">実際の利用者（サイト全体）</th>
                 @foreach ($runs as $run)<td>{{ $field($run, 'origin') }}</td>@endforeach
             </tr>
         </tbody>

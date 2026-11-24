@@ -23,19 +23,19 @@
     @endif
 
     <table class="data">
-        <tr><th style="text-align:left;">種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
+        <tr><th>種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
         {{-- ステータスは日本語で出す（WordPress の値は、マウスを乗せると出る。D-82-05） --}}
-        <tr><th style="text-align:left;">ステータス</th><td title="{{ $article->status }}">{{ \App\Support\PostStatus::label($article->status) }}</td></tr>
-        <tr><th style="text-align:left;">スラッグ</th><td title="{{ $article->slug }}">{{ \App\Support\Slug::display($article->slug) }}</td></tr>
+        <tr><th>ステータス</th><td title="{{ $article->status }}">{{ \App\Support\PostStatus::label($article->status) }}</td></tr>
+        <tr><th>スラッグ</th><td title="{{ $article->slug }}">{{ \App\Support\Slug::display($article->slug) }}</td></tr>
         {{-- 公開日と更新日、カテゴリとタグは、1行ずつに分ける（D-82-05） --}}
-        <tr><th style="text-align:left;">公開日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_date_gmt) }}</td></tr>
-        <tr><th style="text-align:left;">更新日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_modified_gmt) }}</td></tr>
+        <tr><th>公開日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_date_gmt) }}</td></tr>
+        <tr><th>更新日</th><td>{{ \App\Support\DisplayTime::format($article->wordpress_modified_gmt) }}</td></tr>
         @if ($isPost)
-            <tr><th style="text-align:left;">カテゴリ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
-            <tr><th style="text-align:left;">タグ</th><td>{{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
+            <tr><th>カテゴリ</th><td>{{ $article->categories->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
+            <tr><th>タグ</th><td>{{ $article->tags->pluck('name')->implode('、') ?: 'なし' }}</td></tr>
         @endif
-        <tr><th style="text-align:left;">本文の文字数</th><td>{{ mb_strlen((string) $article->content_raw) }}</td></tr>
-        <tr><th style="text-align:left;">メタディスクリプション（AIOSEO）</th><td>
+        <tr><th>本文の文字数</th><td>{{ mb_strlen((string) $article->content_raw) }}</td></tr>
+        <tr><th>メタディスクリプション（AIOSEO）</th><td>
             @if ($article->meta_description_raw !== null)
                 {{ $article->meta_description_raw }}（{{ mb_strlen($article->meta_description_raw) }}文字）
             @elseif ($article->meta_description_rendered !== null)
@@ -149,13 +149,13 @@
             </tr>
         </thead>
         <tbody>
-            <tr><th style="text-align:left;">表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}</td><td>{{ number_format((int) $gaPrev->views) }}</td></tr>
-            <tr><th style="text-align:left;">セッション</th><td>{{ number_format((int) $ga->sessions) }}</td><td>{{ number_format((int) $gaPrev->sessions) }}</td></tr>
-            <tr><th style="text-align:left;">検索のクリック</th><td>{{ number_format((int) $sc->clicks) }}</td><td>{{ number_format((int) $scPrev->clicks) }}</td></tr>
-            <tr><th style="text-align:left;">検索の表示回数</th><td>{{ number_format((int) $sc->impressions) }}</td><td>{{ number_format((int) $scPrev->impressions) }}</td></tr>
-            <tr><th style="text-align:left;">平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}</td><td>{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}</td></tr>
-            <tr><th style="text-align:left;">アフィリエイトのクリック</th><td>{{ number_format((int) $google['outbound']->whereNotNull('program')->sum('clicks')) }}</td><td>{{ number_format((int) $googlePrevious['outbound']->whereNotNull('program')->sum('clicks')) }}</td></tr>
-            <tr><th style="text-align:left;">収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}</td><td>{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) . ' ' . ($adPrev->currency_code ?? $ad->currency_code) : '-' }}</td></tr>
+            <tr><th>表示回数（GA4）</th><td>{{ number_format((int) $ga->views) }}</td><td>{{ number_format((int) $gaPrev->views) }}</td></tr>
+            <tr><th>セッション</th><td>{{ number_format((int) $ga->sessions) }}</td><td>{{ number_format((int) $gaPrev->sessions) }}</td></tr>
+            <tr><th>検索のクリック</th><td>{{ number_format((int) $sc->clicks) }}</td><td>{{ number_format((int) $scPrev->clicks) }}</td></tr>
+            <tr><th>検索の表示回数</th><td>{{ number_format((int) $sc->impressions) }}</td><td>{{ number_format((int) $scPrev->impressions) }}</td></tr>
+            <tr><th>平均掲載順位</th><td>{{ $sc->position !== null ? round($sc->position, 1) : '-' }}</td><td>{{ $scPrev->position !== null ? round($scPrev->position, 1) : '-' }}</td></tr>
+            <tr><th>アフィリエイトのクリック</th><td>{{ number_format((int) $google['outbound']->whereNotNull('program')->sum('clicks')) }}</td><td>{{ number_format((int) $googlePrevious['outbound']->whereNotNull('program')->sum('clicks')) }}</td></tr>
+            <tr><th>収益（AdSense）</th><td>{{ $ad->earnings !== null ? number_format($ad->earnings, 2) . ' ' . $ad->currency_code : '-' }}</td><td>{{ $adPrev->earnings !== null ? number_format($adPrev->earnings, 2) . ' ' . ($adPrev->currency_code ?? $ad->currency_code) : '-' }}</td></tr>
         </tbody>
     </table>
 

@@ -107,6 +107,31 @@ table.data > tr > td {
     padding: 4px;
 }
 
+/* 表の文字の揃え方（D-118-01）
+   ・一覧の表（列の見出しの行がある表）：列の見出しは中央揃え、値は左揃え
+   ・「項目名と値」の2列の表（列の見出しの行がない表）：項目名も値も左揃え
+   列の見出しの行は、thead の中の行と、thead のない表で th だけの最初の行（public/js/blogos.js が .table-header-row を付ける）。
+   ・ただし、数値の列は右揃え（.cell-num を画面で付ける。D-118-02）
+   画面ごとに style="text-align:…" を書かない（この決まりと .cell-num に任せる） */
+table.data > * > tr > th,
+table.data > * > tr > td,
+table.data > tr > th,
+table.data > tr > td {
+    text-align: left;
+}
+
+table.data > thead > tr > th,
+table.data > * > tr.table-header-row > th,
+table.data > tr.table-header-row > th {
+    text-align: center;
+}
+
+/* 数値の列（D-118-02） */
+table.data > * > tr > .cell-num,
+table.data > tr > .cell-num {
+    text-align: right;
+}
+
 /* 余白の狭い表 */
 table.data.data-compact > * > tr > th,
 table.data.data-compact > * > tr > td {
@@ -1484,6 +1509,7 @@ table.data.evaluation-criteria {
     width: 3em;
 }
 
+/* 記号（「○」「△」）は中央揃え（D-118-02） */
 table.data.evaluation-criteria > tbody > tr > th {
     text-align: center;
 }

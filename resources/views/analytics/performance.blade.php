@@ -71,16 +71,16 @@
                         <tr>
                             <td style="max-width:300px;"><a href="{{ route('articles.show', ['type' => $row['type'] === 'post' ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw ?: '（タイトルなし）' }}</a></td>
                             <td>{{ $row['index']?->label() ?? '未確認' }}</td>
-                            <td style="text-align:right;">{{ number_format($m['impressions']) }}</td>
-                            <td style="text-align:right; white-space:nowrap;">{{ number_format($m['clicks']) }}@if ($p['clicks'] > 0 || $m['clicks'] > 0)<br><span class="{{ $diff < 0 ? 'text-error' : 'text-ok' }}">{{ $diff >= 0 ? '+' : '' }}{{ $diff }}</span>@endif</td>
-                            <td style="text-align:right; white-space:nowrap;">
+                            <td class="cell-num">{{ number_format($m['impressions']) }}</td>
+                            <td class="cell-num" style="white-space:nowrap;">{{ number_format($m['clicks']) }}@if ($p['clicks'] > 0 || $m['clicks'] > 0)<br><span class="{{ $diff < 0 ? 'text-error' : 'text-ok' }}">{{ $diff >= 0 ? '+' : '' }}{{ $diff }}</span>@endif</td>
+                            <td class="cell-num" style="white-space:nowrap;">
                                 {{ $m['impressions'] > 0 ? number_format($m['ctr'] * 100, 1) . '%' : '-' }}
                                 @if ($m['position'] !== null)<br><span class="text-muted">（{{ number_format(\App\Services\Google\ArticlePerformanceService::expectedCtr($m['position']) * 100, 1) }}%）</span>@endif
                             </td>
-                            <td style="text-align:right;">{{ $m['position'] !== null ? number_format($m['position'], 1) : '-' }}</td>
-                            <td style="text-align:right;">{{ number_format($m['views']) }}</td>
-                            <td style="text-align:right;">{{ $m['engagement_rate'] !== null ? number_format($m['engagement_rate'] * 100) . '%' : '-' }}</td>
-                            <td style="text-align:right; white-space:nowrap;">{{ number_format($m['affiliate_clicks']) }}@if ($m['views'] > 0 && $m['affiliate_clicks'] > 0)<br><span class="text-muted">{{ number_format($m['affiliate_clicks'] / $m['views'] * 100, 1) }}%</span>@endif</td>
+                            <td class="cell-num">{{ $m['position'] !== null ? number_format($m['position'], 1) : '-' }}</td>
+                            <td class="cell-num">{{ number_format($m['views']) }}</td>
+                            <td class="cell-num">{{ $m['engagement_rate'] !== null ? number_format($m['engagement_rate'] * 100) . '%' : '-' }}</td>
+                            <td class="cell-num" style="white-space:nowrap;">{{ number_format($m['affiliate_clicks']) }}@if ($m['views'] > 0 && $m['affiliate_clicks'] > 0)<br><span class="text-muted">{{ number_format($m['affiliate_clicks'] / $m['views'] * 100, 1) }}%</span>@endif</td>
                             <td style="white-space:nowrap;">
                                 @if ($evaluation)
                                     <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>

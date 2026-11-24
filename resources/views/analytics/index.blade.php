@@ -27,7 +27,7 @@
     <h2>ブログ全体</h2>
     <table class="data">
         <tr>
-            <th style="text-align:left;">GA4</th>
+            <th>GA4</th>
             <td>
                 @if ($site['ga4'])
                     表示回数 {{ number_format($site['ga4']->views) }}・セッション {{ number_format($site['ga4']->sessions) }}
@@ -39,7 +39,7 @@
             </td>
         </tr>
         <tr>
-            <th style="text-align:left;">Search Console</th>
+            <th>Search Console</th>
             <td>
                 @if ($site['search_console'])
                     クリック {{ number_format($site['search_console']->clicks) }}・表示回数 {{ number_format($site['search_console']->impressions) }}
@@ -51,7 +51,7 @@
             </td>
         </tr>
         <tr>
-            <th style="text-align:left;">AdSense</th>
+            <th>AdSense</th>
             <td>
                 @if ($site['adsense'])
                     見積もり収益 {{ number_format($site['adsense']->earnings, 2) }} {{ $site['adsense']->currency_code }}

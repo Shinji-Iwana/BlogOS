@@ -31,10 +31,10 @@
         <p>まだ残高が登録されていません。メニューの「設定 → OpenAI →<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">OpenAIの画面で見た残高を登録</a>」から登録してください。</p>
     @else
         <table class="data">
-            <tr><th style="text-align:left;">最後に登録した残高</th><td>${{ number_format($status['base']->amount, 2) }}（{{ \App\Support\DisplayTime::format($status['base']->occurred_at) }}）</td></tr>
-            <tr><th style="text-align:left;">その後の課金</th><td>＋ ${{ number_format($status['purchases'], 2) }}</td></tr>
-            <tr><th style="text-align:left;">その後のAPI実行の費用の目安</th><td>− ${{ number_format($status['spent'], 4) }}</td></tr>
-            <tr><th style="text-align:left;">残高の見込み</th><td><strong>${{ number_format($status['balance'], 2) }}</strong></td></tr>
+            <tr><th>最後に登録した残高</th><td>${{ number_format($status['base']->amount, 2) }}（{{ \App\Support\DisplayTime::format($status['base']->occurred_at) }}）</td></tr>
+            <tr><th>その後の課金</th><td>＋ ${{ number_format($status['purchases'], 2) }}</td></tr>
+            <tr><th>その後のAPI実行の費用の目安</th><td>− ${{ number_format($status['spent'], 4) }}</td></tr>
+            <tr><th>残高の見込み</th><td><strong>${{ number_format($status['balance'], 2) }}</strong></td></tr>
         </table>
         @if ($status['days_since_check'] >= $reconcileDays)
             <p class="text-warn">最後に残高を登録してから{{ $status['days_since_check'] }}日たちました。OpenAI の画面の残高と比べて、ずれていないか確認してください（ずれていたら、実際の残高を登録すると見込みが直ります）。</p>
@@ -68,29 +68,29 @@
                     <td>{{ $row['label'] }}</td>
                     <td>{{ $row['trigger'] }}</td>
                     <td>{{ $row['model'] }}</td>
-                    <td style="text-align:right;">{{ number_format($row['requests']) }}</td>
-                    <td style="text-align:right;">{{ number_format($row['input_tokens']) }}</td>
-                    <td style="text-align:right;">{{ number_format($row['cached_input_tokens']) }}</td>
-                    <td style="text-align:right;">{{ number_format($row['output_tokens']) }}</td>
-                    <td style="text-align:right;">{{ $row['web_search_calls'] !== null ? number_format($row['web_search_calls']) : '-' }}</td>
-                    <td style="text-align:right;">${{ number_format($row['cost'], 4) }}</td>
-                    <td style="text-align:right;">${{ number_format($row['requests'] > 0 ? $row['cost'] / $row['requests'] : 0, 4) }}</td>
-                    <td style="text-align:right;">{{ $purposeTotal > 0 ? number_format($row['cost'] / $purposeTotal * 100, 1) : '0.0' }}%</td>
+                    <td class="cell-num">{{ number_format($row['requests']) }}</td>
+                    <td class="cell-num">{{ number_format($row['input_tokens']) }}</td>
+                    <td class="cell-num">{{ number_format($row['cached_input_tokens']) }}</td>
+                    <td class="cell-num">{{ number_format($row['output_tokens']) }}</td>
+                    <td class="cell-num">{{ $row['web_search_calls'] !== null ? number_format($row['web_search_calls']) : '-' }}</td>
+                    <td class="cell-num">${{ number_format($row['cost'], 4) }}</td>
+                    <td class="cell-num">${{ number_format($row['requests'] > 0 ? $row['cost'] / $row['requests'] : 0, 4) }}</td>
+                    <td class="cell-num">{{ $purposeTotal > 0 ? number_format($row['cost'] / $purposeTotal * 100, 1) : '0.0' }}%</td>
                 </tr>
             @empty
                 <tr><td colspan="11">この期間のAPI実行はありません。</td></tr>
             @endforelse
             @if ($byPurpose !== [])
                 <tr>
-                    <th colspan="3" style="text-align:left;">合計</th>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'requests'))) }}</td>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'input_tokens'))) }}</td>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'cached_input_tokens'))) }}</td>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_column($byPurpose, 'output_tokens'))) }}</td>
-                    <td style="text-align:right;">{{ number_format(array_sum(array_map(fn ($row) => (int) $row['web_search_calls'], $byPurpose))) }}</td>
-                    <td style="text-align:right;">${{ number_format($purposeTotal, 4) }}</td>
+                    <th colspan="3">合計</th>
+                    <td class="cell-num">{{ number_format(array_sum(array_column($byPurpose, 'requests'))) }}</td>
+                    <td class="cell-num">{{ number_format(array_sum(array_column($byPurpose, 'input_tokens'))) }}</td>
+                    <td class="cell-num">{{ number_format(array_sum(array_column($byPurpose, 'cached_input_tokens'))) }}</td>
+                    <td class="cell-num">{{ number_format(array_sum(array_column($byPurpose, 'output_tokens'))) }}</td>
+                    <td class="cell-num">{{ number_format(array_sum(array_map(fn ($row) => (int) $row['web_search_calls'], $byPurpose))) }}</td>
+                    <td class="cell-num">${{ number_format($purposeTotal, 4) }}</td>
                     <td></td>
-                    <td style="text-align:right;">100%</td>
+                    <td class="cell-num">100%</td>
                 </tr>
             @endif
         </tbody>
@@ -123,25 +123,25 @@
                     <tr>
                         <td>{{ $row->day }}</td>
                         <td>{{ $row->model }}</td>
-                        <td style="text-align:right;">{{ number_format($row->requests) }}</td>
-                        <td style="text-align:right;">{{ number_format($row->input_tokens) }}</td>
-                        <td style="text-align:right;">{{ number_format($row->cached_input_tokens) }}</td>
-                        <td style="text-align:right;">{{ number_format($row->output_tokens) }}</td>
-                        <td style="text-align:right;">{{ number_format($row->web_search_calls) }}</td>
-                        <td style="text-align:right;">${{ number_format($row->cost, 4) }}</td>
+                        <td class="cell-num">{{ number_format($row->requests) }}</td>
+                        <td class="cell-num">{{ number_format($row->input_tokens) }}</td>
+                        <td class="cell-num">{{ number_format($row->cached_input_tokens) }}</td>
+                        <td class="cell-num">{{ number_format($row->output_tokens) }}</td>
+                        <td class="cell-num">{{ number_format($row->web_search_calls) }}</td>
+                        <td class="cell-num">${{ number_format($row->cost, 4) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="8">この期間のAPI実行はありません。</td></tr>
                 @endforelse
                 @if ($usage->isNotEmpty())
                     <tr>
-                        <th colspan="2" style="text-align:left;">合計</th>
-                        <td style="text-align:right;">{{ number_format($usage->sum('requests')) }}</td>
-                        <td style="text-align:right;">{{ number_format($usage->sum('input_tokens')) }}</td>
-                        <td style="text-align:right;">{{ number_format($usage->sum('cached_input_tokens')) }}</td>
-                        <td style="text-align:right;">{{ number_format($usage->sum('output_tokens')) }}</td>
-                        <td style="text-align:right;">{{ number_format($usage->sum('web_search_calls')) }}</td>
-                        <td style="text-align:right;">${{ number_format($usage->sum('cost'), 4) }}</td>
+                        <th colspan="2">合計</th>
+                        <td class="cell-num">{{ number_format($usage->sum('requests')) }}</td>
+                        <td class="cell-num">{{ number_format($usage->sum('input_tokens')) }}</td>
+                        <td class="cell-num">{{ number_format($usage->sum('cached_input_tokens')) }}</td>
+                        <td class="cell-num">{{ number_format($usage->sum('output_tokens')) }}</td>
+                        <td class="cell-num">{{ number_format($usage->sum('web_search_calls')) }}</td>
+                        <td class="cell-num">${{ number_format($usage->sum('cost'), 4) }}</td>
                     </tr>
                 @endif
             </tbody>

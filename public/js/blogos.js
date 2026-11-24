@@ -64,6 +64,8 @@
         if (!header) {
             return;
         }
+        // 列の見出しの行は中央揃え（D-118-01。public/css/blogos.css）
+        header.classList.add('table-header-row');
 
         // 見出しの行の colspan を広げて、列ごとの見出しにする
         const labels = [];

@@ -99,18 +99,18 @@
                     @else
                         <td>{{ $table['name'] }}</td>
                     @endif
-                    <td style="text-align:right;">{{ number_format($table['rows']) }}</td>
+                    <td class="cell-num">{{ number_format($table['rows']) }}</td>
                     @if ($wordpressTables !== [])
-                        <td style="text-align:right;">{{ $wordpressTable ? number_format($wordpressTable['deleted']) : '' }}</td>
+                        <td class="cell-num">{{ $wordpressTable ? number_format($wordpressTable['deleted']) : '' }}</td>
                     @endif
-                    <td style="text-align:right;">{{ $size($table['bytes']) }}</td>
+                    <td class="cell-num">{{ $size($table['bytes']) }}</td>
                     @if ($breakdown)
                         @foreach ($breakdown['buckets'] as $bucket)
                             @php
                                 $share = $breakdown['tables'][$table['name']][$bucket['key']] ?? null;
                             @endphp
                             {{-- 行がなければ空にする --}}
-                            <td style="text-align:right; white-space:nowrap;">@if ($share){{ number_format($share['rows']) }}／{{ $size($share['bytes']) }}@endif</td>
+                            <td class="cell-num" style="white-space:nowrap;">@if ($share){{ number_format($share['rows']) }}／{{ $size($share['bytes']) }}@endif</td>
                         @endforeach
                     @endif
                 </tr>

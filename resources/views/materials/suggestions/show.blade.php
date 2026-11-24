@@ -47,10 +47,10 @@
             <p class="text-muted">もしも・Udemyの管理画面でリンクを作って貼り付けてください（URL、または &lt;a href="…"&gt; を含むHTML）。</p>
             <table class="data" style="max-width:900px;">
                 @if ($suggestion->kind === \App\Enums\MaterialKind::Book)
-                    <tr><th style="text-align:left;">Amazonのリンク（もしも）</th><td><textarea name="amazon_url" rows="2" style="width:600px;">{{ old('amazon_url') }}</textarea></td></tr>
-                    <tr><th style="text-align:left;">楽天のリンク（もしも）</th><td><textarea name="rakuten_url" rows="2" style="width:600px;">{{ old('rakuten_url') }}</textarea></td></tr>
+                    <tr><th>Amazonのリンク（もしも）</th><td><textarea name="amazon_url" rows="2" style="width:600px;">{{ old('amazon_url') }}</textarea></td></tr>
+                    <tr><th>楽天のリンク（もしも）</th><td><textarea name="rakuten_url" rows="2" style="width:600px;">{{ old('rakuten_url') }}</textarea></td></tr>
                 @else
-                    <tr><th style="text-align:left;">アフィリエイトのリンク</th><td><textarea name="affiliate_url" rows="2" style="width:600px;">{{ old('affiliate_url') }}</textarea></td></tr>
+                    <tr><th>アフィリエイトのリンク</th><td><textarea name="affiliate_url" rows="2" style="width:600px;">{{ old('affiliate_url') }}</textarea></td></tr>
                 @endif
             </table>
             </section>
@@ -81,7 +81,7 @@
                         @continue(in_array($field, ['isbn', 'amazon_product_url', 'rakuten_product_url'], true) && $suggestion->kind !== \App\Enums\MaterialKind::Book)
                         <tr>
                             @if ($isResearch)<td><input type="checkbox" class="apply-check" name="apply[]" value="{{ $field }}" @checked(in_array($field, (array) old('apply', $checked ? [$field] : []), true))></td>@endif
-                            <th style="text-align:left; vertical-align:top;">{{ $label }}</th>
+                            <th style="vertical-align:top;">{{ $label }}</th>
                             @if ($isResearch)<td class="text-muted" style="max-width:320px; white-space:pre-wrap; vertical-align:top;">{{ $current }}</td>@endif
                             <td style="vertical-align:top;">
                                 @switch ($field)
