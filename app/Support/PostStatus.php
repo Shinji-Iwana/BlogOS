@@ -9,11 +9,11 @@ class PostStatus
 {
     public const LABELS = [
         'publish'    => '公開済み',
-        'future'     => '予約投稿',
+        'future'     => '予約済み',
         'draft'      => '下書き',
         'pending'    => 'レビュー待ち',
         'private'    => '非公開',
-        'trash'      => 'ゴミ箱',
+        'trash'      => 'ゴミ箱内',
         'auto-draft' => '自動下書き',
         'inherit'    => '親に従う',
     ];

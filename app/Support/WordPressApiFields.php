@@ -32,7 +32,7 @@ class WordPressApiFields
         'guid.rendered'         => 'WordPress が付ける、変わらない識別用の URL（表示用）。',
         'slug'                  => 'スラッグ（URL の一部になる英数字の名前）。',
         'generated_slug'        => 'スラッグを空にしたときに、WordPress が付けるスラッグ。',
-        'status'                => '公開の状態（publish：公開、draft：下書き、pending：レビュー待ち、future：予約、private：非公開 など）。',
+        'status'                => '公開の状態（publish：公開済み、draft：下書き、pending：レビュー待ち、future：予約済み、private：非公開 など）。',
         'type'                  => '投稿タイプ（post：投稿、page：固定ページ など）。',
         'link'                  => '表示の URL（パーマリンク）。',
         'permalink_template'    => 'パーマリンクのひな形（%postname% などの置き換え前）。',

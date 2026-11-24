@@ -38,7 +38,7 @@ class DraftController extends Controller
     /**
      * 編集案で指定できるWordPressのステータス（予約投稿は日時の指定が必要なため、この画面では扱わない）
      */
-    public const STATUSES = ['draft' => '下書き', 'pending' => 'レビュー待ち', 'private' => '非公開', 'publish' => '公開'];
+    public const STATUSES = ['draft' => '下書き', 'pending' => 'レビュー待ち', 'private' => '非公開', 'publish' => '公開済み'];
 
     public function __construct(
         protected ArticleDraftRepository $drafts,

@@ -67,7 +67,7 @@
                 @endif
                 @unless ($id || $resource === 'search')
                     <tr>
-                        <th><label for="api-status">status</label> @include('partials.tip', ['tip' => "公開の状態でしぼり込む（publish：公開、draft：下書き、pending：レビュー待ち、future：予約、private：非公開。「,」で区切って複数）。\n指定なしは公開（publish）だけ。下書きなどは、編集の権限で取得するため context を edit にする。"])</th>
+                        <th><label for="api-status">status</label> @include('partials.tip', ['tip' => "公開の状態でしぼり込む（publish：公開済み、draft：下書き、pending：レビュー待ち、future：予約済み、private：非公開。「,」で区切って複数）。\n指定なしは公開（publish）だけ。下書きなどは、編集の権限で取得するため context を edit にする。"])</th>
                         <td><input type="text" name="status" id="api-status" value="{{ $query['status'] ?? '' }}" placeholder="publish,draft"></td>
                         <th><label for="api-search">search</label> @include('partials.tip', ['tip' => '言葉でしぼり込む（タイトル・本文・名前などに、その言葉を含むもの）。'])</th>
                         <td colspan="3"><input type="text" name="search" id="api-search" value="{{ $query['search'] ?? '' }}"></td>

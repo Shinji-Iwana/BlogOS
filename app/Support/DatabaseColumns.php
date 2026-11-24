@@ -95,7 +95,7 @@ class DatabaseColumns
             'excerpt_raw'                 => '反映する抜粋。',
             'meta_description'            => '反映するメタディスクリプション（検索結果に出る説明文）。空にすると、AIOSEO が自動で作る説明に戻る。',
             'slug'                        => '反映するスラッグ（URL の一部になる名前）。',
-            'status'                      => '反映するときの公開の状態（publish：公開、draft：下書き など）。',
+            'status'                      => '反映するときの公開の状態（publish：公開済み、draft：下書き など）。',
             'wordpress_category_ids'      => '反映するカテゴリ（WordPress のカテゴリの ID の一覧。投稿だけ）。',
             'wordpress_tag_ids'           => '反映するタグ（WordPress のタグの ID の一覧。投稿だけ）。',
             'wordpress_featured_media_id' => '反映するアイキャッチ画像（WordPress のメディアの ID）。',

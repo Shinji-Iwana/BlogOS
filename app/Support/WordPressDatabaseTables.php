@@ -104,7 +104,7 @@ class WordPressDatabaseTables
             'post_content'          => '本文（ブロックの印を含む、入力したそのままの文字）。',
             'post_title'            => 'タイトル。',
             'post_excerpt'          => '抜粋。',
-            'post_status'           => '状態（publish：公開、draft：下書き、pending：レビュー待ち、future：予約、private：非公開、trash：ゴミ箱、auto-draft：自動下書き、inherit：親に従う（リビジョン・メディア））。',
+            'post_status'           => '状態（publish：公開済み、draft：下書き、pending：レビュー待ち、future：予約済み、private：非公開、trash：ゴミ箱、auto-draft：自動下書き、inherit：親に従う（リビジョン・メディア））。',
             'comment_status'        => 'コメントを受け付けるか（open：受け付ける、closed：受け付けない）。',
             'ping_status'           => 'ピンバック・トラックバックを受け付けるか（open／closed）。',
             'post_password'         => '記事を読むためのパスワード（パスワード保護のとき。空なら保護なし）。',

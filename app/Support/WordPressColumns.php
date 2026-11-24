@@ -34,7 +34,7 @@ class WordPressColumns
         'meta_description_raw'       => 'メタディスクリプション（検索結果に出る説明文。入力したそのままの文字）。',
         'meta_description_rendered'  => 'メタディスクリプション（表示用に整えた文字）。',
         'slug'                       => 'スラッグ（URL の一部になる英数字の名前）。日本語は URL 用の文字（%E3…）で保存し、一覧では読める形でも出す。',
-        'status'                     => '公開の状態（publish：公開、draft：下書き、pending：レビュー待ち、future：予約、private：非公開 など）。',
+        'status'                     => '公開の状態（publish：公開済み、draft：下書き、pending：レビュー待ち、future：予約済み、private：非公開 など）。',
         'type'                       => '投稿タイプ（post：投稿、page：固定ページ など）。',
         'template'                   => 'テーマのテンプレート（空なら標準のテンプレート）。',
         'comment_status'             => 'コメントを受け付けるか（open：受け付ける、closed：受け付けない）。',

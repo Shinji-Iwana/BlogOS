@@ -1840,6 +1840,15 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * そのほか（一覧の列の見出しは中央、値は左。「項目名と値」の表は項目名も値も左）は D-118-01 のまま。
 * テスト：tests/Feature/ListPageTest.php。
 
+### 項目119：WordPress が決めている値の日本語（全画面の見直し。2026-11-24）
+
+**D-119-01 WordPress が決めている値の日本語は、WordPress の名前に揃える（共通のルール）** DB に入る決まった値（ステータスなど）を全て並べた確認画面で、記事の公開の状態の3つの値が、出どころによって違う日本語になっていた（publish：「公開済み」「公開」、future：「予約済み」「予約投稿」「予約」、trash：「ゴミ箱内」「ゴミ箱」）。WordPress が持つ日本語の名前（同期した statuses.name）に揃えた（利用者の判断）。
+* 直したもの：記事の画面の状態の名前（`App\Support\PostStatus`。future「予約投稿」→「予約済み」、trash「ゴミ箱」→「ゴミ箱内」）、編集案の反映するときの状態の選ぶ欄（`DraftController::STATUSES`。publish「公開」→「公開済み」）、DB確認画面・API確認画面の列の説明（「?」。publish：公開 → 公開済み、future：予約 → 予約済み。`DatabaseColumns`・`WordPressColumns`・`WordPressDatabaseTables`・`WordPressApiFields`・`wordpress-api/show.blade.php`）。
+* 文章の中の「公開中の記事」などの言い方は、値の名前ではないため変えない。
+* BlogOS で決めた値（AI の目的など）を一覧などで日本語で出すかは、別に決める（確認画面 mock-statuses で検討中）。
+* 決まりは BLOGOS_UI 1-1。
+* テスト：tests/Feature/WordPressValueLabelTest.php（状態の名前と、列の説明が WordPress の名前になっていること）。
+
 
 
 | 事項 | 決める時期 |
