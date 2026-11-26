@@ -67,7 +67,7 @@
         <form method="POST" action="{{ route('ai.batches.cancel', ['id' => $batch->id]) }}" onsubmit="return confirm('残りの記事を実行せずに取り消しますか？');">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit" class="btn-danger">@include('partials.button-icon', ['to' => 'blogos'])取り消す（実行中の記事は最後まで実行します）</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])取り消す（実行中の記事は最後まで実行します）</button>
         </form>
     @endif
 

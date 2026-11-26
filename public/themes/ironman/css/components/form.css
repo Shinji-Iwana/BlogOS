@@ -123,7 +123,7 @@ input[type="submit"]:disabled {
    ----------------------------------------------------------
    ・何も付けない：主な操作（スーツの赤と金）
    ・.btn-secondary：補助の操作（HUD の青白い線）
-   ・.btn-danger：取り消せない・壊す操作（赤い線と赤い文字）
+   ・赤枠の .btn-danger（取り消せない・壊す操作）は、なくした。削除・破棄・取り消し・解除も、主な操作と同じ見た目（D-122）
    ・a.button-link：主な操作へのリンクを、ボタンの形で出す
    public/css/blogos.css では何もしないため、blank の見た目は変わらない。
    ========================================================== */
@@ -139,21 +139,6 @@ button.btn-secondary:focus-visible {
     color: var(--im-cyan-bright);
     border-color: var(--im-cyan);
     box-shadow: var(--im-glow);
-    filter: none;
-}
-
-button.btn-danger {
-    color: var(--im-red);
-    background: transparent;
-    border-color: rgba(255, 90, 82, 0.6);
-}
-
-button.btn-danger:hover,
-button.btn-danger:focus-visible {
-    color: #fff;
-    background: rgba(255, 90, 82, 0.18);
-    border-color: var(--im-red);
-    box-shadow: 0 0 10px rgba(255, 90, 82, 0.4);
     filter: none;
 }
 
@@ -264,21 +249,6 @@ button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-but
 button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
 button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible {
     --btn-line: var(--im-cyan);
-    filter: drop-shadow(0 0 6px var(--btn-glow));
-}
-
-/* 取り消せない・壊す操作（赤い線と赤い文字） */
-button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
-    --btn-fill: transparent;
-    --btn-line: rgba(255, 90, 82, 0.6);
-    --btn-glow: rgba(255, 90, 82, 0.4);
-    --btn-bw: 1px;
-}
-
-button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
-button.btn-danger:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible {
-    --btn-fill: rgba(255, 90, 82, 0.18);
-    --btn-line: var(--im-red);
     filter: drop-shadow(0 0 6px var(--btn-glow));
 }
 

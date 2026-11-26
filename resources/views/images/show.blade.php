@@ -307,7 +307,7 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この画像を削除する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この画像を削除する</button>
         </form>
     @endif
 

@@ -422,7 +422,7 @@
                             @csrf
                             @method('DELETE')
                             @include('partials.selected-blog-field')
-                            <button type="submit" class="btn-danger">@include('partials.button-icon', ['to' => 'blogos'])削除</button>
+                            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])削除</button>
                         </form>
                     </td>
                 </tr>

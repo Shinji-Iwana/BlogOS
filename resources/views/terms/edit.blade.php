@@ -139,7 +139,7 @@
             @include('partials.selected-blog-field')
             <p><label>確認のため、名前（{{ $label }}）を入力してください：<br><input type="text" name="confirm_name" autocomplete="off"></label></p>
             <p><label><input type="checkbox" name="confirmed" value="1"> 元に戻せないことを確認しました</label></p>
-            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'wordpress'])完全に削除する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])完全に削除する</button>
         </form>
         </section>
     @endif

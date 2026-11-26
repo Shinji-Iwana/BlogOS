@@ -323,7 +323,7 @@
             @csrf
             @include('partials.selected-blog-field')
             <input type="hidden" name="state" value="discarded">
-            <button type="submit" class="btn-danger">@include('partials.button-icon', ['to' => 'blogos'])破棄する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])破棄する</button>
         </form>
         </section>
     @endif

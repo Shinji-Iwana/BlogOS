@@ -129,7 +129,7 @@
         <form method="POST" action="{{ route('ai.generations.cancel', ['id' => $generation->id]) }}" style="margin-top:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この実行を取り消す</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この実行を取り消す</button>
         </form>
         </section>
     @endif

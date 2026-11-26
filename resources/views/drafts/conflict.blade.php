@@ -65,7 +65,7 @@
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="discard">
         <label><input type="checkbox" name="confirmed" value="1"> 編集案の変更を捨てます</label>
-        <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])編集案を破棄する</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])編集案を破棄する</button>
     </form>
 
     <form method="POST" action="{{ route('drafts.conflict.resolve', ['id' => $draft->id]) }}">

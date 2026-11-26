@@ -235,7 +235,7 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この教材を削除する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この教材を削除する</button>
             <span class="text-muted">（記事で使っている教材は削除できません）</span>
         </form>
         </section>

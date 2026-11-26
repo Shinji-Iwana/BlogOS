@@ -527,7 +527,7 @@ table.data.data-compact > * > tr > td {
    ・.panel：画面の区切り（<section>・<fieldset>・<form> に付ける）。最初の h2・legend が見出し。
      ページ内のパネルの題名は日本語だけ（英字の札は付けない。D-117-01。英字＋日本語は、トップページのパネル・右のパネル・メニューだけ）
    ・button.btn-secondary：補助の操作
-   ・button.btn-danger：取り消せない・壊す操作
+   ・赤枠の button.btn-danger は、なくした（削除・破棄・取り消し・解除も、主な操作と同じ見た目。D-122）
    ・a.button-link：主な操作へのリンク
    ========================================================== */
 
