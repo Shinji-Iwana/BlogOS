@@ -22,7 +22,7 @@
     <form method="POST" action="{{ route('drafts.link-switch.create') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">今すぐ調べて編集案を作る</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])今すぐ調べて編集案を作る</button>
     </form>
 
     @if ($drafts->isEmpty())
@@ -55,7 +55,7 @@
                 </tbody>
             </table>
             {{ $drafts->links() }}
-            <p><button type="submit">チェックした編集案を反映する</button></p>
+            <p><button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])チェックした編集案を反映する</button></p>
         </form>
     @endif
 

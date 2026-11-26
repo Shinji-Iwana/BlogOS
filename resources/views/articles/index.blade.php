@@ -19,7 +19,7 @@
         @csrf
         @include('partials.selected-blog-field')
         <input type="hidden" name="article_type" value="{{ $type }}">
-        <button type="submit">新しい{{ $type === 'posts' ? '投稿' : '固定ページ' }}の編集案を作る</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])新しい{{ $type === 'posts' ? '投稿' : '固定ページ' }}の編集案を作る</button>
     </form>
 
     <form method="GET" action="{{ route('articles.index', ['type' => $type]) }}" class="panel">

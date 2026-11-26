@@ -51,7 +51,7 @@
             <p><label>補足（重点を置きたい内容・対象の読者など）<br><textarea name="notes" rows="2" style="width:100%;">{{ old('notes') }}</textarea></label></p>
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.topic_planning', 'api'), 'webSearch' => true, 'prefix' => 'topic'])
             <p class="text-muted">Web検索ありの API 実行で、1回あたり約 $0.05 です。結果は下の「確認待ちの案」に届きます。</p>
-            <p><button type="submit">企画する</button></p>
+            <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])企画する</button></p>
         </form>
     </fieldset>
 

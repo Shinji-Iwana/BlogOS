@@ -58,7 +58,8 @@ class ModalModeTest extends TestCase
                 $this->assertStringContainsString('<span data-modal-icon="' . $iconMode . '" title="' . $label . '"><svg', $modal, $id);
             }
             // 送るボタンの名前は、モードで決める
-            $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>' . ModalMode::SUBMIT_LABELS[$mode] . '<\/button>/u', $modal, $id);
+            // 名前の左に、BlogOS のアイコン（今のポップアップは、どれも BlogOS の中だけを変える。D-121-01）
+            $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>\s*<span class="button-icon" data-button-icon="blogos"[^>]*>.*?<\/span>\s*<span data-modal-submit-label>' . ModalMode::SUBMIT_LABELS[$mode] . '<\/span><\/button>/us', $modal, $id);
         }
 
         // 題名（D-100-04）：新規のポップアップの題名から「～を登録」を外し、テーマは「テーマ切替」（ブログ切替とそろえる）
@@ -78,6 +79,8 @@ class ModalModeTest extends TestCase
         // 開く要素の data-modal-mode で、モードを変えて開ける（ボタンの名前は ModalMode の1か所から）
         $this->assertStringContainsString('opener.dataset.modalMode', $html);
         $this->assertStringContainsString('const submitLabels = ' . json_encode(ModalMode::SUBMIT_LABELS), $html);
+        // モードを変えても、名前だけを書き換え、左のアイコンは残す（D-121-01）
+        $this->assertStringContainsString("button.querySelector('[data-modal-submit-label]')", $html);
     }
 
     public function test_info_mode_has_no_submit_label_and_unknown_mode_is_rejected(): void
@@ -100,9 +103,9 @@ class ModalModeTest extends TestCase
         $title = view('partials.modal-title', ['title' => 'カテゴリ'])->render();
         $this->assertStringContainsString('<span data-modal-icon="delete" title="削除"><svg', $title);
 
-        // 送るボタンは、ほかのモード（更新など）と同じ形（class なし）で、名前だけが「削除」
+        // 送るボタンは、ほかのモード（更新など）と同じ形（class なし。アイコンも同じ）で、名前だけが「削除」
         $submit = view('partials.modal-submit', ['mode' => ModalMode::DELETE])->render();
-        $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>削除<\/button>/u', $submit);
+        $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>\s*<span class="button-icon" data-button-icon="blogos"[^>]*>.*?<\/span>\s*<span data-modal-submit-label>削除<\/span><\/button>/us', $submit);
         $this->assertStringNotContainsString('btn-danger', $submit);
 
         // アイコンの出し分けの CSS

@@ -101,7 +101,7 @@
     <form method="POST" action="{{ route('materials.relink') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">記事との照合をやり直す</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])記事との照合をやり直す</button>
         <span class="text-muted">（教材を登録・更新したときは自動で行います）</span>
     </form>
 
@@ -174,7 +174,7 @@
                     @include('partials.ai-cost-line')。
                 </p>
                 @include('materials.partials.method', ['method' => 'api', 'webSearch' => true, 'prefix' => 'bulk', 'apiOnly' => true, 'api' => $api + ['defaults' => config('blogos.ai.api.defaults.material_research')]])
-                <p><button type="submit">チェックした教材を調べる</button></p>
+                <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])チェックした教材を調べる</button></p>
             @else
                 <p class="text-error">APIキーが設定されていないため、まとめて調べることはできません。教材の画面から、手動実行で1つずつ調べてください。</p>
             @endif

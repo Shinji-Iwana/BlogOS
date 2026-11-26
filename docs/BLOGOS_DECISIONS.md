@@ -1858,6 +1858,18 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 決まりは BLOGOS_UI 4-2。
 * テスト：tests/Feature/ModalModeTest.php（削除のモードのアイコン・ボタンの名前と見た目（赤枠にしない）・JavaScript のモードの一覧）。
 
+### 項目121：ボタンの名前の左のアイコン（全画面の見直し。2026-11-26）
+
+**D-121-01 押すと何が変わるかを、ボタンのアイコンで見分ける（共通のルール）** BlogOS に保存するボタンか、WordPress に反映するボタンかが、ぱっと見で分かりにくかった。ボタンの名前の左にアイコンを付けた確認画面（mock-button-icons）から、アイコンを付けることだけを先に決めた（利用者の判断）。
+* WordPress のアイコン（外の輪と、W をくり抜いた円。WordPress のロゴの形を SVG で描いたもの）：押すと WordPress を変えるボタン（作る・更新する・公開する・ゴミ箱へ移す・削除する。13個）。WordPress への反映が成功すると、その結果で BlogOS の DB も更新する（反映の記録 → DB の更新。失敗しても次の同期の最初に回復する。WORDPRESS_API 24-2）ため、「WordPress と BlogOS の両方を変える」ボタンもこのアイコンにする。
+* BlogOS のアイコン（アークリアクター：外の輪・内側の点線のリング・逆三角（▽）・中心の丸）：押すと BlogOS の中だけを変えるボタン（保存・登録・取り込み・AI の実行・測定・同期など。WordPress は変えない）。ポップアップの送るボタンも、今はどれも BlogOS の中だけを変えるため、このアイコン。
+* 付けない：どちらも変えないボタン（絞り込み・取得などの GET のフォーム、ログイン、閉じる・キャンセル、確認の画面を開くだけのリンク）。
+* 色はボタンの文字の色（主な操作は金、赤枠のボタンは赤）。アイコンにはツールチップで意味を出す（1-1）。blank・ironman のどちらでも出す。
+* ボタンの名前は変えない（名前を短くする・「WordPress」の文字を外すかどうかは、保留）。確認画面「WordPress を変えるボタンの名前の一覧」（mock-push-buttons）の「A：『WordPress』を名前に入れるか」は、アイコンで見分けられるようにしたことで解消とした（利用者の判断）。
+* 作り：`App\Support\ButtonIcon`（種類・ツールチップ・切り抜きの id）、`partials/button-icon`（ボタンの開始タグのすぐ後ろに `@include('partials.button-icon', ['to' => 'wordpress'])` などと書く）、`partials/modal-submit`（名前を `data-modal-submit-label` に入れ、`layouts/header` の JavaScript は名前だけを書き換える）、`public/css/blogos.css`（大きさは文字に合わせる）。
+* 決まりは BLOGOS_UI 4-4。
+* テスト：tests/Feature/ButtonIconTest.php（WordPress を変えるボタン・BlogOS のボタン・付けないボタン、全ての送るボタンが分けられていること）、tests/Feature/ModalModeTest.php（ポップアップの送るボタンのアイコンと名前）。
+
 
 
 | 事項 | 決める時期 |

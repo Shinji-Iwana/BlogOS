@@ -148,7 +148,7 @@
                     </label>
                 </p>
             @endif
-            <p><button type="submit">{{ count($targets) }}件を実行する</button></p>
+            <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos']){{ count($targets) }}件を実行する</button></p>
         </form>
     @endif
 

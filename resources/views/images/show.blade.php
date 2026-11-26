@@ -101,7 +101,7 @@
                     </div>
                 </div>
                 <p class="text-muted">スクリプト・外部の読み込み・HTML の埋め込みは、保存するときに取り除きます。</p>
-                <button type="submit">SVG を保存する</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])SVG を保存する</button>
             </form>
         </details>
 
@@ -183,7 +183,7 @@
                 </td>
             </tr>
         </table>
-        <p><button type="submit">情報を保存する</button></p>
+        <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])情報を保存する</button></p>
     </form>
 
     {{-- 確認済みにする・WordPress に登録する --}}
@@ -198,13 +198,13 @@
         <form method="POST" action="{{ route('images.ready', ['id' => $image->id]) }}" style="display:inline;">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit" @disabled($missing !== [])>確認済みにする</button>
+            <button type="submit" @disabled($missing !== [])>@include('partials.button-icon', ['to' => 'blogos'])確認済みにする</button>
         </form>
     @elseif (! $image->media_id)
         <form method="POST" action="{{ route('images.wordpress', ['id' => $image->id]) }}" onsubmit="return confirm('この画像を、{{ $blog->display_name }} の WordPress のメディアに登録しますか？');" style="display:inline;">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">WordPress のメディアに登録する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])WordPress のメディアに登録する</button>
         </form>
         <span class="text-muted">登録すると、記事で使えるようになります（記事への組み込みは、記事の改修・作成で行います）。</span>
     @else
@@ -220,7 +220,7 @@
             @include('partials.selected-blog-field')
             <p class="text-muted">「依頼の内容」をもとに、SVG の図を作ります。</p>
             @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'redesign'])
-            <button type="submit">図を作る</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])図を作る</button>
         </form>
         </section>
     @endif
@@ -249,7 +249,7 @@
                             @if ($imageCost !== null)・1枚の最大の目安：約 ${{ number_format($imageCost, 3) }}（{{ $api['quality'] }}）@endif
                         </p>
                         <p class="text-muted">@include('partials.ai-cost-line')</p>
-                        <button type="submit">{{ $image->hasFile() ? '作り直す' : '画像を作る' }}</button>
+                        <button type="submit">@include('partials.button-icon', ['to' => 'blogos']){{ $image->hasFile() ? '作り直す' : '画像を作る' }}</button>
                     </form>
                 @else
                     <p class="text-error">APIキーが設定されていないため、画像モデルは使えません。下の指示文で ChatGPT 等で作った画像をアップロードしてください。</p>
@@ -261,7 +261,7 @@
             @csrf
             @include('partials.selected-blog-field')
             <input type="file" name="file" accept="image/png,image/jpeg,image/webp" data-resize="replace-note" required>
-            <button type="submit">アップロードして差し替える</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])アップロードして差し替える</button>
             <span id="replace-note" class="text-muted"></span>
         </form>
         </section>
@@ -276,11 +276,11 @@
             @include('partials.selected-blog-field')
             @if ($isDiagram)
                 <p class="text-muted">同じ内容をイラストで作ります（画像モデル。API実行・料金がかかります）。指示文：{{ $image->image_prompt ?: '（なし）' }}</p>
-                <button class="btn-secondary" type="submit" @disabled(! $api['configured'] || blank($image->image_prompt))>イラストでも作る</button>
+                <button class="btn-secondary" type="submit" @disabled(! $api['configured'] || blank($image->image_prompt))>@include('partials.button-icon', ['to' => 'blogos'])イラストでも作る</button>
             @else
                 <p class="text-muted">同じ内容を SVG の図で作ります（文章のモデル）。</p>
                 @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'variant'])
-                <button class="btn-secondary" type="submit">SVG の図でも作る</button>
+                <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])SVG の図でも作る</button>
             @endif
         </form>
         </section>
@@ -307,7 +307,7 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">この画像を削除する</button>
+            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この画像を削除する</button>
         </form>
     @endif
 

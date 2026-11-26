@@ -171,7 +171,7 @@
                 @endif
             </fieldset>
 
-            <p><button type="submit">指示文を作る（API実行では、そのまま実行します）</button></p>
+            <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])指示文を作る（API実行では、そのまま実行します）</button></p>
         </form>
     @endif
 

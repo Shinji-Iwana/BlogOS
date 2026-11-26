@@ -67,7 +67,7 @@
         </div>
         {{ $categories->links() }}
 
-        <p><button type="submit">保存する</button></p>
+        <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])保存する</button></p>
     </form>
 
 @endsection

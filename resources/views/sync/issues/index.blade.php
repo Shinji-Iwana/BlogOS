@@ -70,7 +70,7 @@
                         対応した内容：
                         <input type="text" name="resolution" maxlength="2000" required style="width:100%; max-width:500px;">
                     </label>
-                    <button type="submit">解決済みにする</button>
+                    <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])解決済みにする</button>
                 </form>
             @else
                 <p>

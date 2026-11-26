@@ -64,7 +64,7 @@
                 <form method="POST" action="{{ route('blogs.credentials.verify') }}">
                     @csrf
                     @include('partials.selected-blog-field')
-                    <button class="btn-secondary" type="submit">接続確認</button>
+                    <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])接続確認</button>
                 </form>
             @else
                 <p>未設定です。</p>

@@ -52,7 +52,7 @@
             <p>
                 名前 <input type="text" name="name" value="{{ old('name') }}" style="width:200px;" placeholder="例：Go">
                 スラッグ <input type="text" name="slug" value="{{ old('slug') }}" style="width:120px;" placeholder="例：go">
-                <button type="submit">WordPress に作る</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])WordPress に作る</button>
             </p>
             <p class="text-muted">記事がまだないカテゴリは、WordPress の画面には表示されません。親ロードマップの固定ページは、子ロードマップを公開するときに下書きとして作ります。</p>
         </form>
@@ -65,7 +65,7 @@
             <input type="hidden" name="parent_id" value="{{ $parent->id }}">
             <p>② 立ち上げる子カテゴリ（<a href="{{ route('topics.index', ['category_id' => $parent->id]) }}">足りない子カテゴリを企画する</a>）</p>
             @include('launches.partials.child-options', ['options' => $options])
-            <p><button type="submit">立ち上げを始める</button></p>
+            <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])立ち上げを始める</button></p>
         </form>
     @endif
     </section>

@@ -485,6 +485,22 @@ table.data.data-compact > * > tr > td {
     height: 100%;
 }
 
+/* ボタンの名前の左のアイコン（D-121-01。docs/BLOGOS_UI.md 4-4）
+   WordPress：WordPress を変える／アークリアクター：BlogOS の中だけを変える。色はボタンの文字の色。
+   大きさは文字に合わせる（ironman のボタン 15px で 18px）。 */
+.button-icon {
+    display: inline-block;
+    line-height: 0;
+    vertical-align: -0.2em;
+    margin-right: 0.45em;
+}
+
+.button-icon svg {
+    display: block;
+    width: 1.2em;
+    height: 1.2em;
+}
+
 .modal-mode-icon > [data-modal-icon] > svg {
     display: block;
 }

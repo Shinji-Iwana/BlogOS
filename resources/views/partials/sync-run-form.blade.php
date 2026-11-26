@@ -6,5 +6,5 @@
 <form method="POST" action="{{ route('sync.runs.store') }}">
     @csrf
     @include('partials.selected-blog-field')
-    <button type="submit" @disabled($syncStatus['state'] !== 'idle')>今すぐ同期</button>
+    <button type="submit" @disabled($syncStatus['state'] !== 'idle')>@include('partials.button-icon', ['to' => 'blogos'])今すぐ同期</button>
 </form>

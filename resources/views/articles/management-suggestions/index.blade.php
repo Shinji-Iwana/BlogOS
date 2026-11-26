@@ -28,8 +28,8 @@
 
             <p>
                 <label><input type="checkbox" onclick="document.querySelectorAll('.suggestion-check').forEach(c => c.checked = this.checked)" checked> すべて選ぶ</label>
-                <button type="submit" name="action" value="accept">チェックした案を登録する</button>
-                <button class="btn-secondary" type="submit" name="action" value="reject" onclick="return confirm('チェックした案を不採用にしますか？');">チェックした案を不採用にする</button>
+                <button type="submit" name="action" value="accept">@include('partials.button-icon', ['to' => 'blogos'])チェックした案を登録する</button>
+                <button class="btn-secondary" type="submit" name="action" value="reject" onclick="return confirm('チェックした案を不採用にしますか？');">@include('partials.button-icon', ['to' => 'blogos'])チェックした案を不採用にする</button>
             </p>
 
             @include('partials.history-count', ['paginator' => $rows, 'order' => '作った順'])

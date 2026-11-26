@@ -35,7 +35,7 @@
                     @csrf
                     @include('partials.selected-blog-field')
                     @include('materials.partials.method', ['method' => 'api', 'webSearch' => true, 'prefix' => "plan-{$child->id}", 'api' => $api + ['defaults' => config('blogos.ai.api.defaults.topic_planning')]])
-                    <button type="submit">記事を企画する</button>
+                    <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])記事を企画する</button>
                 </form>
             </details>
 
@@ -65,7 +65,7 @@
                                                 @csrf
                                                 @include('partials.selected-blog-field')
                                                 <input type="hidden" name="action" value="{{ $action }}">
-                                                <button type="submit" @class(['btn-secondary' => $action === 'reject'])>{{ $label }}</button>
+                                                <button type="submit" @class(['btn-secondary' => $action === 'reject'])>@include('partials.button-icon', ['to' => 'blogos']){{ $label }}</button>
                                             </form>
                                         @endforeach
                                     @endif
@@ -83,7 +83,7 @@
                     @csrf
                     @include('partials.selected-blog-field')
                     @include('materials.partials.method', ['method' => 'api', 'apiOnly' => true, 'prefix' => "articles-{$child->id}", 'api' => $api])
-                    <button type="submit" @disabled(! $api['configured'])>④ 採用した記事（{{ $p['accepted'] - $p['drafts'] - $p['running'] }}件）の編集案をまとめて作る</button>
+                    <button type="submit" @disabled(! $api['configured'])>@include('partials.button-icon', ['to' => 'blogos'])④ 採用した記事（{{ $p['accepted'] - $p['drafts'] - $p['running'] }}件）の編集案をまとめて作る</button>
                 </form>
             @endif
 
@@ -95,7 +95,7 @@
                     @csrf
                     @include('partials.selected-blog-field')
                     @include('materials.partials.method', ['method' => 'api', 'apiOnly' => true, 'prefix' => "roadmap-{$child->id}", 'api' => $api])
-                    <button type="submit" @disabled(! $api['configured'])>⑤ 子ロードマップの編集案を作る</button>
+                    <button type="submit" @disabled(! $api['configured'])>@include('partials.button-icon', ['to' => 'blogos'])⑤ 子ロードマップの編集案を作る</button>
                 </form>
             @endif
 
@@ -135,7 +135,7 @@
                         @if ($child->isNew())子カテゴリ「{{ $child->name }}」（{{ $child->slug }}）を WordPress に作ります。@endif
                         子ロードマップを公開するときに、親ロードマップのページがなければ、WordPress の下書き（非公開）として先に作ります（URL を /{{ $launch->parentCategory?->slug }}/{{ $child->slug }}.html にするため）。
                     </p>
-                    <button type="submit">選んだものを公開する</button>
+                    <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])選んだものを公開する</button>
                 </form>
             @elseif ($postDrafts->isNotEmpty())
                 <p>⑥・⑦ 公開：すべて公開しました。</p>
@@ -172,7 +172,7 @@
                 子ロードマップは、公開していなければタイトルだけになり、公開されるとリンクに切り替わります。
             </p>
             @include('materials.partials.method', ['method' => 'api', 'apiOnly' => true, 'prefix' => 'parent-roadmap', 'api' => $api + ['defaults' => config('blogos.ai.api.defaults.revision')]])
-            <button type="submit" @disabled(! $api['configured'])>⑧ 親ロードマップの編集案を{{ $parentDraft?->ai_generation_id ? '作り直す' : '作る' }}</button>
+            <button type="submit" @disabled(! $api['configured'])>@include('partials.button-icon', ['to' => 'wordpress'])⑧ 親ロードマップの編集案を{{ $parentDraft?->ai_generation_id ? '作り直す' : '作る' }}</button>
         </form>
     @endif
     @if ($parentDraft && $parentDraft->ai_generation_id !== null)
@@ -184,7 +184,7 @@
             @if ($parentRemaining !== [])
                 <p class="text-error">目印が残っているため公開できません：{{ implode('、', $parentRemaining) }}</p>
             @endif
-            <button type="submit" @disabled($parentRemaining !== [])>親ロードマップ「{{ $parentDraft->title_raw }}」を公開する</button>
+            <button type="submit" @disabled($parentRemaining !== [])>@include('partials.button-icon', ['to' => 'wordpress'])親ロードマップ「{{ $parentDraft->title_raw }}」を公開する</button>
         </form>
     @endif
     </section>
@@ -195,7 +195,7 @@
         @csrf
         @include('partials.selected-blog-field')
         @include('launches.partials.child-options', ['options' => $options])
-        <p><button class="btn-secondary" type="submit">加える</button></p>
+        <p><button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])加える</button></p>
     </form>
     </section>
 
@@ -209,7 +209,7 @@
                 <option value="{{ $value }}" @selected($launch->status === $value)>{{ $label }}</option>
             @endforeach
         </select>
-        <button class="btn-secondary" type="submit">変える</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])変える</button>
     </form>
     </section>
 

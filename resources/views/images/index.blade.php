@@ -54,7 +54,7 @@
                 @if ($api['configured'])
                     <p class="text-muted">AI がイラストを選んだ場合、API実行なら続けて画像モデル（{{ $api['imageModel'] }}・{{ $api['quality'] }}）で作ります（1枚あたり数セント〜）。@include('partials.ai-cost-line')</p>
                 @endif
-                <button type="submit">図を作る</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])図を作る</button>
             </form>
         </fieldset>
 
@@ -76,7 +76,7 @@
                     <span id="upload-note" class="text-muted"></span>
                     <span class="text-muted">PNG・JPEG・WebP（{{ number_format(config('blogos.ai.image.max_upload_kb') / 1024) }}MB まで）。横幅が{{ config('blogos.ai.image.max_width') }}px を超える画像は、送る前に縮めます。</span>
                 </p>
-                <button type="submit">アップロードする</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])アップロードする</button>
             </form>
         </fieldset>
     </div>

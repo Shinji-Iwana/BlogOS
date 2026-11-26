@@ -96,7 +96,7 @@
         <p>
             <label><input type="checkbox" name="confirm" value="1" @checked(old('confirm'))> <strong>この評価を確定する</strong>（全ての項目と必須条件を ○・△・× で判定した場合だけ確定できます。公開の可否は、確定した評価で判断します）</label>
         </p>
-        <button type="submit">評価を保存する</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])評価を保存する</button>
         </section>
     </form>
 

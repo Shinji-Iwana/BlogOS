@@ -218,7 +218,7 @@
                 <form method="POST" action="{{ route('drafts.finish', ['id' => $draft->id]) }}">
                     @csrf
                     @include('partials.selected-blog-field')
-                    <button type="submit" class="btn-secondary">目印を置き換え直す</button>
+                    <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])目印を置き換え直す</button>
                     <span class="text-muted">（登録した画像・公開した記事を反映します。広告と広告を含むことの表示も、決まった位置に入れ直します）</span>
                 </form>
             @endif
@@ -298,7 +298,7 @@
             <p><label>抜粋<br><textarea name="excerpt_raw" rows="3" style="width:100%; max-width:800px;">{{ old('excerpt_raw', $draft->excerpt_raw) }}</textarea></label></p>
             <p><label>本文（WordPressの編集画面の「コードエディター」の内容と同じ形式）<br><textarea name="content_raw" rows="30" class="mono" style="width:100%; font-size:13px;">{{ old('content_raw', $draft->content_raw) }}</textarea></label></p>
 
-            <button type="submit">保存する（BlogOSのDBだけ）</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])保存する（BlogOSのDBだけ）</button>
         </fieldset>
     </form>
 
@@ -313,17 +313,17 @@
             @include('partials.selected-blog-field')
             @if ($draft->state === \App\Enums\DraftState::Editing)
                 <input type="hidden" name="state" value="review">
-                <button type="submit">確認待ちにする</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])確認待ちにする</button>
             @else
                 <input type="hidden" name="state" value="editing">
-                <button type="submit" class="btn-secondary">作業中に戻す</button>
+                <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])作業中に戻す</button>
             @endif
         </form>
         <form method="POST" action="{{ route('drafts.state', ['id' => $draft->id]) }}" style="display:inline;" onsubmit="return confirm('この編集案を破棄しますか？（行は残ります）');">
             @csrf
             @include('partials.selected-blog-field')
             <input type="hidden" name="state" value="discarded">
-            <button type="submit" class="btn-danger">破棄する</button>
+            <button type="submit" class="btn-danger">@include('partials.button-icon', ['to' => 'blogos'])破棄する</button>
         </form>
         </section>
     @endif

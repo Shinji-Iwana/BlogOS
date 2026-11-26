@@ -62,7 +62,7 @@
             @endif
         </fieldset>
 
-        <p><button type="submit">候補を探す</button></p>
+        <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])候補を探す</button></p>
     </form>
 
 @endsection

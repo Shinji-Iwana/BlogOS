@@ -54,12 +54,12 @@
                             <form method="POST" action="{{ route('ai.prices.apply', ['id' => $change->id]) }}" style="display:inline;">
                                 @csrf
                                 @include('partials.selected-blog-field')
-                                <button type="submit">反映する</button>
+                                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])反映する</button>
                             </form>
                             <form method="POST" action="{{ route('ai.prices.reject', ['id' => $change->id]) }}" style="display:inline;">
                                 @csrf
                                 @include('partials.selected-blog-field')
-                                <button class="btn-secondary" type="submit">反映しない</button>
+                                <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])反映しない</button>
                             </form>
                         </td>
                     </tr>

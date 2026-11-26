@@ -54,12 +54,12 @@
             <form method="POST" action="{{ route('materials.reviews.confirm', ['id' => $review->id]) }}" style="display:inline;">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button type="submit">確認した</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])確認した</button>
             </form>
             <form method="POST" action="{{ route('materials.reviews.reject', ['id' => $review->id]) }}" style="display:inline;">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button class="btn-secondary" type="submit">不採用にする</button>
+                <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])不採用にする</button>
             </form>
         </fieldset>
     @empty
@@ -107,7 +107,7 @@
                                     @csrf
                                     @include('partials.selected-blog-field')
                                     <input type="hidden" name="target" value="{{ $key }}">
-                                    <button class="btn-secondary" type="submit">このままでよい</button>
+                                    <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])このままでよい</button>
                                 </form>
                             </td>
                         </tr>

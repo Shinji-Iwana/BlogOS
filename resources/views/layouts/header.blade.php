@@ -604,7 +604,9 @@
             modal.dataset.modalMode = mode;
             modal.querySelectorAll('[data-modal-submit]').forEach(function (button) {
                 button.hidden = ! submitLabels[mode];
-                button.textContent = submitLabels[mode] || '';
+                // 名前だけを書き換え、左のアイコン（D-121-01）は残す
+                const label = button.querySelector('[data-modal-submit-label]') || button;
+                label.textContent = submitLabels[mode] || '';
             });
         };
         // ほかの画面の JavaScript からも、モードを変えて開けるようにする

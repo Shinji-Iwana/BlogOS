@@ -62,7 +62,7 @@
                     <option value="{{ $scope->value }}">{{ $scope->label() }}</option>
                 @endforeach
             </select>
-            <button type="submit">この記事の編集案を作る</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この記事の編集案を作る</button>
         </form>
     @endif
 
@@ -268,7 +268,7 @@
         <input type="hidden" name="type" value="{{ $type }}">
         <input type="hidden" name="id" value="{{ $article->id }}">
         <a href="{{ route('pagespeed.index') }}">PageSpeed Insights情報</a>
-        <button type="submit" class="btn-secondary">今すぐ測定</button>
+        <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])今すぐ測定</button>
     </form>
     </section>
     <section class="panel">
@@ -329,7 +329,7 @@
         <p>
             <label>メモ<br><textarea name="memo" rows="3" style="width:100%; max-width:700px;">{{ old('memo', $management?->memo) }}</textarea></label>
         </p>
-        <button type="submit">管理情報を保存する</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])管理情報を保存する</button>
     </form>
 
     {{-- 記事で使っている教材（D-30） --}}
@@ -382,7 +382,7 @@
         AIで教材を見直す：
         <label><input type="radio" name="execution_method" value="manual" checked> 手動実行</label>
         <label><input type="radio" name="execution_method" value="api"> API実行（標準のモデル・料金がかかります）</label>
-        <button type="submit" class="btn-secondary">見直す</button>
+        <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])見直す</button>
     </form>
 
     {{-- 記事同士の関係（D-08-04） --}}
@@ -422,7 +422,7 @@
                             @csrf
                             @method('DELETE')
                             @include('partials.selected-blog-field')
-                            <button type="submit" class="btn-danger">削除</button>
+                            <button type="submit" class="btn-danger">@include('partials.button-icon', ['to' => 'blogos'])削除</button>
                         </form>
                     </td>
                 </tr>
@@ -457,7 +457,7 @@
                     @endforeach
                 </select>
                 <input type="number" name="sort_order" value="0" min="0" style="width:60px;">
-                <button type="submit" class="btn-secondary">追加</button>
+                <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])追加</button>
             </form>
         @empty
             <p>見つかりませんでした。</p>
@@ -605,7 +605,7 @@
                                     @csrf
                                     @include('partials.selected-blog-field')
                                     <input type="hidden" name="path" value="{{ $row['path'] }}">
-                                    <button type="submit" class="btn-secondary">取り込む</button>
+                                    <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])取り込む</button>
                                 </form>
                             @elseif ($row['image']->media)
                                 <span class="text-ok">WordPress に登録済み</span>：<a href="{{ $row['image']->media->source_url }}" target="_blank" rel="noopener">{{ basename((string) parse_url($row['image']->media->source_url, PHP_URL_PATH)) }}</a>
@@ -624,7 +624,7 @@
                                     <input type="text" name="title" value="{{ $row['image']->title }}" placeholder="名前（何の画像か）" required maxlength="255" style="width:100%;">
                                     <input type="text" name="alt" value="{{ $row['image']->alt }}" placeholder="alt（画像の代わりの文章）" required maxlength="1000" style="width:100%;">
                                     <input type="text" name="filename" value="{{ $row['image']->filename }}" placeholder="ファイル名（英小文字・数字・ハイフン。例：excel-vlookup-result）" required maxlength="100" style="width:100%;">
-                                    <button type="submit" class="btn-secondary">保存して確認済みにする</button>
+                                    <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])保存して確認済みにする</button>
                                 </form>
                             @endif
                         </td>
@@ -640,14 +640,14 @@
             <form method="POST" action="{{ route('articles.legacy-images.import', ['type' => $type, 'id' => $article->id]) }}" style="display:inline;">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button type="submit" class="btn-secondary">まとめて取り込む（{{ collect($legacyImages)->filter(fn ($row) => ! $row['image'])->count() }}件）</button>
+                <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])まとめて取り込む（{{ collect($legacyImages)->filter(fn ($row) => ! $row['image'])->count() }}件）</button>
             </form>
         @endif
         @if (collect($legacyImages)->contains(fn ($row) => $row['image'] && ! $row['image']->media && $row['image']->status === \App\Enums\ImageStatus::Ready))
             <form method="POST" action="{{ route('articles.legacy-images.upload', ['type' => $type, 'id' => $article->id]) }}" style="display:inline;">
                 @csrf
                 @include('partials.selected-blog-field')
-                <button type="submit">確認済みの画像を WordPress に登録する（{{ collect($legacyImages)->filter(fn ($row) => $row['image'] && ! $row['image']->media && $row['image']->status === \App\Enums\ImageStatus::Ready)->count() }}件）</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])確認済みの画像を WordPress に登録する（{{ collect($legacyImages)->filter(fn ($row) => $row['image'] && ! $row['image']->media && $row['image']->status === \App\Enums\ImageStatus::Ready)->count() }}件）</button>
             </form>
         @endif
         @if (collect($legacyImages)->contains(fn ($row) => $row['image']?->media))

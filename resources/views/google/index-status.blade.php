@@ -25,7 +25,7 @@
         <form method="POST" action="{{ route('google.index-status.run') }}" style="margin-bottom:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button class="btn-secondary" type="submit">今すぐ調べる</button>
+            <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])今すぐ調べる</button>
             <label><input type="checkbox" name="all" value="1"> 日数が過ぎていない記事も調べ直す</label>
         </form>
     @endunless

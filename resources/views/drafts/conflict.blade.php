@@ -56,7 +56,7 @@
         @csrf
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="take_in">
-        <button type="submit">WordPressの変更を取り込む</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])WordPressの変更を取り込む</button>
         （DBをWordPressの最新にし、編集の起点を最新にします。編集案は作業中のまま残るので、上の差分を見て編集案を直してください）
     </form>
 
@@ -65,7 +65,7 @@
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="discard">
         <label><input type="checkbox" name="confirmed" value="1"> 編集案の変更を捨てます</label>
-        <button class="btn-danger" type="submit">編集案を破棄する</button>
+        <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])編集案を破棄する</button>
     </form>
 
     <form method="POST" action="{{ route('drafts.conflict.resolve', ['id' => $draft->id]) }}">
@@ -73,7 +73,7 @@
         @include('partials.selected-blog-field')
         <input type="hidden" name="action" value="overwrite">
         <label><input type="checkbox" name="confirmed" value="1"> <strong class="text-error">WordPress側で行われた変更は失われます</strong></label>
-        <button type="submit">編集案で上書きする（反映の確認へ進む）</button>
+        <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])編集案で上書きする（反映の確認へ進む）</button>
     </form>
     </section>
 

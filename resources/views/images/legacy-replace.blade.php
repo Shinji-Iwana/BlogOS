@@ -53,7 +53,7 @@
         <form method="POST" action="{{ route('articles.legacy-images.replace', ['type' => $type, 'id' => $article->id]) }}" onsubmit="return confirm('公開中の記事の画像の URL を置き換えて、WordPress に反映しますか？');">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">承認して反映する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])承認して反映する</button>
         </form>
     @endif
 

@@ -24,13 +24,13 @@
     <form method="POST" action="{{ route('materials.programs.register') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">記事のリンクから、未登録のプログラムを登録する</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])記事のリンクから、未登録のプログラムを登録する</button>
     </form>
 
     <form method="POST" action="{{ route('materials.programs.check') }}" style="margin-bottom:8px;">
         @csrf
         @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">リンクを今すぐ確かめる</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])リンクを今すぐ確かめる</button>
         <span class="text-muted">（毎週月曜に自動で確かめます。記事で使っているプログラムごとにリンクを1本だけ開き、提携が終わっていないかを見ます。状態は自動では変えません）</span>
     </form>
 
@@ -121,7 +121,7 @@
                                     @csrf
                                     @method('PUT')
                                     @include('partials.selected-blog-field')
-                                    <button type="submit">保存</button>
+                                    <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])保存</button>
                                 </form>
                             </td>
                         </tr>

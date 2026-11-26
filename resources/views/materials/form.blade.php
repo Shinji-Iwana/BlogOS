@@ -50,7 +50,7 @@
                         <textarea name="pasted" rows="4" style="width:100%; max-width:860px;" placeholder="楽天・Amazon・出版社・Udemyの講座ページなどの説明の部分を、そのまま貼り付けてください（形式はサイトごとに違ってかまいません）">{{ old('pasted') }}</textarea>
                     </label>
                 </p>
-                <p><button type="submit">AIで調べる</button></p>
+                <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])AIで調べる</button></p>
             </form>
         </fieldset>
     @endunless
@@ -207,7 +207,7 @@
             <tr><th style="vertical-align:top;">メモ</th><td><textarea name="memo" rows="2" style="width:100%;">{{ old('memo', $material->memo) }}</textarea></td></tr>
         </table>
 
-        <p><button type="submit">{{ $isNew ? '登録する' : '更新する' }}</button></p>
+        <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos']){{ $isNew ? '登録する' : '更新する' }}</button></p>
         </section>
     </form>
 
@@ -235,7 +235,7 @@
             @csrf
             @method('DELETE')
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">この教材を削除する</button>
+            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この教材を削除する</button>
             <span class="text-muted">（記事で使っている教材は削除できません）</span>
         </form>
         </section>

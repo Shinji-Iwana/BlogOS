@@ -69,7 +69,7 @@
         <form method="POST" action="{{ route('pagespeed.measure') }}" class="filter-actions">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit" class="btn-secondary">トップページを今すぐ測定</button>
+            <button type="submit" class="btn-secondary">@include('partials.button-icon', ['to' => 'blogos'])トップページを今すぐ測定</button>
         </form>
         </section>
 

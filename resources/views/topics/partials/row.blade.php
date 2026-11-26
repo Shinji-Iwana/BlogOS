@@ -48,7 +48,7 @@
                 @csrf
                 @include('partials.selected-blog-field')
                 <input type="hidden" name="action" value="{{ $action }}">
-                <button type="submit" @class(['btn-secondary' => $action === 'reject'])>{{ $label }}</button>
+                <button type="submit" @class(['btn-secondary' => $action === 'reject'])>@include('partials.button-icon', ['to' => 'blogos']){{ $label }}</button>
             </form>
         @endforeach
         @if ($suggestion->type === 'article')

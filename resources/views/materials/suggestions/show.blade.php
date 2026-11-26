@@ -119,14 +119,14 @@
             </table>
         </div>
 
-        <p><button type="submit">{{ $isResearch ? 'チェックした項目を教材に写す' : '教材として登録する' }}</button></p>
+        <p><button type="submit">@include('partials.button-icon', ['to' => 'blogos']){{ $isResearch ? 'チェックした項目を教材に写す' : '教材として登録する' }}</button></p>
         </section>
     </form>
 
     <form method="POST" action="{{ route('materials.suggestions.reject', ['id' => $suggestion->id]) }}" onsubmit="return confirm('この案を不採用にしますか？');">
         @csrf
         @include('partials.selected-blog-field')
-        <button class="btn-secondary" type="submit">この案を不採用にする</button>
+        <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この案を不採用にする</button>
     </form>
 
 @endsection

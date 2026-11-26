@@ -72,7 +72,7 @@
                 </tbody>
             </table>
         </div>
-        <p class="notice-actions"><button type="submit">確認</button></p>
+        <p class="notice-actions"><button type="submit">@include('partials.button-icon', ['to' => 'blogos'])確認</button></p>
     </form>
     {{ $notices->links() }}
     </section>

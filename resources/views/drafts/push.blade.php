@@ -62,7 +62,7 @@
             @endif
 
             <p><label><input type="checkbox" name="approved" value="1"> 上の内容をWordPressへ反映することを承認します</label></p>
-            <button type="submit">WordPressへ反映する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'wordpress'])WordPressへ反映する</button>
         </form>
     @endif
 

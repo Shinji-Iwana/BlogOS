@@ -177,7 +177,7 @@
                                     @csrf
                                     @method('DELETE')
                                     @include('partials.selected-blog-field')
-                                    <button class="btn-danger" type="submit">削除</button>
+                                    <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])削除</button>
                                 </form>
                             </td>
                         </tr>

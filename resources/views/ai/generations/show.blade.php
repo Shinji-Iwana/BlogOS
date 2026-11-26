@@ -47,7 +47,7 @@
         <form method="POST" action="{{ route('ai.generations.reprocess', ['id' => $generation->id]) }}" style="margin-bottom:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button class="btn-secondary" type="submit">保存済みの回答を、もう一度取り込む</button>
+            <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])保存済みの回答を、もう一度取り込む</button>
             （APIは呼ばないため、料金はかかりません。取り込みの仕組みを直した後などに使います）
         </form>
     @endif
@@ -56,7 +56,7 @@
         <form method="POST" action="{{ route('ai.generations.retry', ['id' => $generation->id]) }}" onsubmit="return confirm('同じ指示文で、もう一度API実行しますか？（料金がかかります）');">
             @csrf
             @include('partials.selected-blog-field')
-            <button type="submit">同じ指示文で、もう一度API実行する</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])同じ指示文で、もう一度API実行する</button>
             （@include('partials.ai-cost-line')）
         </form>
     @endif
@@ -123,13 +123,13 @@
                 <datalist id="efforts">@foreach ($manual['efforts'] as $value)<option value="{{ $value }}">@endforeach</datalist>
             </p>
             <p><textarea name="output" rows="16" class="mono" style="width:100%; font-size:12px;" placeholder="AIの回答を、そのまま貼り付けてください">{{ old('output', $generation->output) }}</textarea></p>
-            <button type="submit">回答を取り込む</button>
+            <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])回答を取り込む</button>
         </form>
 
         <form method="POST" action="{{ route('ai.generations.cancel', ['id' => $generation->id]) }}" style="margin-top:8px;">
             @csrf
             @include('partials.selected-blog-field')
-            <button class="btn-danger" type="submit">この実行を取り消す</button>
+            <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])この実行を取り消す</button>
         </form>
         </section>
     @endif

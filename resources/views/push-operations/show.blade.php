@@ -78,7 +78,7 @@
                     @if (($candidate['meta']['_blogos_draft_id'] ?? null) === $operation->draft?->uuid)
                         <strong>← 編集案のIDが一致</strong>
                     @endif
-                    <button type="submit">この記事として確定する</button>
+                    <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この記事として確定する</button>
                 </form>
             @empty
                 <p>候補はありません。</p>
@@ -88,7 +88,7 @@
                 @csrf
                 @include('partials.selected-blog-field')
                 <input type="hidden" name="result" value="applied">
-                <button type="submit">反映されていた（WordPressの現在の内容をDBに取り込んで完了する）</button>
+                <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])反映されていた（WordPressの現在の内容をDBに取り込んで完了する）</button>
             </form>
         @endif
 
@@ -96,7 +96,7 @@
             @csrf
             @include('partials.selected-blog-field')
             <input type="hidden" name="result" value="not_applied">
-            <button class="btn-secondary" type="submit">反映されていなかった（失敗として記録し、編集案をやり直せるようにする）</button>
+            <button class="btn-secondary" type="submit">@include('partials.button-icon', ['to' => 'blogos'])反映されていなかった（失敗として記録し、編集案をやり直せるようにする）</button>
         </form>
         </section>
     @endif

@@ -61,7 +61,7 @@
                                 <form method="POST" action="{{ route('google.accounts.destroy', ['id' => $account->id]) }}" style="display:inline;" onsubmit="return confirm('接続を解除しますか？このアカウントを使う対応先の設定も解除されます（取得済みのデータは残ります）。');">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn-danger" type="submit">接続を解除</button>
+                                    <button class="btn-danger" type="submit">@include('partials.button-icon', ['to' => 'blogos'])接続を解除</button>
                                 </form>
                             </td>
                         </tr>
@@ -189,7 +189,7 @@
                         >
                             @include('partials.modal-submit', ['mode' => 'edit'])
                             @if ($property)
-                                <button class="btn-danger" type="submit" name="remove" value="1" onclick="return confirm('対応先を解除しますか？（取得済みのデータは残ります）');">解除</button>
+                                <button class="btn-danger" type="submit" name="remove" value="1" onclick="return confirm('対応先を解除しますか？（取得済みのデータは残ります）');">@include('partials.button-icon', ['to' => 'blogos'])解除</button>
                             @endif
                             <button type="button" class="btn-secondary" data-modal-close>キャンセル</button>
                         </div>

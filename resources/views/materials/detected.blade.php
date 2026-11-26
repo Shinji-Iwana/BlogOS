@@ -29,7 +29,7 @@
 
             <p>
                 未登録：{{ $unregistered }}件／検出：{{ count($detected) }}件
-                <button type="submit" @disabled($unregistered === 0)>チェックした教材を登録する</button>
+                <button type="submit" @disabled($unregistered === 0)>@include('partials.button-icon', ['to' => 'blogos'])チェックした教材を登録する</button>
             </p>
 
             @php $detectedPage = \App\Support\ListPage::of($detected); @endphp
