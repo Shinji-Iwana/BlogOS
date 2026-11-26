@@ -5,7 +5,8 @@ namespace App\Support;
 /**
  * ポップアップのモード（D-100-01。docs/BLOGOS_UI.md 4-2）
  *
- * ポップアップは、開くときのモード（新規・編集・切替・情報）で、題名の左のアイコンと、送るボタンの名前を変える。
+ * ポップアップは、開くときのモード（新規・編集・切替・情報・削除）で、題名の左のアイコンと、送るボタンの名前を変える。
+ * 削除のモード（D-120-01）の送るボタンも、ほかのモードと同じ見た目にする（赤枠の btn-danger にはしない）。
  * 同じポップアップを、モードを変えて開くこともある（開く要素に data-modal-mode を付ける。layouts/header の JavaScript）。
  * 題名は partials/modal-title、送るボタンは partials/modal-submit で出す。
  */
@@ -19,14 +20,18 @@ final class ModalMode
 
     public const INFO = 'info';
 
+    /** 削除（D-120-01） */
+    public const DELETE = 'delete';
+
     /** 全てのモード */
-    public const ALL = [self::CREATE, self::EDIT, self::SWITCH, self::INFO];
+    public const ALL = [self::CREATE, self::EDIT, self::SWITCH, self::INFO, self::DELETE];
 
     /** 送るボタンの名前（情報のモードは、送るボタンを出さない） */
     public const SUBMIT_LABELS = [
         self::CREATE => '登録',
         self::EDIT   => '更新',
         self::SWITCH => '切替',
+        self::DELETE => '削除',
     ];
 
     /** アイコンの説明（読み上げ用） */
@@ -35,6 +40,7 @@ final class ModalMode
         self::EDIT   => '編集',
         self::SWITCH => '切替',
         self::INFO   => '情報',
+        self::DELETE => '削除',
     ];
 
     /**

@@ -1849,6 +1849,15 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 決まりは BLOGOS_UI 1-1。
 * テスト：tests/Feature/WordPressValueLabelTest.php（状態の名前と、列の説明が WordPress の名前になっていること）。
 
+### 項目120：ポップアップの削除のモード（全画面の見直し。2026-11-26）
+
+**D-120-01 ポップアップのモードに「削除」を足す（共通のルール）** 新規・編集・削除の流れを全画面で比べた確認画面（mock-crud-flows）と、カテゴリの画面の削除をポップアップにした確認画面（mock-term-modal）から、削除の確認をポップアップで出すときのモードを、共通のルールとして先に決めた（利用者の判断）。
+* モード `delete`：題名の左のアイコンはごみ箱、送るボタンは「削除」と「キャンセル」。送るボタンの見た目は、ほかのモード（登録・更新・切替）と同じにする（画面の中の削除のボタンのような赤枠の `btn-danger` にはしない。利用者の判断）。
+* 作り：`App\Support\ModalMode`（`DELETE`・`SUBMIT_LABELS`・`ICON_LABELS`）、`partials/modal-title`（ごみ箱のアイコン）、`partials/modal-submit`（名前）、`layouts/header` の JavaScript（開く要素の `data-modal-mode="delete"` で、名前を切り替える。モードの一覧は `ModalMode::ALL` から）、`public/css/blogos.css`（アイコンの出し分け）。
+* 今の削除（カテゴリ・タグ・メディアの「完全に削除する」パネル、ブラウザの確認ポップアップの削除など）は、まだ変えない。どの削除をこのモードのポップアップにするかは、別に決める。
+* 決まりは BLOGOS_UI 4-2。
+* テスト：tests/Feature/ModalModeTest.php（削除のモードのアイコン・ボタンの名前と見た目（赤枠にしない）・JavaScript のモードの一覧）。
+
 
 
 | 事項 | 決める時期 |

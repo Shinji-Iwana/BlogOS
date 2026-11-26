@@ -594,10 +594,11 @@
         const close = (modal) => { modal.style.display = 'none'; };
 
         // ポップアップのモード（D-100）：アイコンは CSS（data-modal-mode）が切り替え、送るボタンの名前はここで書き換える。
-        // 名前は App\Support\ModalMode::SUBMIT_LABELS（情報のモードは、送るボタンを隠す）
+        // 名前は App\Support\ModalMode::SUBMIT_LABELS（情報のモードは、送るボタンを隠す）。モードの一覧も ModalMode から（削除。D-120-01）
+        const modalModes = @json(\App\Support\ModalMode::ALL);
         const submitLabels = @json(\App\Support\ModalMode::SUBMIT_LABELS);
         const setModalMode = function (modal, mode) {
-            if (! ['create', 'edit', 'switch', 'info'].includes(mode)) {
+            if (! modalModes.includes(mode)) {
                 return;
             }
             modal.dataset.modalMode = mode;

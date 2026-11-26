@@ -86,6 +86,32 @@ class ModalModeTest extends TestCase
         $this->assertSame('登録', ModalMode::submitLabel(ModalMode::CREATE));
 
         $this->expectException(\InvalidArgumentException::class);
-        ModalMode::submitLabel('delete');
+        ModalMode::submitLabel('remove');
+    }
+
+    /**
+     * 削除のモード（D-120-01）：ごみ箱のアイコン、送るボタンは「削除」。見た目は、ほかのモードの送るボタンと同じ（赤枠にしない）
+     */
+    public function test_delete_mode_has_trash_icon_and_delete_button(): void
+    {
+        $this->assertSame('削除', ModalMode::submitLabel(ModalMode::DELETE));
+        $this->assertSame('削除', ModalMode::ICON_LABELS[ModalMode::DELETE]);
+
+        $title = view('partials.modal-title', ['title' => 'カテゴリ'])->render();
+        $this->assertStringContainsString('<span data-modal-icon="delete" title="削除"><svg', $title);
+
+        // 送るボタンは、ほかのモード（更新など）と同じ形（class なし）で、名前だけが「削除」
+        $submit = view('partials.modal-submit', ['mode' => ModalMode::DELETE])->render();
+        $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>削除<\/button>/u', $submit);
+        $this->assertStringNotContainsString('btn-danger', $submit);
+
+        // アイコンの出し分けの CSS
+        $css = file_get_contents(public_path('css/blogos.css'));
+        $this->assertStringContainsString('[data-modal-mode="delete"] .modal-mode-icon > [data-modal-icon="delete"]', $css);
+
+        // 開く要素の data-modal-mode="delete" で切り替える JavaScript（モードの一覧は ModalMode から。ボタンの見た目は変えない）
+        $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
+        $this->assertStringContainsString('const modalModes = ' . json_encode(ModalMode::ALL), $html);
+        $this->assertStringNotContainsString('dangerModes', $html);
     }
 }
