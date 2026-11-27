@@ -271,9 +271,14 @@ class ArticleScreensTest extends TestCase
             ->assertRedirect();
         $draft = ArticleDraft::sole();
 
-        // 記事の詳細：「削除」のボタンで、共通の削除のポップアップを開く（D-125-01）。題名は「投稿 #WordPress ID」、対象はカテゴリとタイトル
+        // 記事の詳細：ページの上の表は「詳細」パネルの中。題名の行の右端のごみ箱のアイコンで、共通の削除のポップアップを開く（D-126-01）。
+        // 題名は「投稿 #WordPress ID」、対象はカテゴリとタイトル（D-125-01）
         $html = $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()->getContent();
-        $this->assertStringContainsString('<button type="button" data-modal-open="article-delete-modal">削除</button>', $html);
+        $this->assertMatchesRegularExpression('/<section class="panel">\s*<h2 class="panel-title-row">\s*<span class="panel-title-text">詳細<\/span>\s*<span class="panel-title-icons">\s*<button type="button" class="btn-secondary panel-icon-button" data-modal-open="article-delete-modal" title="削除" aria-label="削除"><svg /u', $html);
+        $this->assertMatchesRegularExpression('/<span class="panel-title-text">詳細<\/span>.*?<th>種類<\/th>.*?<th>ステータス<\/th>.*?<\/section>/su', $html);
+        // 「編集」パネルの「削除」のボタンは、なくした
+        $this->assertStringNotContainsString('data-modal-open="article-delete-modal">削除</button>', $html);
+        $this->assertSame(1, substr_count($html, 'data-modal-open="article-delete-modal"'));
         $this->assertStringContainsString('id="article-delete-modal" class="blog-switch-modal site-modal" data-modal-mode="delete"', $html);
         $this->assertStringContainsString('<span class="modal-title-text">投稿 #101</span>', $html);
         $this->assertMatchesRegularExpression('/<th>カテゴリ<\/th>\s*<td>/u', $html);
@@ -306,8 +311,11 @@ class ArticleScreensTest extends TestCase
         $this->assertNotNull($post->fresh()->wordpress_deleted_at);
         $this->assertSame(DraftState::Discarded, $draft->fresh()->state);
 
-        // 削除した記事には、削除のボタンを出さない
-        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()->assertDontSee('data-modal-open="article-delete-modal"', false);
+        // 削除した記事には、ごみ箱のアイコンを出さない（「詳細」パネルは残す）
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertDontSee('data-modal-open="article-delete-modal"', false)
+            ->assertDontSee('panel-icon-button', false)
+            ->assertSee('<span class="panel-title-text">詳細</span>', false);
     }
 
     public function test_updates_are_rejected_when_selected_blog_changed(): void

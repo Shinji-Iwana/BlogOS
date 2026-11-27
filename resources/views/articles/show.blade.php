@@ -22,6 +22,10 @@
         <p class="text-error"><strong>WordPress側で完全に削除されています。</strong></p>
     @endif
 
+    {{-- 記事の詳細（項目名と値の表）。題名の行の右端のごみ箱のアイコンで、共通の削除のポップアップを開く（D-126-01。BLOGOS_UI 2-5）。
+         作業中の編集案があっても削除でき、編集案は自動で破棄になる（D-125-02）。WordPress側で削除済みなら、アイコンは出さない --}}
+    <section class="panel">
+    @include('partials.panel-title', ['title' => '詳細', 'deleteModal' => $article->wordpress_deleted_at ? null : 'article-delete-modal'])
     <table class="data">
         <tr><th>種類</th><td>{{ $isPost ? '投稿' : '固定ページ' }}（WordPress ID：{{ $article->wordpress_id }}）</td></tr>
         {{-- ステータスは日本語で出す（WordPress の値は、マウスを乗せると出る。D-82-05） --}}
@@ -45,8 +49,9 @@
             @endif
         </td></tr>
     </table>
+    </section>
 
-    {{-- 編集案と、削除（ゴミ箱へ移動は、なくした。D-124-01。削除はポップアップ。D-125-01） --}}
+    {{-- 編集案（削除は「詳細」パネルのごみ箱のアイコンへ移した。D-126-01） --}}
     <section class="panel">
     <h2>編集</h2>
     @if ($activeDraft)
@@ -64,11 +69,6 @@
             </select>
             <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])この記事の編集案を作る</button>
         </form>
-    @endif
-
-    {{-- 削除：ボタンで共通の削除のポップアップを開く（D-125-01）。作業中の編集案があっても削除でき、編集案は自動で破棄になる（D-125-02） --}}
-    @if (! $article->wordpress_deleted_at)
-        <p><button type="button" data-modal-open="article-delete-modal">削除</button></p>
     @endif
 
     {{-- 品質評価とBlogOSのAI機能（D-06-02、D-07-01〜D-07-03） --}}
