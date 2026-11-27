@@ -263,23 +263,30 @@ class ArticleScreensTest extends TestCase
         $this->assertSame(0, ArticleRelation::count());
     }
 
-    public function test_trash_requires_confirmation_and_force_delete_requires_slug(): void
+    public function test_delete_requires_confirmation_and_slug(): void
     {
         $post = Post::where('wordpress_id', 101)->sole();
 
-        $this->get(route('articles.trash.confirm', ['type' => 'posts', 'id' => $post->id, 'force' => 1]))->assertOk()->assertSee('元に戻せません');
+        // ゴミ箱へ移動は、なくした（D-124-01）：記事の詳細にリンクがなく、確認の画面は完全削除だけ
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertDontSee('ゴミ箱へ移動する')
+            ->assertSee(route('articles.delete.confirm', ['type' => 'posts', 'id' => $post->id]), false);
+        $this->get(route('articles.delete.confirm', ['type' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSee('元に戻せません')->assertDontSee('ゴミ箱へ移動する');
+        $this->get('/articles/posts/' . $post->id . '/trash')->assertNotFound();
 
         $base = $post->wordpress_modified_gmt->format('Y-m-d H:i:s');
-        $this->post(route('articles.trash.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['force' => 1, 'base_modified' => $base]))
+        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base]))
             ->assertSessionHasErrors(['confirmed', 'confirm_slug']);
 
-        $this->post(route('articles.trash.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['force' => 1, 'base_modified' => $base, 'confirmed' => 1, 'confirm_slug' => 'wrong']))
+        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_slug' => 'wrong']))
             ->assertSessionHasErrors('confirm_slug');
         $this->assertNull($post->fresh()->wordpress_deleted_at);
 
-        $this->post(route('articles.trash.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['force' => 0, 'base_modified' => $base, 'confirmed' => 1]))
+        // 送る値に force がなくても、常に完全削除になる
+        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_slug' => \App\Support\Slug::display($post->slug)]))
             ->assertRedirect();
-        $this->assertSame('trash', $post->fresh()->status);
+        $this->assertNotNull($post->fresh()->wordpress_deleted_at);
     }
 
     public function test_updates_are_rejected_when_selected_blog_changed(): void

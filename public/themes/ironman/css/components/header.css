@@ -444,11 +444,6 @@
         calc(100% - var(--icon-cut)) 100%, var(--icon-cut) 100%, 0 calc(100% - var(--icon-cut)), 0 var(--icon-cut));
 }
 
-/* 削除のモードのアイコンの×（D-123-01）：ごみ箱は水色のまま、×だけを赤にする */
-.modal-icon-cross {
-    stroke: var(--im-red);
-}
-
 /* 枠の線（八角形の輪） */
 [data-modal-mode] .modal-mode-icon::after,
 .modal-kind-icon::after {

@@ -16,12 +16,12 @@ class ButtonIconTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * WordPress を変える送るボタン（画面のファイル => 数）。確認画面「WordPress を変えるボタンの名前の一覧」の13個
-     * （記事のゴミ箱へ移動・完全に削除は、1つのボタンで名前を変えるため1つ）
+     * WordPress を変える送るボタン（画面のファイル => 数）。確認画面「WordPress を変えるボタンの名前の一覧」の13個から、記事のゴミ箱へ移動を除いた12個
+     * （記事のゴミ箱へ移動は、なくした。D-124-01）
      */
     private const WORDPRESS_BUTTONS = [
         'articles/show.blade.php'          => 1, // 確認済みの画像を WordPress に登録する
-        'articles/trash.blade.php'         => 1, // ゴミ箱へ移動する・完全に削除する
+        'articles/delete.blade.php'        => 1, // 完全に削除する
         'drafts/link-switch.blade.php'     => 1, // チェックした編集案を反映する
         'drafts/push.blade.php'            => 1, // WordPressへ反映する
         'images/legacy-replace.blade.php'  => 1, // 承認して反映する
@@ -110,7 +110,7 @@ class ButtonIconTest extends TestCase
         $expected = self::WORDPRESS_BUTTONS;
         ksort($expected);
         $this->assertSame($expected, $wordpress);
-        // 12か所（記事のゴミ箱へ移動・完全に削除は、1つのボタン）で、13個のボタン
+        // 12か所・12個のボタン（記事のゴミ箱へ移動は、なくした。D-124-01）
         $this->assertSame(12, array_sum($expected));
     }
 

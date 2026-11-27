@@ -46,7 +46,7 @@
         </td></tr>
     </table>
 
-    {{-- 編集案と、ゴミ箱・削除 --}}
+    {{-- 編集案と、削除（ゴミ箱へ移動は、なくした。D-124-01） --}}
     <section class="panel">
     <h2>編集</h2>
     @if ($activeDraft)
@@ -68,10 +68,7 @@
 
     @if (! $article->wordpress_deleted_at && ! $activeDraft)
         <p>
-            @if ($article->status !== 'trash')
-                <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id]) }}">ゴミ箱へ移動する</a> ・
-            @endif
-            <a href="{{ route('articles.trash.confirm', ['type' => $type, 'id' => $article->id, 'force' => 1]) }}" class="text-error">完全に削除する</a>
+            <a href="{{ route('articles.delete.confirm', ['type' => $type, 'id' => $article->id]) }}" class="text-error">完全に削除する</a>
         </p>
     @endif
 

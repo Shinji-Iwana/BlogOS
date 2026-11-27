@@ -727,7 +727,7 @@ class DatabaseColumns
             'tag_id'                => '対象のタグ（BlogOS のタグの番号）。',
             'media_id'              => '対象のメディア（BlogOS のメディアの番号）。',
             'resource_type'         => '対象の種類（post：投稿、page：固定ページ、category：カテゴリ、tag：タグ、media：メディア）。',
-            'operation'             => '操作（create：新規作成、update：更新、status_change：ステータス変更、trash：ゴミ箱へ移動、delete：完全削除）。',
+            'operation'             => '操作（create：新規作成、update：更新、status_change：ステータス変更、delete：完全削除）。',
             'state'                 => '状態（pending：送信前、sent：送信中、wp_succeeded：WordPress で成功（DB の更新待ち）、completed：完了、failed：失敗、unknown：結果が不明）。',
             'request_summary'       => '送った内容の要約（認証情報は含めない）。',
             'base_values'           => '確認の画面を開いたときの、WordPress 側の値（ほかで変えられていないかを確かめるため。D-15-05）。',

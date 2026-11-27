@@ -119,32 +119,22 @@ class ModalModeTest extends TestCase
     }
 
     /**
-     * ゴミ箱へ移動のモードと、削除のアイコンの×（D-123-01）
+     * ゴミ箱へ移動のモードは、なくした（D-124-01。D-123-01 で足したもの）。削除のアイコンも、×のない元の形に戻した
      */
-    public function test_trash_mode_and_delete_icon_with_cross(): void
+    public function test_trash_mode_is_removed_and_delete_icon_is_plain(): void
     {
-        // ゴミ箱へ移動のモード：送るボタンは「ゴミ箱へ移動」、アイコンの名前も「ゴミ箱へ移動」
-        $this->assertContains(ModalMode::TRASH, ModalMode::ALL);
-        $this->assertSame('ゴミ箱へ移動', ModalMode::submitLabel(ModalMode::TRASH));
-        $this->assertSame('ゴミ箱へ移動', ModalMode::ICON_LABELS[ModalMode::TRASH]);
+        $this->assertSame([ModalMode::CREATE, ModalMode::EDIT, ModalMode::SWITCH, ModalMode::INFO, ModalMode::DELETE], ModalMode::ALL);
+        $this->assertNotContains('ゴミ箱へ移動', ModalMode::SUBMIT_LABELS);
 
-        $title = view('partials.modal-title', ['title' => '記事'])->render();
-        // 題名には、全てのモードのアイコンを置く（CSS でモードに合うものだけを見せる）
-        foreach (ModalMode::ALL as $mode) {
-            $this->assertStringContainsString('<span data-modal-icon="' . $mode . '" title="' . ModalMode::ICON_LABELS[$mode] . '"><svg', $title, $mode);
+        $title = view('partials.modal-title', ['title' => 'カテゴリ'])->render();
+        $this->assertStringNotContainsString('data-modal-icon="trash"', $title);
+        // 削除のアイコンは、ごみ箱だけ（×を重ねない）
+        $this->assertStringContainsString('<span data-modal-icon="delete" title="削除"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>', $title);
+
+        foreach ([public_path('css/blogos.css'), public_path('themes/ironman/css/components/header.css')] as $path) {
+            $css = file_get_contents($path);
+            $this->assertStringNotContainsString('data-modal-mode="trash"', $css, $path);
+            $this->assertStringNotContainsString('modal-icon-cross', $css, $path);
         }
-        // 削除のアイコンは、ごみ箱に×を重ねた形（×だけを赤にする）。ゴミ箱へ移動のアイコンは、紙くず（塗りつぶし）を入れる形
-        $this->assertMatchesRegularExpression('/<span data-modal-icon="delete"[^>]*><svg[^>]*><g transform="[^"]*">.*?<\/g><path class="modal-icon-cross" d="[^"]*"[^>]*\/><\/svg><\/span>/u', $title);
-        $this->assertMatchesRegularExpression('/<span data-modal-icon="trash"[^>]*><svg[^>]*>.*?fill="currentColor".*?<\/svg><\/span>/u', $title);
-
-        $submit = view('partials.modal-submit', ['mode' => ModalMode::TRASH])->render();
-        $this->assertMatchesRegularExpression('/<button type="submit" data-modal-submit\s*>\s*<span class="button-icon"[^>]*>.*?<\/span>\s*<span data-modal-submit-label>ゴミ箱へ移動<\/span><\/button>/us', $submit);
-
-        // アイコンの出し分けと、×の赤（blank は共通の CSS、ironman はテーマの CSS）
-        $css = file_get_contents(public_path('css/blogos.css'));
-        $this->assertStringContainsString('[data-modal-mode="trash"] .modal-mode-icon > [data-modal-icon="trash"]', $css);
-        $this->assertMatchesRegularExpression('/\.modal-icon-cross \{\s*stroke: #b00;/', $css);
-        $ironman = file_get_contents(public_path('themes/ironman/css/components/header.css'));
-        $this->assertMatchesRegularExpression('/\.modal-icon-cross \{\s*stroke: var\(--im-red\);/', $ironman);
     }
 }

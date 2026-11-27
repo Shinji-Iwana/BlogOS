@@ -1,8 +1,8 @@
 # BlogOS DB設計書
 
-**バージョン:** 2.0.0
-**最終更新日:** 2026-09-24
-**主な変更:** 2026-09-23 設計監査の決定事項（`BLOGOS_DECISIONS.md` の D-01〜D-12）を反映
+**バージョン:** 2.1.0
+**最終更新日:** 2026-11-27
+**主な変更:** 2026-11-27 BlogOS からゴミ箱へ移動する機能をなくし、記事の削除は完全削除だけにした（D-124-01）。2026-09-23 設計監査の決定事項（`BLOGOS_DECISIONS.md` の D-01〜D-12）を反映
 
 ## 1. 本書の目的
 
@@ -840,7 +840,7 @@ BlogOSからWordPressへの反映操作ごとの記録（D-01-09、D-04-02）。
 | `article_draft_id` | 記事の反映の場合 |
 | 対象 | `post_id`、`page_id`、`category_id`、`tag_id`、`media_id`（多くとも1つ。新規作成ではすべてNULL） |
 | `resource_type` | 投稿、固定ページ、カテゴリ、タグ、メディア |
-| `operation` | `create` / `update` / `status_change` / `trash` / `delete` |
+| `operation` | `create` / `update` / `status_change` / `delete`（BlogOS からゴミ箱へ移動する `trash` は、なくした。D-124-01） |
 | `state` | `pending` / `sent` / `wp_succeeded` / `completed` / `failed` / `unknown` |
 | `request_summary` | 送信内容の要約（JSON。認証情報は含めない）。カテゴリ・タグ・メディアの反映では、承認時の入力内容そのもの（D-15-05） |
 | `base_values` | カテゴリ・タグ・メディアの反映で、利用者が画面を開いた時点の値（JSON）。反映直前の競合確認に使う（D-15-05） |
@@ -988,7 +988,7 @@ CHECK制約は、利用するDBのバージョンが対応していることを�
 
 ## 13-3. BlogOSから削除する場合
 
-`BLOGOS_WORDPRESS_API.md` で定義する（投稿・固定ページは既定でゴミ箱へ移動。D-09-05）。反映に成功した結果は 13-1 と同じ扱いでDBに記録する。
+`BLOGOS_WORDPRESS_API.md` で定義する（投稿・固定ページも完全削除だけ。BlogOS からゴミ箱へは移動しない。D-09-05、D-124-01）。反映に成功した結果は 13-1 と同じ扱いでDBに記録する。
 
 ## 13-4. ブログの削除
 

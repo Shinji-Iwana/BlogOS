@@ -585,7 +585,7 @@
      ・data-modal-open="ポップアップのid" を付けた要素を押す → そのポップアップを表示（リンクの移動はしない）
      ・data-modal-close を付けたボタン、背景、Esc → 閉じる（class="site-modal" のポップアップ）
      ・data-modal-autoopen を付けたポップアップ → 画面を開いたときに表示（入力の誤りで戻ったとき）
-     ・開く要素に data-modal-mode="create|edit|switch|info|delete|trash" を付けると、そのモードで開く（題名の左のアイコンと、送るボタンの名前が変わる。D-100-03）
+     ・開く要素に data-modal-mode="create|edit|switch|info" を付けると、そのモードで開く（題名の左のアイコンと、送るボタンの名前が変わる。D-100-03）
      ============================================================== --}}
 
 <script>
@@ -594,7 +594,7 @@
         const close = (modal) => { modal.style.display = 'none'; };
 
         // ポップアップのモード（D-100）：アイコンは CSS（data-modal-mode）が切り替え、送るボタンの名前はここで書き換える。
-        // 名前は App\Support\ModalMode::SUBMIT_LABELS（情報のモードは、送るボタンを隠す）。モードの一覧も ModalMode から（削除・ゴミ箱へ移動。D-120-01・D-123-01）
+        // 名前は App\Support\ModalMode::SUBMIT_LABELS（情報のモードは、送るボタンを隠す）。モードの一覧も ModalMode から（削除。D-120-01）
         const modalModes = @json(\App\Support\ModalMode::ALL);
         const submitLabels = @json(\App\Support\ModalMode::SUBMIT_LABELS);
         const setModalMode = function (modal, mode) {

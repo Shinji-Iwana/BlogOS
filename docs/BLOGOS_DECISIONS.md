@@ -1896,6 +1896,18 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 決まりは BLOGOS_UI 4-2。
 * テスト：tests/Feature/ModalModeTest.php（ゴミ箱へ移動のモードの名前・アイコン、削除のアイコンの×、アイコンの出し分けと×の色の CSS）。
 
+### 項目124：BlogOS のゴミ箱へ移動の機能（全画面の見直し。2026-11-27）
+
+**D-124-01 BlogOS からゴミ箱へ移動する機能をなくす（D-09-05 の「既定はゴミ箱へ移動」と、D-123-01 を改める）** ゴミ箱へ移動した後の制御（ゴミ箱にある記事の編集案・反映、保持期間の通知、復元）を調べた結果、ゴミ箱の機能はあまり使う予定がなく、これから制御を組み込むには大がかりなため、BlogOS 側のゴミ箱の機能をなくした（利用者の判断）。
+* 記事の詳細の「ゴミ箱へ移動する」のリンクと、ゴミ箱へ移動の確認の画面をなくした。記事の削除は、「完全に削除する」（確認の画面でスラッグの入力とチェック）だけ。
+* 確認の画面は、完全削除だけの画面にし、名前からゴミ箱を外した（`articles/delete`・`ArticleDeleteController`・ルート `articles.delete.confirm`／`articles.delete.destroy`。URL は `/articles/{type}/{id}/delete`。前の `/trash` は開けない）。送る値の `force` もなくし、常に `force=true` で送る。
+* 反映の処理（`ArticlePushService::trash` → `delete`）と、反映の操作の種類 `trash`（`PushOperationType::Trash`）をなくした。本番の DB に `trash` の反映の記録はなかった（2026-11-27 に読むだけで確かめた：作成227件・更新52件だけ）。
+* ポップアップのゴミ箱へ移動のモード（D-123-01）をなくし、削除のモードのアイコンを、×のない元のごみ箱に戻した（`ModalMode`・`partials/modal-title`・CSS・`layouts/header` を D-123-01 の前に戻した）。
+* 残すもの：WordPress の管理画面からはゴミ箱へ移動できるため、同期でゴミ箱を含むステータスを取得し、ゴミ箱への移動をステータスの変更として受け取る処理（D-04-06・D-09-01）、ステータスの日本語「ゴミ箱内」、記事の一覧のステータスの絞り込みは残す。ゴミ箱にある記事も、BlogOS から完全削除できる。
+* 作業中の編集案がある記事は完全削除できない、という制限（WORDPRESS_API 22章）は、今は変えない。
+* 決まりは REQUIREMENTS 7-5・WORDPRESS_API 22章・DATABASE 10-4（`operation`）・13-3・BLOGOS_UI 4-2・4-4・4-5。
+* テスト：tests/Feature/Articles/ArticleScreensTest.php（記事の詳細にゴミ箱へ移動のリンクがない・確認の画面は完全削除だけ・前の URL は開けない・常に完全削除になる）、tests/Feature/Push/ArticlePushServiceTest.php（常に `force=true` の完全削除）、tests/Feature/ModalModeTest.php（ゴミ箱へ移動のモードがない・削除のアイコンに×がない）、tests/Feature/ButtonIconTest.php。
+
 
 
 | 事項 | 決める時期 |

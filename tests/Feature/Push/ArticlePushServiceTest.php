@@ -308,28 +308,26 @@ class ArticlePushServiceTest extends TestCase
         $this->assertSame(Post::where('wordpress_id', 500)->value('id'), $draft->fresh()->post_id);
     }
 
-    public function test_trash_and_force_delete(): void
+    public function test_delete_removes_the_article_permanently(): void
     {
         $post = Post::sole();
 
-        $operation = $this->service()->trash($post, false, $post->wordpress_modified_gmt, $this->user->id);
+        // ゴミ箱へ移動は、なくした（D-124-01）：常に完全削除（force=true）
+        $operation = $this->service()->delete($post, $post->wordpress_modified_gmt, $this->user->id);
         $this->assertSame(PushState::Completed, $operation->state);
-        $this->assertSame('trash', $post->fresh()->status);
-
-        $post->refresh();
-        $operation = $this->service()->trash($post, true, $post->wordpress_modified_gmt, $this->user->id);
-        $this->assertSame(PushState::Completed, $operation->state);
+        $this->assertSame(\App\Enums\PushOperationType::Delete, $operation->operation);
+        $this->assertSame(['force' => true], $operation->request_summary);
         $this->assertNotNull($post->fresh()->wordpress_deleted_at);
         $this->assertTrue(PostHistory::where('post_id', $post->id)->where('field', '__deleted')->where('source', ChangeSource::BlogosPush->value)->exists());
     }
 
-    public function test_trash_is_rejected_when_active_draft_exists(): void
+    public function test_delete_is_rejected_when_active_draft_exists(): void
     {
         $post = Post::sole();
         $this->draftFor($post);
 
         $this->expectException(PushException::class);
-        $this->service()->trash($post, false, $post->wordpress_modified_gmt, $this->user->id);
+        $this->service()->delete($post, $post->wordpress_modified_gmt, $this->user->id);
     }
 
     public function test_push_is_rejected_while_sync_is_running(): void

@@ -224,12 +224,13 @@ class ArticlePushService
     }
 
     /**
-     * 記事をゴミ箱へ移動する、または完全に削除する（WORDPRESS_API 22章、D-09-05）。
+     * 記事を WordPress から完全に削除する（WORDPRESS_API 22章、D-09-05）。
+     * BlogOS からゴミ箱へ移動する機能は、なくした（D-124-01）。WordPress の管理画面でゴミ箱に入れた記事も、ここで完全に削除できる。
      *
      * @param Carbon|null $baseModifiedGmt 画面を開いた時点の記事の版（競合確認に使う）
      * @throws PushException
      */
-    public function trash(Post|Page $article, bool $force, ?Carbon $baseModifiedGmt, ?int $userId): WordPressPushOperation
+    public function delete(Post|Page $article, ?Carbon $baseModifiedGmt, ?int $userId): WordPressPushOperation
     {
         $article->loadMissing('blog');
 
@@ -239,22 +240,19 @@ class ArticlePushService
         if ($article->wordpress_deleted_at !== null) {
             throw new PushException('この記事は、既にWordPress側で完全に削除されています。');
         }
-        if (! $force && $article->status === 'trash') {
-            throw new PushException('この記事は、既にゴミ箱にあります。');
-        }
         if ($this->drafts->activeFor($article) !== null) {
             throw new PushException('作業中の編集案があります。編集案を破棄するか反映してから操作してください。');
         }
 
-        return $this->runner->withBlogLock($article->blog, function () use ($article, $force, $baseModifiedGmt, $userId) {
+        return $this->runner->withBlogLock($article->blog, function () use ($article, $baseModifiedGmt, $userId) {
             $type = $article instanceof Post ? PushResourceType::Post : PushResourceType::Page;
 
             $operation = $this->operations->create(
                 $article->blog_id,
                 $type,
-                $force ? PushOperationType::Delete : PushOperationType::Trash,
+                PushOperationType::Delete,
                 [$this->runner->column($type) => $article->id],
-                ['force' => $force],
+                ['force' => true],
                 ['modified_gmt' => $baseModifiedGmt?->format('Y-m-d H:i:s')],
                 $userId
             );
@@ -267,7 +265,7 @@ class ArticlePushService
 
             $response = $this->runner->send($operation, fn () => $client->delete(
                 $this->runner->endpoint($type) . "/{$article->wordpress_id}",
-                $force ? ['force' => true] : []
+                ['force' => true]
             ));
 
             if ($response !== null) {

@@ -12,9 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * 記事のゴミ箱への移動・完全削除（重大な操作のため、必ず確認画面を挟む。WORDPRESS_API 22章、D-09-05）。
+ * 記事の完全削除（重大な操作のため、必ず確認画面を挟む。WORDPRESS_API 22章、D-09-05）。
+ * BlogOS からゴミ箱へ移動する機能は、なくした（D-124-01）。
  */
-class ArticleTrashController extends Controller
+class ArticleDeleteController extends Controller
 {
     use UsesSelectedBlog;
 
@@ -24,16 +25,15 @@ class ArticleTrashController extends Controller
     ) {
     }
 
-    public function confirm(Request $request, string $type, int $id)
+    public function confirm(string $type, int $id)
     {
         $blog = $this->selectedBlog();
         $article = $this->articles->find($blog->id, $type, $id);
         abort_if($article === null, 404);
 
-        return view('articles.trash', [
+        return view('articles.delete', [
             'type'    => $type,
             'article' => $article,
-            'force'   => $request->boolean('force'),
         ]);
     }
 
@@ -44,22 +44,20 @@ class ArticleTrashController extends Controller
         abort_if($article === null, 404);
 
         $validated = $request->validate([
-            'force'           => ['required', 'boolean'],
-            'base_modified'   => ['nullable', 'date'],
-            'confirmed'       => ['accepted'],
-            // 完全削除は、さらに記事のスラッグを入力させる
-            'confirm_slug'    => [$request->boolean('force') ? 'required' : 'nullable', 'string'],
+            'base_modified' => ['nullable', 'date'],
+            'confirmed'     => ['accepted'],
+            // 確認のため、記事のスラッグを入力させる
+            'confirm_slug'  => ['required', 'string'],
         ]);
 
         // 日本語のスラッグは、読める形で入力してよい（D-29）
-        if ($request->boolean('force') && ! Slug::same(trim((string) $validated['confirm_slug']), $article->slug)) {
+        if (! Slug::same(trim((string) $validated['confirm_slug']), $article->slug)) {
             return back()->withErrors(['confirm_slug' => '入力したスラッグが記事のスラッグと一致しません。']);
         }
 
         try {
-            $operation = $this->pushService->trash(
+            $operation = $this->pushService->delete(
                 $article,
-                $request->boolean('force'),
                 filled($validated['base_modified'] ?? null) ? Carbon::parse($validated['base_modified'], 'UTC') : null,
                 $request->user()?->id
             );
