@@ -111,6 +111,12 @@ class ModalModeTest extends TestCase
         // アイコンの出し分けの CSS
         $css = file_get_contents(public_path('css/blogos.css'));
         $this->assertStringContainsString('[data-modal-mode="delete"] .modal-mode-icon > [data-modal-icon="delete"]', $css);
+        // 削除のモードのアイコンは、赤い線と赤いアイコン（ironman。パネルの右端の削除のアイコンと同じ赤。D-127-01）
+        $ironman = file_get_contents(public_path('themes/ironman/css/components/header.css'));
+        $this->assertMatchesRegularExpression('/\[data-modal-mode="delete"\] \.modal-mode-icon \{[^}]*color: var\(--im-red\);/', $ironman);
+        $this->assertMatchesRegularExpression('/\[data-modal-mode="delete"\] \.modal-mode-icon::after \{[^}]*background: rgba\(255, 90, 82, 0\.6\);/', $ironman);
+        $form = file_get_contents(public_path('themes/ironman/css/components/form.css'));
+        $this->assertStringContainsString('--btn-line: rgba(255, 90, 82, 0.6);', $form);
 
         // 開く要素の data-modal-mode="delete" で切り替える JavaScript（モードの一覧は ModalMode から。ボタンの見た目は変えない）
         $html = $this->get(route('scheduled-tasks.runs'))->assertOk()->getContent();
