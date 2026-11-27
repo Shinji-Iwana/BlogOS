@@ -520,6 +520,17 @@ table.data.data-compact > * > tr > td {
     overflow-wrap: anywhere;
 }
 
+/* 「詳細」パネルの「項目名と値」の表（terms/edit。D-128-01）：項目名は折り返さず、値は長くても枠の中で折り返す（確認画面 mock-term-modal と同じ） */
+.detail-table th {
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.detail-table td {
+    overflow-wrap: anywhere;
+}
+
 /* パネルの題名の行（partials/panel-title。D-126-01）：題名は左、操作のアイコン（削除：ごみ箱）は右端。
    アイコンは、右のパネルの再読み込み（.screen-drawer-reload）と同じ枠で、中央に出す */
 .panel-title-row {

@@ -16,7 +16,7 @@ class ButtonIconTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * WordPress を変える送るボタン（画面のファイル => 数）。確認画面「WordPress を変えるボタンの名前の一覧」の13個から、記事のゴミ箱へ移動を除いた12個
+     * WordPress を変える送るボタン（画面のファイル => 数）。確認画面「WordPress を変えるボタンの名前の一覧」の13個から、記事のゴミ箱へ移動を除いた11個（カテゴリなどの完全削除は、共通の削除のポップアップへ。D-128-04）
      * （記事のゴミ箱へ移動は、なくした。D-124-01）
      */
     private const WORDPRESS_BUTTONS = [
@@ -28,7 +28,7 @@ class ButtonIconTest extends TestCase
         'launches/index.blade.php'         => 1, // WordPress に作る
         'partials/delete-modal.blade.php'  => 1, // 共通の削除のポップアップの「削除」（記事の完全削除。D-125-01）
         'launches/show.blade.php'          => 3, // 選んだものを公開する・⑧ 親ロードマップの編集案を作る・親ロードマップを公開する
-        'terms/edit.blade.php'             => 2, // WordPressへ反映する・完全に削除する
+        'terms/edit.blade.php'             => 1, // 編集のポップアップの「更新」（カテゴリ・タグ・メディア。完全に削除は、共通の削除のポップアップへ。D-128-01）
     ];
 
     public function test_icon_kinds_and_tooltips(): void
@@ -119,8 +119,8 @@ class ButtonIconTest extends TestCase
         $expected = self::WORDPRESS_BUTTONS;
         ksort($expected);
         $this->assertSame($expected, $wordpress);
-        // 12か所・12個のボタン（記事のゴミ箱へ移動は、なくした。D-124-01。記事の完全削除は、共通の削除のポップアップへ。D-125-01）
-        $this->assertSame(12, array_sum($expected));
+        // 11個のボタン（記事のゴミ箱へ移動は、なくした。D-124-01。記事とカテゴリ・タグ・メディアの完全削除は、共通の削除のポップアップへ。D-125-01・D-128-04）
+        $this->assertSame(11, array_sum($expected));
     }
 
     public function test_icons_are_rendered_in_pages(): void

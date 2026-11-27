@@ -160,10 +160,13 @@ class TermPushServiceTest extends TestCase
         ])->assertRedirect();
         $this->assertSame('画面から変更', $category->fresh()->name);
 
-        // 削除は名前の入力が必要
+        // 削除は WordPress ID の入力が必要（共通の削除のポップアップ。D-128-04）。前の名前の入力では消せない
         $this->delete(route('terms.destroy', ['type' => 'categories', 'id' => $category->id]), [
-            'selected_blog_id' => $this->blog->id, 'confirm_name' => '違う名前', 'confirmed' => 1,
-        ])->assertSessionHasErrors('confirm_name');
+            'selected_blog_id' => $this->blog->id, 'confirm_name' => $category->name, 'confirmed' => 1,
+        ])->assertSessionHasErrors('confirm_id');
+        $this->delete(route('terms.destroy', ['type' => 'categories', 'id' => $category->id]), [
+            'selected_blog_id' => $this->blog->id, 'confirm_id' => '11', 'confirmed' => 1,
+        ])->assertSessionHasErrors('confirm_id');
         $this->assertNull($category->fresh()->wordpress_deleted_at);
 
         $this->get(route('push-operations.index'))->assertOk()->assertSee('画面から変更');

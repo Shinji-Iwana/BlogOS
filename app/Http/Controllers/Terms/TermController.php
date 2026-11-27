@@ -45,6 +45,9 @@ class TermController extends Controller
         ]);
     }
 
+    /**
+     * 編集のポップアップから送る。誤り・反映できなかったときは、入力（_form を含む）を持って戻り、ポップアップを開いたままにして出す（D-128-03）
+     */
     public function update(Request $request, string $type, int $id)
     {
         $blog = $this->selectedBlog();
@@ -88,13 +91,14 @@ class TermController extends Controller
         abort_if($record === null, 404);
 
         $request->validate([
-            'confirm_name' => ['required', 'string'],
-            'confirmed'    => ['accepted'],
+            'confirmed'  => ['accepted'],
+            'confirm_id' => ['required', 'string'],
         ]);
 
-        // 取り消せない操作のため、名前を入力させて確かめる
-        if ($request->input('confirm_name') !== TermPushService::label($record)) {
-            return back()->withErrors(['confirm_name' => '入力した名前が一致しません。']);
+        // 取り消せない操作のため、共通の削除のポップアップで WordPress ID を入力させて確かめる（前後の空白は無視。D-125-01・D-128-04）。
+        // 違うときは、開いた画面に戻り、画面の上にエラーを出す（記事の削除と同じ）
+        if (trim((string) $request->input('confirm_id')) !== (string) $record->wordpress_id) {
+            return back()->withErrors(['confirm_id' => '入力した ID が、' . ['categories' => 'カテゴリ', 'tags' => 'タグ', 'media' => 'メディア'][$type] . 'の ID と一致しません。']);
         }
 
         try {
