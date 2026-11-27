@@ -116,7 +116,11 @@ class WordPressDbTest extends TestCase
             ->assertSee('<h1>投稿・固定ページ・メディアなど（wp_posts）</h1>', false)
             ->assertSee('<th>post_title</th>', false)
             ->assertDontSee('<th>post_content</th>', false)
-            ->assertSeeInOrder(['>' . ($postId + 1) . '</a>', '>' . $postId . '</a>'], false);
+            ->assertSeeInOrder(['>' . ($postId + 1) . '</a>', '>' . $postId . '</a>'], false)
+            // 上のリンクは「XServer情報へ」だけ。DB は、その下の黄色の注意に出す（D-129-01・D-129-03）
+            ->assertSee('<p><a href="' . route('server.index') . '">XServer情報へ</a></p>', false)
+            ->assertSee('<p class="text-warn">DB：' . $s . '（WordPress の DB。読むだけで、書き換えません）</p>', false)
+            ->assertDontSee('XServer情報に戻る');
         $this->assertSame(2, $this->get(route('database.wordpress-db.index', ['schema' => $s, 'table' => 'wp_posts', 'q' => 'はじめて']))->viewData('records')->total());
 
         // 詳細：つながる先の「（リンク）」・BlogOS に取り込んだデータ・関連（メタ情報・リビジョン）
@@ -127,7 +131,11 @@ class WordPressDbTest extends TestCase
             ->assertSee('data-tip="タイトル。"', false)
             ->assertSee('****（記事を読むためのパスワードを保存）')->assertDontSee('yomu-pass')
             ->assertSee('（<a href="' . route('database.wordpress-db.show', ['schema' => $s, 'table' => 'wp_users', 'id' => $userId]) . '">管理人 #' . $userId . '</a>）', false)
-            ->assertSee('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $blogosPost->id]) . '">投稿 #' . $blogosPost->id . '</a>', false)
+            // 上のリンク：「（日本語名）一覧へ」と、BlogOS に取り込んだデータ「BlogOS（名前 #ID）」を「 / 」でつなぐ。DB は黄色の注意（D-129-01〜D-129-04）
+            ->assertSee('<p><a href="' . route('database.wordpress-db.index', ['schema' => $s, 'table' => 'wp_posts']) . '">投稿・固定ページ・メディアなど一覧へ</a> / BlogOS（<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $blogosPost->id]) . '">はじめての記事 #' . $blogosPost->id . '</a>）</p>', false)
+            ->assertDontSee('BlogOS に取り込んだデータ')
+            ->assertSee('<p class="text-warn">DB：' . $s . '（WordPress の DB。読むだけで、書き換えません）</p>', false)
+            ->assertDontSee('一覧に戻る')
             ->assertSeeInOrder(['<h2>関連', '投稿・固定ページ・メディアなど（wp_posts）', 'post_parent', '投稿のメタ情報（wp_postmeta）', 'post_id'], false)
             ->assertDontSee('<h2>変更履歴', false);
 

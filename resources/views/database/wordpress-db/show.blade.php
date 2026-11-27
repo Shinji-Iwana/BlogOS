@@ -10,14 +10,10 @@
 
     <h1>{{ $label ? "{$label}（{$table}）" : $table }}#{{ $record[$primaryKey] }}</h1>
 
-    <p>
-        <a href="{{ route('database.wordpress-db.index', ['schema' => $schema, 'table' => $table]) }}">一覧に戻る</a>
-        {{-- BlogOS に取り込んだ同じデータ --}}
-        @if ($blogosLink)
-            ・BlogOS に取り込んだデータ：<a href="{{ $blogosLink['url'] }}">{{ $blogosLink['text'] }}</a>
-        @endif
-        <span class="text-muted">・DB：{{ $schema }}（WordPress の DB。読むだけで、書き換えません）</span>
-    </p>
+    {{-- 上のリンク：一覧は「（テーブルの日本語名）一覧へ」（日本語名がなければテーブル名。D-129-01）。BlogOS に取り込んだ同じデータがあれば、「 / 」でつなぎ（アコーディオンの題名と同じつなぎ方。D-129-02・D-114）、詳細の表のつながる先と同じ「BlogOS（名前 #ID）」の形で出す（D-129-04）。
+         どの DB を見ているかは、リンクの下の黄色の注意に出す（D-129-03） --}}
+    <p><a href="{{ route('database.wordpress-db.index', ['schema' => $schema, 'table' => $table]) }}">{{ $label ?? $table }}一覧へ</a>@if ($blogosLink) / BlogOS（<a href="{{ $blogosLink['url'] }}">{{ $blogosLink['text'] }}</a>）@endif</p>
+    <p class="text-warn">DB：{{ $schema }}（WordPress の DB。読むだけで、書き換えません）</p>
 
     @php
         // つながる先のリンクを「・」でつなぐ（「（」「）」の内側に空白が入らないよう、1つの文字列にする。文字は e() で書き換えてから出す）

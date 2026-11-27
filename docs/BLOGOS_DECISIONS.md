@@ -1979,6 +1979,31 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 決まりは BLOGOS_UI 4-6・WORDPRESS_API 22章。
 * テスト：tests/Feature/Push/CategoryListTest.php（「詳細」パネルと鉛筆・ごみ箱のアイコン、編集のポップアップ（スラッグの警告は初めは隠す・押せる条件・ブラウザの確認がない）、削除のポップアップ（題名・表・ID）、ID が違うと戻る・合えば消す、削除済みはアイコンなし、誤りで戻るとポップアップを開いたまま）、tests/Feature/Push/TermPushServiceTest.php（名前の入力では消せない）、tests/Feature/ButtonIconTest.php、tests/Feature/DeleteButtonStyleTest.php。
 
+### 項目129：WordPress の DB のテーブルの画面の上のリンクと、DB の注意（全画面の見直し。2026-11-27）
+
+項目128 の F（タグ・メディアの編集の画面がどこから開けるか）を確かめるため、DB確認の画面（`/database/...`）を全て並べた確認画面（`mock-db-screens`）を作った。その中の WordPress の DB のテーブルの画面について、利用者が次のことを確かめ、上の部分の直しを決めた（利用者の判断）。
+
+* F の結果：タグ・メディアには一覧の画面がなく、「取り込んだWordPressのデータ」の1件の画面（`/database/wordpress/{tags|media}/{id}`）の「情報の更新・削除（WordPressへ反映）」のリンクから開ける（本番も同じ）。同じデータを見る「BlogOS の DB のテーブル」の1件の画面（`/database/tables/...`）には、このリンクはない。DB確認の画面から編集の画面へのリンクは、投稿・固定ページ・カテゴリ・タグ・メディアの1件の5つの画面にある。DB確認の画面は確かめるための画面で、そこから直接編集する使い方は想定していないため、このリンクをどうするかは見直す（未決定）。確認画面 mock-term-modal は、BlogOS に入れ終えたため削除した。
+* WordPress の DB のテーブルの画面の URL は、一覧が `/database/wordpress-db/{DB名}/{テーブル名}`、詳細が `/database/wordpress-db/{DB名}/{テーブル名}/{ID}` で、DB ごとに `/database/wordpress-db/{DB名}/` の下にまとまっている。本番の DB（`snnsk0115_wp2`）は35テーブルで、一覧35・詳細34画面（`wp_term_relationships` は主キーがないため詳細なし）。この URL の形には、BlogOS の DB のユーザーが見られる、BlogOS 以外の全ての DB が入る（WordPress かどうかは見ていない）が、DB ごとに URL が分かれるため問題にしない。
+
+**D-129-01 WordPress の DB のテーブルの画面の上のリンクは「○○へ」にする**
+* 一覧の画面：「XServer情報に戻る」を「XServer情報へ」にした。
+* 詳細の画面：「一覧に戻る」を「（テーブルの日本語名）一覧へ」にした（例：「ユーザー一覧へ」。日本語名がなければテーブル名）。
+* 今は WordPress の DB のテーブルの画面だけ。ほかの画面の「～に戻る」（BLOGOS_UI 2-2）は変えていない。
+
+**D-129-02 詳細の画面の上のリンクは「 / 」でつなぐ**
+* 「（テーブルの日本語名）一覧へ」と「BlogOS に取り込んだデータ：○○ #ID」（`wp_posts`・`wp_term_taxonomy`・`wp_users` で、BlogOS に同じデータがあるとき）を、「・」ではなく「 / 」でつなぐ（アコーディオンの題名のつなぎ方と同じ。D-114）。
+
+**D-129-03 どの DB を見ているかは、上のリンクの下に黄色の注意で出す**
+* 「DB：{DB名}（WordPress の DB。読むだけで、書き換えません）」を、上のリンクの行（灰色の文字）から外し、上のリンクと最初のパネルの間に、黄色の注意（`p.text-warn`。削除のポップアップの注意と同じ見た目）で出す。一覧・詳細の両方。
+* 文は、WordPress でない DB でも「WordPress の DB」と出る（今の本番には WordPress の DB しかないため、変えていない）。
+* 決まりは BLOGOS_UI 2-2。
+* テスト：tests/Feature/WordPressDbTest.php（一覧は「XServer情報へ」だけ・詳細は「（日本語名）一覧へ / BlogOS（名前 #ID）」・両方とも黄色の注意）。
+
+**D-129-04 詳細の画面の「BlogOS に取り込んだデータ」のリンクは「BlogOS（名前 #ID）」の形にする**
+* 「BlogOS に取り込んだデータ：投稿者 #1」（種類の名前 #ID）を、DB確認の詳細の表のつながる先（例：「112（【Excel入門】列や行を… #112）」）と同じ形にそろえ、「BlogOS（管理人 #1）」のように、BlogOS のデータの名前（タイトル・名前など。`DatabaseTables::link` と同じ選び方）と ID を括弧の中のリンクで出す。
+* 開く先は変えていない（BlogOS の DB のテーブルの1件の画面）。
+
 
 
 | 事項 | 決める時期 |

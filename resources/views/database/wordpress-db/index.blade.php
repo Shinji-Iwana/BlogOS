@@ -9,10 +9,9 @@
 
     <h1>{{ $label ? "{$label}（{$table}）" : $table }}</h1>
 
-    <p>
-        <a href="{{ route('server.index') }}">XServer情報に戻る</a>
-        <span class="text-muted">・DB：{{ $schema }}（WordPress の DB。読むだけで、書き換えません）</span>
-    </p>
+    {{-- 上のリンクは「○○へ」（D-129-01）。どの DB を見ているかは、リンクの下の黄色の注意に出す（D-129-03） --}}
+    <p><a href="{{ route('server.index') }}">XServer情報へ</a></p>
+    <p class="text-warn">DB：{{ $schema }}（WordPress の DB。読むだけで、書き換えません）</p>
 
     {{-- 絞り込みの条件（ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01）） --}}
     <section class="panel">

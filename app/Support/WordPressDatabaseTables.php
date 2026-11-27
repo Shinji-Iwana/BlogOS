@@ -800,9 +800,13 @@ class WordPressDatabaseTables
         }
 
         $id = DB::table($blogosTable)->where('blog_id', $blog->id)->where('wordpress_id', $wordpressId)->value('id');
+        if ($id === null) {
+            return null;
+        }
 
-        return $id === null ? null : [
-            'text' => DatabaseTables::label($blogosTable) . " #{$id}",
+        // 文字は、DB確認の詳細の表のつながる先と同じ「名前 #ID」（DatabaseTables::link。D-129-04）。開く先は、これまでどおり BlogOS の DB のテーブルの1件
+        return [
+            'text' => DatabaseTables::link($blogosTable, $id)['text'],
             'url'  => route('database.tables.show', ['table' => $blogosTable, 'id' => $id]),
         ];
     }
