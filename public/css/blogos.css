@@ -477,7 +477,8 @@ table.data.data-compact > * > tr > td {
 [data-modal-mode="edit"] .modal-mode-icon > [data-modal-icon="edit"],
 [data-modal-mode="switch"] .modal-mode-icon > [data-modal-icon="switch"],
 [data-modal-mode="info"] .modal-mode-icon > [data-modal-icon="info"],
-[data-modal-mode="delete"] .modal-mode-icon > [data-modal-icon="delete"] {
+[data-modal-mode="delete"] .modal-mode-icon > [data-modal-icon="delete"],
+[data-modal-mode="trash"] .modal-mode-icon > [data-modal-icon="trash"] {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -503,6 +504,11 @@ table.data.data-compact > * > tr > td {
 
 .modal-mode-icon > [data-modal-icon] > svg {
     display: block;
+}
+
+/* 削除のモードのアイコンの×（D-123-01）：ごみ箱は文字の色、×だけを赤にする（ironman は components/header.css） */
+.modal-icon-cross {
+    stroke: #b00;
 }
 
 /* 種類のアイコン（定期実行。D-103-01）：モードのアイコンの右に、同じ枠で出す（間は少し詰める） */
