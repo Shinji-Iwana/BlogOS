@@ -226,6 +226,7 @@ class ArticlePushService
     /**
      * 記事を WordPress から完全に削除する（WORDPRESS_API 22章、D-09-05）。
      * BlogOS からゴミ箱へ移動する機能は、なくした（D-124-01）。WordPress の管理画面でゴミ箱に入れた記事も、ここで完全に削除できる。
+     * 作業中・確認待ちの編集案があっても削除でき、削除が完了したら、その編集案は自動で破棄にする（PushOperationRunner::complete。D-125-02）。
      *
      * @param Carbon|null $baseModifiedGmt 画面を開いた時点の記事の版（競合確認に使う）
      * @throws PushException
@@ -239,9 +240,6 @@ class ArticlePushService
         }
         if ($article->wordpress_deleted_at !== null) {
             throw new PushException('この記事は、既にWordPress側で完全に削除されています。');
-        }
-        if ($this->drafts->activeFor($article) !== null) {
-            throw new PushException('作業中の編集案があります。編集案を破棄するか反映してから操作してください。');
         }
 
         return $this->runner->withBlogLock($article->blog, function () use ($article, $baseModifiedGmt, $userId) {

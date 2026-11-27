@@ -505,6 +505,21 @@ table.data.data-compact > * > tr > td {
     display: block;
 }
 
+/* 共通の削除のポップアップの対象の表（partials/delete-modal。D-125-01）：項目の列は折り返さず、値は長くても枠の中で折り返す */
+.delete-modal-target {
+    margin: 0 0 12px;
+}
+
+.delete-modal-target th {
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.delete-modal-target td {
+    overflow-wrap: anywhere;
+}
+
 /* 種類のアイコン（定期実行。D-103-01）：モードのアイコンの右に、同じ枠で出す（間は少し詰める） */
 .modal-kind-icon {
     margin-left: -4px;

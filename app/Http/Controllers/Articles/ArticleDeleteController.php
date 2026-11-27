@@ -7,12 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Repositories\ArticleRepository;
 use App\Services\Push\ArticlePushService;
 use App\Services\Push\PushException;
-use App\Support\Slug;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * 記事の完全削除（重大な操作のため、必ず確認画面を挟む。WORDPRESS_API 22章、D-09-05）。
+ * 記事の完全削除（WORDPRESS_API 22章、D-09-05）。
+ * 確認は、記事の詳細の共通の削除のポップアップで行う（ID の入力とチェック。確認の画面はなくした。D-125-01）。
  * BlogOS からゴミ箱へ移動する機能は、なくした（D-124-01）。
  */
 class ArticleDeleteController extends Controller
@@ -25,18 +25,6 @@ class ArticleDeleteController extends Controller
     ) {
     }
 
-    public function confirm(string $type, int $id)
-    {
-        $blog = $this->selectedBlog();
-        $article = $this->articles->find($blog->id, $type, $id);
-        abort_if($article === null, 404);
-
-        return view('articles.delete', [
-            'type'    => $type,
-            'article' => $article,
-        ]);
-    }
-
     public function destroy(Request $request, string $type, int $id)
     {
         $blog = $this->selectedBlog();
@@ -46,13 +34,13 @@ class ArticleDeleteController extends Controller
         $validated = $request->validate([
             'base_modified' => ['nullable', 'date'],
             'confirmed'     => ['accepted'],
-            // 確認のため、記事のスラッグを入力させる
-            'confirm_slug'  => ['required', 'string'],
+            // 確認のため、記事の WordPress ID を入力させる（スラッグが空の記事もあるため。D-125-01）
+            'confirm_id'    => ['required', 'string'],
         ]);
 
-        // 日本語のスラッグは、読める形で入力してよい（D-29）
-        if (! Slug::same(trim((string) $validated['confirm_slug']), $article->slug)) {
-            return back()->withErrors(['confirm_slug' => '入力したスラッグが記事のスラッグと一致しません。']);
+        // はじいたときは、記事の詳細に戻り、画面の上にエラーを出す
+        if (trim((string) $validated['confirm_id']) !== (string) $article->wordpress_id) {
+            return back()->withErrors(['confirm_id' => '入力した ID が、記事の ID と一致しません。']);
         }
 
         try {

@@ -321,13 +321,18 @@ class ArticlePushServiceTest extends TestCase
         $this->assertTrue(PostHistory::where('post_id', $post->id)->where('field', '__deleted')->where('source', ChangeSource::BlogosPush->value)->exists());
     }
 
-    public function test_delete_is_rejected_when_active_draft_exists(): void
+    public function test_delete_discards_active_drafts(): void
     {
         $post = Post::sole();
-        $this->draftFor($post);
+        $draft = $this->draftFor($post);
 
-        $this->expectException(PushException::class);
-        $this->service()->delete($post, $post->wordpress_modified_gmt, $this->user->id);
+        // 作業中の編集案があっても削除でき、削除が完了したら、編集案は自動で破棄になる（D-125-02。反映の記録に結び付けて履歴を残す）
+        $operation = $this->service()->delete($post, $post->wordpress_modified_gmt, $this->user->id);
+        $this->assertSame(PushState::Completed, $operation->state);
+        $this->assertNotNull($post->fresh()->wordpress_deleted_at);
+        $this->assertSame(DraftState::Discarded, $draft->fresh()->state);
+        $this->assertNotNull($draft->fresh()->discarded_at);
+        $this->assertTrue($draft->histories()->where('field', 'state')->where('new_value', DraftState::Discarded->value)->where('wordpress_push_operation_id', $operation->id)->exists());
     }
 
     public function test_push_is_rejected_while_sync_is_running(): void

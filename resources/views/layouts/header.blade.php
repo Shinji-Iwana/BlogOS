@@ -612,6 +612,25 @@
         // ほかの画面の JavaScript からも、モードを変えて開けるようにする
         window.blogosSetModalMode = setModalMode;
 
+        // 共通の削除のポップアップ（partials/delete-modal。D-125-01）：「内容を確認しました」が入っていて、
+        // 入力した ID が合っている（前後の空白は無視）ときだけ、送るボタンを押せる。サーバーでも同じことを確かめる
+        document.querySelectorAll('form[data-delete-confirm]').forEach(function (form) {
+            const check = form.querySelector('[data-delete-confirm-check]');
+            const input = form.querySelector('[data-delete-confirm-input]');
+            const submit = form.querySelector('[data-modal-submit]');
+            if (! check || ! submit) {
+                return;
+            }
+            const update = function () {
+                submit.disabled = ! (check.checked && (! input || input.value.trim() === input.dataset.expected));
+            };
+            check.addEventListener('change', update);
+            if (input) {
+                input.addEventListener('input', update);
+            }
+            update();
+        });
+
         // モデルで選べない推論の深さ（gpt-6-astra の none など）を、選べないようにする（全画面で共通。D-105-02）。
         // select[data-model="名前"] と、同じフォームの select[data-effort="名前"] を組にする（選択肢は partials/ai-model-options・ai-effort-options）
         document.querySelectorAll('select[data-model]').forEach(function (model) {

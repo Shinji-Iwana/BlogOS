@@ -8,6 +8,7 @@ use App\Enums\DraftState;
 use App\Enums\PushOperationType;
 use App\Enums\PushResourceType;
 use App\Enums\SyncIssueType;
+use App\Models\ArticleDraft;
 use App\Models\Blog;
 use App\Models\Page;
 use App\Models\Post;
@@ -189,8 +190,10 @@ class PushOperationRunner
         // カテゴリ・タグ・メディアを完全に削除すると、WordPressは関連していた投稿を付け替えるが、
         // 投稿の更新日時は変わらない。そのため、関連していた投稿を取得し直す（D-09-04）
         $linkedPostIds = [];
+        // 記事を完全に削除したときに、自動で破棄した編集案（D-125-02）
+        $discardedDraftIds = [];
 
-        DB::transaction(function () use ($operation, $item, $syncer, $context, $column, $userId, $type, &$linkedPostIds) {
+        DB::transaction(function () use ($operation, $item, $syncer, $context, $column, $userId, $type, &$linkedPostIds, &$discardedDraftIds) {
             $record = $operation->post ?? $operation->page ?? $operation->category ?? $operation->tag ?? $operation->media;
 
             if ($operation->operation === PushOperationType::Delete) {
@@ -202,6 +205,13 @@ class PushOperationRunner
                 }
                 if ($record !== null && $record->wordpress_deleted_at === null) {
                     $syncer->markDeletedFromApi($record, $context);
+                }
+                // 記事を完全に削除したら、残った作業中・確認待ちの編集案は、自動で破棄にする（D-125-02。反映の記録に結び付けて履歴を残す）
+                if ($record instanceof Post || $record instanceof Page) {
+                    foreach (ArticleDraft::active()->where($column, $record->id)->get() as $draft) {
+                        $this->drafts->changeState($draft, DraftState::Discarded, ChangeSource::System, $userId, $operation->id);
+                        $discardedDraftIds[] = $draft->id;
+                    }
                 }
             } else {
                 $record = $syncer->storeFromApi($item, $context);
@@ -227,6 +237,11 @@ class PushOperationRunner
         }
 
         $this->issues->resolveRelated($operation->blog_id, [SyncIssueType::PushUnknown], $operation->id, null, $userId, '反映の結果を確認し、完了しました。');
+
+        // 破棄した編集案の競合は、もう対応しなくてよい
+        foreach ($discardedDraftIds as $draftId) {
+            $this->issues->resolveRelated($operation->blog_id, [SyncIssueType::Conflict], null, $draftId, $userId, '記事を完全に削除したため、編集案を破棄しました。');
+        }
     }
 
     /**

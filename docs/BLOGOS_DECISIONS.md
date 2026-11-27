@@ -1908,6 +1908,24 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 決まりは REQUIREMENTS 7-5・WORDPRESS_API 22章・DATABASE 10-4（`operation`）・13-3・BLOGOS_UI 4-2・4-4・4-5。
 * テスト：tests/Feature/Articles/ArticleScreensTest.php（記事の詳細にゴミ箱へ移動のリンクがない・確認の画面は完全削除だけ・前の URL は開けない・常に完全削除になる）、tests/Feature/Push/ArticlePushServiceTest.php（常に `force=true` の完全削除）、tests/Feature/ModalModeTest.php（ゴミ箱へ移動のモードがない・削除のアイコンに×がない）、tests/Feature/ButtonIconTest.php。
 
+### 項目125：記事の削除のポップアップと、残った編集案（全画面の見直し。2026-11-27）
+
+**D-125-01 記事の完全削除の確認を、共通の削除のポップアップにする（共通のルール）** 記事の詳細の「完全に削除する」を、共通の削除のポップアップにした確認画面（mock-article-delete）の内容で決めた（利用者の判断）。
+* 記事の詳細の赤字のリンク「完全に削除する」を、ボタン「削除」にした（押すとポップアップが開く。見た目は削除のボタン（BLOGOS_UI 4-5）。開くだけのため、ボタンのアイコンは付けない）。置き場所は今のリンクと同じ（「編集」パネル）。パネルの右端にアイコンで置く形（mock-term-modal）は、どのパネルに出すかを検討するため保留。
+* ポップアップ（`partials/delete-modal`）：削除のモード（題名の左はごみ箱のアイコン。D-124-01 で元に戻したもの）。題名は「種類 #ID」（例：「投稿 #945」）で、ID は WordPress ID（記事の詳細にも出ている値で、消すのは WordPress の記事のため）。対象は2列の表（項目と値）で、行は開く元が決める（投稿は「カテゴリ」「タイトル」、固定ページは「タイトル」。カテゴリは「親カテゴリ名 -> 子カテゴリ名」。`Category::pathName()`）。送るボタンは「削除」（WordPress のアイコン）と「キャンセル」。
+* 確認のための入力を、スラッグから WordPress ID に変えた（本番に、スラッグが空の下書きが25件あり、スラッグの入力では削除できなかったため。2026-11-26 に読むだけで確かめた）。「内容を確認しました」が入っていないとき、または入力が ID と違うときは、送るボタンを押せない（`layouts/header` の JavaScript）。サーバーでも確かめる。
+* はじかれたとき（ID が違う・開いた後に WordPress 側で記事が変わった、など）は、記事の詳細に戻り、画面の上にエラーを出す。
+* 確認の画面（`articles/delete`・ルート `articles.delete.confirm`・コントローラーの `confirm`）をなくした。送る先は `POST /articles/{type}/{id}/delete`（ルート `articles.delete`）。
+* 共通のポップアップをカテゴリ・タグ・メディアの削除にも使うかは、カテゴリの画面の案（mock-term-modal）を進めるときに改めて確かめる。
+* 決まりは BLOGOS_UI 4-6・WORDPRESS_API 22章・REQUIREMENTS 7-5。
+
+**D-125-02 作業中の編集案があっても記事を削除でき、残った編集案は自動で破棄にする** これまでは、作業中・確認待ちの編集案がある記事は削除できなかった（WORDPRESS_API 22章。理由は書かれていなかった）。WordPress 上で記事を消すこと自体に問題はなく、困るのは消えた記事に編集案を作る・反映するときのため、編集案があっても削除できるようにした（利用者の判断）。
+* 削除の制限（画面でボタンを出さない・サーバーではじく）をなくした。ポップアップには「作業中の編集案（#…）は、削除すると自動で破棄になります。」と出す。
+* 削除が完了したら、その記事の作業中・確認待ちの編集案を、全て破棄にする（`PushOperationRunner::complete`。反映の直後と、結果が分からなかったときの回復の、どちらで完了しても同じ）。履歴は、反映の記録に結び付けて残す（変更元は System）。破棄した編集案の競合（sync_issues）は、解決済みにする。
+* 完全に削除された記事には、これまでどおり編集案を作れない。
+* 決まりは WORDPRESS_API 22章・REQUIREMENTS 7-5。
+* テスト：tests/Feature/Articles/ArticleScreensTest.php（ポップアップの題名・表・ID の入力・注意、確認の画面がない、ID が違うと戻る、編集案があっても削除でき破棄になる）、tests/Feature/Push/ArticlePushServiceTest.php（削除で編集案が破棄になり、反映の記録に結び付いた履歴が残る）、tests/Feature/ButtonIconTest.php、tests/Feature/DeleteButtonStyleTest.php。
+
 
 
 | 事項 | 決める時期 |

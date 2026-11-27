@@ -35,4 +35,20 @@ class Category extends WordPressRecord
     {
         return $this->belongsToMany(Post::class, 'post_categories');
     }
+
+    /**
+     * 親カテゴリからたどった名前（「親カテゴリ名 -> 子カテゴリ名」。親がなければ名前だけ。D-125-01）。
+     * 親の親もたどる（親が自分を指すなど、輪になっているときは止める）
+     */
+    public function pathName(): string
+    {
+        $names = [$this->name];
+        $seen = [$this->id => true];
+        for ($parent = $this->parent; $parent !== null && ! isset($seen[$parent->id]); $parent = $parent->parent) {
+            $seen[$parent->id] = true;
+            array_unshift($names, $parent->name);
+        }
+
+        return implode(' -> ', $names);
+    }
 }

@@ -85,7 +85,7 @@ class ArticleController extends Controller
         $candidates = $relatedKeyword !== '' ? $this->articles->search($blog->id, $relatedType, $relatedKeyword) : collect();
 
         if ($article instanceof Post) {
-            $article->load(['categories', 'tags']);
+            $article->load(['categories.parent', 'tags']);
         }
 
         $management = $this->managements->findFor($article);

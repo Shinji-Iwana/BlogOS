@@ -29,8 +29,8 @@ class DeleteButtonStyleTest extends TestCase
                 $this->assertStringNotContainsString('class=', $attributes, $relative . '：' . trim($label));
             }
         }
-        // 削除（6か所）と、破棄・取り消し・解除（6つ）が見つかる
-        $this->assertGreaterThanOrEqual(12, count($found));
+        // 削除（5か所。記事の完全削除は、共通の削除のポップアップの送るボタンになった。D-125-01）と、破棄・取り消し・解除（6つ）が見つかる
+        $this->assertGreaterThanOrEqual(11, count($found));
 
         // 赤枠の btn-danger は、画面にも CSS にもない
         foreach (File::allFiles(resource_path('views')) as $file) {

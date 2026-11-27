@@ -263,30 +263,51 @@ class ArticleScreensTest extends TestCase
         $this->assertSame(0, ArticleRelation::count());
     }
 
-    public function test_delete_requires_confirmation_and_slug(): void
+    public function test_delete_popup_requires_confirmation_and_wordpress_id(): void
     {
         $post = Post::where('wordpress_id', 101)->sole();
+        // 作業中の編集案があっても、削除できる（D-125-02）
+        $this->post(route('drafts.store'), $this->selected(['article_type' => 'posts', 'article_id' => $post->id, 'revision_scope' => 'minor']))
+            ->assertRedirect();
+        $draft = ArticleDraft::sole();
 
-        // ゴミ箱へ移動は、なくした（D-124-01）：記事の詳細にリンクがなく、確認の画面は完全削除だけ
-        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
-            ->assertDontSee('ゴミ箱へ移動する')
-            ->assertSee(route('articles.delete.confirm', ['type' => 'posts', 'id' => $post->id]), false);
-        $this->get(route('articles.delete.confirm', ['type' => 'posts', 'id' => $post->id]))->assertOk()
-            ->assertSee('元に戻せません')->assertDontSee('ゴミ箱へ移動する');
+        // 記事の詳細：「削除」のボタンで、共通の削除のポップアップを開く（D-125-01）。題名は「投稿 #WordPress ID」、対象はカテゴリとタイトル
+        $html = $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()->getContent();
+        $this->assertStringContainsString('<button type="button" data-modal-open="article-delete-modal">削除</button>', $html);
+        $this->assertStringContainsString('id="article-delete-modal" class="blog-switch-modal site-modal" data-modal-mode="delete"', $html);
+        $this->assertStringContainsString('<span class="modal-title-text">投稿 #101</span>', $html);
+        $this->assertMatchesRegularExpression('/<th>カテゴリ<\/th>\s*<td>/u', $html);
+        $this->assertMatchesRegularExpression('/<th>タイトル<\/th>\s*<td>\s*' . preg_quote(e($post->title_raw), '/') . '\s*<\/td>/u', $html);
+        $this->assertStringContainsString('確認のため、ID（101）を入力してください', $html);
+        $this->assertStringContainsString('data-expected="101"', $html);
+        $this->assertStringContainsString("作業中の編集案（#{$draft->id}）は、削除すると自動で破棄になります。", $html);
+        $this->assertStringContainsString('<span data-modal-submit-label>削除</span>', $html);
+        $this->assertStringContainsString('data-button-icon="wordpress"', $html);
+        // 確認の画面・前のリンク・ゴミ箱へ移動は、もうない
+        $this->assertStringNotContainsString('完全に削除する</a>', $html);
+        $this->assertStringNotContainsString('ゴミ箱へ移動する', $html);
+        $this->get('/articles/posts/' . $post->id . '/delete')->assertStatus(405);
         $this->get('/articles/posts/' . $post->id . '/trash')->assertNotFound();
 
         $base = $post->wordpress_modified_gmt->format('Y-m-d H:i:s');
-        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base]))
-            ->assertSessionHasErrors(['confirmed', 'confirm_slug']);
+        $this->post(route('articles.delete', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base]))
+            ->assertSessionHasErrors(['confirmed', 'confirm_id']);
 
-        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_slug' => 'wrong']))
-            ->assertSessionHasErrors('confirm_slug');
+        // ID が違うと、記事の詳細に戻り、エラーを出す
+        $this->from(route('articles.show', ['type' => 'posts', 'id' => $post->id]))
+            ->post(route('articles.delete', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_id' => '102']))
+            ->assertRedirect(route('articles.show', ['type' => 'posts', 'id' => $post->id]))
+            ->assertSessionHasErrors('confirm_id');
         $this->assertNull($post->fresh()->wordpress_deleted_at);
 
-        // 送る値に force がなくても、常に完全削除になる
-        $this->post(route('articles.delete.destroy', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_slug' => \App\Support\Slug::display($post->slug)]))
+        // ID が合えば（前後の空白は無視）、完全に削除する。残った編集案は、自動で破棄になる
+        $this->post(route('articles.delete', ['type' => 'posts', 'id' => $post->id]), $this->selected(['base_modified' => $base, 'confirmed' => 1, 'confirm_id' => ' 101 ']))
             ->assertRedirect();
         $this->assertNotNull($post->fresh()->wordpress_deleted_at);
+        $this->assertSame(DraftState::Discarded, $draft->fresh()->state);
+
+        // 削除した記事には、削除のボタンを出さない
+        $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()->assertDontSee('data-modal-open="article-delete-modal"', false);
     }
 
     public function test_updates_are_rejected_when_selected_blog_changed(): void

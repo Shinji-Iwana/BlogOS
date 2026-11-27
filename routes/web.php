@@ -132,7 +132,6 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/links/check', [InternalLinkCheckController::class, 'index'])->name('links.check');
     Route::get('/articles/{type}', [ArticleController::class, 'index'])->whereIn('type', ['posts', 'pages'])->name('articles.index');
     Route::get('/articles/{type}/{id}', [ArticleController::class, 'show'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.show');
-    Route::get('/articles/{type}/{id}/delete', [ArticleDeleteController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.delete.confirm');
     Route::get('/articles/{type}/{id}/legacy-images/replace', [LegacyImageController::class, 'confirm'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.confirm');
 
     // 編集案と反映（ARCHITECTURE 13-5・17-5）
@@ -155,7 +154,7 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
         Route::put('/articles/{type}/{id}/management', [ArticleManagementController::class, 'update'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.management.update');
         Route::post('/articles/{type}/{id}/relations', [ArticleManagementController::class, 'storeRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.relations.store');
         Route::delete('/articles/{type}/{id}/relations/{relationId}', [ArticleManagementController::class, 'destroyRelation'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'relationId'])->name('articles.relations.destroy');
-        Route::post('/articles/{type}/{id}/delete', [ArticleDeleteController::class, 'destroy'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.delete.destroy');
+        Route::post('/articles/{type}/{id}/delete', [ArticleDeleteController::class, 'destroy'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.delete');
         // 古い画像（/wp-content/img/）の移し替え（D-90）
         Route::post('/articles/{type}/{id}/legacy-images/import', [LegacyImageController::class, 'import'])->whereIn('type', ['posts', 'pages'])->whereNumber('id')->name('articles.legacy-images.import');
         Route::put('/articles/{type}/{id}/legacy-images/{imageId}', [LegacyImageController::class, 'update'])->whereIn('type', ['posts', 'pages'])->whereNumber(['id', 'imageId'])->name('articles.legacy-images.update');

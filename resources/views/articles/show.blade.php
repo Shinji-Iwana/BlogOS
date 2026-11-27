@@ -46,7 +46,7 @@
         </td></tr>
     </table>
 
-    {{-- 編集案と、削除（ゴミ箱へ移動は、なくした。D-124-01） --}}
+    {{-- 編集案と、削除（ゴミ箱へ移動は、なくした。D-124-01。削除はポップアップ。D-125-01） --}}
     <section class="panel">
     <h2>編集</h2>
     @if ($activeDraft)
@@ -66,10 +66,9 @@
         </form>
     @endif
 
-    @if (! $article->wordpress_deleted_at && ! $activeDraft)
-        <p>
-            <a href="{{ route('articles.delete.confirm', ['type' => $type, 'id' => $article->id]) }}" class="text-error">完全に削除する</a>
-        </p>
+    {{-- 削除：ボタンで共通の削除のポップアップを開く（D-125-01）。作業中の編集案があっても削除でき、編集案は自動で破棄になる（D-125-02） --}}
+    @if (! $article->wordpress_deleted_at)
+        <p><button type="button" data-modal-open="article-delete-modal">削除</button></p>
     @endif
 
     {{-- 品質評価とBlogOSのAI機能（D-06-02、D-07-01〜D-07-03） --}}
@@ -695,5 +694,21 @@
     </div>
     {{ $historiesPage->links() }}
     </section>
+
+    {{-- 共通の削除のポップアップ（D-125-01）。ironman のパネルは切り抜き（clip-path）があり、中に置くと画面全体に出せないため、パネルの外に置く --}}
+    @if (! $article->wordpress_deleted_at)
+        @include('partials.delete-modal', [
+            'id'           => 'article-delete-modal',
+            'title'        => ($isPost ? '投稿' : '固定ページ') . ' #' . $article->wordpress_id,
+            'rows'         => ($isPost ? ['カテゴリ' => $article->categories->map(fn ($category) => $category->pathName())->all()] : [])
+                + ['タイトル' => $article->title_raw],
+            'note'         => 'WordPressから完全に削除します。ゴミ箱には残らず、元に戻せません。BlogOSの管理情報・評価・履歴は残ります。',
+            'notices'      => $activeDraft ? ["作業中の編集案（#{$activeDraft->id}）は、削除すると自動で破棄になります。"] : [],
+            'action'       => route('articles.delete', ['type' => $type, 'id' => $article->id]),
+            'confirmValue' => $article->wordpress_id,
+            // 開いた時点の記事の版。操作の直前に、WordPress側で変更されていないかを確かめる
+            'hidden'       => ['base_modified' => $article->wordpress_modified_gmt?->format('Y-m-d H:i:s')],
+        ])
+    @endif
 
 @endsection

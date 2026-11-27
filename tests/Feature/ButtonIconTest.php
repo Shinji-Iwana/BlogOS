@@ -21,12 +21,12 @@ class ButtonIconTest extends TestCase
      */
     private const WORDPRESS_BUTTONS = [
         'articles/show.blade.php'          => 1, // 確認済みの画像を WordPress に登録する
-        'articles/delete.blade.php'        => 1, // 完全に削除する
         'drafts/link-switch.blade.php'     => 1, // チェックした編集案を反映する
         'drafts/push.blade.php'            => 1, // WordPressへ反映する
         'images/legacy-replace.blade.php'  => 1, // 承認して反映する
         'images/show.blade.php'            => 1, // WordPress のメディアに登録する
         'launches/index.blade.php'         => 1, // WordPress に作る
+        'partials/delete-modal.blade.php'  => 1, // 共通の削除のポップアップの「削除」（記事の完全削除。D-125-01）
         'launches/show.blade.php'          => 3, // 選んだものを公開する・⑧ 親ロードマップの編集案を作る・親ロードマップを公開する
         'terms/edit.blade.php'             => 2, // WordPressへ反映する・完全に削除する
     ];
@@ -105,12 +105,21 @@ class ButtonIconTest extends TestCase
             }
         }
 
+        // ポップアップの送るボタン（partials/modal-submit）に WordPress のアイコンを渡しているもの
+        foreach (File::allFiles(resource_path('views')) as $file) {
+            $count = preg_match_all('/@include\(\'partials\.modal-submit\', \[[^\]]*\'submitIcon\' => (?:\'wordpress\'|\\\\App\\\\Support\\\\ButtonIcon::WORDPRESS)/', $file->getContents());
+            if ($count > 0) {
+                $relative = str_replace('\\', '/', $file->getRelativePathname());
+                $wordpress[$relative] = ($wordpress[$relative] ?? 0) + $count;
+            }
+        }
+
         $this->assertSame([], $missing, 'アイコンのない送るボタン');
         ksort($wordpress);
         $expected = self::WORDPRESS_BUTTONS;
         ksort($expected);
         $this->assertSame($expected, $wordpress);
-        // 12か所・12個のボタン（記事のゴミ箱へ移動は、なくした。D-124-01）
+        // 12か所・12個のボタン（記事のゴミ箱へ移動は、なくした。D-124-01。記事の完全削除は、共通の削除のポップアップへ。D-125-01）
         $this->assertSame(12, array_sum($expected));
     }
 
