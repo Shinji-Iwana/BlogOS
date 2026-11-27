@@ -252,6 +252,23 @@ button.btn-secondary:not(.blog-switch-button):not(.logout-button):not(.voice-but
     filter: drop-shadow(0 0 6px var(--btn-glow));
 }
 
+/* パネルの題名の行の右端の、削除（ごみ箱）のアイコン（partials/panel-title。D-126-02）：赤い線と赤いアイコン。
+   開くだけのアイコンのため、送るボタン（削除のボタンは主な操作と同じ見た目。D-122）とは分けて、赤の枠にする */
+button.btn-secondary.panel-icon-delete:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
+    color: var(--im-red);
+    --btn-fill: transparent;
+    --btn-line: rgba(255, 90, 82, 0.6);
+    --btn-glow: rgba(255, 90, 82, 0.4);
+}
+
+button.btn-secondary.panel-icon-delete:not(.blog-switch-button):not(.logout-button):not(.voice-button):hover,
+button.btn-secondary.panel-icon-delete:not(.blog-switch-button):not(.logout-button):not(.voice-button):focus-visible {
+    color: #fff;
+    box-shadow: none;
+    --btn-fill: rgba(255, 90, 82, 0.18);
+    --btn-line: var(--im-red);
+}
+
 /* 押せないボタンは、マウスを乗せても光らせない（種類ごとのマウスを乗せたときの指定より優先する） */
 button:disabled:not(.blog-switch-button):not(.logout-button):not(.voice-button) {
     filter: none !important;

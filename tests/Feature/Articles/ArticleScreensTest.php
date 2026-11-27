@@ -274,7 +274,7 @@ class ArticleScreensTest extends TestCase
         // 記事の詳細：ページの上の表は「詳細」パネルの中。題名の行の右端のごみ箱のアイコンで、共通の削除のポップアップを開く（D-126-01）。
         // 題名は「投稿 #WordPress ID」、対象はカテゴリとタイトル（D-125-01）
         $html = $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/<section class="panel">\s*<h2 class="panel-title-row">\s*<span class="panel-title-text">詳細<\/span>\s*<span class="panel-title-icons">\s*<button type="button" class="btn-secondary panel-icon-button" data-modal-open="article-delete-modal" title="削除" aria-label="削除"><svg /u', $html);
+        $this->assertMatchesRegularExpression('/<section class="panel">\s*<h2 class="panel-title-row">\s*<span class="panel-title-text">詳細<\/span>\s*<span class="panel-title-icons">\s*<button type="button" class="btn-secondary panel-icon-button panel-icon-delete" data-modal-open="article-delete-modal" title="削除" aria-label="削除"><svg /u', $html);
         $this->assertMatchesRegularExpression('/<span class="panel-title-text">詳細<\/span>.*?<th>種類<\/th>.*?<th>ステータス<\/th>.*?<\/section>/su', $html);
         // 「編集」パネルの「削除」のボタンは、なくした
         $this->assertStringNotContainsString('data-modal-open="article-delete-modal">削除</button>', $html);
