@@ -121,6 +121,69 @@ class DatabaseTablesTest extends TestCase
     }
 
     /**
+     * 外部キーの定義のない、ほかのテーブルの行を指す列も、詳細の値の横に「（名前 #ID）」でつながる先を出す（D-130-01）
+     */
+    public function test_logical_keys_show_links_like_foreign_keys(): void
+    {
+        // 決めた列とつながる先の列は、全て DB にある
+        $logical = (new \ReflectionClassConstant(DatabaseTables::class, 'LOGICAL_KEYS'))->getValue();
+        foreach ($logical as $table => $columns) {
+            foreach ($columns as $column => [$target, $key]) {
+                $this->assertTrue(DatabaseTables::hasColumn($table, $column), "{$table}.{$column}");
+                $this->assertTrue(DatabaseTables::hasColumn($target, $key), "{$target}.{$key}");
+                $this->assertArrayNotHasKey($column, DatabaseTables::foreignKeys($table), "{$table}.{$column} は外部キー");
+            }
+        }
+
+        $this->actingAs(User::factory()->create());
+        $blog = Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $other = Blog::create(['home' => 'https://other.example.test', 'display_name' => 'Other Blog']);
+        // 別のブログの同じ slug は使わない（つながる先は、元の行と同じブログで探す）
+        \App\Models\Status::create(['blog_id' => $other->id, 'slug' => 'publish', 'name' => '別のブログ']);
+        $status = \App\Models\Status::create(['blog_id' => $blog->id, 'slug' => 'publish', 'name' => '公開済み']);
+        $type = \App\Models\Type::create(['blog_id' => $blog->id, 'slug' => 'post', 'name' => '投稿', 'taxonomies' => ['category', 'unknown_tax']]);
+        $taxonomy = \App\Models\Taxonomy::create(['blog_id' => $blog->id, 'slug' => 'category', 'name' => 'カテゴリー', 'types' => ['post']]);
+        $post = \App\Models\Post::create(['blog_id' => $blog->id, 'wordpress_id' => 1, 'title_raw' => 'はじめての記事', 'status' => 'publish', 'type' => 'post', 'link' => 'https://blog.example.test/1.html']);
+        $link = fn (string $table, int $id, string $text) => '<a href="' . DatabaseTables::recordUrl($table, $id) . '">' . $text . ' #' . $id . '</a>';
+
+        $this->get(route('database.tables.show', ['table' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSee('（' . $link('statuses', $status->id, '公開済み') . '）', false)
+            ->assertSee('（' . $link('types', $type->id, '投稿') . '）', false)
+            ->assertDontSee('別のブログ #');
+        // 値が一覧（JSON）の列は、1つずつ「・」でつなぐ。ない値は「値（記録にない）」（リンクなし）
+        $this->get(route('database.tables.show', ['table' => 'types', 'id' => $type->id]))->assertOk()
+            ->assertSee('（' . $link('taxonomies', $taxonomy->id, 'カテゴリー') . '・unknown_tax（記録にない））', false);
+        $this->get(route('database.tables.show', ['table' => 'taxonomies', 'id' => $taxonomy->id]))->assertOk()
+            ->assertSee('（' . $link('types', $type->id, '投稿') . '）', false);
+    }
+
+    /**
+     * BlogOS の DB のテーブルの画面のパネルの中のリンクは、取り込んだ WordPress のデータの11テーブルの行も、BlogOS の DB のテーブルの画面へ移る（D-130-02）
+     */
+    public function test_links_in_panels_stay_in_blogos_db_pages(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $blog = Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        $status = \App\Models\Status::create(['blog_id' => $blog->id, 'slug' => 'publish', 'name' => '公開済み']);
+        $post = \App\Models\Post::create(['blog_id' => $blog->id, 'wordpress_id' => 1, 'title_raw' => 'はじめての記事', 'status' => 'publish', 'link' => 'https://blog.example.test/1.html']);
+        $historyId = DB::table('post_histories')->insertGetId(['post_id' => $post->id, 'blog_id' => $blog->id, 'change_set_id' => (string) \Illuminate\Support\Str::uuid(), 'field' => 'status', 'old_value' => 'draft', 'new_value' => 'publish', 'source' => 'sync', 'changed_at' => now()]);
+
+        $pages = [
+            $this->get(route('database.tables.index', ['table' => 'posts']))->assertOk()->getContent(),
+            $this->get(route('database.tables.show', ['table' => 'posts', 'id' => $post->id]))->assertOk()->getContent(),
+            $this->get(route('database.tables.show', ['table' => 'statuses', 'id' => $status->id]))->assertOk()->getContent(),
+            $this->get(route('database.tables.show', ['table' => 'post_histories', 'id' => $historyId]))->assertOk()->getContent(),
+        ];
+        foreach ($pages as $html) {
+            // 取り込んだ WordPress のデータの画面（/database/wordpress/…）へのリンクがない
+            $this->assertStringNotContainsString('href="' . url('/database/wordpress/'), $html);
+        }
+        $this->assertStringContainsString('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $post->id]) . '">' . $post->id . '</a>', $pages[0]);
+        $this->assertStringContainsString('（<a href="' . route('database.tables.show', ['table' => 'statuses', 'id' => $status->id]) . '">公開済み #' . $status->id . '</a>）', $pages[1]);
+        $this->assertStringContainsString('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $post->id]) . '">はじめての記事 #' . $post->id . '</a>', $pages[3]);
+    }
+
+    /**
      * URL の値は、どの画面でもリンクにし、別のタブで開く（D-113-01）
      */
     public function test_url_values_are_links_that_open_in_a_new_tab(): void
@@ -158,8 +221,10 @@ class DatabaseTablesTest extends TestCase
             ->assertSee('<a href="' . route('database.tables.index', ['table' => 'sync_runs']) . '">WordPressとの同期の記録</a>（sync_runs）', false)
             ->getContent();
 
-        // 全てのテーブルの一覧に、XServer情報から行ける（D-110-01）
-        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => ! str_contains($html, 'href="' . e(DatabaseTables::listUrl($table)) . '"')));
+        // 全てのテーブルの一覧に、XServer情報から行ける（D-110-01）。取り込んだ WordPress のデータの11テーブルは、XServer情報からは、これまでどおりその画面の一覧を開く
+        // （BlogOS の DB のテーブルの画面のパネルの中のリンクだけを、BlogOS の DB のテーブルの画面に向けた。D-130-02）
+        $listUrl = fn (string $table) => DatabaseTables::isWordPress($table) ? route('database.wordpress-records.index', ['table' => $table]) : DatabaseTables::listUrl($table);
+        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => ! str_contains($html, 'href="' . e($listUrl($table)) . '"')));
         $this->assertSame([], $missing, 'XServer情報の DB の一覧から行けないテーブルがあります。');
     }
 

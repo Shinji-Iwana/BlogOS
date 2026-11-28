@@ -99,16 +99,16 @@ class TableRecordController extends Controller
     }
 
     /**
-     * 値の横に「（リンク）」で出す、つながる先（列 => [{text, url}]。外部キーの列から）
+     * 値の横に「（名前 #ID）」で出す、つながる先（列 => [{text, url}]。外部キーの列と、外部キーの定義のない列。D-80-04・D-130-01）
      *
      * @return array<string, list<array{text: string, url: string|null}>>
      */
     protected function links(string $table, array $values): array
     {
         $links = [];
-        foreach (DatabaseTables::foreignKeys($table) as $column => $foreignTable) {
-            if (($link = DatabaseTables::link($foreignTable, $values[$column] ?? null)) !== null) {
-                $links[$column] = [$link];
+        foreach (array_keys(DatabaseTables::relationColumns($table)) as $column) {
+            if (($found = DatabaseTables::linksFor($table, $column, $values[$column] ?? null, $values)) !== []) {
+                $links[$column] = $found;
             }
         }
 
@@ -117,20 +117,20 @@ class TableRecordController extends Controller
 
     /**
      * 変更履歴の値の横に出す、つながる先（履歴の id => 列 => [{text, url}]）。
-     * 履歴の列の外部キーに加え、変更前・変更後の値は、変わった項目が元のテーブルの外部キーの列なら、そのつながる先を出す
+     * 履歴の列のつながる先に加え、変更前・変更後の値は、変わった項目が元のテーブルのつながる先を持つ列（外部キー・LOGICAL_KEYS）なら、そのつながる先を出す
      *
      * @return array<int, array<string, list<array{text: string, url: string|null}>>>
      */
     protected function historyLinks(string $table, string $historyTable, iterable $histories): array
     {
-        $foreignKeys = DatabaseTables::foreignKeys($table);
+        $relationColumns = DatabaseTables::relationColumns($table);
         $links = [];
         foreach ($histories as $history) {
             $links[$history->id] = $this->links($historyTable, (array) $history);
-            if (isset($foreignKeys[$history->field])) {
+            if (isset($relationColumns[$history->field])) {
                 foreach (['old_value', 'new_value'] as $column) {
-                    if (($link = DatabaseTables::link($foreignKeys[$history->field], $history->{$column})) !== null) {
-                        $links[$history->id][$column] = [$link];
+                    if (($found = DatabaseTables::linksFor($table, (string) $history->field, $history->{$column}, (array) $history)) !== []) {
+                        $links[$history->id][$column] = $found;
                     }
                 }
             }

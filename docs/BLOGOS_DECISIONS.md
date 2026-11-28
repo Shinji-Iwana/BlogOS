@@ -2015,6 +2015,25 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 直したもの：WordPress の DB の `wp_posts` の `post_status` の説明（trash「ゴミ箱」→「ゴミ箱内」）、取り込んだWordPressのデータ（メディア）と WordPress API情報（メディア）の `status` の説明（inherit「添付先の投稿の状態に従う」→「親に従う（添付先の投稿の状態を使う）」）。
 * コメントの承認の状態（`comment_approved` の trash「ゴミ箱」）は、投稿の状態ではないため変えていない。
 
+### 項目130：DB確認の詳細の、外部キーの定義のない列のつながる先（全画面の見直し。2026-11-28）
+
+「取り込んだWordPressのデータ」の23画面（`/database/wordpress/...`）と、同じ11テーブルを出す「BlogOS の DB のテーブル」の画面（`/database/tables/...`）を並べた確認画面（mock-db-overlap）で、2つは大きな違いはなく重なっているだけだが、細かな違いが多く、そろってもいないことが分かった。一度にはまとめず、1つずつそろえる（利用者の判断）。最初に、BlogOS の DB のテーブルの詳細で、「値 （名前 #ID）」が出ていない列をそろえた。
+
+**D-130-01 DB確認の詳細で、ほかのテーブルの行を指す値は、外部キーの定義がなくても「値 （名前 #ID）」で出す（共通のルール）**
+* BlogOS の DB のテーブルの詳細は、DB の外部キーの列だけに「（名前 #ID）」を出していた（D-80-04）。slug・WordPress の ID・JSON の一覧で指す列は、値だけだった（例：投稿の status「publish」。取り込んだWordPressのデータの詳細では「publish （公開済み #1）」）。
+* 外部キーの定義のない列を `App\Support\DatabaseTables::LOGICAL_KEYS` に書き、外部キーと同じ形で出すようにした：投稿・固定ページ・メディア・カスタム投稿タイプの内容の status・type（投稿ステータス・投稿タイプの定義）、カスタムタクソノミーの項目の taxonomy、投稿タイプの定義の taxonomies・タクソノミーの定義の types（JSON）、編集案の wordpress_category_ids・wordpress_tag_ids（WordPress の ID の JSON）、記事の企画の material_ids・link_post_ids（JSON）、ブログ・WordPressのサイト設定の変更履歴の sync_run_id、sessions の user_id、AIの料金の変更の price_key と、AIの生成・AIの一括処理の model（AIの料金の price_key）。
+* つながる先が blog_id を持つときは、元の行と同じブログの行を探す（slug・WordPress の ID はブログごとに決まるため）。値が一覧なら「・」でつなぐ。つながる先の行がなければ「値（記録にない）」でリンクなし（例：メディアの status「inherit」は、投稿ステータスの定義に行がないため「inherit（記録にない）」）。
+* 変更履歴の変更前・変更後の値も、変わった項目がこれらの列なら、同じ形でつながる先を出す。
+* 対象にしない列：WordPress 側の ID の列（wordpress_author_id など。同じ行に BlogOS の番号の列があり、そちらにつながる先を出している）、change_set_id（同じ変更のまとまりの印で、指す表がない）、定期実行の task_key・設定の key（表ではなく、コードの決まり）。
+* 決まりは BLOGOS_UI 1-1。
+* テスト：tests/Feature/DatabaseTablesTest.php（LOGICAL_KEYS の列とつながる先の列が DB にあり、外部キーと重ならない・投稿の status・type、JSON の一覧と「（記録にない）」、別のブログの同じ slug は使わない）。
+
+**D-130-02 BlogOS の DB のテーブルの画面のパネルの中のリンクは、BlogOS の DB のテーブルの画面の中で移る**
+* 取り込んだWordPressのデータの11テーブルの行へのリンク（詳細の「（名前 #ID）」・一覧の ID・変更履歴のつながる先）は、取り込んだWordPressのデータの画面（`/database/wordpress/…`）へ移っていた（`DatabaseTables::recordUrl`・`listUrl` が、11テーブルだけその画面を返していた。D-80-02 のころの、11テーブルはその画面で見る、という分け方）。確認画面 mock-db-overlap では、両方の画面のリンク先が同じ画面だったため、違いとして出ていなかった（利用者の指摘）。
+* 取り込んだWordPressのデータの画面は、いずれ消し、BlogOS の DB のテーブルの画面だけにする想定のため、BlogOS の DB のテーブルの画面のパネルの中のリンクは、11テーブルの行も、BlogOS の DB のテーブルの画面（`/database/tables/…`）へ移るようにした（利用者の判断）。
+* 変えていないもの：取り込んだWordPressのデータの画面（消す想定のため触らない。利用者の判断）、XServer情報の DB（BlogOS）のテーブルの一覧の11テーブルのリンク（パネルの中のリンクではないため。今も取り込んだWordPressのデータの一覧を開く）、11テーブルの一覧の上の「XServer情報に戻る」を出さないこと（D-97-03）。
+* テスト：tests/Feature/DatabaseTablesTest.php（投稿の一覧・詳細・投稿ステータスの定義の詳細・投稿の変更履歴の詳細に、取り込んだWordPressのデータの画面へのリンクがない）。
+
 
 
 | 事項 | 決める時期 |

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * BlogOS の DB のテーブル（DB確認画面の全テーブルの一覧・詳細。D-80）。
  *
  * テーブルの日本語名・秘密の値の列・変更履歴のテーブルを持ち、列・主キー・外部キーは DB から読む。
- * 取り込んだ WordPress のデータの11テーブルは、その画面（WordPressRecordController）の名前と画面を使う。
+ * 取り込んだ WordPress のデータの11テーブルは、その画面（WordPressRecordController）の名前を使う。画面のパネルの中のリンクは、11テーブルの行も、この画面（BlogOS の DB のテーブルの一覧・詳細）へ移る（D-130-02）。
  * テーブルを足したときは、LABELS に日本語名を足す（ない名前はテーブル名だけで出す）。
  */
 class DatabaseTables
@@ -146,6 +146,29 @@ class DatabaseTables
      * リンクの文字に使う列（先にあるものを使う）
      */
     protected const TEXT_COLUMNS = ['display_name', 'name', 'title', 'title_raw', 'email', 'key', 'task_key', 'price_key', 'migration', 'slug'];
+
+    /**
+     * DB に外部キーの定義はないが、ほかのテーブルの行を指している列（D-130-01）。詳細の値の横に、外部キーと同じ「（名前 #ID）」でつながる先を出す。
+     * テーブル => [列 => [つながる先のテーブル, つながる先の列（主キーでなくてもよい。1行に決まる列）, 値が一覧（JSON）か]]。
+     * つながる先が blog_id を持つときは、元の行と同じブログの行を探す（slug・wordpress_id はブログごとに決まるため）
+     */
+    protected const LOGICAL_KEYS = [
+        'posts'                  => ['status' => ['statuses', 'slug', false], 'type' => ['types', 'slug', false]],
+        'pages'                  => ['status' => ['statuses', 'slug', false], 'type' => ['types', 'slug', false]],
+        'media'                  => ['status' => ['statuses', 'slug', false]],
+        'custom_contents'        => ['status' => ['statuses', 'slug', false], 'type' => ['types', 'slug', false]],
+        'custom_terms'           => ['taxonomy' => ['taxonomies', 'slug', false]],
+        'types'                  => ['taxonomies' => ['taxonomies', 'slug', true]],
+        'taxonomies'             => ['types' => ['types', 'slug', true]],
+        'article_drafts'         => ['wordpress_category_ids' => ['categories', 'wordpress_id', true], 'wordpress_tag_ids' => ['tags', 'wordpress_id', true]],
+        'topic_suggestions'      => ['material_ids' => ['materials', 'id', true], 'link_post_ids' => ['posts', 'id', true]],
+        'blog_histories'         => ['sync_run_id' => ['sync_runs', 'id', false]],
+        'blog_setting_histories' => ['sync_run_id' => ['sync_runs', 'id', false]],
+        'sessions'               => ['user_id' => ['users', 'id', false]],
+        'ai_price_changes'       => ['price_key' => ['ai_prices', 'price_key', false]],
+        'ai_generations'         => ['model' => ['ai_prices', 'price_key', false]],
+        'ai_batches'             => ['model' => ['ai_prices', 'price_key', false]],
+    ];
 
     /** @var array<string, mixed> DB から読んだテーブルの構造を使い回す（構造は migrate のときだけ変わる） */
     protected static array $memo = [];
@@ -300,26 +323,20 @@ class DatabaseTables
     }
 
     /**
-     * 一覧の画面の URL（取り込んだ WordPress のデータの11テーブルは、その画面。絞り込みの条件があれば、こちらの画面で絞る）
+     * 一覧の画面の URL（BlogOS の DB のテーブルの一覧）。
+     * 取り込んだ WordPress のデータの11テーブルも、こちらの画面にする：BlogOS の DB のテーブルの画面のパネルの中のリンクは、
+     * BlogOS の DB のテーブルの画面の中で移る（取り込んだWordPressのデータの画面へは移らない。D-130-02）
      */
     public static function listUrl(string $table, array $query = []): string
     {
-        if (self::isWordPress($table) && $query === []) {
-            return route('database.wordpress-records.index', ['table' => $table]);
-        }
-
         return route('database.tables.index', ['table' => $table] + $query);
     }
 
     /**
-     * レコードの詳細の画面の URL
+     * レコードの詳細の画面の URL（BlogOS の DB のテーブルの詳細。11テーブルも同じ。D-130-02）
      */
     public static function recordUrl(string $table, mixed $id): string
     {
-        if (self::isWordPress($table)) {
-            return route('database.wordpress-records.show', ['table' => $table, 'id' => $id]);
-        }
-
         return route('database.tables.show', ['table' => $table, 'id' => $id]);
     }
 
@@ -339,9 +356,64 @@ class DatabaseTables
             return ['text' => "{$id}（記録にない）", 'url' => null];
         }
 
+        return self::rowLink($table, $row);
+    }
+
+    /**
+     * 行のリンク（「名前 #主キー」。名前などの列がなければ「テーブルの日本語名 #主キー」）
+     *
+     * @return array{text: string, url: string}
+     */
+    protected static function rowLink(string $table, object $row): array
+    {
+        $id = $row->{self::primaryKey($table)};
         $text = collect(self::TEXT_COLUMNS)->map(fn ($column) => $row->{$column} ?? null)->first(fn ($value) => $value !== null && $value !== '');
         $text = $text !== null ? \Illuminate\Support\Str::limit((string) $text, 60) : (self::label($table) ?? $table);
 
         return ['text' => "{$text} #{$id}", 'url' => self::recordUrl($table, $id)];
+    }
+
+    /**
+     * ほかのテーブルの行を指している列（列 => つながる先のテーブル）：外部キーと、外部キーの定義のない列（LOGICAL_KEYS。D-130-01）
+     *
+     * @return array<string, string>
+     */
+    public static function relationColumns(string $table): array
+    {
+        return self::foreignKeys($table) + array_map(fn ($key) => $key[0], self::LOGICAL_KEYS[$table] ?? []);
+    }
+
+    /**
+     * 列の値の、つながる先のリンク（詳細の値の横に「（名前 #ID）」で出す。値が空・空の一覧なら []。行がなければ「値（記録にない）」）。
+     * 外部キーの列も、外部キーの定義のない列（LOGICAL_KEYS）も、同じ形で出す（D-80-04・D-130-01）。
+     * $row は、値を持つ行（つながる先をブログで絞るときの blog_id を読む）
+     *
+     * @return list<array{text: string, url: string|null}>
+     */
+    public static function linksFor(string $table, string $column, mixed $value, array $row = []): array
+    {
+        if (isset(self::foreignKeys($table)[$column])) {
+            return array_values(array_filter([self::link(self::foreignKeys($table)[$column], $value)]));
+        }
+        if (! isset(self::LOGICAL_KEYS[$table][$column])) {
+            return [];
+        }
+
+        [$target, $key, $many] = self::LOGICAL_KEYS[$table][$column];
+        $values = $many ? (array) (json_decode((string) $value, true) ?? []) : [$value];
+        $values = array_values(array_filter($values, fn ($item) => $item !== null && $item !== '' && ! is_array($item)));
+        if ($values === [] || ! self::exists($target)) {
+            return [];
+        }
+
+        $found = DB::table($target)
+            ->when(self::hasColumn($target, 'blog_id') && isset($row['blog_id']), fn ($query) => $query->where('blog_id', $row['blog_id']))
+            ->whereIn($key, $values)
+            ->get()
+            ->keyBy(fn ($found) => (string) $found->{$key});
+
+        return array_map(fn ($item) => ($found->has((string) $item))
+            ? self::rowLink($target, $found->get((string) $item))
+            : ['text' => "{$item}（記録にない）", 'url' => null], $values);
     }
 }
