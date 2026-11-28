@@ -32,7 +32,7 @@ class WordPressDbTest extends TestCase
         DB::statement("create table `{$s}`.`wp_options` (option_id bigint unsigned primary key auto_increment, option_name varchar(191), option_value longtext, autoload varchar(20))");
         DB::statement("create table `{$s}`.`wp_users` (ID bigint unsigned primary key auto_increment, user_login varchar(60), user_pass varchar(255), display_name varchar(250))");
         DB::statement("create table `{$s}`.`wp_usermeta` (umeta_id bigint unsigned primary key auto_increment, user_id bigint unsigned, meta_key varchar(255), meta_value longtext)");
-        DB::statement("create table `{$s}`.`wp_posts` (ID bigint unsigned primary key auto_increment, post_author bigint unsigned, post_title text, post_content longtext, post_password varchar(255), post_type varchar(20), post_parent bigint unsigned, post_date_gmt varchar(19))");
+        DB::statement("create table `{$s}`.`wp_posts` (ID bigint unsigned primary key auto_increment, post_author bigint unsigned, post_title text, post_content longtext, post_password varchar(255), post_status varchar(20), post_type varchar(20), post_parent bigint unsigned, post_date_gmt varchar(19))");
         DB::statement("create table `{$s}`.`wp_postmeta` (meta_id bigint unsigned primary key auto_increment, post_id bigint unsigned, meta_key varchar(255), meta_value longtext)");
         DB::statement("create table `{$s}`.`wp_term_relationships` (object_id bigint unsigned, term_taxonomy_id bigint unsigned, primary key (object_id, term_taxonomy_id))");
         DB::table("{$s}.wp_options")->insert([
@@ -106,7 +106,7 @@ class WordPressDbTest extends TestCase
             ['user_id' => $userId, 'meta_key' => 'session_tokens', 'meta_value' => 'session-secret'],
             ['user_id' => $userId, 'meta_key' => 'nickname', 'meta_value' => 'かんりにん'],
         ]);
-        $postId = DB::table("{$s}.wp_posts")->insertGetId(['post_author' => $userId, 'post_title' => 'はじめての記事', 'post_content' => '<p>本文</p>', 'post_password' => 'yomu-pass', 'post_type' => 'post', 'post_parent' => 0, 'post_date_gmt' => '0000-00-00 00:00:00']);
+        $postId = DB::table("{$s}.wp_posts")->insertGetId(['post_author' => $userId, 'post_title' => 'はじめての記事', 'post_content' => '<p>本文</p>', 'post_password' => 'yomu-pass', 'post_status' => 'publish', 'post_type' => 'post', 'post_parent' => 0, 'post_date_gmt' => '0000-00-00 00:00:00']);
         DB::table("{$s}.wp_posts")->insert(['post_author' => $userId, 'post_title' => 'はじめての記事', 'post_content' => '<p>版</p>', 'post_type' => 'revision', 'post_parent' => $postId]);
         DB::table("{$s}.wp_postmeta")->insert(['post_id' => $postId, 'meta_key' => '_edit_lock', 'meta_value' => '1']);
         $blogosPost = Post::create(['blog_id' => $blog->id, 'wordpress_id' => $postId, 'title_raw' => 'はじめての記事', 'status' => 'publish', 'link' => 'https://blog.example.test/1.html']);
@@ -134,6 +134,8 @@ class WordPressDbTest extends TestCase
             // 上のリンク：「（日本語名）一覧へ」と、BlogOS に取り込んだデータ「BlogOS（名前 #ID）」を「 / 」でつなぐ。DB は黄色の注意（D-129-01〜D-129-04）
             ->assertSee('<p><a href="' . route('database.wordpress-db.index', ['schema' => $s, 'table' => 'wp_posts']) . '">投稿・固定ページ・メディアなど一覧へ</a> / BlogOS（<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $blogosPost->id]) . '">はじめての記事 #' . $blogosPost->id . '</a>）</p>', false)
             ->assertDontSee('BlogOS に取り込んだデータ')
+            // 投稿の状態は、値の横に「（日本語の名前）」（リンクなし。D-129-05）
+            ->assertSeeInOrder(['post_status', '<td>', 'publish', '（公開済み）', 'post_type'], false)
             ->assertSee('<p class="text-warn">DB：' . $s . '（WordPress の DB。読むだけで、書き換えません）</p>', false)
             ->assertDontSee('一覧に戻る')
             ->assertSeeInOrder(['<h2>関連', '投稿・固定ページ・メディアなど（wp_posts）', 'post_parent', '投稿のメタ情報（wp_postmeta）', 'post_id'], false)

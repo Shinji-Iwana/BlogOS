@@ -52,6 +52,10 @@
                             @if (! empty($links[$column]))
                                 （{!! $relationLinks($links[$column]) !!}）
                             @endif
+                            {{-- 決まった値の日本語の名前：つながる先と同じ形の「（名前）」で、リンクはない（投稿の状態。D-129-05） --}}
+                            @if (isset($valueLabels[$column]))
+                                （{{ $valueLabels[$column] }}）
+                            @endif
                         </td>
                     </tr>
                 @endforeach

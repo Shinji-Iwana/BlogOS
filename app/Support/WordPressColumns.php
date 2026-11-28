@@ -73,7 +73,7 @@ class WordPressColumns
             'height'              => '画像の縦の大きさ（ピクセル）。',
             'filesize'            => 'ファイルの大きさ（バイト）。',
             'sizes'               => 'WordPress が作った大きさ違いの画像（サムネイルなど）の一覧（JSON）。',
-            'status'              => 'メディアの状態（inherit：添付先の投稿の状態に従う など）。',
+            'status'              => 'メディアの状態（inherit：親に従う（添付先の投稿の状態を使う） など）。',
             'wordpress_post_id'   => '添付先の投稿・固定ページ（WordPress の ID。0 はどこにも添付していない）。',
             'post_id'             => '添付先の投稿（BlogOS の投稿の番号）。',
             'page_id'             => '添付先の固定ページ（BlogOS の固定ページの番号）。',

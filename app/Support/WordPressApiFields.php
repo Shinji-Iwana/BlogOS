@@ -138,7 +138,7 @@ class WordPressApiFields
             'source_url'                   => 'ファイルそのものの URL。',
             'missing_image_sizes'          => '作れなかった大きさ違いの画像の一覧。',
             'missing_image_sizes.*'        => '作れなかった大きさ違いの画像。',
-            'status'                       => 'メディアの状態（inherit：添付先の投稿の状態に従う など）。',
+            'status'                       => 'メディアの状態（inherit：親に従う（添付先の投稿の状態を使う） など）。',
         ],
         'categories' => [
             'name'        => 'カテゴリの名前。',
