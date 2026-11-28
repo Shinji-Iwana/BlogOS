@@ -46,9 +46,12 @@
                             @else
                                 {{ \App\Support\UrlLink::html($shown) }}
                             @endif
-                            {{-- つながる先：値の横に「（リンク）」で出す。値が空なら出さない --}}
+                            {{-- つながる先：値の横に「（リンク）」で出す。値が空なら出さない。
+                                 つながる先がなく、説明に「値：意味」で書いた決まった値なら、値の横に「（日本語の名前）」を出す（リンクなし。D-133-02） --}}
                             @if (! empty($links[$column]))
                                 （{!! $relationLinks($links[$column]) !!}）
+                            @elseif (($valueLabel = \App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe($table, $column), $value)) !== null)
+                                （{{ $valueLabel }}）
                             @endif
                         </td>
                     </tr>
@@ -113,8 +116,11 @@
                                         @else
                                             {{ \App\Support\UrlLink::html($shown) }}
                                         @endif
+                                        {{-- 決まった値の「（日本語の名前）」（D-133-02）：変更前・変更後は、変わった項目の説明から。そのほかは、履歴の列の説明から --}}
                                         @if (! empty($historyLinks[$history->id][$column]))
                                             （{!! $relationLinks($historyLinks[$history->id][$column]) !!}）
+                                        @elseif (($valueLabel = \App\Support\ValueLabels::label(in_array($column, ['old_value', 'new_value'], true) ? \App\Support\DatabaseColumns::describe($table, (string) $history->field) : \App\Support\DatabaseColumns::describe($historyTable, $column), $value)) !== null)
+                                            （{{ $valueLabel }}）
                                         @endif
                                     </td>
                                 </tr>

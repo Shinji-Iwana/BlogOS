@@ -158,6 +158,47 @@ class DatabaseTablesTest extends TestCase
     }
 
     /**
+     * 説明に「値：意味」で書いた決まった値は、値の横に「（日本語の名前）」を出す（D-133-01・D-133-02）
+     */
+    public function test_fixed_values_show_names_from_descriptions(): void
+    {
+        // 全ての説明で、読み取った名前に別の「値：」が混ざらない（説明を「（値：意味、値：意味）」の形で書いている）
+        $descriptions = [];
+        foreach (DatabaseTables::names() as $table) {
+            foreach (DatabaseTables::columns($table) as $column) {
+                $descriptions["{$table}.{$column['name']}"] = \App\Support\DatabaseColumns::describe($table, $column['name']);
+            }
+        }
+        foreach ((new \ReflectionClassConstant(\App\Support\WordPressDatabaseTables::class, 'COLUMNS'))->getValue() as $core => $columns) {
+            foreach ($columns as $column => $text) {
+                $descriptions["wp_{$core}.{$column}"] = $text;
+            }
+        }
+        foreach ($descriptions as $key => $text) {
+            foreach (\App\Support\ValueLabels::parse($text) as $value => $label) {
+                $this->assertStringNotContainsString('：', $label, "{$key} の {$value}");
+            }
+        }
+
+        // 読み方：括弧の中はそのまま、括弧の外の「。」より後ろは外す、JSON の一覧は「 / 」でつなぐ、説明にない値は出さない
+        $this->assertSame('親に従う（添付先の投稿の状態を使う）', \App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe('media', 'status'), 'inherit'));
+        $this->assertSame('持てる', \App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe('taxonomies', 'hierarchical'), '1'));
+        $this->assertSame('自然検索', \App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe('google_analytics_page_channel_daily', 'channel_group'), 'Organic Search'));
+        $this->assertSame('管理者 / 編集者', \App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe('authors', 'roles'), '["administrator","editor"]'));
+        $this->assertNull(\App\Support\ValueLabels::label(\App\Support\DatabaseColumns::describe('posts', 'comment_status'), 'unknown'));
+
+        // 詳細の画面：つながる先のない列は「値 （日本語の名前）」。つながる先がある列（status）は、名前を重ねない
+        $this->actingAs(User::factory()->create());
+        $blog = Blog::create(['home' => 'https://blog.example.test', 'display_name' => 'Example Blog', 'is_selected' => true]);
+        \App\Models\Status::create(['blog_id' => $blog->id, 'slug' => 'publish', 'name' => '公開済み']);
+        $post = \App\Models\Post::create(['blog_id' => $blog->id, 'wordpress_id' => 1, 'title_raw' => 'はじめての記事', 'status' => 'publish', 'comment_status' => 'open', 'ping_status' => 'closed', 'sticky' => 0, 'link' => 'https://blog.example.test/1.html']);
+        $this->get(route('database.tables.show', ['table' => 'posts', 'id' => $post->id]))->assertOk()
+            ->assertSeeInOrder(['comment_status', 'open', '（受け付ける）', 'ping_status', 'closed', '（受け付けない）'], false)
+            ->assertSeeInOrder(['sticky', '0', '（しない）'], false)
+            ->assertDontSee('（公開済み）');
+    }
+
+    /**
      * BlogOS の DB のテーブルの画面のパネルの中のリンクは、取り込んだ WordPress のデータの11テーブルの行も、BlogOS の DB のテーブルの画面へ移る（D-130-02）
      */
     public function test_links_in_panels_stay_in_blogos_db_pages(): void

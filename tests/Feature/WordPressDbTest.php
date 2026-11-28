@@ -135,7 +135,7 @@ class WordPressDbTest extends TestCase
             ->assertSee('<p><a href="' . route('database.wordpress-db.index', ['schema' => $s, 'table' => 'wp_posts']) . '">投稿・固定ページ・メディアなど一覧へ</a> / BlogOS（<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $blogosPost->id]) . '">はじめての記事 #' . $blogosPost->id . '</a>）</p>', false)
             ->assertDontSee('BlogOS に取り込んだデータ')
             // 投稿の状態は、値の横に「（日本語の名前）」（リンクなし。D-129-05）
-            ->assertSeeInOrder(['post_status', '<td>', 'publish', '（公開済み）', 'post_type'], false)
+            ->assertSeeInOrder(['post_status', '<td>', 'publish', '（公開済み）', 'post_type', '<td>', 'post', '（投稿）'], false)
             ->assertSee('<p class="text-warn">DB：' . $s . '（WordPress の DB。読むだけで、書き換えません）</p>', false)
             ->assertDontSee('一覧に戻る')
             ->assertSeeInOrder(['<h2>関連', '投稿・固定ページ・メディアなど（wp_posts）', 'post_parent', '投稿のメタ情報（wp_postmeta）', 'post_id'], false)

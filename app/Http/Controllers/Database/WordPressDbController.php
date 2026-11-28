@@ -90,7 +90,7 @@ class WordPressDbController extends Controller
             'links'      => $links,
             'references' => $this->references($schema, $table, $values[$key]),
             'blogosLink' => $this->tables->blogosLink($schema, $table, $values),
-            // 値の横の「（日本語の名前）」（投稿の状態。D-129-05）
+            // 値の横の「（日本語の名前）」（説明に「値：意味」で書いた決まった値。D-129-05・D-133-02）
             'valueLabels' => $this->tables->valueLabels($schema, $table, $values),
             'wp'         => $this->tables,
         ]);

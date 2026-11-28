@@ -106,7 +106,7 @@ class WordPressDatabaseTables
             'post_excerpt'          => '抜粋。',
             'post_status'           => '状態（publish：公開済み、draft：下書き、pending：レビュー待ち、future：予約済み、private：非公開、trash：ゴミ箱内、auto-draft：自動下書き、inherit：親に従う（リビジョン・メディア））。',
             'comment_status'        => 'コメントを受け付けるか（open：受け付ける、closed：受け付けない）。',
-            'ping_status'           => 'ピンバック・トラックバックを受け付けるか（open／closed）。',
+            'ping_status'           => 'ピンバック・トラックバックを受け付けるか（open：受け付ける、closed：受け付けない）。',
             'post_password'         => '記事を読むためのパスワード（パスワード保護のとき。空なら保護なし）。',
             'post_name'             => 'スラッグ（URL の一部になる名前。日本語は URL 用の文字（%E3…）で保存する）。',
             'to_ping'               => 'これから送るピンバックの URL（今はほとんど使わない）。',
@@ -117,7 +117,7 @@ class WordPressDatabaseTables
             'post_parent'           => '親（投稿などの ID。固定ページの親、リビジョンの元の記事、メディアを添付した記事。0 は親なし）。',
             'guid'                  => '作ったときに付けた、重ならない印の URL（今の URL とは限らない。変えない）。',
             'menu_order'            => '並び順（固定ページの「順序」など。小さいほど前）。',
-            'post_type'             => '種類（post：投稿、page：固定ページ、attachment：メディア、revision：リビジョン、nav_menu_item：メニューの項目、wp_template：テンプレート など。プラグインの独自の種類もある）。',
+            'post_type'             => '種類（post：投稿、page：固定ページ、attachment：メディア、revision：リビジョン、nav_menu_item：メニューの項目、custom_css：追加 CSS、customize_changeset：カスタマイズの変更、oembed_cache：埋め込みのキャッシュ、user_request：個人データの依頼、wp_block：パターン、wp_template：テンプレート、wp_template_part：テンプレートパーツ、wp_global_styles：グローバルスタイル、wp_navigation：ナビゲーション、wp_font_family：フォントファミリー、wp_font_face：フォントの書体、quads-ads：WP QUADS の広告、jetpack_migration：Jetpack の移行の記録、wpcf7_contact_form：Contact Form 7 のフォーム。プラグインを足すと、独自の種類が増える）。',
             'post_mime_type'        => 'ファイルの形式（メディアのとき。例：image/png）。',
             'comment_count'         => '承認済みのコメントの数。',
         ],
@@ -131,7 +131,7 @@ class WordPressDatabaseTables
             'option_id'    => 'この設定の番号。',
             'option_name'  => '設定の名前（例：siteurl・home・blogname・permalink_structure。プラグインの設定や、一時的な値（_transient_ で始まる）もある）。',
             'option_value' => '設定の値（配列などは PHP の形で保存する）。',
-            'autoload'     => 'ページを開くたびに読み込むか（yes・on・auto-on：読み込む、no・off・auto-off：必要なときだけ読む。WordPress の版で値が違う）。',
+            'autoload'     => 'ページを開くたびに読み込むか（on：読み込む、off：必要なときだけ読む、auto：WordPress が決める（大きな値でなければ読み込む）、auto-on：読み込む（WordPress が決めた）、auto-off：必要なときだけ読む（WordPress が決めた）、yes：読み込む（古い版の値）、no：必要なときだけ読む（古い版の値））。',
         ],
         'users' => [
             'ID'                  => 'WordPress の中での、このユーザーの ID。',
@@ -160,7 +160,7 @@ class WordPressDatabaseTables
         'term_taxonomy' => [
             'term_taxonomy_id' => 'タームと分類の組み合わせの番号（投稿とのつながりは、この番号でつなぐ）。',
             'term_id'          => 'どのタームか（タームの ID）。',
-            'taxonomy'         => '分類（category：カテゴリ、post_tag：タグ、nav_menu：メニュー、wp_theme：テーマ など。プラグインの独自の分類もある）。',
+            'taxonomy'         => '分類（category：カテゴリ、post_tag：タグ、nav_menu：メニュー、link_category：リンクカテゴリー、post_format：投稿フォーマット、wp_theme：テーマ、wp_template_part_area：テンプレートパーツのエリア、wp_pattern_category：パターンのカテゴリー。プラグインを足すと、独自の分類が増える）。',
             'description'      => '説明（管理画面で入力した説明）。',
             'parent'           => '親（タームの ID。0 は親なし）。',
             'count'            => 'このタームが付いている、公開中の投稿などの数。',
@@ -189,7 +189,7 @@ class WordPressDatabaseTables
             'comment_karma'        => '使っていない古い列（いつも 0）。',
             'comment_approved'     => '承認の状態（1：承認済み、0：承認待ち、spam：スパム、trash：ゴミ箱）。',
             'comment_agent'        => '書いた人のブラウザの情報。',
-            'comment_type'         => '種類（comment：コメント、pingback・trackback など）。',
+            'comment_type'         => '種類（comment：コメント、pingback：ピンバック、trackback：トラックバック）。',
             'comment_parent'       => '返信のときの、元のコメント（コメントの ID。0 は返信でない）。',
             'user_id'              => 'ログインしたユーザーが書いたなら、そのユーザー（ユーザーの ID。0 はログインしていない人）。',
         ],
@@ -204,7 +204,7 @@ class WordPressDatabaseTables
             'link_url'         => 'リンク先の URL。',
             'link_name'        => 'リンクの名前。',
             'link_image'       => 'リンクの画像の URL。',
-            'link_target'      => '開き方（_blank：別のタブ など）。',
+            'link_target'      => '開き方（_blank：別のタブ、_top：同じタブ（枠の外）、_none：同じタブ）。',
             'link_description' => '説明。',
             'link_visible'     => '公開するか（Y：公開、N：非公開）。',
             'link_owner'       => '登録したユーザー（ユーザーの ID）。',
@@ -262,7 +262,7 @@ class WordPressDatabaseTables
             'id'         => 'このキャッシュの番号。',
             'key'        => 'キャッシュの名前。',
             'value'      => 'キャッシュの値（AIOSEO のサービスからの応答など。PHP の形で保存する）。名前に key・license などを含むものは出さない。',
-            'is_object'  => '値がオブジェクトか（1：オブジェクト）。',
+            'is_object'  => '値がオブジェクトか（1：オブジェクト、0：オブジェクトでない）。',
             'expiration' => 'キャッシュが切れる日時。',
             'created'    => '作った日時。',
             'updated'    => '最後に変えた日時。',
@@ -307,8 +307,8 @@ class WordPressDatabaseTables
             'button1_action'    => '1つ目のボタンを押したときの動き（URL など）。',
             'button2_label'     => '2つ目のボタンの文字。',
             'button2_action'    => '2つ目のボタンを押したときの動き（URL など）。',
-            'dismissed'         => '閉じたか（1：閉じた）。',
-            'new'               => '新しい通知か（1：まだ見ていない）。',
+            'dismissed'         => '閉じたか（1：閉じた、0：閉じていない）。',
+            'new'               => '新しい通知か（1：まだ見ていない、0：見た）。',
             'created'           => '作った日時。',
             'updated'           => '最後に変えた日時。',
         ],
@@ -325,7 +325,7 @@ class WordPressDatabaseTables
             'og_title'                    => 'SNS（Facebook など）で共有したときのタイトル（Open Graph）。',
             'og_description'              => 'SNS で共有したときの説明（Open Graph）。',
             'og_object_type'              => 'Open Graph の種類（article など。default なら標準の設定）。',
-            'og_image_type'               => 'SNS で共有したときの画像の選び方（default：標準、featured：アイキャッチ、content：本文の最初の画像、custom_image：自分で決めた画像 など）。',
+            'og_image_type'               => 'SNS で共有したときの画像の選び方（default：標準、featured：アイキャッチ、attach：添付した画像、content：本文の最初の画像、author：投稿者の画像、auto：自動（アイキャッチ・添付・本文の順に探す）、custom：カスタムフィールドの画像、custom_image：自分で決めた画像）。',
             'og_image_url'                => 'SNS で共有したときの画像の URL（選び方から決まった画像）。',
             'og_image_width'              => 'その画像の幅（ピクセル）。',
             'og_image_height'             => 'その画像の高さ（ピクセル）。',
@@ -335,7 +335,7 @@ class WordPressDatabaseTables
             'og_custom_url'               => 'SNS で共有したときの URL（空なら、記事の URL）。',
             'og_article_section'          => 'Open Graph の記事の分野。',
             'og_article_tags'             => 'Open Graph の記事のタグ（JSON）。',
-            'twitter_use_og'              => 'X（Twitter）で、Open Graph と同じ内容を使うか（1：使う）。',
+            'twitter_use_og'              => 'X（Twitter）で、Open Graph と同じ内容を使うか（1：使う、0：使わない）。',
             'twitter_card'                => 'X（Twitter）のカードの形（default・summary・summary_large_image など）。',
             'twitter_image_type'          => 'X（Twitter）の画像の選び方（og_image_type と同じ値）。',
             'twitter_image_url'           => 'X（Twitter）の画像の URL。',
@@ -347,9 +347,9 @@ class WordPressDatabaseTables
             'schema'                      => '構造化データ（スキーマ）の設定（JSON）。',
             'schema_type'                 => '構造化データの種類（古い版の設定。今は schema に入る）。',
             'schema_type_options'         => '構造化データの種類ごとの設定（古い版の設定。JSON）。',
-            'pillar_content'              => 'コーナーストーン（柱の記事）か（1：そう）。',
-            'robots_default'              => '検索エンジンへの指示（robots）を、標準の設定にするか（1：標準。0 なら、下の robots_ の値を使う）。',
-            'robots_noindex'              => '検索結果に出さない（noindex）か（1：出さない）。',
+            'pillar_content'              => 'コーナーストーン（柱の記事）か（1：コーナーストーン、0：コーナーストーンでない）。',
+            'robots_default'              => '検索エンジンへの指示（robots）を、標準の設定にするか（1：標準の設定を使う、0：下の robots_ の値を使う）。',
+            'robots_noindex'              => '検索結果に出さない（noindex）か（1：出さない、0：出す）。',
             'robots_noarchive'            => '検索エンジンのキャッシュを残させない（noarchive）か。',
             'robots_nosnippet'            => '検索結果に説明を出させない（nosnippet）か。',
             'robots_nofollow'             => 'ページの中のリンクをたどらせない（nofollow）か。',
@@ -368,7 +368,7 @@ class WordPressDatabaseTables
             'video_scan_date'             => '記事の中の動画を最後に調べた日時。',
             'local_seo'                   => 'ローカル SEO（お店の情報など）の設定（JSON）。',
             'breadcrumb_settings'         => 'パンくずリストの設定（JSON）。',
-            'limit_modified_date'         => '小さな直しで、最終更新日時を変えないようにしたか（1：変えない）。',
+            'limit_modified_date'         => '小さな直しで、最終更新日時を変えないようにしたか（1：変えない、0：変える）。',
             'options'                     => 'そのほかの設定（JSON）。',
             'ai'                          => 'AI の機能で作った値（タイトル・説明の案など。JSON）。',
             'created'                     => '作った日時。',
@@ -411,23 +411,23 @@ class WordPressDatabaseTables
         'ewwwio_images' => [
             'id'             => 'この画像の番号。',
             'attachment_id'  => 'どのメディアの画像か（投稿などの ID。メディアでない画像なら空）。',
-            'gallery'        => '画像の置き場所の種類（media：メディアライブラリ など。空ならメディアライブラリの外）。',
-            'resize'         => '画像の大きさの種類（full：元の大きさ、thumbnail・medium・large など）。',
+            'gallery'        => '画像の置き場所の種類（media：メディアライブラリ、nextgen：NextGEN Gallery、flag：FlAGallery、空：メディアライブラリの外（テーマ・プラグインのフォルダなど））。',
+            'resize'         => '画像の大きさの種類（full：元の大きさ、thumbnail：サムネイル、medium：中サイズ、medium_large：中大サイズ、large：大サイズ、1536x1536：中大サイズの2倍、2048x2048：大サイズの2倍、st_thumb100：テーマの小さなサムネイル（100px）、空：大きさの種類なし。テーマ・プラグインを足すと、種類が増える）。',
             'path'           => '画像のファイルの場所（サーバーの中のパス。ABSPATH などの印で短くしている）。',
             'converted'      => '別の形式に変えたときの、元のファイルの場所（例：PNG から JPG）。',
             'image_size'     => '最適化した後の大きさ（バイト）。',
             'orig_size'      => '最適化する前の大きさ（バイト）。',
             'backup'         => 'バックアップの印（クラウドに元の画像を残したとき）。',
             'level'          => '最適化の強さ（圧縮の段階）。',
-            'pending'        => '最適化の待ちか（1：待ち）。',
+            'pending'        => '最適化の待ちか（1：待ち、0：待ちでない）。',
             'updates'        => '最適化し直した回数。',
             'updated'        => '最後に最適化した日時。',
             'retrieve'       => 'クラウドで最適化した画像を受け取る印（受け取ったら空）。',
             'resized_width'  => '縮めた後の幅（ピクセル。縮めていなければ 0）。',
             'resized_height' => '縮めた後の高さ（ピクセル。縮めていなければ 0）。',
-            'resize_error'   => '縮めるときのエラーの印（0：なし）。',
+            'resize_error'   => '縮めるときのエラーの印（0：なし、1 以上：エラーあり）。',
             'webp_size'      => 'WebP にした画像の大きさ（バイト。作っていなければ 0）。',
-            'webp_error'     => 'WebP にするときのエラーの印（0：なし）。',
+            'webp_error'     => 'WebP にするときのエラーの印（0：なし、1 以上：エラーあり）。',
         ],
         'ewwwio_pages' => [
             'id'   => 'この行の番号。',
@@ -437,13 +437,13 @@ class WordPressDatabaseTables
         'ewwwio_queue' => [
             'id'            => 'この行の番号。',
             'attachment_id' => '最適化を待っているメディア（投稿などの ID）。',
-            'gallery'       => '画像の置き場所の種類（media：メディアライブラリ など）。',
-            'scanned'       => '最適化が要るかを調べ終えたか（1：調べた）。',
-            'new'           => '新しくアップロードした画像か（1：新しい）。',
-            'convert_once'  => '1回だけ別の形式に変えるか（1：変える）。',
-            'force_reopt'   => '最適化済みでも、もう一度最適化するか（1：する）。',
-            'force_smart'   => '圧縮の強さを自動で決め直すか（1：決め直す）。',
-            'webp_only'     => 'WebP だけを作るか（1：WebP だけ）。',
+            'gallery'       => '画像の置き場所の種類（media：メディアライブラリ、nextgen：NextGEN Gallery、flag：FlAGallery）。',
+            'scanned'       => '最適化が要るかを調べ終えたか（1：調べた、0：まだ調べていない）。',
+            'new'           => '新しくアップロードした画像か（1：新しい、0：新しくない）。',
+            'convert_once'  => '1回だけ別の形式に変えるか（1：変える、0：変えない）。',
+            'force_reopt'   => '最適化済みでも、もう一度最適化するか（1：する、0：しない）。',
+            'force_smart'   => '圧縮の強さを自動で決め直すか（1：決め直す、0：決め直さない）。',
+            'webp_only'     => 'WebP だけを作るか（1：WebP だけ、0：WebP 以外も）。',
         ],
         'quads_adbuy_data' => [
             'id'               => 'この行の番号。',
@@ -736,16 +736,18 @@ class WordPressDatabaseTables
     }
 
     /**
-     * 値の横に「（日本語の名前）」で出す、決まった値の日本語の名前（[列 => 名前]。リンクはない。D-129-05）。
-     * 投稿の状態（posts の post_status）だけ。名前は記事の画面と同じ（PostStatus。WordPress の名前。D-119-01）。知らない値は出さない
+     * 値の横に「（日本語の名前）」で出す、決まった値の日本語の名前（[列 => 名前]。リンクはない。D-129-05・D-133-02）。
+     * 列の説明（「?」）に「値：意味」で書いた値なら、その意味を名前にする（ValueLabels）。説明にない値は出さない
      *
      * @return array<string, string>
      */
     public function valueLabels(string $schema, string $table, array $row): array
     {
         $labels = [];
-        if ($this->coreName($schema, $table) === 'posts' && isset(PostStatus::LABELS[$row['post_status'] ?? ''])) {
-            $labels['post_status'] = PostStatus::LABELS[$row['post_status']];
+        foreach ($row as $column => $value) {
+            if (($label = ValueLabels::label($this->describe($schema, $table, (string) $column), $value)) !== null) {
+                $labels[$column] = $label;
+            }
         }
 
         return $labels;

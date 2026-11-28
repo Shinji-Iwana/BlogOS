@@ -49,11 +49,10 @@
                                 {{ \App\Support\UrlLink::html($shown) }}
                             @endif
                             {{-- つながる先：値の横に「（リンク）」で出す。値が空・0 なら出さない --}}
+                            {{-- つながる先がなく、説明に「値：意味」で書いた決まった値なら、値の横に「（日本語の名前）」を出す（リンクなし。D-129-05・D-133-02） --}}
                             @if (! empty($links[$column]))
                                 （{!! $relationLinks($links[$column]) !!}）
-                            @endif
-                            {{-- 決まった値の日本語の名前：つながる先と同じ形の「（名前）」で、リンクはない（投稿の状態。D-129-05） --}}
-                            @if (isset($valueLabels[$column]))
+                            @elseif (isset($valueLabels[$column]))
                                 （{{ $valueLabels[$column] }}）
                             @endif
                         </td>
