@@ -13,7 +13,7 @@
 
     <p>
         <a href="{{ route('launches.index') }}">カテゴリの立ち上げ（新しいカテゴリを作る）</a>
-        ・<a href="{{ route('database.wordpress-records.index', ['table' => 'categories']) }}">DBの値と変更履歴</a>
+        / <a href="{{ route('database.wordpress-records.index', ['table' => 'categories']) }}">DBの値と変更履歴</a>
     </p>
 
     @include('partials.flash')

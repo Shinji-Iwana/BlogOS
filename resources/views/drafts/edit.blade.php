@@ -13,11 +13,11 @@
     <p>
         <a href="{{ route('drafts.index') }}">編集案一覧</a>
         @if ($article)
-            ・対象：<a href="{{ route('articles.show', ['type' => $draft->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw ?: '（タイトルなし）' }}</a>
+            / 対象：<a href="{{ route('articles.show', ['type' => $draft->post_id ? 'posts' : 'pages', 'id' => $article->id]) }}">{{ $article->title_raw ?: '（タイトルなし）' }}</a>
         @else
-            ・新規の{{ $draft->target_type->label() }}
+            / 新規の{{ $draft->target_type->label() }}
         @endif
-        ・<a href="{{ route('drafts.preview', ['id' => $draft->id]) }}" target="_blank"><strong>プレビュー（変更前と比較）</strong></a>
+        / <a href="{{ route('drafts.preview', ['id' => $draft->id]) }}" target="_blank"><strong>プレビュー（変更前と比較）</strong></a>
     </p>
 
     @include('partials.flash')
@@ -36,12 +36,12 @@
         作成元：{{ $draft->origin->label() }}
         @if ($draft->ai_generation_id)
             （<a href="{{ route('ai.generations.show', ['id' => $draft->ai_generation_id]) }}">AI実行記録 #{{ $draft->ai_generation_id }}</a>
-            ・人の修正：{{ $draft->human_edited ? 'あり' : 'なし' }}{{ $draft->edit_ratio !== null && $draft->human_edited ? '（修正の量 ' . round($draft->edit_ratio * 100) . '%）' : '' }}）
+            / 人の修正：{{ $draft->human_edited ? 'あり' : 'なし' }}{{ $draft->edit_ratio !== null && $draft->human_edited ? '（修正の量 ' . round($draft->edit_ratio * 100) . '%）' : '' }}）
         @endif
         @if ($editable)
-            ・<a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => 'drafts:' . $draft->id]) }}">AIで品質診断する</a>
-            ・<a href="{{ route('evaluations.create', ['target' => 'drafts:' . $draft->id]) }}">人が評価する</a>
-            ・<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">AIで改修案を作る</a>
+            / <a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => 'drafts:' . $draft->id]) }}">AIで品質診断する</a>
+            / <a href="{{ route('evaluations.create', ['target' => 'drafts:' . $draft->id]) }}">人が評価する</a>
+            / <a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => 'drafts:' . $draft->id]) }}">AIで改修案を作る</a>
         @endif
     </p>
     @if ($evaluations->isNotEmpty() || $articleEvaluation)
@@ -53,7 +53,7 @@
             @if ($evaluations->isNotEmpty())
                 この編集案の評価：
                 @foreach ($evaluations as $evaluation)
-                    <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">#{{ $evaluation->id }} {{ $evaluation->evaluator_type->label() }} {{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}{{ $evaluation->is_confirmed ? '（確定）' : '' }}</a>@if (! $loop->last)・@endif
+                    <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">#{{ $evaluation->id }} {{ $evaluation->evaluator_type->label() }} {{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}{{ $evaluation->is_confirmed ? '（確定）' : '' }}</a>@if (! $loop->last) / @endif
                 @endforeach
             @endif
         </p>
@@ -108,8 +108,8 @@
             </div>
         @endif
         <p>
-            解消 {{ $revisionFindings->where('check_status', 'resolved')->count() }}件・一部解消 {{ $revisionFindings->where('check_status', 'partial')->count() }}件・未解消 {{ $revisionFindings->where('check_status', 'unresolved')->count() }}件
-            ・未確認 {{ $revisionFindings->whereNull('check_status')->count() }}件（全 {{ $revisionFindings->count() }}件）
+            解消 {{ $revisionFindings->where('check_status', 'resolved')->count() }}件 / 一部解消 {{ $revisionFindings->where('check_status', 'partial')->count() }}件 / 未解消 {{ $revisionFindings->where('check_status', 'unresolved')->count() }}件
+            / 未確認 {{ $revisionFindings->whereNull('check_status')->count() }}件（全 {{ $revisionFindings->count() }}件）
         </p>
         @php $findingPage = \App\Support\ListPage::of($revisionFindings, 'finding_page')->fragment('findings'); @endphp
         <a id="findings"></a>

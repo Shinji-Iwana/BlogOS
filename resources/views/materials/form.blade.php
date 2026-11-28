@@ -18,7 +18,7 @@
     <p>
         <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
         @unless ($isNew)
-            ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
+            / <a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>
         @endunless
     </p>
 

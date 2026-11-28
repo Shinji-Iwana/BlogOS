@@ -6,6 +6,6 @@
 
 @foreach ($linkGroups as $group)
     <p>
-        {{ $group['label'] }}：@foreach ($group['links'] as $link)@if (! $loop->first)・@endif<a href="{{ $link['url'] }}">{{ $link['label'] }}</a>@endforeach
+        {{ $group['label'] }}：@foreach ($group['links'] as $link)@if (! $loop->first) / @endif<a href="{{ $link['url'] }}">{{ $link['label'] }}</a>@endforeach
     </p>
 @endforeach

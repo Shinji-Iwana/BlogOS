@@ -102,7 +102,7 @@ class ArticleScreensTest extends TestCase
         $this->get(route('articles.show', ['type' => 'posts', 'id' => $post->id]))->assertOk()
             ->assertSee('<img src="https://blog.example.test/wp-content/uploads/dom.png" alt="DOM の木構造"', false)
             ->assertSee('<a href="' . route('database.wordpress-records.show', ['table' => 'media', 'id' => $media->id]) . '">DOM の図</a>', false)
-            ->assertSee('800×450・image/png')
+            ->assertSee('800×450 / image/png')
             ->assertSee('メディアの代替テキスト：DOM の木構造')
             ->assertSeeInOrder(['banner.gif', 'メディアが見つかりません（外部の画像など）']);
     }

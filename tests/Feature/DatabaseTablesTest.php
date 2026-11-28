@@ -74,9 +74,9 @@ class DatabaseTablesTest extends TestCase
         $this->get(route('database.tables.index', ['table' => 'sync_run_resources', 'column' => 'sync_run_id', 'value' => $old]))->assertOk()
             ->assertSee('sync_run_id が ' . $old . ' の行');
 
-        // XServer情報の DB の一覧から開くテーブルだけ「XServer情報に戻る」を出す。取り込んだ WordPress のデータのテーブル（投稿など）は出さない（D-97-03）
-        $this->get(route('database.tables.index', ['table' => 'sync_runs']))->assertSee('XServer情報に戻る');
-        $this->get(route('database.tables.index', ['table' => 'posts', 'column' => 'id', 'value' => 1]))->assertOk()->assertDontSee('XServer情報に戻る');
+        // どのテーブルの一覧も XServer情報の DB の一覧から開くため「XServer情報へ」を出す（D-131-02）。取り込んだ WordPress のデータのテーブル（投稿など）も同じ（D-97-03・D-131-01）
+        $this->get(route('database.tables.index', ['table' => 'sync_runs']))->assertSee('<p><a href="' . route('server.index') . '">XServer情報へ</a></p>', false)->assertDontSee('XServer情報に戻る');
+        $this->get(route('database.tables.index', ['table' => 'posts', 'column' => 'id', 'value' => 1]))->assertOk()->assertSee('XServer情報へ');
 
         // 存在しないテーブル・行は 404
         $this->get(route('database.tables.index', ['table' => 'no_such_table']))->assertNotFound();
@@ -150,9 +150,9 @@ class DatabaseTablesTest extends TestCase
             ->assertSee('（' . $link('statuses', $status->id, '公開済み') . '）', false)
             ->assertSee('（' . $link('types', $type->id, '投稿') . '）', false)
             ->assertDontSee('別のブログ #');
-        // 値が一覧（JSON）の列は、1つずつ「・」でつなぐ。ない値は「値（記録にない）」（リンクなし）
+        // 値が一覧（JSON）の列は、1つずつ「 / 」でつなぐ（D-132-02）。ない値は「値（記録にない）」（リンクなし）
         $this->get(route('database.tables.show', ['table' => 'types', 'id' => $type->id]))->assertOk()
-            ->assertSee('（' . $link('taxonomies', $taxonomy->id, 'カテゴリー') . '・unknown_tax（記録にない））', false);
+            ->assertSee('（' . $link('taxonomies', $taxonomy->id, 'カテゴリー') . ' / unknown_tax（記録にない））', false);
         $this->get(route('database.tables.show', ['table' => 'taxonomies', 'id' => $taxonomy->id]))->assertOk()
             ->assertSee('（' . $link('types', $type->id, '投稿') . '）', false);
     }
@@ -176,9 +176,14 @@ class DatabaseTablesTest extends TestCase
         ];
         foreach ($pages as $html) {
             // 取り込んだ WordPress のデータの画面（/database/wordpress/…）へのリンクがない
-            $this->assertStringNotContainsString('href="' . url('/database/wordpress/'), $html);
+            $this->assertStringNotContainsString('href="' . url('/database/wordpress') . '/', $html);
         }
         $this->assertStringContainsString('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $post->id]) . '">' . $post->id . '</a>', $pages[0]);
+        // URL は /database/blogos-db/…（D-132-01）。詳細の上のリンクは「（テーブルの日本語名）一覧へ」（D-132-03）
+        $this->assertSame(url('/database/blogos-db/posts/' . $post->id), route('database.tables.show', ['table' => 'posts', 'id' => $post->id]));
+        $this->assertSame(url('/database/blogos-db/posts'), route('database.tables.index', ['table' => 'posts']));
+        $this->assertStringContainsString('<p><a href="' . route('database.tables.index', ['table' => 'posts']) . '">投稿一覧へ</a></p>', $pages[1]);
+        $this->assertStringNotContainsString('一覧に戻る', $pages[1]);
         $this->assertStringContainsString('（<a href="' . route('database.tables.show', ['table' => 'statuses', 'id' => $status->id]) . '">公開済み #' . $status->id . '</a>）', $pages[1]);
         $this->assertStringContainsString('<a href="' . route('database.tables.show', ['table' => 'posts', 'id' => $post->id]) . '">はじめての記事 #' . $post->id . '</a>', $pages[3]);
     }
@@ -221,10 +226,9 @@ class DatabaseTablesTest extends TestCase
             ->assertSee('<a href="' . route('database.tables.index', ['table' => 'sync_runs']) . '">WordPressとの同期の記録</a>（sync_runs）', false)
             ->getContent();
 
-        // 全てのテーブルの一覧に、XServer情報から行ける（D-110-01）。取り込んだ WordPress のデータの11テーブルは、XServer情報からは、これまでどおりその画面の一覧を開く
-        // （BlogOS の DB のテーブルの画面のパネルの中のリンクだけを、BlogOS の DB のテーブルの画面に向けた。D-130-02）
-        $listUrl = fn (string $table) => DatabaseTables::isWordPress($table) ? route('database.wordpress-records.index', ['table' => $table]) : DatabaseTables::listUrl($table);
-        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => ! str_contains($html, 'href="' . e($listUrl($table)) . '"')));
+        // 全てのテーブルの一覧に、XServer情報から行ける（D-110-01）。取り込んだ WordPress のデータの11テーブルも、BlogOS の DB のテーブルの一覧を開く（D-131-01）
+        $missing = array_values(array_filter(DatabaseTables::names(), fn ($table) => ! str_contains($html, 'href="' . e(DatabaseTables::listUrl($table)) . '"')));
+        $this->assertStringNotContainsString('href="' . url('/database/wordpress') . '/', $html);
         $this->assertSame([], $missing, 'XServer情報の DB の一覧から行けないテーブルがあります。');
     }
 

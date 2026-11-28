@@ -11,7 +11,7 @@
 
     <p>
         <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
-        ・<a href="{{ route('ai.credits.index') }}">AIの費用と残高</a>
+        / <a href="{{ route('ai.credits.index') }}">AIの費用と残高</a>
     </p>
 
     @include('partials.flash')
@@ -85,7 +85,7 @@
             <tbody>
                 @forelse ($targets as $row)
                     <tr>
-                        <td>{{ $row['reason']->label() }}@if (! empty($row['priority_notes']))<br><span class="text-error" style="font-size:90%;">優先：{{ implode('・', $row['priority_notes']) }}</span>@endif</td>
+                        <td>{{ $row['reason']->label() }}@if (! empty($row['priority_notes']))<br><span class="text-error" style="font-size:90%;">優先：{{ implode(' / ', $row['priority_notes']) }}</span>@endif</td>
                         <td><a href="{{ route('articles.show', ['type' => $row['article'] instanceof \App\Models\Post ? 'posts' : 'pages', 'id' => $row['article']->id]) }}">{{ $row['article']->title_raw }}</a></td>
                         <td>{{ $row['evaluation']?->score !== null ? number_format($row['evaluation']->score, 1) . '点' : '-' }}</td>
                         <td>{{ $row['evaluation'] ? \App\Support\DisplayTime::format($row['evaluation']->created_at) : '-' }}</td>

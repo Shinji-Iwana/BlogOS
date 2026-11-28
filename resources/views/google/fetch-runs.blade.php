@@ -11,7 +11,7 @@
     <h1>Googleとの同期履歴 @include('partials.tip', ['tip' => "選択中のブログの、Google（GA4・Search Console・AdSense）からデータを取得した記録と、保存しているデータの行数です。"])</h1>
 
 
-    @include('partials.history-last', ['label' => '最後の取得', 'at' => $latest?->started_at, 'result' => $latest ? $latest->service->label() . '・' . $latest->status->label() : null])
+    @include('partials.history-last', ['label' => '最後の取得', 'at' => $latest?->started_at, 'result' => $latest ? $latest->service->label() . ' / ' . $latest->status->label() : null])
 
     @include('partials.flash')
 

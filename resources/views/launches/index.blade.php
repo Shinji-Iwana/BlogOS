@@ -24,7 +24,7 @@
     @else
         <ul>
             @foreach ($launches as $launch)
-                <li><a href="{{ route('launches.show', ['id' => $launch->id]) }}">{{ $launch->parentCategory?->name }}</a>（子カテゴリ {{ $launch->children->count() }}件・{{ \App\Models\CategoryLaunch::STATUSES[$launch->status] ?? $launch->status }}・{{ \App\Support\DisplayTime::format($launch->created_at, 'Y-m-d') }}）</li>
+                <li><a href="{{ route('launches.show', ['id' => $launch->id]) }}">{{ $launch->parentCategory?->name }}</a>（子カテゴリ {{ $launch->children->count() }}件 / {{ \App\Models\CategoryLaunch::STATUSES[$launch->status] ?? $launch->status }} / {{ \App\Support\DisplayTime::format($launch->created_at, 'Y-m-d') }}）</li>
             @endforeach
         </ul>
     @endif

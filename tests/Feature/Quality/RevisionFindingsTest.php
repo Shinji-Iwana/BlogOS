@@ -80,7 +80,7 @@ class RevisionFindingsTest extends TestCase
         $this->assertNotNull(RevisionFinding::where('number', 1)->value('check_evaluation_id'));
 
         $this->get(route('drafts.edit', ['id' => $draft->id]))->assertOk()
-            ->assertSee('指摘と対応')->assertSee('解消 1件・一部解消 1件・未解消 0件')
+            ->assertSee('指摘と対応')->assertSee('解消 1件 / 一部解消 1件 / 未解消 0件')
             ->assertSee('見出し「書き方」に実行結果を加えた')->assertSee('できることは入ったが、違いが弱い')
             ->assertSee(number_format($before->score, 1) . '点')
             // 観点を行に、改修前・改修後の適合度をバーと割合で出し、列の見出しに点数（評価の画面へのリンク）を出す（D-47-06）

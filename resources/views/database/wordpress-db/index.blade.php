@@ -19,7 +19,7 @@
     @if ($filterColumn !== null)
         <p>
             {{ $filterColumn }} が {{ $filterValue }} の行
-            ・<a href="{{ route('database.wordpress-db.index', ['schema' => $schema, 'table' => $table]) }}">解除する</a>
+            / <a href="{{ route('database.wordpress-db.index', ['schema' => $schema, 'table' => $table]) }}">解除する</a>
         </p>
     @endif
     @if ($searchColumns !== [])
@@ -28,7 +28,7 @@
                 <input type="hidden" name="column" value="{{ $filterColumn }}">
                 <input type="hidden" name="value" value="{{ $filterValue }}">
             @endif
-            <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode('・', $searchColumns) }}で絞り込み">
+            <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode(' / ', $searchColumns) }}で絞り込み">
             <button class="btn-secondary" type="submit">絞り込む</button>
         </form>
     @else

@@ -19,7 +19,7 @@
 
     <p>
         <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
-        ・<a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
+        / <a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
     </p>
 
     @include('partials.flash')
@@ -27,7 +27,7 @@
     <table class="data">
         <tr><th>きっかけ</th><td>{{ $batch->trigger->label() }}{{ $batch->requester ? '（' . $batch->requester->name . '）' : '' }}</td></tr>
         <tr><th>対象</th><td>{{ $batch->target->label() }}@if (isset($batch->target_parameters['below_score']))（{{ $batch->target_parameters['below_score'] }}点未満）@endif @if (isset($batch->target_parameters['revision_scope']))・改修範囲 {{ \App\Services\Ai\AutoReevaluationService::scopeOptions()[$batch->target_parameters['revision_scope']] ?? $batch->target_parameters['revision_scope'] }}@endif</td></tr>
-        <tr><th>モデル・推論の深さ</th><td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td></tr>
+        <tr><th>モデル・推論の深さ</th><td>{{ $batch->model }} / {{ $batch->reasoning_effort }}</td></tr>
         @if ($batch->parent)
             <tr><th>{{ $batch->parent->purpose === \App\Enums\AiMode::Revision ? '前の回の改修' : '元の品質診断' }}</th><td><a href="{{ route('ai.batches.show', ['id' => $batch->parent->id]) }}">まとめて実行 #{{ $batch->parent->id }}</a></td></tr>
         @endif
@@ -36,16 +36,16 @@
             <tr><th>基準を満たすまでの繰り返し</th><td>
                 {{ $batch->target_parameters['round'] ?? 1 }}回目（最大{{ $batch->target_parameters['max_rounds'] }}回。点数が上がらなかった記事は止める）
                 @foreach ($batch->children as $child)
-                    →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">次の回：まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件・{{ $child->status->label() }}）</a>
+                    →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">次の回：まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件 / {{ $child->status->label() }}）</a>
                 @endforeach
             </td></tr>
         @endif
         @if (isset($batch->follow_up['revision']))
             <tr><th>診断の後の編集案の作成</th><td>
-                {{ $batch->follow_up['revision']['below_score'] }}点未満、または必須条件を満たさない記事を、{{ $batch->follow_up['revision']['model'] }}・{{ $batch->follow_up['revision']['effort'] }} で改修する
+                {{ $batch->follow_up['revision']['below_score'] }}点未満、または必須条件を満たさない記事を、{{ $batch->follow_up['revision']['model'] }} / {{ $batch->follow_up['revision']['effort'] }} で改修する
                 @if (($batch->follow_up['revision']['max_rounds'] ?? 1) > 1)（基準を満たすまで、最大{{ $batch->follow_up['revision']['max_rounds'] }}回）@endif
                 @forelse ($batch->children as $child)
-                    →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件・{{ $child->status->label() }}）</a>
+                    →<a href="{{ route('ai.batches.show', ['id' => $child->id]) }}">まとめて実行 #{{ $child->id }}（{{ $child->total_count }}件 / {{ $child->status->label() }}）</a>
                 @empty
                     @if ($batch->status === \App\Enums\AiBatchStatus::Completed)（対象の記事はありませんでした）@elseif ($batch->status === \App\Enums\AiBatchStatus::Running)（全ての記事の診断が終わったら登録します）@else（診断が途中で止まったため、作りません）@endif
                 @endforelse
@@ -103,16 +103,16 @@
                             @if ($item->generation)
                                 <a href="{{ route('ai.generations.show', ['id' => $item->generation->id]) }}">AI実行記録 #{{ $item->generation->id }}</a>
                                 @foreach ($item->generation->evaluations as $evaluation)
-                                    ・<a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '評価' }}</a>
+                                    / <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '評価' }}</a>
                                 @endforeach
                                 @foreach ($item->generation->createdDrafts as $draft)
-                                    ・<a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
+                                    / <a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
                                 @endforeach
                                 @if ($batch->purpose === \App\Enums\AiMode::ManagementSuggestion && $item->status === \App\Enums\AiBatchItemStatus::Succeeded)
-                                    ・<a href="{{ route('management-suggestions.index') }}">案を確認する</a>
+                                    / <a href="{{ route('management-suggestions.index') }}">案を確認する</a>
                                 @endif
                                 @if ($batch->purpose === \App\Enums\AiMode::MaterialReview && $item->status === \App\Enums\AiBatchItemStatus::Succeeded)
-                                    ・<a href="{{ route('materials.reviews.index') }}">結果を確認する</a>
+                                    / <a href="{{ route('materials.reviews.index') }}">結果を確認する</a>
                                 @endif
                             @else - @endif
                         </td>

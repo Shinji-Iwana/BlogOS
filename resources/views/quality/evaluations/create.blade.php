@@ -23,8 +23,8 @@
 
     <p>
         品質基準：共通基準 {{ $standard->commonVersion }}{{ $standard->profile ? '、' . $standard->profile . ' ' . $standard->profileVersion : '' }}
-        ・記事種類：{{ $standard->articleTypes[$articleType] ?? ($articleType ?: '未設定（記事の管理情報で設定すると、記事種類ごとの対象外が反映されます）') }}
-        @if ($base) ・<strong>AIの評価を初期値にしています。</strong>「要人間確認」の項目を判定してください。@endif
+        / 記事種類：{{ $standard->articleTypes[$articleType] ?? ($articleType ?: '未設定（記事の管理情報で設定すると、記事種類ごとの対象外が反映されます）') }}
+        @if ($base) / <strong>AIの評価を初期値にしています。</strong>「要人間確認」の項目を判定してください。@endif
     </p>
 
     @php

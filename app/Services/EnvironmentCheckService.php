@@ -168,7 +168,7 @@ class EnvironmentCheckService
         $severities = array_count_values(array_map(fn ($a) => $a['severity'] ?: '不明', $advisories));
 
         return $this->row($label, null, EnvironmentCheck::SECURITY,
-            '脆弱性が ' . count($advisories) . '件 あります（危険度：' . implode('・', array_map(fn ($s, $n) => "{$s} {$n}件", array_keys($severities), $severities)) . '）。'
+            '脆弱性が ' . count($advisories) . '件 あります（危険度：' . implode(' / ', array_map(fn ($s, $n) => "{$s} {$n}件", array_keys($severities), $severities)) . '）。'
             . '手元で composer update をして、テストを通してから反映してください（反映の後に、本番で composer install --no-dev）。',
             null, null, ['advisories' => $advisories]);
     }

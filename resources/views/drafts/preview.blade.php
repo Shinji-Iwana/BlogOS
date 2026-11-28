@@ -18,7 +18,7 @@
 
     <p>
         <a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案に戻る</a>
-        ・表示：
+        / 表示：
         @foreach (['pc' => 'PC', 'mobile' => 'スマホ'] as $value => $label)
             @if ($device === $value)
                 <strong>{{ $label }}</strong>
@@ -26,7 +26,7 @@
                 <a href="{{ route('drafts.preview', ['id' => $draft->id, 'device' => $value]) }}">{{ $label }}</a>
             @endif
         @endforeach
-        ・<label><input type="checkbox" id="sync-scroll" checked> 左右のスクロールを連動する</label>
+        / <label><input type="checkbox" id="sync-scroll" checked> 左右のスクロールを連動する</label>
     </p>
 
     <p class="text-muted">

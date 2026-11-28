@@ -10,10 +10,10 @@
 
     <p>
         <a href="{{ route('ai.batches.create', ['mode' => 'quality_diagnosis']) }}">品質診断をまとめて実行する</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'revision']) }}">記事改修をまとめて実行する</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
-        ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
-        ・<a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
+        / <a href="{{ route('ai.batches.create', ['mode' => 'revision']) }}">記事改修をまとめて実行する</a>
+        / <a href="{{ route('ai.batches.create', ['mode' => 'management_suggestion']) }}">管理情報の案をまとめて作る</a>
+        / <a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
+        / <a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
     </p>
 
     @include('partials.flash')
@@ -30,7 +30,7 @@
                         <td>{{ $batch->purpose->label() }}</td>
                         <td>{{ $batch->trigger->label() }}</td>
                         <td>{{ $batch->target->label() }}</td>
-                        <td>{{ $batch->model }}・{{ $batch->reasoning_effort }}</td>
+                        <td>{{ $batch->model }} / {{ $batch->reasoning_effort }}</td>
                         <td>{{ $batch->status->label() }}</td>
                         <td>{{ $finished }} / {{ $batch->total_count }}（失敗 {{ $progress['counts']['failed'] ?? 0 }}）</td>
                         <td>${{ number_format($progress['cost'], 4) }}</td>

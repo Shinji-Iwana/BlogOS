@@ -123,7 +123,7 @@ class AiCreditTest extends TestCase
         preg_match('/<h2>処理ごとの内訳<\/h2>.*?<\/table>/s', $html, $table);
 
         // 費用の多い順。処理・きっかけ・回数・トークン・費用・1回あたり・割合
-        $this->assertMatchesRegularExpression('/記事改修<\/td>\s*<td>人が実行<\/td>\s*<td>gpt-6-luna<\/td>.*?品質診断<\/td>\s*<td>自動（定期実行など）<\/td>\s*<td>gpt-6-luna<\/td>.*?音声の操作（方式A）<\/td>\s*<td>人が実行（声）<\/td>\s*<td>gpt-transcribe・gpt-6-luna・gpt-4o-mini-tts<\/td>/s', $table[0]);
+        $this->assertMatchesRegularExpression('/記事改修<\/td>\s*<td>人が実行<\/td>\s*<td>gpt-6-luna<\/td>.*?品質診断<\/td>\s*<td>自動（定期実行など）<\/td>\s*<td>gpt-6-luna<\/td>.*?音声の操作（方式A）<\/td>\s*<td>人が実行（声）<\/td>\s*<td>gpt-transcribe \/ gpt-6-luna \/ gpt-4o-mini-tts<\/td>/s', $table[0]);
         $this->assertStringContainsString('>5,000</td>', $table[0]);
         $this->assertStringContainsString('>$0.5000</td>', $table[0]);
         $this->assertStringContainsString('>$0.2500</td>', $table[0]);

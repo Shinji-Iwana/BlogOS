@@ -74,7 +74,7 @@ class CategoryLaunchTest extends TestCase
         // ② 採用した子カテゴリの案（WordPress にはまだない）
         $newChild = TopicSuggestion::create(['blog_id' => $this->blog->id, 'type' => 'category', 'category_id' => $this->java->id, 'title' => 'オブジェクト指向', 'slug' => 'java-oop', 'scope' => 'クラスと継承', 'status' => SuggestionStatus::Accepted]);
 
-        $this->get(route('launches.index', ['parent_id' => $this->java->id]))->assertOk()->assertSee('基礎（java-basic・0記事）')->assertSee('オブジェクト指向（java-oop）');
+        $this->get(route('launches.index', ['parent_id' => $this->java->id]))->assertOk()->assertSee('基礎（java-basic / 0記事）')->assertSee('オブジェクト指向（java-oop）');
         $this->post(route('launches.store'), $this->selected(['parent_id' => $this->java->id, 'categories' => [$this->basic->id], 'suggestions' => [$newChild->id]]))->assertRedirect();
         $launch = CategoryLaunch::sole();
         $children = $launch->children()->orderBy('id')->get();

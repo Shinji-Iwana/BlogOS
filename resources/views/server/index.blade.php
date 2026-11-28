@@ -193,7 +193,7 @@
                 <td>
                     {{ number_format($queue['pending']) }}件
                     @if ($queue['by_queue'] !== [])
-                        （@foreach ($queue['by_queue'] as $name => $total){{ $loop->first ? '' : '・' }}{{ $name }} {{ number_format($total) }}件@endforeach）
+                        （@foreach ($queue['by_queue'] as $name => $total){{ $loop->first ? '' : ' / ' }}{{ $name }} {{ number_format($total) }}件@endforeach）
                     @endif
                     @if ($queue['oldest_pending'])
                         <br><span class="text-muted">一番古いもの：{{ \App\Support\DisplayTime::format(\Illuminate\Support\Carbon::createFromTimestamp($queue['oldest_pending'])) }}</span>

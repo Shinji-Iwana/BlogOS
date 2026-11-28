@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'material_review']) }}">AIでまとめて見直す</a>
+        / <a href="{{ route('ai.batches.create', ['mode' => 'material_review']) }}">AIでまとめて見直す</a>
     </p>
 
     @include('partials.flash')

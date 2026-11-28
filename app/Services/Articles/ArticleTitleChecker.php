@@ -49,7 +49,7 @@ class ArticleTitleChecker
             $head = mb_substr($title, 0, $keyChars);
             $missing = array_filter($tokens, fn ($token) => mb_stripos($head, $token) === false && mb_stripos($series, $token) === false);
             if ($missing !== []) {
-                $issues[] = "メインキーワード（" . implode('・', $missing) . "）が、タイトルの先頭{$keyChars}文字の中にありません。";
+                $issues[] = "メインキーワード（" . implode(' / ', $missing) . "）が、タイトルの先頭{$keyChars}文字の中にありません。";
             }
         }
 
@@ -64,7 +64,7 @@ class ArticleTitleChecker
             }
             $missing = array_filter($tokens, fn ($token) => mb_stripos($meta, $token) === false);
             if ($tokens !== [] && $missing !== []) {
-                $issues[] = 'メタディスクリプションに、メインキーワード（' . implode('・', $missing) . '）がありません。';
+                $issues[] = 'メタディスクリプションに、メインキーワード（' . implode(' / ', $missing) . '）がありません。';
             }
             if ($meta === $title) {
                 $issues[] = 'メタディスクリプションが、タイトルと同じです。';

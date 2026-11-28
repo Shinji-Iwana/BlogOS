@@ -12,10 +12,10 @@
 
     <p>
         <a href="{{ route('ai.generations.index') }}">AI実行履歴一覧</a>
-        @if ($generation->draft) ・<a href="{{ route('drafts.edit', ['id' => $generation->draft->id]) }}">対象の編集案 #{{ $generation->draft->id }}</a>@endif
-        @if ($article) ・<a href="{{ route('articles.show', ['type' => $generation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">対象の記事「{{ $article->title_raw }}」</a>@endif
-        @if ($generation->material) ・<a href="{{ route('materials.edit', ['id' => $generation->material->id]) }}">対象の教材「{{ $generation->material->name }}」</a>@endif
-        @if ($generation->image) ・<a href="{{ route('images.show', ['id' => $generation->image->id]) }}">対象の画像「{{ $generation->image->title }}」</a>@endif
+        @if ($generation->draft) / <a href="{{ route('drafts.edit', ['id' => $generation->draft->id]) }}">対象の編集案 #{{ $generation->draft->id }}</a>@endif
+        @if ($article) / <a href="{{ route('articles.show', ['type' => $generation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">対象の記事「{{ $article->title_raw }}」</a>@endif
+        @if ($generation->material) / <a href="{{ route('materials.edit', ['id' => $generation->material->id]) }}">対象の教材「{{ $generation->material->name }}」</a>@endif
+        @if ($generation->image) / <a href="{{ route('images.show', ['id' => $generation->image->id]) }}">対象の画像「{{ $generation->image->title }}」</a>@endif
     </p>
 
     @include('partials.flash')
@@ -30,7 +30,7 @@
     @if ($isApi && $generation->status === \App\Enums\AiGenerationStatus::Running)
         <meta http-equiv="refresh" content="10">
         <p>
-            <strong>OpenAI API で実行中です</strong>（{{ $generation->model }}・推論の深さ {{ $generation->reasoning_effort }}）。数分かかることがあります。この画面は10秒ごとに更新されます。<br>
+            <strong>OpenAI API で実行中です</strong>（{{ $generation->model }} / 推論の深さ {{ $generation->reasoning_effort }}）。数分かかることがあります。この画面は10秒ごとに更新されます。<br>
             @if ($generation->started_at === null)
                 <span class="text-error">まだ処理が始まっていません。Queueの処理が動いているか確認してください（ローカルでは <code>php artisan queue:work</code>）。</span>
             @else
@@ -68,7 +68,7 @@
         @foreach ($generation->evaluations as $evaluation)
             <p>
                 AIの評価：<a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}"><strong>{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</strong>（評価 #{{ $evaluation->id }}）</a>
-                ・受け入れの目安：{{ $acceptance }}点（受け入れるかは人が判断します）
+                / 受け入れの目安：{{ $acceptance }}点（受け入れるかは人が判断します）
             </p>
         @endforeach
         @if ($generation->purpose === \App\Enums\AiMode::ManagementSuggestion)
@@ -138,11 +138,11 @@
     <h2>記録</h2>
     <table class="data">
         <tr><th>実行方式</th><td>{{ $generation->execution_method->label() }}</td></tr>
-        <tr><th>提供元・利用プラン・モデル・推論の深さ</th><td>{{ $generation->provider ?? '-' }}・{{ $generation->service_plan ?? '-' }}・{{ $generation->model ?? '-' }}・{{ $generation->reasoning_effort ?? '-' }}</td></tr>
+        <tr><th>提供元・利用プラン・モデル・推論の深さ</th><td>{{ $generation->provider ?? '-' }} / {{ $generation->service_plan ?? '-' }} / {{ $generation->model ?? '-' }} / {{ $generation->reasoning_effort ?? '-' }}</td></tr>
         @if ($isApi)
             <tr><th>トークン数</th><td>
                 @if ($generation->input_tokens !== null)
-                    入力 {{ number_format($generation->input_tokens) }}（うちキャッシュ {{ number_format((int) $generation->cached_input_tokens) }}）・出力 {{ number_format($generation->output_tokens) }}（うち推論 {{ number_format((int) $generation->reasoning_tokens) }}）
+                    入力 {{ number_format($generation->input_tokens) }}（うちキャッシュ {{ number_format((int) $generation->cached_input_tokens) }}） / 出力 {{ number_format($generation->output_tokens) }}（うち推論 {{ number_format((int) $generation->reasoning_tokens) }}）
                 @else - @endif
             </td></tr>
             @if ($generation->use_web_search)

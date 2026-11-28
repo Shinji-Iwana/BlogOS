@@ -210,9 +210,9 @@ Route::middleware(['auth', ShareCurrentBlog::class])->group(function () {
     Route::get('/database/wordpress', [DatabaseWordPressRecordController::class, 'tables'])->name('database.wordpress-records.tables');
     Route::get('/database/wordpress/{table}', [DatabaseWordPressRecordController::class, 'index'])->name('database.wordpress-records.index');
     Route::get('/database/wordpress/{table}/{id}', [DatabaseWordPressRecordController::class, 'show'])->whereNumber('id')->name('database.wordpress-records.show');
-    // BlogOS の DB の全テーブルの一覧・詳細（XServer情報の「テーブルごとの件数と容量」から開く。D-80）
-    Route::get('/database/tables/{table}', [DatabaseTableRecordController::class, 'index'])->name('database.tables.index');
-    Route::get('/database/tables/{table}/{id}', [DatabaseTableRecordController::class, 'show'])->name('database.tables.show');
+    // BlogOS の DB の全テーブルの一覧・詳細（XServer情報の「テーブルごとの件数と容量」から開く。D-80）。URL は WordPress の DB（/database/wordpress-db/）とそろえて /database/blogos-db/（D-132-01。以前は /database/tables/。ルートの名前は database.tables.* のまま）
+    Route::get('/database/blogos-db/{table}', [DatabaseTableRecordController::class, 'index'])->name('database.tables.index');
+    Route::get('/database/blogos-db/{table}/{id}', [DatabaseTableRecordController::class, 'show'])->name('database.tables.show');
     // WordPress の DB のテーブルの一覧・詳細（XServer情報の DB（WordPress）から開く。読むだけ。D-81）
     Route::get('/database/wordpress-db/{schema}/{table}', [DatabaseWordPressDbController::class, 'index'])->name('database.wordpress-db.index');
     Route::get('/database/wordpress-db/{schema}/{table}/{id}', [DatabaseWordPressDbController::class, 'show'])->name('database.wordpress-db.show');

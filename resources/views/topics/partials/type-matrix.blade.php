@@ -23,7 +23,7 @@
 
 <p>
     公開中の記事：{{ number_format($matrix['total']) }}件
-    ・収益記事：{{ number_format($matrix['totals']['revenue'] ?? 0) }}件（{{ $matrix['revenue_ratio'] !== null ? number_format($matrix['revenue_ratio'] * 100, 1) : '0.0' }}%）
+    / 収益記事：{{ number_format($matrix['totals']['revenue'] ?? 0) }}件（{{ $matrix['revenue_ratio'] !== null ? number_format($matrix['revenue_ratio'] * 100, 1) : '0.0' }}%）
     @include('partials.tip', ['tip' => '収益記事の割合の目安は、全体の' . (int) (\App\Services\Topics\ArticleTypeMatrixService::REVENUE_RATIO_GUIDE * 100) . "%までです。\n割合で検索の評価が下がるわけではありませんが、初心者向けの学習ブログで収益記事が目立つと、読者の信頼を落としやすくなります。1つのテーマにつき1記事にし、同じテーマを言い換えた収益記事を増やさないでください。"])
     @if ($matrix['revenue_over'])
         <strong class="text-warn">収益記事の割合が目安（{{ (int) (\App\Services\Topics\ArticleTypeMatrixService::REVENUE_RATIO_GUIDE * 100) }}%）を超えています。</strong>

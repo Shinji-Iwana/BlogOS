@@ -21,13 +21,13 @@
     <p>
         <a href="{{ route('materials.suggestions.index') }}">教材の案の一覧に戻る</a>
         @if ($material) ・教材：<a href="{{ route('materials.edit', ['id' => $material->id]) }}">{{ $material->name }}</a>@endif
-        @if ($suggestion->generation) ・<a href="{{ route('ai.generations.show', ['id' => $suggestion->ai_generation_id]) }}">AI実行記録 #{{ $suggestion->ai_generation_id }}</a>@endif
+        @if ($suggestion->generation) / <a href="{{ route('ai.generations.show', ['id' => $suggestion->ai_generation_id]) }}">AI実行記録 #{{ $suggestion->ai_generation_id }}</a>@endif
     </p>
 
     @include('partials.flash')
 
     <p>種類：{{ $suggestion->kind->label() }}
-        @if ($suggestion->relatedMaterial)・<span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継（登録すると、前の版として関連づけます）</span>@endif
+        @if ($suggestion->relatedMaterial) / <span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版 / 後継（登録すると、前の版として関連づけます）</span>@endif
     </p>
     @if ($suggestion->reason)
         <p style="white-space:pre-wrap; max-width:900px;"><strong>AIの理由：</strong>{{ $suggestion->reason }}</p>

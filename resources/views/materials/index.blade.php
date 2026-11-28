@@ -13,11 +13,11 @@
         ／<a href="{{ route('materials.create', ['kind' => 'udemy']) }}">Udemy</a>
         ／<a href="{{ route('materials.create', ['kind' => 'school']) }}">スクール</a>
         ／<a href="{{ route('materials.create', ['kind' => 'question_bank']) }}">問題集・オンライン教材</a>
-        ・<a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラム（提携の状態）</a>
-        ・<a href="{{ route('materials.detected') }}">既存の記事のリンクから登録する</a>
-        ・<a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
-        ・<a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>（{{ $pendingSuggestions }}件）
-        ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
+        / <a href="{{ route('materials.programs.index') }}">アフィリエイトのプログラム（提携の状態）</a>
+        / <a href="{{ route('materials.detected') }}">既存の記事のリンクから登録する</a>
+        / <a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
+        / <a href="{{ route('materials.suggestions.index') }}">教材の案の確認</a>（{{ $pendingSuggestions }}件）
+        / <a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
     </p>
 
     @include('partials.flash')
@@ -66,14 +66,14 @@
         <div class="bordered" style="padding:8px 12px; margin:12px 0;">
             <strong>カテゴリ「{{ $category->name }}」</strong>（公開中の記事 {{ $c['posts'] }}件）：
             @foreach ($kinds as $option)
-                {{ $option->label() }} {{ $c['own'][$option->value] + $c['inherited'][$option->value] }}件{{ $loop->last ? '' : '・' }}
+                {{ $option->label() }} {{ $c['own'][$option->value] + $c['inherited'][$option->value] }}件{{ $loop->last ? '' : ' / ' }}
             @endforeach
-            @if ($c['unusable'] > 0)・<span class="text-warn">使えない教材 {{ $c['unusable'] }}件</span>@endif
+            @if ($c['unusable'] > 0) / <span class="text-warn">使えない教材 {{ $c['unusable'] }}件</span>@endif
             <br>
             足りないとき：<a href="{{ route('materials.discover.create', ['category' => $category->id]) }}">このカテゴリで、AIで新しい教材の候補を探す</a>
-            ・情報を調べていない教材は、下の一覧でチェックして（初めから調べていない教材にチェックが入っています）「チェックした教材を調べる」
-            ・カテゴリの付け直しは、教材の名前から編集
-            ・<a href="{{ route('materials.index', ['kind' => $kind?->value]) }}">絞り込みを外す</a>
+            / 情報を調べていない教材は、下の一覧でチェックして（初めから調べていない教材にチェックが入っています）「チェックした教材を調べる」
+            / カテゴリの付け直しは、教材の名前から編集
+            / <a href="{{ route('materials.index', ['kind' => $kind?->value]) }}">絞り込みを外す</a>
         </div>
     @endif
 
@@ -81,7 +81,7 @@
         種類：
         <a href="{{ route('materials.index', ['category' => $category?->id]) }}">@if (! $kind)<strong>すべて</strong>@else すべて @endif</a>
         @foreach (\App\Enums\MaterialKind::cases() as $option)
-            ・<a href="{{ route('materials.index', ['kind' => $option->value, 'category' => $category?->id]) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
+            / <a href="{{ route('materials.index', ['kind' => $option->value, 'category' => $category?->id]) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
         @endforeach
     </p>
     <form method="GET" action="{{ route('materials.index') }}" class="panel" style="margin-bottom:8px;">
@@ -157,7 +157,7 @@
                                     {{ $material->article_materials_count }}件
                                     @if ($needsReview[$material->id] ?? 0)<br><a href="{{ route('materials.reviews.index') }}" class="text-warn">見直し {{ $needsReview[$material->id] }}件</a>@endif
                                 </td>
-                                <td class="cell-num" style="white-space:nowrap;">{{ number_format($clicks28[$material->id] ?? 0) }}・{{ number_format($clicks90[$material->id] ?? 0) }}</td>
+                                <td class="cell-num" style="white-space:nowrap;">{{ number_format($clicks28[$material->id] ?? 0) }} / {{ number_format($clicks90[$material->id] ?? 0) }}</td>
                                 <td>{{ $material->researched_at ?\App\Support\DisplayTime::format($material->researched_at) : '未調査' }}</td>
                             </tr>
                         @endforeach

@@ -25,7 +25,7 @@
         <p class="text-error">PageSpeed Insights の APIキーが設定されていません（.env の GOOGLE_PAGESPEED_API_KEY）。設定するまで測りません。</p>
     @endunless
 
-    @include('partials.history-last', ['label' => '最後の測定', 'at' => $latest?->started_at, 'result' => $latest ? $latest->strategyLabel() . '・' . $latest->statusLabel() : null])
+    @include('partials.history-last', ['label' => '最後の測定', 'at' => $latest?->started_at, 'result' => $latest ? $latest->strategyLabel() . ' / ' . $latest->statusLabel() : null])
 
     @include('partials.flash')
 
@@ -103,7 +103,7 @@
             <p>
                 実際の利用者の判定（記事） @include('partials.tip', ['tip' => 'Chrome の利用者の記録（直近28日）がある記事だけです。アクセスが少ない記事にはありません。'])：
                 @forelse ($summary['field'] as $category => $count)
-                    {{ \App\Models\PageSpeedRun::FIELD_CATEGORIES[$category] ?? $category }} {{ $count }}件@if (! $loop->last)・@endif
+                    {{ \App\Models\PageSpeedRun::FIELD_CATEGORIES[$category] ?? $category }} {{ $count }}件@if (! $loop->last) / @endif
                 @empty
                     データのある記事はありません。
                 @endforelse
@@ -127,7 +127,7 @@
                         @foreach ($failurePage as $failure)
                             <tr>
                                 <td>{{ $failure['title'] }}</td>
-                                <td style="white-space:nowrap;">{{ implode('・', array_map(fn ($key) => $report::AUDIT_CATEGORIES[$key] ?? $key, $failure['categories'])) }}</td>
+                                <td style="white-space:nowrap;">{{ implode(' / ', array_map(fn ($key) => $report::AUDIT_CATEGORIES[$key] ?? $key, $failure['categories'])) }}</td>
                                 <td>{{ number_format($failure['count']) }}件</td>
                             </tr>
                         @endforeach
@@ -150,7 +150,7 @@
                 @else
                     <a href="{{ route('pagespeed.index', ['strategy' => $strategy, 'sort' => $column]) }}">{{ $label }}</a>
                 @endif
-                @if (! $loop->last)・@endif
+                @if (! $loop->last) / @endif
             @endforeach
         </p>
         <div style="overflow-x:auto;">

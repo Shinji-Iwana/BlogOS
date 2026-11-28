@@ -11,7 +11,7 @@
             {{ $suggestion->title }}
             <br><span class="text-muted">
                 キーワード：{{ $suggestion->main_keyword ?? '-' }}
-                @if ($suggestion->article_type)・{{ $types['types'][$suggestion->article_type] ?? $suggestion->article_type }}{{ $suggestion->article_subtype ? '（' . ($types['subtypes'][$suggestion->article_subtype] ?? $suggestion->article_subtype) . '）' : '' }}@endif
+                @if ($suggestion->article_type) / {{ $types['types'][$suggestion->article_type] ?? $suggestion->article_type }}{{ $suggestion->article_subtype ? '（' . ($types['subtypes'][$suggestion->article_subtype] ?? $suggestion->article_subtype) . '）' : '' }}@endif
                 @if ($suggestion->roadmap_step)・ステップ：{{ $suggestion->roadmap_step }}@endif
             </span>
             @if ($suggestion->search_intent)<br><span class="text-muted">検索意図：{{ $suggestion->search_intent }}</span>@endif

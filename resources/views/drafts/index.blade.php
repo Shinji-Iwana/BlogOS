@@ -10,9 +10,9 @@
 
     <p>
         <a href="{{ route('articles.index', ['type' => 'posts']) }}">投稿一覧</a>
-        ・<a href="{{ route('push-operations.index') }}">WordPress反映履歴一覧</a>
-        ・<a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>
-        ・
+        / <a href="{{ route('push-operations.index') }}">WordPress反映履歴一覧</a>
+        / <a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>
+        / 
         @if ($includeClosed)
             <a href="{{ route('drafts.index') }}">作業中のものだけ表示する</a>
         @else

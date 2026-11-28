@@ -48,7 +48,7 @@
                             </td>
                             <td>
                                 <a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
-                                ・<a href="{{ route('drafts.preview', ['id' => $draft->id]) }}" target="_blank">プレビュー</a>
+                                / <a href="{{ route('drafts.preview', ['id' => $draft->id]) }}" target="_blank">プレビュー</a>
                             </td>
                         </tr>
                     @endforeach
@@ -67,7 +67,7 @@
             @foreach ($skipped as $row)
                 <li>
                     {{ $row['article']->title_raw }}（{{ implode('、', array_merge($row['titles'], $row['fixes'])) }}）
-                    ・<a href="{{ route('drafts.edit', ['id' => $row['active_draft']->id]) }}">編集案 #{{ $row['active_draft']->id }}</a>
+                    / <a href="{{ route('drafts.edit', ['id' => $row['active_draft']->id]) }}">編集案 #{{ $row['active_draft']->id }}</a>
                 </li>
             @endforeach
         </ul>
@@ -88,7 +88,7 @@
                     @if ($link->status === \App\Models\RevenueArticleLink::NO_BOX)
                         <span class="text-warn">教材の紹介の枠がないため、入れていません</span>
                     @else
-                        作業中の編集案に足しました ・<a href="{{ route('drafts.edit', ['id' => $link->article_draft_id]) }}">編集案 #{{ $link->article_draft_id }}</a>
+                        作業中の編集案に足しました / <a href="{{ route('drafts.edit', ['id' => $link->article_draft_id]) }}">編集案 #{{ $link->article_draft_id }}</a>
                     @endif
                 </li>
             @endforeach

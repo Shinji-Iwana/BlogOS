@@ -23,10 +23,10 @@
 
     <p>
         種類：{{ $image->kind->label() }}
-        ・状態：<strong @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</strong>
+        / 状態：<strong @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</strong>
         @if ($image->source)・作り方：{{ $image->source->label() }}@endif
         @if ($image->width)・大きさ：{{ $image->width }}×{{ $image->height }}（{{ number_format((int) $image->file_size / 1024) }}KB）@endif
-        @if ($image->media)・<span class="text-ok">WordPress に登録済み（メディア ID {{ $image->media->wordpress_id }}）</span>@endif
+        @if ($image->media) / <span class="text-ok">WordPress に登録済み（メディア ID {{ $image->media->wordpress_id }}）</span>@endif
     </p>
     @if ($image->description)<p class="text-muted" style="white-space:pre-wrap;">依頼：{{ $image->description }}</p>@endif
     @if ($image->ai_note)<p class="text-muted" style="white-space:pre-wrap;">AI：{{ $image->ai_note }}</p>@endif
@@ -294,7 +294,7 @@
             @foreach ($image->generations as $generation)
                 <li>
                     <a href="{{ route('ai.generations.show', ['id' => $generation->id]) }}">#{{ $generation->id }} {{ $generation->purpose->label() }}</a>
-                    （{{ $generation->status->label() }}{{ $generation->estimated_cost !== null ? '・$' . number_format($generation->estimated_cost, 4) : '' }}・{{ \App\Support\DisplayTime::format($generation->created_at) }}）
+                    （{{ $generation->status->label() }}{{ $generation->estimated_cost !== null ? ' / $' . number_format($generation->estimated_cost, 4) : '' }} / {{ \App\Support\DisplayTime::format($generation->created_at) }}）
                     @if ($generation->error)<span class="text-error">{{ $generation->error }}</span>@endif
                 </li>
             @endforeach

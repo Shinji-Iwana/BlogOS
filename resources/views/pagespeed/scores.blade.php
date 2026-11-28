@@ -11,7 +11,7 @@
     $ms = fn ($value) => $value !== null ? number_format($value / 1000, 1) . '秒' : '-';
     $field = fn ($run, $prefix) => $run && $run->{$prefix . '_category'}
         ? (\App\Models\PageSpeedRun::FIELD_CATEGORIES[$run->{$prefix . '_category'}] ?? $run->{$prefix . '_category'})
-            . '（LCP ' . $ms($run->{$prefix . '_lcp_ms'}) . '・INP ' . ($run->{$prefix . '_inp_ms'} !== null ? $run->{$prefix . '_inp_ms'} . 'ms' : '-') . '・CLS ' . ($run->{$prefix . '_cls'} !== null ? number_format($run->{$prefix . '_cls'}, 2) : '-') . '）'
+            . '（LCP ' . $ms($run->{$prefix . '_lcp_ms'}) . ' / INP ' . ($run->{$prefix . '_inp_ms'} !== null ? $run->{$prefix . '_inp_ms'} . 'ms' : '-') . ' / CLS ' . ($run->{$prefix . '_cls'} !== null ? number_format($run->{$prefix . '_cls'}, 2) : '-') . '）'
         : 'データなし';
 @endphp
 <div style="overflow-x:auto;">

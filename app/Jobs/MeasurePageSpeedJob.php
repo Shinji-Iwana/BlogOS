@@ -41,7 +41,7 @@ class MeasurePageSpeedJob implements ShouldQueue
             return [
                 'processed' => 1,
                 'errors'    => $failed ? 1 : 0,
-                'line'      => "[PageSpeed] {$this->url}（{$run->strategyLabel()}）：" . ($failed ? "失敗：{$run->error}" : "パフォーマンス {$run->performance_score}・SEO {$run->seo_score}"),
+                'line'      => "[PageSpeed] {$this->url}（{$run->strategyLabel()}）：" . ($failed ? "失敗：{$run->error}" : "パフォーマンス {$run->performance_score} / SEO {$run->seo_score}"),
             ];
         });
     }

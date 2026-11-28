@@ -2034,6 +2034,37 @@ Chrome のタスクマネージャーで、トップページを開いている�
 * 変えていないもの：取り込んだWordPressのデータの画面（消す想定のため触らない。利用者の判断）、XServer情報の DB（BlogOS）のテーブルの一覧の11テーブルのリンク（パネルの中のリンクではないため。今も取り込んだWordPressのデータの一覧を開く）、11テーブルの一覧の上の「XServer情報に戻る」を出さないこと（D-97-03）。
 * テスト：tests/Feature/DatabaseTablesTest.php（投稿の一覧・詳細・投稿ステータスの定義の詳細・投稿の変更履歴の詳細に、取り込んだWordPressのデータの画面へのリンクがない）。
 
+### 項目131：XServer情報の DB（BlogOS）のテーブルの一覧のリンク（全画面の見直し。2026-11-28）
+
+**D-131-01 XServer情報の「DB（BlogOS）」のテーブルの一覧の11テーブルも、BlogOS の DB のテーブルの一覧へつなぐ**
+* D-130-02 では、パネルの中のリンクではないとして変えていなかったが、「DB（BlogOS）」のパネルの中の表のリンクのため、ほかのテーブルと同じく、BlogOS の DB のテーブルの一覧（`/database/tables/{テーブル}`）を開くようにした（利用者の判断）。名前と「うちWordPress側で削除済み」の件数は、これまでどおり出す。ブログを選んでいないときもリンクにする（ほかのテーブルと同じ）。
+* 11テーブルの一覧も XServer情報から開くようになったため、ほかのテーブルと同じく「XServer情報に戻る」を出す（D-97-03。以前は、XServer情報から開かないとして出していなかった）。
+* XServer情報の画面にも、取り込んだWordPressのデータの画面へのリンクはなくなった。BlogOS のほかの画面には、取り込んだWordPressのデータの画面へのリンクが残っている（記事の詳細の「DBの値と変更履歴」など。トップページの「管理」の「取り込んだWordPressのデータ（DB確認）」も、その入口）。どうするかは、取り込んだWordPressのデータの画面を消すときに決める。
+* テスト：tests/Feature/DatabaseTablesTest.php（XServer情報から全てのテーブルの一覧へ行け、取り込んだWordPressのデータの画面へのリンクがない・投稿の一覧にも XServer情報へのリンク）、tests/Feature/ServerStatusTest.php。
+
+**D-131-02 BlogOS の DB のテーブルの一覧の上のリンクも「XServer情報へ」にする**
+* WordPress の DB のテーブルの一覧（D-129-01）とそろえ、BlogOS の DB のテーブルの一覧（`/database/tables/...`）の上のリンクを「XServer情報に戻る」から「XServer情報へ」にした（利用者の判断）。
+* 決まりは BLOGOS_UI 2-2。
+* テスト：tests/Feature/DatabaseTablesTest.php。
+
+### 項目132：BlogOS の DB の画面の URL、並べてつなぐ記号、詳細の上のリンク（全画面の見直し。2026-11-28）
+
+**D-132-01 BlogOS の DB のテーブルの画面の URL を /database/blogos-db/ にする（取り込んだ WordPress のデータの11テーブルも分けない）**
+* WordPress の DB のテーブルの画面（`/database/wordpress-db/{DB名}/{テーブル名}`）とそろえ、`/database/tables/{テーブル名}`（一覧）・`/database/tables/{テーブル名}/{主キー}`（詳細）を、`/database/blogos-db/{テーブル名}`・`/database/blogos-db/{テーブル名}/{主キー}` にした（利用者の判断）。画面の中のリンクは、全て新しい URL になる（ルートの名前 `database.tables.*` から作るため）。古い URL は残していない（開くと「ページがない」）。ルートの名前は `database.tables.*` のまま。
+* 取り込んだ WordPress のデータの11テーブルを、URL で分ける（`/database/blogos-db/wordpress/…` と `/database/blogos-db/blogos/…`）案もあったが、分けない案にした（利用者の判断）。理由：URL は「どの DB の、どのテーブルか」を表す（WordPress の DB と同じ考え方）、変更履歴・つなぐ表・同期の記録など、どちらとも言えないテーブルがあり、分け方を変えると URL が変わる、区別は画面とコード（`DatabaseTables::isWordPress`）でできる。BlogOS の DB は1つだけで、パソコンと本番で DB の名前が違うため、DB の名前は URL に入れない。
+
+**D-132-02 リンクや値を並べてつなぐときは、全ての画面で「 / 」でつなぐ（共通のルール）**
+* アコーディオンの題名（D-114-01）と WordPress の DB の詳細の上のリンク（D-129-02）は「 / 」、ほかの多くの画面は「・」と、混ざっていた（利用者の指摘）。全ての画面で「 / 」にそろえ、共通のルールにした（利用者の判断）。
+* 直したもの：画面の上のリンクの行、表の値（モデル / 推論の深さ・件数など）、DB確認の詳細のつながる先（`DatabaseTables` と WordPress の DB の詳細）、絞り込みの欄の列の名前、絞り込みの「解除する」、件数・時間を並べた文、アクティビティログ・お知らせ・料金の読み取りの誤り・用語の反映の競合・タイトルの確かめなどの文の中で値を並べたところ（テンプレート 52 ファイルほか）。
+* 変えていないもの：見出し・項目名・文章の中の言葉の「・」（例：「モデル・推論の深さ」）、AI への指示文（`PromptBuilder`・`VoiceService`・`TopicPlanningPromptValues`）、コマンドの出力、取り込んだWordPressのデータの画面（いずれ消すため）。
+* 決まりは BLOGOS_UI 3-4。
+* テスト：既存の画面のテスト 15 件の、表示の「・」を「 / 」に直した（ArticleScreensTest・DatabaseTablesTest・MaterialTest・PageSpeedTest・AiBatchTest・AiCreditTest・AiPriceTest・RevisionFindingsTest・ScheduledTaskTest・CategoryLaunchTest）。
+
+**D-132-03 BlogOS の DB のテーブルの詳細の上のリンクを「（テーブルの日本語名）一覧へ」にする**
+* WordPress の DB のテーブルの詳細（D-129-01）とそろえ、「一覧に戻る」を「（テーブルの日本語名）一覧へ」にした（例：「投稿一覧へ」。日本語名がなければテーブル名）（利用者の判断）。
+* 決まりは BLOGOS_UI 2-2。
+* テスト：tests/Feature/DatabaseTablesTest.php（URL が /database/blogos-db/…、投稿の詳細の上のリンクが「投稿一覧へ」）。
+
 
 
 | 事項 | 決める時期 |

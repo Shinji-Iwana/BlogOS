@@ -18,7 +18,7 @@
         @case ('warning')
             <p class="text-warn">
                 OpenAI の残高の見込みが ${{ number_format($creditStatus['balance'], 2) }} になりました（知らせる基準 ${{ number_format($creditStatus['warning'], 2) }}）。
-                OpenAI の画面で残高を確認し、必要なら課金して、<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">残高</a>・<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-purchase-modal">課金した額</a>を登録してください。
+                OpenAI の画面で残高を確認し、必要なら課金して、<a href="{{ route('ai.credits.index') }}" data-modal-open="credit-balance-modal">残高</a> / <a href="{{ route('ai.credits.index') }}" data-modal-open="credit-purchase-modal">課金した額</a>を登録してください。
             </p>
             @break
     @endswitch

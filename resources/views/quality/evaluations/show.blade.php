@@ -22,10 +22,10 @@
             <a href="{{ route('drafts.edit', ['id' => $evaluation->draft->id]) }}">編集案 #{{ $evaluation->draft->id }}</a>
         @endif
         @if ($article)
-            ・<a href="{{ route('articles.show', ['type' => $evaluation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">記事「{{ $article->title_raw }}」</a>
+            / <a href="{{ route('articles.show', ['type' => $evaluation->post ? 'posts' : 'pages', 'id' => $article->id]) }}">記事「{{ $article->title_raw }}」</a>
         @endif
         @if ($evaluation->generation)
-            ・<a href="{{ route('ai.generations.show', ['id' => $evaluation->generation->id]) }}">AI実行記録 #{{ $evaluation->generation->id }}</a>
+            / <a href="{{ route('ai.generations.show', ['id' => $evaluation->generation->id]) }}">AI実行記録 #{{ $evaluation->generation->id }}</a>
         @endif
     </p>
 

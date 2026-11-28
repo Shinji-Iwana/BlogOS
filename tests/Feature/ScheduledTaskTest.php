@@ -110,11 +110,11 @@ class ScheduledTaskTest extends TestCase
         $this->get(route('scheduled-tasks.runs', ['task' => 'blogs:sync']))->assertOk()
             ->assertSee('<h1>定期実行履歴', false)
             ->assertSee('1年で削除します')
-            ->assertSee('最後の実行：' . \App\Support\DisplayTime::format($run->started_at) . '（WordPressとの同期・')
+            ->assertSee('最後の実行：' . \App\Support\DisplayTime::format($run->started_at) . '（WordPressとの同期 / ')
             ->assertSee('<option value="blogs:sync" selected>WordPressとの同期</option>', false)
             ->assertSee('<td>' . number_format($run->processed_count) . '</td>', false)
             ->assertDontSee('<td>777</td>', false);
-        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('<td>777</td>', false)->assertSee('（古い記録の削除・');
+        $this->get(route('scheduled-tasks.runs'))->assertOk()->assertSee('<td>777</td>', false)->assertSee('（古い記録の削除 / ');
     }
 
     public function test_failed_run_is_recorded_and_shown_on_dashboard(): void
@@ -250,7 +250,7 @@ class ScheduledTaskTest extends TestCase
 
         $sync = $popup('scheduled-blogs-sync-modal');
         $this->assertMatchesRegularExpression('/次回実行：<\/span>\d{4}-\d{2}-\d{2} 03:00/', $sync);
-        $this->assertMatchesRegularExpression('/前回実行：<\/span>\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始・1分35秒）/u', $sync);
+        $this->assertMatchesRegularExpression('/前回実行：<\/span>\s*<span\s*>成功<\/span>\s*（\d{2}-\d{2} \d{2}:\d{2} 開始 \/ 1分35秒）/u', $sync);
         $this->assertStringNotContainsString('処理 120件', $sync);
         $this->assertStringNotContainsString('記録を見る', $sync);
 
@@ -298,7 +298,7 @@ class ScheduledTaskTest extends TestCase
 
         // 編集案の作成のモデル・推論の深さも、品質診断と同じ書き方（料金・「none（推論なし）」・モデルで選べない推論の深さ。D-105-01）
         foreach (['diagnosis' => ['auto_model', 'auto_reasoning_effort'], 'revision' => ['auto_revision_model', 'auto_revision_reasoning_effort']] as $pair => [$model, $effort]) {
-            $this->assertMatchesRegularExpression('/<select name="' . $model . '" data-model="' . $pair . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $reevaluate);
+            $this->assertMatchesRegularExpression('/<select name="' . $model . '" data-model="' . $pair . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+ \/ 出力 \$[\d.]+）<\/option>/', $reevaluate);
             $this->assertMatchesRegularExpression('/<select name="' . $effort . '" data-effort="' . $pair . '">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $reevaluate);
         }
         // モデルで選べない推論の深さを選べなくするのは、全画面で共通の JavaScript（layouts/header。D-105-02）

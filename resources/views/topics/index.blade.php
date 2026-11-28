@@ -8,7 +8,7 @@
 
     <h1>記事の企画</h1>
 
-    <p><a href="{{ route('launches.index') }}">カテゴリの立ち上げ</a>・<a href="{{ route('drafts.index') }}">編集案一覧</a></p>
+    <p><a href="{{ route('launches.index') }}">カテゴリの立ち上げ</a> / <a href="{{ route('drafts.index') }}">編集案一覧</a></p>
 
     @include('partials.flash')
     @include('partials.ai-credit-notice')
@@ -89,7 +89,7 @@
             @foreach ($accepted as $suggestion)
                 <li>
                     {{ $suggestion->category?->name }}：{{ $suggestion->title }}
-                    ・<a href="{{ route('ai.generations.create', \App\Support\TopicLinks::newArticle($suggestion)) }}">この案で新規記事を作る</a>
+                    / <a href="{{ route('ai.generations.create', \App\Support\TopicLinks::newArticle($suggestion)) }}">この案で新規記事を作る</a>
                 </li>
             @endforeach
         </ul>
@@ -105,7 +105,7 @@
     <ul>
         @foreach ($thin as $category)
             <li>{{ $categories->firstWhere('id', $category->parent_id)?->name ? $categories->firstWhere('id', $category->parent_id)->name . ' ＞ ' : '' }}{{ $category->name }}：{{ $counts[$category->id] ?? 0 }}記事
-                ・<a href="{{ route('topics.index', ['category_id' => $category->id]) }}">このカテゴリを企画する</a></li>
+                / <a href="{{ route('topics.index', ['category_id' => $category->id]) }}">このカテゴリを企画する</a></li>
         @endforeach
     </ul>
 

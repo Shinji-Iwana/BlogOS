@@ -34,14 +34,14 @@
                     <td>${{ $price['cached_input'] }}</td>
                     <td>${{ $price['cache_write'] }}</td>
                     <td>${{ $price['output'] }}</td>
-                    <td>{{ number_format($price['long_context']['threshold_tokens']) }}トークン超：入力×{{ $price['long_context']['input_multiplier'] }}・出力×{{ $price['long_context']['output_multiplier'] }}</td>
+                    <td>{{ number_format($price['long_context']['threshold_tokens']) }}トークン超：入力×{{ $price['long_context']['input_multiplier'] }} / 出力×{{ $price['long_context']['output_multiplier'] }}</td>
                     <td>{{ ($checked = $storedPrices->get($name)?->checked_at) ? \App\Support\DisplayTime::format($checked) : '-' }}</td>
                 </tr>
             @endforeach
             @foreach ($imagePriceModels as $name => $price)
                 <tr>
                     <td>{{ $name }}（画像）</td>
-                    <td colspan="5">文章の入力 ${{ $price['text_input'] }}・画像の入力 ${{ $price['image_input'] }}・画像の出力 ${{ $price['image_output'] }}</td>
+                    <td colspan="5">文章の入力 ${{ $price['text_input'] }} / 画像の入力 ${{ $price['image_input'] }} / 画像の出力 ${{ $price['image_output'] }}</td>
                     <td>{{ ($checked = $storedPrices->get($name)?->checked_at) ? \App\Support\DisplayTime::format($checked) : '-' }}</td>
                 </tr>
             @endforeach
@@ -83,7 +83,7 @@
                     <td>{{ $name }}</td>
                     <td>返事の声（文字を声にする）{{ $inUse($name === $voice['tts_model'], 'A') }}</td>
                     <td>
-                        文字の入力 ${{ $tts['text_input'] }}・音声の出力 ${{ $tts['audio_output'] }}（1Mトークンあたり）<br>
+                        文字の入力 ${{ $tts['text_input'] }} / 音声の出力 ${{ $tts['audio_output'] }}（1Mトークンあたり）<br>
                         1分 約${{ round($tts['per_minute'], 4) }}（音声の出力 1分{{ number_format($voice['prices']['tts_audio_tokens_per_minute']) }}トークン。話す時間は、文字数から見積もる：1秒{{ $voice['chars_per_second'] }}文字）
                     </td>
                     <td>{{ $checked($name) }}</td>
@@ -95,8 +95,8 @@
                     <td>{{ $name }}</td>
                     <td>リアルタイム会話（聞き取り・判断・返事の声）{{ $inUse($name === $voice['realtime']['models']['d'], 'B') }}{{ $inUse($name === $voice['realtime']['models']['e'], 'C') }}</td>
                     <td>
-                        音声：入力 ${{ $price['audio_input'] }}・キャッシュ済みの入力 ${{ $price['audio_cached_input'] }}・出力 ${{ $price['audio_output'] }}<br>
-                        文字：入力 ${{ $price['text_input'] }}・キャッシュ済みの入力 ${{ $price['text_cached_input'] }}・出力 ${{ $price['text_output'] }}（1Mトークンあたり）
+                        音声：入力 ${{ $price['audio_input'] }} / キャッシュ済みの入力 ${{ $price['audio_cached_input'] }} / 出力 ${{ $price['audio_output'] }}<br>
+                        文字：入力 ${{ $price['text_input'] }} / キャッシュ済みの入力 ${{ $price['text_cached_input'] }} / 出力 ${{ $price['text_output'] }}（1Mトークンあたり）
                     </td>
                     <td>{{ $checked($name) }}</td>
                 </tr>

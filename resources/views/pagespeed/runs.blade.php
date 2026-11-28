@@ -16,7 +16,7 @@
         <p class="text-error">PageSpeed Insights の APIキーが設定されていません（.env の GOOGLE_PAGESPEED_API_KEY）。設定するまで測りません。</p>
     @endunless
 
-    @include('partials.history-last', ['label' => '最後の測定', 'at' => $latest?->started_at, 'result' => $latest ? $latest->strategyLabel() . '・' . $latest->statusLabel() : null])
+    @include('partials.history-last', ['label' => '最後の測定', 'at' => $latest?->started_at, 'result' => $latest ? $latest->strategyLabel() . ' / ' . $latest->statusLabel() : null])
 
     <section class="panel">
     <h2>測定の記録</h2>

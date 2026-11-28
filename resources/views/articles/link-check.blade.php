@@ -8,7 +8,7 @@
 
     <h1>内部リンクの確認</h1>
 
-    <p><a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a>・<a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a></p>
+    <p><a href="{{ route('drafts.link-switch') }}">リンクの切り替え</a> / <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a></p>
 
     @include('partials.flash')
 

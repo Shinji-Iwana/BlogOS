@@ -6,7 +6,7 @@
         <p style="margin-bottom:0;">既存の子カテゴリ：</p>
         <ul style="list-style:none; margin-top:0;">
             @foreach ($options['categories'] as $category)
-                <li><label><input type="checkbox" name="categories[]" value="{{ $category->id }}" @checked(($options['counts'][$category->id] ?? 0) === 0)> {{ $category->name }}（{{ $category->slug }}・{{ $options['counts'][$category->id] ?? 0 }}記事）</label></li>
+                <li><label><input type="checkbox" name="categories[]" value="{{ $category->id }}" @checked(($options['counts'][$category->id] ?? 0) === 0)> {{ $category->name }}（{{ $category->slug }} / {{ $options['counts'][$category->id] ?? 0 }}記事）</label></li>
             @endforeach
         </ul>
     @endif

@@ -16,7 +16,7 @@
     <span class="modal-info-label">前回実行：</span>
     @if ($lastRun ?? null)
         <span @if ($lastRun->status === 'failed' || $lastRun->isStale()) class="schedule-run-failed" @endif>{{ $lastRun->statusLabel() }}</span>
-        （{{ \App\Support\DisplayTime::format($lastRun->started_at, 'm-d H:i') }} 開始・{{ $lastRun->finished_at ? \App\Services\Schedule\ScheduledTaskService::duration($lastRun->duration_seconds) : '処理中' }}）
+        （{{ \App\Support\DisplayTime::format($lastRun->started_at, 'm-d H:i') }} 開始 / {{ $lastRun->finished_at ? \App\Services\Schedule\ScheduledTaskService::duration($lastRun->duration_seconds) : '処理中' }}）
     @else
         まだ実行していません
     @endif

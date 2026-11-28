@@ -36,22 +36,22 @@
         <section class="bordered" style="padding:10px; margin-bottom:10px;">
             <p style="margin-top:0;">
                 <strong>{{ $issue->issue_type->label() }}</strong>
-                ・対象：{{ $issue->resource_type ?? '-' }}
+                / 対象：{{ $issue->resource_type ?? '-' }}
                 @if ($issue->resource_key !== null)
                     （{{ $issue->resource_key }}）
                 @endif
                 @if ($issue->post_id)
-                    ・<a href="{{ route('database.wordpress-records.show', ['table' => 'posts', 'id' => $issue->post_id]) }}">投稿を見る</a>
+                    / <a href="{{ route('database.wordpress-records.show', ['table' => 'posts', 'id' => $issue->post_id]) }}">投稿を見る</a>
                 @endif
                 @if ($issue->page_id)
-                    ・<a href="{{ route('database.wordpress-records.show', ['table' => 'pages', 'id' => $issue->page_id]) }}">固定ページを見る</a>
+                    / <a href="{{ route('database.wordpress-records.show', ['table' => 'pages', 'id' => $issue->page_id]) }}">固定ページを見る</a>
                 @endif
             </p>
             <p>{{ $issue->message }}</p>
             <p class="text-muted">
-                最初の検出：{{ \App\Support\DisplayTime::format($issue->first_detected_at) }} ・最後の検出：{{ \App\Support\DisplayTime::format($issue->last_detected_at) }}
+                最初の検出：{{ \App\Support\DisplayTime::format($issue->first_detected_at) }} / 最後の検出：{{ \App\Support\DisplayTime::format($issue->last_detected_at) }}
                 @if ($issue->error_status)
-                    ・HTTP {{ $issue->error_status }}
+                    / HTTP {{ $issue->error_status }}
                 @endif
             </p>
 
@@ -75,7 +75,7 @@
             @else
                 <p>
                     解決：{{ \App\Support\DisplayTime::format($issue->resolved_at) }}（{{ $issue->resolvedBy?->name ?? '-' }}）
-                    ・{{ $issue->resolution }}
+                    / {{ $issue->resolution }}
                 </p>
             @endif
         </section>

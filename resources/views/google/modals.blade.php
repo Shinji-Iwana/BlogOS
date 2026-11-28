@@ -179,8 +179,8 @@
                             {{-- 「最後の取得：」・日時と結果・期間と行数の3行。名前は青、値は白（D-109-01） --}}
                             <p>
                                 <span class="modal-info-label">最後の取得：</span><br>
-                                {{ \App\Support\DisplayTime::format($googleRun->started_at) }}・{{ $googleRun->status->label() }}@if ($googleRun->message)（{{ $googleRun->message }}）@endif<br>
-                                {{ $googleRun->date_from?->toDateString() }}〜{{ $googleRun->date_to?->toDateString() }}・{{ $googleRun->row_count }}行
+                                {{ \App\Support\DisplayTime::format($googleRun->started_at) }} / {{ $googleRun->status->label() }}@if ($googleRun->message)（{{ $googleRun->message }}）@endif<br>
+                                {{ $googleRun->date_from?->toDateString() }}〜{{ $googleRun->date_to?->toDateString() }} / {{ $googleRun->row_count }}行
                             </p>
                         @endif
 

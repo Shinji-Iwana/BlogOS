@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('articles.titles') }}">タイトル・メタディスクリプションの改善の候補</a>
-        ・<a href="{{ route('ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']) }}">インデックス未登録の記事をまとめて改修する</a>
+        / <a href="{{ route('ai.batches.create', ['mode' => 'revision', 'target' => 'not_indexed']) }}">インデックス未登録の記事をまとめて改修する</a>
     </p>
 
     @include('partials.flash')

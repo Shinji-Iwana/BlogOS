@@ -9,10 +9,8 @@
 
     <h1>{{ $label ? "{$label}（{$table}）" : $table }}</h1>
 
-    {{-- XServer情報の DB の一覧から開くテーブルだけ、戻るリンクを出す。取り込んだ WordPress のデータのテーブル（投稿など）は、レコードの詳細の「参照している行」からだけ開くため出さない（D-97-03） --}}
-    @if (! \App\Support\DatabaseTables::isWordPress($table))
-        <p><a href="{{ route('server.index') }}">XServer情報に戻る</a></p>
-    @endif
+    {{-- どのテーブルの一覧も、XServer情報の DB の一覧から開くため、上のリンク「XServer情報へ」を出す（WordPress の DB のテーブルの画面と同じ文言。D-131-02）。取り込んだ WordPress のデータの11テーブルも、XServer情報からこの一覧を開く（D-97-03・D-131-01） --}}
+    <p><a href="{{ route('server.index') }}">XServer情報へ</a></p>
 
     {{-- 絞り込みの条件（取り込んだ WordPress のデータの一覧と同じ形。ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01）） --}}
     <section class="panel">
@@ -20,7 +18,7 @@
     @if ($filterColumn !== null)
         <p>
             {{ $filterColumn }} が {{ $filterValue }} の行（ブログでは絞らない）
-            ・<a href="{{ route('database.tables.index', ['table' => $table]) }}">解除する</a>
+            / <a href="{{ route('database.tables.index', ['table' => $table]) }}">解除する</a>
         </p>
     @elseif ($scoped)
         <p class="text-muted">選択中のブログ{{ $blog ? '（' . $blog->display_name . '）' : '' }}の行と、どのブログにも属さない行を出します。</p>
@@ -36,7 +34,7 @@
                 <input type="hidden" name="column" value="{{ $filterColumn }}">
                 <input type="hidden" name="value" value="{{ $filterValue }}">
             @endif
-            <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode('・', $searchColumns) }}で絞り込み">
+            <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ implode(' / ', $searchColumns) }}で絞り込み">
             <button class="btn-secondary" type="submit">絞り込む</button>
         </form>
     @else

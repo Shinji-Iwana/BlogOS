@@ -30,13 +30,13 @@
                 @else
                     最後の同期：{{ \App\Support\DisplayTime::format($latestRun['finished_at'] ?? $latestRun['started_at'], 'Y-m-d H:i') }}
                     （{{ $latestRun['trigger_label'] }}）
-                    ・結果：
+                    / 結果：
                     @if ($latestRun['status'] === 'succeeded')
                         {{ $latestRun['status_label'] }}
                     @else
                         <strong class="text-error">{{ $latestRun['status_label'] }}</strong>
                     @endif
-                    ・変更：{{ $changedCount }}件
+                    / 変更：{{ $changedCount }}件
                 @endif
         @endswitch
     </p>
@@ -48,7 +48,7 @@
         @else
             なし（<a href="{{ route('sync.issues.index', ['resolved' => 1]) }}">解決済みを見る</a>）
         @endif
-        ・<a href="{{ route('database.sync-runs.index') }}">WordPressとの同期履歴</a>
+        / <a href="{{ route('database.sync-runs.index') }}">WordPressとの同期履歴</a>
     </p>
 
     @include('partials.sync-run-form')

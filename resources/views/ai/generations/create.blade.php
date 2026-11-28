@@ -163,7 +163,7 @@
                         </label>
                     </p>
                     <p class="text-muted">
-                        このモードの標準：{{ $api['defaults']['model'] }}・{{ $api['defaults']['effort'] }}。
+                        このモードの標準：{{ $api['defaults']['model'] }} / {{ $api['defaults']['effort'] }}。
                         @include('partials.ai-cost-line')。
                         1回の出力（推論を含む）の上限：{{ number_format($api['maxOutput']) }}トークン。<br>
                         API実行は、Queueの処理（XServerではcronの queue:work、ローカルでは <code>php artisan queue:work</code>）で動きます。

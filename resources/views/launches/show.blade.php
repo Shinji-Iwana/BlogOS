@@ -8,7 +8,7 @@
 
     <h1>カテゴリの立ち上げ：{{ $launch->parentCategory?->name }}（{{ \App\Models\CategoryLaunch::STATUSES[$launch->status] ?? $launch->status }}）</h1>
 
-    <p><a href="{{ route('launches.index') }}">立ち上げの一覧</a>・<a href="{{ route('topics.index') }}">記事の企画</a>・<a href="{{ route('drafts.index') }}">編集案一覧</a></p>
+    <p><a href="{{ route('launches.index') }}">立ち上げの一覧</a> / <a href="{{ route('topics.index') }}">記事の企画</a> / <a href="{{ route('drafts.index') }}">編集案一覧</a></p>
 
     @include('partials.flash')
     @include('partials.ai-credit-notice')
@@ -23,10 +23,10 @@
         <fieldset style="max-width:1100px; margin-bottom:16px;">
             <legend>
                 <strong>{{ $child->name }}</strong>（{{ $child->slug }}）
-                {{ $child->isNew() ? '・新しい子カテゴリ（WordPress にはまだない）' : '・既存の子カテゴリ' }}
+                {{ $child->isNew() ? ' / 新しい子カテゴリ（WordPress にはまだない）' : ' / 既存の子カテゴリ' }}
             </legend>
             @if ($child->scope)<p class="text-muted" style="margin-top:0;">{{ $child->scope }}</p>@endif
-            <p><strong>{{ $p['step'] }}</strong>（確認待ちの案 {{ $p['pending'] }}件・採用 {{ $p['accepted'] }}件・作成中 {{ $p['running'] }}件・編集案 {{ $p['drafts'] }}件）</p>
+            <p><strong>{{ $p['step'] }}</strong>（確認待ちの案 {{ $p['pending'] }}件 / 採用 {{ $p['accepted'] }}件 / 作成中 {{ $p['running'] }}件 / 編集案 {{ $p['drafts'] }}件）</p>
 
             {{-- ③ 記事の企画 --}}
             <details @if ($items->isEmpty()) open @endif>
@@ -50,7 +50,7 @@
                             <tr>
                                 <td style="max-width:440px;">
                                     {{ $item->title }}
-                                    <br><span class="text-muted">キーワード：{{ $item->main_keyword ?? '-' }}@if ($item->article_type)・{{ $types['types'][$item->article_type] ?? $item->article_type }}@endif</span>
+                                    <br><span class="text-muted">キーワード：{{ $item->main_keyword ?? '-' }}@if ($item->article_type) / {{ $types['types'][$item->article_type] ?? $item->article_type }}@endif</span>
                                     @if ($item->duplicate_note)<br><span class="text-error">重複の可能性：{{ $item->duplicate_note }}</span>@endif
                                 </td>
                                 <td>{{ $item->roadmap_step }}<br>{{ \App\Models\TopicSuggestion::PRIORITIES[$item->priority] ?? '' }}</td>
@@ -123,7 +123,7 @@
                                 @else
                                     ✓ {{ $draft->title_raw }}（{{ $draft->state->label() }}）
                                 @endif
-                                ・<a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
+                                / <a href="{{ route('drafts.edit', ['id' => $draft->id]) }}">編集案 #{{ $draft->id }}</a>
                                 @if ($draft->state->isActive() && $remaining !== [])<span class="text-error">（目印が残っているため公開できません：{{ implode('、', $remaining) }}）</span>@endif
                             </li>
                         @endforeach
@@ -150,12 +150,12 @@
     <p>
         親ロードマップのページ：
         @if ($parentPage)
-            「{{ $parentPage->title_raw }}」（/{{ $parentPage->slug }}.html・{{ $parentPage->status === 'publish' ? '公開中' : 'WordPress の下書き' }}）
+            「{{ $parentPage->title_raw }}」（/{{ $parentPage->slug }}.html / {{ $parentPage->status === 'publish' ? '公開中' : 'WordPress の下書き' }}）
         @else
             まだありません（子ロードマップを公開するときか、下のボタンで、WordPress の下書きとして作ります）
         @endif
         @if ($parentDraft)
-            ・<a href="{{ route('drafts.edit', ['id' => $parentDraft->id]) }}">編集案 #{{ $parentDraft->id }}</a>{{ $parentDraft->ai_generation_id === null ? '（中身はまだ作っていません）' : '' }}
+            / <a href="{{ route('drafts.edit', ['id' => $parentDraft->id]) }}">編集案 #{{ $parentDraft->id }}</a>{{ $parentDraft->ai_generation_id === null ? '（中身はまだ作っていません）' : '' }}
         @endif
     </p>
     @if (! $roadmapsReady)

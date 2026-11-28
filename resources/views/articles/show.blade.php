@@ -10,9 +10,9 @@
 
     <p>
         <a href="{{ route('articles.index', ['type' => $type]) }}">一覧に戻る</a>
-        ・<a href="{{ route('database.wordpress-records.show', ['table' => $type, 'id' => $article->id]) }}">DBの値と変更履歴</a>
+        / <a href="{{ route('database.wordpress-records.show', ['table' => $type, 'id' => $article->id]) }}">DBの値と変更履歴</a>
         @if ($article->link)
-            ・<a href="{{ $article->link }}" target="_blank" rel="noopener noreferrer">WordPressで見る</a>
+            / <a href="{{ $article->link }}" target="_blank" rel="noopener noreferrer">WordPressで見る</a>
         @endif
     </p>
 
@@ -83,7 +83,7 @@
         人が確定した最新の評価：
         @if ($confirmed)
             <a href="{{ route('evaluations.show', ['id' => $confirmed->id]) }}"><strong>{{ number_format($confirmed->score, 1) }}点</strong></a>
-            ・{{ \App\Services\Quality\ScoreCalculator::verdict($confirmed->score, $confirmed->required_conditions_passed) }}
+            / {{ \App\Services\Quality\ScoreCalculator::verdict($confirmed->score, $confirmed->required_conditions_passed) }}
             （{{ \App\Support\DisplayTime::format($confirmed->confirmed_at, 'Y-m-d') }}）
         @else
             なし
@@ -91,10 +91,10 @@
     </p>
     <p>
         <a href="{{ route('ai.generations.create', ['mode' => 'quality_diagnosis', 'target' => $targetKey]) }}">AIで品質診断する</a>
-        ・<a href="{{ route('evaluations.create', ['target' => $targetKey]) }}">人が評価する</a>
-        ・<a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => $targetKey]) }}">AIで改修案を作る</a>
-        ・<a href="{{ route('ai.generations.create', ['mode' => 'seo_analysis', 'target' => $targetKey]) }}">AIでSEO分析する</a>
-        ・<a href="{{ route('ai.generations.create', ['mode' => 'management_suggestion', 'target' => $targetKey]) }}">AIで管理情報の案を作る</a>
+        / <a href="{{ route('evaluations.create', ['target' => $targetKey]) }}">人が評価する</a>
+        / <a href="{{ route('ai.generations.create', ['mode' => 'revision', 'target' => $targetKey]) }}">AIで改修案を作る</a>
+        / <a href="{{ route('ai.generations.create', ['mode' => 'seo_analysis', 'target' => $targetKey]) }}">AIでSEO分析する</a>
+        / <a href="{{ route('ai.generations.create', ['mode' => 'management_suggestion', 'target' => $targetKey]) }}">AIで管理情報の案を作る</a>
     </p>
     @if ($evaluations->isNotEmpty())
         @php $evaluationsPage = \App\Support\ListPage::of($evaluations, 'evaluation_page')->fragment('evaluations'); @endphp
@@ -121,7 +121,7 @@
     @if ($generations->isNotEmpty())
         <p>AI実行記録：
             @foreach ($generations as $generation)
-                <a href="{{ route('ai.generations.show', ['id' => $generation->id]) }}">#{{ $generation->id }} {{ $generation->purpose->label() }}（{{ $generation->status->label() }}）</a>@if (! $loop->last)・@endif
+                <a href="{{ route('ai.generations.show', ['id' => $generation->id]) }}">#{{ $generation->id }} {{ $generation->purpose->label() }}（{{ $generation->status->label() }}）</a>@if (! $loop->last) / @endif
             @endforeach
         </p>
     @endif
@@ -176,7 +176,7 @@
     @if ($google['channels']->isNotEmpty())
         <p>流入元：
             @foreach ($google['channels'] as $channel)
-                {{ $channel->channel_group }} {{ number_format($channel->views) }}@if (! $loop->last)・@endif
+                {{ $channel->channel_group }} {{ number_format($channel->views) }}@if (! $loop->last) / @endif
             @endforeach
         </p>
     @endif
@@ -190,7 +190,7 @@
             登録しているキーワードの出現：
             @foreach ($keywords as $keyword)
                 @php $found = collect($queryTexts)->contains(fn ($q) => str_contains($q, mb_strtolower($keyword->keyword))); @endphp
-                {{ $keyword->keyword }}（{{ $found ? '検索クエリにあり' : 'なし' }}）@if (! $loop->last)・@endif
+                {{ $keyword->keyword }}（{{ $found ? '検索クエリにあり' : 'なし' }}）@if (! $loop->last) / @endif
             @endforeach
         </p>
     @endif
@@ -366,7 +366,7 @@
     <p>
         @if ($materialReview)
             最新の見直し：{{ \App\Support\DisplayTime::format($materialReview->created_at) }}（{{ $materialReview->status->value === 'pending' ? '確認待ち' : '確認済み' }}）
-            ・<a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
+            / <a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
         @else
             <a href="{{ route('materials.reviews.index') }}">記事の教材の見直し</a>
         @endif
@@ -555,7 +555,7 @@
                         @if ($item->media)
                             {{-- 取り込んだメディアの詳細（DB確認画面）へ --}}
                             <a href="{{ route('database.wordpress-records.show', ['table' => 'media', 'id' => $item->media->id]) }}">{{ $item->media->title_raw ?: basename(parse_url($item->source_url, PHP_URL_PATH) ?: $item->source_url) }}</a><br>
-                            @if ($item->media->width && $item->media->height){{ $item->media->width }}×{{ $item->media->height }}・@endif{{ $item->media->mime_type }}
+                            @if ($item->media->width && $item->media->height){{ $item->media->width }}×{{ $item->media->height }} / @endif{{ $item->media->mime_type }}
                             {{-- メディアライブラリの代替テキスト（本文の img の alt とは違うことがある） --}}
                             <br><span class="text-muted">メディアの代替テキスト：{{ filled($item->media->alt_text) ? $item->media->alt_text : 'なし' }}</span>
                         @else
@@ -649,7 +649,7 @@
         @if (collect($legacyImages)->contains(fn ($row) => $row['image']?->media))
             <a href="{{ route('articles.legacy-images.confirm', ['type' => $type, 'id' => $article->id]) }}">登録済みの画像で置き換える（{{ collect($legacyImages)->filter(fn ($row) => $row['image']?->media)->count() }}件）</a>
         @endif
-        ・<a href="{{ route('images.legacy') }}">古い画像の削除と、古い画像が残っている記事</a>
+        / <a href="{{ route('images.legacy') }}">古い画像の削除と、古い画像が残っている記事</a>
     </p>
     </section>
     @endif
@@ -661,7 +661,7 @@
         @forelse ($operations as $operation)
             <li>
                 <a href="{{ route('push-operations.show', ['id' => $operation->id]) }}">#{{ $operation->id }}</a>
-                {{ $operation->operation->label() }}・{{ $operation->state->label() }}・{{ \App\Support\DisplayTime::format($operation->created_at) }}（{{ $operation->approver?->name ?? '-' }}）
+                {{ $operation->operation->label() }} / {{ $operation->state->label() }} / {{ \App\Support\DisplayTime::format($operation->created_at) }}（{{ $operation->approver?->name ?? '-' }}）
             </li>
         @empty
             <li>ありません。</li>

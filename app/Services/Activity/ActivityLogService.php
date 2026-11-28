@@ -475,7 +475,7 @@ class ActivityLogService
             'pagespeed_runs' => $e === 'start'
                 ? ["PageSpeed Insights の測定を開始：{$m->strategyLabel()}" . $this->quote($m->targetLabel()), route('pagespeed.runs.index')]
                 : ["PageSpeed Insights の測定を終了：{$m->strategyLabel()}：{$m->statusLabel()}" . $this->quote($m->targetLabel())
-                    . ($m->status === 'succeeded' ? "（パフォーマンス {$m->performance_score}・SEO {$m->seo_score}）" : $this->note($m->error)) . $this->took($m->started_at, $m->finished_at), route('pagespeed.runs.index')],
+                    . ($m->status === 'succeeded' ? "（パフォーマンス {$m->performance_score} / SEO {$m->seo_score}）" : $this->note($m->error)) . $this->took($m->started_at, $m->finished_at), route('pagespeed.runs.index')],
             'ai_price_checks' => ['OpenAI API料金表を確認：' . (['succeeded' => '成功', 'failed' => '失敗'][$this->value($m->status)] ?? $this->value($m->status)) . "（反映 {$m->applied_count}件・確認待ち {$m->pending_count}件）", route('ai.prices.history')],
             'ai_price_changes' => $e === 'created'
                 ? ["料金の変更を見つけた：{$m->price_key} の {$m->field}（{$m->old_value} → {$m->new_value}）", route('ai.prices.history')]
@@ -489,7 +489,7 @@ class ActivityLogService
                     . '（' . ($m->level === 'error' ? '要対応' : '注意') . "）：{$m->message}",
                 route('notices.index'),
             ],
-            'login_histories' => [(self::LOGIN_EVENTS[$this->value($m->event)] ?? $this->value($m->event)) . "（{$m->email}・{$m->ip_address}）", route('database.login-histories.index')],
+            'login_histories' => [(self::LOGIN_EVENTS[$this->value($m->event)] ?? $this->value($m->event)) . "（{$m->email} / {$m->ip_address}）", route('database.login-histories.index')],
             'voice_turns' => ['音声の会話：「' . Str::limit((string) $m->transcript, 60) . '」' . ($m->error ? '（失敗）' : ''), null],
             default => $this->recordLine($row, $m),
         };
@@ -530,7 +530,7 @@ class ActivityLogService
             $name = str_replace('変更', '作成', $name);
         }
         $fields = $fields->reject(fn ($field) => str_starts_with($field, '__'))->values();
-        $fieldText = $fields->isEmpty() ? '' : '（' . $fields->take(5)->implode('・') . ($fields->count() > 5 ? ' ほか' . ($fields->count() - 5) . '項目' : '') . '）';
+        $fieldText = $fields->isEmpty() ? '' : '（' . $fields->take(5)->implode(' / ') . ($fields->count() > 5 ? ' ほか' . ($fields->count() - 5) . '項目' : '') . '）';
         $source = $first ? (self::CHANGE_SOURCES[$first->source] ?? $first->source) : '';
 
         return ["{$name}{$title}{$fieldText}［{$source}］", $url];

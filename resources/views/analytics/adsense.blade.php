@@ -148,7 +148,7 @@
                             </div>
                             <div class="adsense-bar"><span style="width: {{ round($row['estimated_earnings'] / $max * 100, 1) }}%"></span></div>
                             <div class="adsense-bar adsense-bar-previous"><span style="width: {{ round($row['previous'] / $max * 100, 1) }}%"></span></div>
-                            <div class="adsense-row-note text-muted">表示回数 {{ number_format($row['impressions']) }}・クリック数 {{ number_format($row['clicks']) }}</div>
+                            <div class="adsense-row-note text-muted">表示回数 {{ number_format($row['impressions']) }} / クリック数 {{ number_format($row['clicks']) }}</div>
                         </div>
                     @empty
                         <p class="text-muted">まだデータがありません（次の「Googleとの同期」で取ります）。</p>

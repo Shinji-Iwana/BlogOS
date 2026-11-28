@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('articles.index', ['type' => $type === 'posts' ? 'pages' : 'posts']) }}">{{ $type === 'posts' ? '固定ページ' : '投稿' }}一覧へ</a>
-        ・<a href="{{ route('drafts.index') }}">編集案一覧</a>
+        / <a href="{{ route('drafts.index') }}">編集案一覧</a>
     </p>
 
     @include('partials.flash')
@@ -27,7 +27,7 @@
         @if ($category || $kindLabel)
             <p>
                 絞り込み：@if ($category)カテゴリ「{{ $category->name }}」（子カテゴリを含む）@endif @if ($kindLabel)記事種類「{{ $kindLabel }}」@endif
-                ・<a href="{{ route('articles.index', ['type' => $type]) }}">解除する</a>
+                / <a href="{{ route('articles.index', ['type' => $type]) }}">解除する</a>
             </p>
             @if ($category)<input type="hidden" name="category_id" value="{{ $category->id }}">@endif
             @if ($kindLabel)<input type="hidden" name="kind" value="{{ $filters['kind'] }}">@endif

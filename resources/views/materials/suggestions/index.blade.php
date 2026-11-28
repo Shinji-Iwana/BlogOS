@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('materials.index') }}">教材一覧に戻る</a>
-        ・<a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
+        / <a href="{{ route('materials.discover.create') }}">AIで新しい教材の候補を探す</a>
     </p>
 
     @include('partials.flash')
@@ -43,7 +43,7 @@
                                         <br><span class="text-muted">教材：<a href="{{ route('materials.edit', ['id' => $suggestion->material->id]) }}">{{ $suggestion->material->name }}</a></span>
                                     @endif
                                     @if ($suggestion->relatedMaterial)
-                                        <br><span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版・後継</span>
+                                        <br><span class="text-warn">「{{ $suggestion->relatedMaterial->name }}」の新しい版 / 後継</span>
                                     @endif
                                 </td>
                                 <td>{{ $suggestion->data['edition'] ?? '' }} {{ $suggestion->data['published_on'] ?? '' }}</td>

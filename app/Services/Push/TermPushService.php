@@ -148,7 +148,7 @@ class TermPushService
                     $record,
                     (string) $record->wordpress_id,
                     null,
-                    'WordPress側で「' . implode('・', $conflicts) . '」が変更されているため、反映を中止しました（競合）。画面を開き直して、最新の値を確認してください。'
+                    'WordPress側で「' . implode(' / ', $conflicts) . '」が変更されているため、反映を中止しました（競合）。画面を開き直して、最新の値を確認してください。'
                 );
 
                 return $operation->fresh();

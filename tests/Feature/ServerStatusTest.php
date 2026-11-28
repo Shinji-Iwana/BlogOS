@@ -132,12 +132,13 @@ class ServerStatusTest extends TestCase
         \App\Models\Tag::create(['blog_id' => $blog->id, 'wordpress_id' => 1, 'name' => 'A', 'slug' => 'a']);
         \App\Models\Tag::create(['blog_id' => $blog->id, 'wordpress_id' => 2, 'name' => 'B', 'slug' => 'b', 'wordpress_deleted_at' => now()]);
 
-        // 取り込んだ WordPress のデータのテーブルは「名前（テーブル名）」のリンクと、WordPress側で削除済みの件数を、件数と容量の間に出す（D-71-07）
+        // 取り込んだ WordPress のデータのテーブルは「名前（テーブル名）」のリンクと、WordPress側で削除済みの件数を、件数と容量の間に出す（D-71-07）。
+        // リンクは、ほかのテーブルと同じ BlogOS の DB のテーブルの一覧（D-131-01）
         // テーブルの一覧は50件ずつのため、全ページをつないで見る（D-98-01）
         $this->actingAs(User::factory()->create());
         $this->serverPageWithAllTables()
             ->assertSeeInOrder(['<h2>DB（BlogOS）</h2>', '<th>テーブル</th><th>件数</th><th>うちWordPress側で削除済み</th><th>容量（データと索引）</th>'], false)
-            ->assertSeeInOrder(['<a href="' . route('database.wordpress-records.index', ['table' => 'tags']) . '">タグ</a>（tags）</td>', '>2</td>', '>1</td>'], false)
+            ->assertSeeInOrder(['<a href="' . route('database.tables.index', ['table' => 'tags']) . '">タグ</a>（tags）</td>', '>2</td>', '>1</td>'], false)
             // ほかのテーブルも「日本語名（テーブル名）」で、全テーブルの一覧へつなぐ（D-80）
             ->assertSee('<a href="' . route('database.tables.index', ['table' => 'scheduled_task_runs']) . '">定期実行の記録</a>（scheduled_task_runs）', false);
     }

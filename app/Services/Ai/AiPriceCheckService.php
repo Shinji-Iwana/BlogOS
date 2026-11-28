@@ -152,7 +152,7 @@ class AiPriceCheckService
 
         // 読み違いを避けるため、ありえない値は使わない
         if ($input <= 0 || $cached <= 0 || $output <= 0 || $cached >= $input || $write < $input || $output > 1000 || $input > 1000) {
-            throw new AiException("モデルのページから読み取った料金が、ありえない値でした（入力 {$input}・キャッシュ {$cached}・書き込み {$write}・出力 {$output}）。");
+            throw new AiException("モデルのページから読み取った料金が、ありえない値でした（入力 {$input} / キャッシュ {$cached} / 書き込み {$write} / 出力 {$output}）。");
         }
 
         if (! preg_match('/more than\s*([0-9]+)K\s*input tokens are priced at\s*([0-9.]+)x\s*input and cache rates and\s*([0-9.]+)x\s*output/u', $text, $l)) {
@@ -205,7 +205,7 @@ class AiPriceCheckService
 
         // モデル名のすぐ後の文字（最初の Modality）で、ほかのモデル（例：gpt-realtime-2.1 と gpt-realtime-2.1-mini）と取り違えない
         if (! preg_match_all('/' . preg_quote($model, '/') . implode('', array_map($row, $modalities)) . '/u', $text, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
-            throw new AiException("料金ページから、{$what}の料金（" . implode('・', $modalities) . ' の行）を読み取れませんでした。ページの形が変わった可能性があります。');
+            throw new AiException("料金ページから、{$what}の料金（" . implode(' / ', $modalities) . ' の行）を読み取れませんでした。ページの形が変わった可能性があります。');
         }
 
         // 通常の処理の表の行だけを読む。Batch・Flex の表（見出しの直前が「Batch」「Flex」）は安い料金のため読まない。
@@ -269,7 +269,7 @@ class AiPriceCheckService
         [$imageInput, $imageCached, $output] = [(float) $rows['Image']['input'], (float) $rows['Image']['cached_input'], (float) $rows['Image']['output']];
         [$textInput, $textCached] = [(float) $rows['Text']['input'], (float) $rows['Text']['cached_input']];
         if ($imageInput <= 0 || $output <= 0 || $textInput <= 0 || $imageCached > $imageInput || $textCached > $textInput || $output > 1000) {
-            throw new AiException("料金ページから読み取った画像モデルの料金が、ありえない値でした（画像の入力 {$imageInput}・出力 {$output}・文章の入力 {$textInput}）。");
+            throw new AiException("料金ページから読み取った画像モデルの料金が、ありえない値でした（画像の入力 {$imageInput} / 出力 {$output} / 文章の入力 {$textInput}）。");
         }
 
         return [
@@ -326,7 +326,7 @@ class AiPriceCheckService
         [$audioInput, $audioCached, $audioOutput] = [(float) $rows['Audio']['input'], (float) $rows['Audio']['cached_input'], (float) $rows['Audio']['output']];
         [$textInput, $textCached, $textOutput] = [(float) $rows['Text']['input'], (float) $rows['Text']['cached_input'], (float) $rows['Text']['output']];
         if ($audioInput <= 0 || $audioOutput <= 0 || $textInput <= 0 || $textOutput <= 0 || $audioCached > $audioInput || $textCached > $textInput || $audioOutput > 1000) {
-            throw new AiException("料金ページから読み取ったリアルタイム会話の料金が、ありえない値でした（音声の入力 {$audioInput}・出力 {$audioOutput}・文字の入力 {$textInput}）。");
+            throw new AiException("料金ページから読み取ったリアルタイム会話の料金が、ありえない値でした（音声の入力 {$audioInput} / 出力 {$audioOutput} / 文字の入力 {$textInput}）。");
         }
 
         return [
@@ -355,7 +355,7 @@ class AiPriceCheckService
         }
         [$textInput, $audioOutput] = [(float) $input[1], (float) $output[1]];
         if ($textInput <= 0 || $audioOutput <= 0 || $textInput > 1000 || $audioOutput > 1000) {
-            throw new AiException("モデルのページから読み取った返事の声の料金が、ありえない値でした（文字の入力 {$textInput}・音声の出力 {$audioOutput}）。");
+            throw new AiException("モデルのページから読み取った返事の声の料金が、ありえない値でした（文字の入力 {$textInput} / 音声の出力 {$audioOutput}）。");
         }
 
         return ['input' => $textInput, 'audio_output' => $audioOutput];

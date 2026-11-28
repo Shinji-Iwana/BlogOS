@@ -376,7 +376,7 @@ class MaterialTest extends TestCase
         // 教材の AI 実行（共通部品 materials/partials/method）も、モデルは料金付き・「none（推論なし）」（D-105-02）
         config(['services.openai.key' => 'sk-test-key']);
         $page = $this->get(route('materials.discover.create'))->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/<select name="model" id="discover-model" data-model="discover">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $page);
+        $this->assertMatchesRegularExpression('/<select name="model" id="discover-model" data-model="discover">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+ \/ 出力 \$[\d.]+）<\/option>/', $page);
         $this->assertMatchesRegularExpression('/<select name="reasoning_effort" id="discover-effort" data-effort="discover">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $page);
     }
 

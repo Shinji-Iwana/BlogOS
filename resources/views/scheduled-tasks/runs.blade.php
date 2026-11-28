@@ -16,7 +16,7 @@
     <h1>定期実行履歴 @include('partials.tip', ['tip' => "定期実行と、メニューの「設定 → 即時実行」で実行した記録です。定期実行ごとにしぼり込めます。\n実行の記録は、1年で削除します。"])</h1>
 
 
-    @include('partials.history-last', ['label' => '最後の実行', 'at' => $latest?->started_at, 'result' => $latest ? (ScheduledTasks::get($latest->task_key) ? ScheduledTasks::menuLabel($latest->task_key) : $latest->label()) . '・' . $latest->statusLabel() : null])
+    @include('partials.history-last', ['label' => '最後の実行', 'at' => $latest?->started_at, 'result' => $latest ? (ScheduledTasks::get($latest->task_key) ? ScheduledTasks::menuLabel($latest->task_key) : $latest->label()) . ' / ' . $latest->statusLabel() : null])
 
     {{-- 絞り込み条件：定期実行（選ぶと、すぐしぼり込む） --}}
     <form method="GET" action="{{ route('scheduled-tasks.runs') }}" class="filter-form">

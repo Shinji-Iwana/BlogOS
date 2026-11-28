@@ -5,5 +5,5 @@
     受け取る値：$models（App\Services\Ai\AiApiPolicy::models()）、$selected（選んでいるモデル）
 --}}
 @foreach ($models as $name => $price)
-    <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($selected === $name)>{{ $name }}（入力 ${{ $price['input'] }}・出力 ${{ $price['output'] }}）</option>
+    <option value="{{ $name }}" data-efforts="{{ implode(',', $price['efforts']) }}" @selected($selected === $name)>{{ $name }}（入力 ${{ $price['input'] }} / 出力 ${{ $price['output'] }}）</option>
 @endforeach

@@ -14,13 +14,13 @@
     <p>
         <a href="{{ route('push-operations.index') }}">反映記録の一覧</a>
         @if ($operation->draft)
-            ・<a href="{{ route('drafts.edit', ['id' => $operation->draft->id]) }}">編集案 #{{ $operation->draft->id }}</a>
+            / <a href="{{ route('drafts.edit', ['id' => $operation->draft->id]) }}">編集案 #{{ $operation->draft->id }}</a>
         @endif
         @if ($target)
-            ・<a href="{{ route('articles.show', ['type' => $operation->post ? 'posts' : 'pages', 'id' => $target->id]) }}">記事</a>
+            / <a href="{{ route('articles.show', ['type' => $operation->post ? 'posts' : 'pages', 'id' => $target->id]) }}">記事</a>
         @endif
         @if ($termType)
-            ・<a href="{{ route('database.wordpress-records.show', ['table' => $termType, 'id' => $operation->target()->id]) }}">対象のDBの値と変更履歴</a>
+            / <a href="{{ route('database.wordpress-records.show', ['table' => $termType, 'id' => $operation->target()->id]) }}">対象のDBの値と変更履歴</a>
         @endif
     </p>
 

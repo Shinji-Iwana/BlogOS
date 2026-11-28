@@ -10,7 +10,7 @@
 
     <p>
         <a href="{{ route('images.eyecatches') }}">カテゴリごとのアイキャッチ</a>
-        ・<a href="{{ route('images.legacy') }}">古い画像（/wp-content/img/）の移し替え</a>
+        / <a href="{{ route('images.legacy') }}">古い画像（/wp-content/img/）の移し替え</a>
     </p>
 
     @include('partials.flash')
@@ -25,12 +25,12 @@
         種類：
         <a href="{{ route('images.index', array_filter(['status' => $status?->value])) }}">@if (! $kind)<strong>すべて</strong>@else すべて @endif</a>
         @foreach (\App\Enums\ImageKind::cases() as $option)
-            ・<a href="{{ route('images.index', array_filter(['kind' => $option->value, 'status' => $status?->value])) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
+            / <a href="{{ route('images.index', array_filter(['kind' => $option->value, 'status' => $status?->value])) }}">@if ($kind === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
         @endforeach
         ／ 状態：
         <a href="{{ route('images.index', array_filter(['kind' => $kind?->value])) }}">@if (! $status)<strong>すべて</strong>@else すべて @endif</a>
         @foreach (\App\Enums\ImageStatus::cases() as $option)
-            ・<a href="{{ route('images.index', array_filter(['kind' => $kind?->value, 'status' => $option->value])) }}">@if ($status === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
+            / <a href="{{ route('images.index', array_filter(['kind' => $kind?->value, 'status' => $option->value])) }}">@if ($status === $option)<strong>{{ $option->label() }}</strong>@else{{ $option->label() }}@endif</a>
         @endforeach
     </p>
 
@@ -52,7 +52,7 @@
                 <p><label>補足（任意）<br><textarea name="notes" rows="2" style="width:100%;">{{ old('notes') }}</textarea></label></p>
                 @include('materials.partials.method', ['method' => config('blogos.ai.methods.image_design', 'manual'), 'prefix' => 'design'])
                 @if ($api['configured'])
-                    <p class="text-muted">AI がイラストを選んだ場合、API実行なら続けて画像モデル（{{ $api['imageModel'] }}・{{ $api['quality'] }}）で作ります（1枚あたり数セント〜）。@include('partials.ai-cost-line')</p>
+                    <p class="text-muted">AI がイラストを選んだ場合、API実行なら続けて画像モデル（{{ $api['imageModel'] }} / {{ $api['quality'] }}）で作ります（1枚あたり数セント〜）。@include('partials.ai-cost-line')</p>
                 @endif
                 <button type="submit">@include('partials.button-icon', ['to' => 'blogos'])図を作る</button>
             </form>
@@ -101,8 +101,8 @@
                     </a>
                     <div style="font-size:13px;">
                         <a href="{{ route('images.show', ['id' => $image->id]) }}">{{ $image->title }}</a><br>
-                        {{ $image->kind->label() }}・<span @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</span>
-                        @if ($image->media_id)・<span class="text-ok">WordPress 登録済み</span>@endif
+                        {{ $image->kind->label() }} / <span @class(['text-ok' => $image->isReady()])>{{ $image->status->label() }}</span>
+                        @if ($image->media_id) / <span class="text-ok">WordPress 登録済み</span>@endif
                         @if ($image->variantOf)<br><span class="text-muted">「{{ $image->variantOf->title }}」の別の形式</span>@endif
                     </div>
                 </div>

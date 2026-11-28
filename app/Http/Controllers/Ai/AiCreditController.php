@@ -77,7 +77,7 @@ class AiCreditController extends Controller
                 'label'               => '音声の操作（方式' . mb_substr(VoiceSettings::MODES[$row->mode] ?? (string) $row->mode, 0, 1) . '）',
                 'trigger'             => '人が実行（声）',
                 // 聞き取り・判断・返事の声のモデル（リアルタイム会話は、判断と返事の声が同じモデル）
-                'model'               => implode('・', array_unique(array_filter([$row->transcribe_model, $row->text_model, $row->tts_model]))) ?: '-',
+                'model'               => implode(' / ', array_unique(array_filter([$row->transcribe_model, $row->text_model, $row->tts_model]))) ?: '-',
                 'requests'            => (int) $row->requests,
                 'input_tokens'        => (int) $row->input_tokens,
                 'cached_input_tokens' => (int) $row->cached_input_tokens,

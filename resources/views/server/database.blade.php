@@ -1,6 +1,6 @@
 {{--
     XServer情報の DB の欄（BlogOS の DB と、WordPress の DB で共通。D-71）。
-    $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、その画面と同じ形（名前（テーブル名）のリンク・WordPress側で削除済みの件数）で出す（D-71-07）。
+    $wordpressTables（BlogOS の DB だけで渡す）があれば、取り込んだ WordPress のデータのテーブルを、名前（テーブル名）のリンクと WordPress側で削除済みの件数で出す（D-71-07。リンクは BlogOS の DB のテーブルの一覧。D-131-01）。
     BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で出し、全テーブルの一覧へつなぐ（D-80）。
     $wordpressDb（WordPress の DB で渡す）があれば、テーブルを WordPress の DB の一覧へつなぐ（本体のテーブルは「日本語名（テーブル名）」。D-81）
     $breakdown（BlogOS の DB だけで渡す。定期実行で計算した最新の結果）があれば、ブログごとの内訳（使用率の表の行と、テーブルごとの件数／容量の列）を出す（容量は見積もり。D-71-08・09）。$blogosDb は BlogOS の DB の欄か（まだ計算していなければ、そう出す）
@@ -15,7 +15,7 @@
     $tablePageName = 'tables_' . preg_replace('/\W/', '_', $database['name']);
     $tablePage = \App\Support\ListPage::of($database['tables'], $tablePageName)->fragment($tablePageName);
 @endphp
-<p>{{ $database['name'] }}（{{ $database['version'] }}）・{{ count($database['tables']) }}テーブル</p>
+<p>{{ $database['name'] }}（{{ $database['version'] }}） / {{ count($database['tables']) }}テーブル</p>
 <table class="data">
     <tbody>
         <tr>
@@ -40,7 +40,7 @@
                     @include('partials.tip', ['tip' => "全体の「データと索引」のうち、ブログごとの分の目安です。\nMySQL はテーブル単位でしか容量を持たないため、テーブルの容量を、行のデータの長さの割合でブログに分けて見積もっています（索引などの分も、同じ割合で分けています）。\nどのブログの行かは blog_id で決め、blog_id のないテーブルは親のテーブル（例：AIの一括処理の対象 → AIの一括処理）でたどります。\nどのブログにも属さない行（利用者・キュー・料金表など）と、行のないテーブルの容量（MySQL が最低限とる分）は「共通」に入れています。\n計算が重いため、画面を開いたときには計算せず、その日の定期実行が全て終わった後に計算した結果を出しています（今すぐ計算するには、メニューの「設定 → 即時実行 → DBの使用量の計算」）。"])
                 </th>
                 <td>
-                    {{ \App\Support\DisplayTime::format($measurement->measured_at, 'Y-m-d H:i') }} 時点（全体 {{ $size((int) $measurement->total_bytes) }}・計算にかかった時間 {{ number_format($measurement->duration_ms / 1000, 1) }}秒・<a href="{{ route('database.tables.show', ['table' => 'database_usage_measurements', 'id' => $measurement->id]) }}">計算の記録</a>）
+                    {{ \App\Support\DisplayTime::format($measurement->measured_at, 'Y-m-d H:i') }} 時点（全体 {{ $size((int) $measurement->total_bytes) }} / 計算にかかった時間 {{ number_format($measurement->duration_ms / 1000, 1) }}秒 / <a href="{{ route('database.tables.show', ['table' => 'database_usage_measurements', 'id' => $measurement->id]) }}">計算の記録</a>）
                 </td>
             </tr>
             @foreach ($breakdown['buckets'] as $bucket)
@@ -51,7 +51,7 @@
                     <th>うち {{ $bucket['label'] }}</th>
                     <td>
                         {{ $size($bytes) }}
-                        （@if ($measurement->capacity_bytes)使用率 {{ number_format($bytes / $measurement->capacity_bytes * 100, 1) }}%・@endif全体の {{ $measurement->total_bytes > 0 ? number_format($bytes / $measurement->total_bytes * 100, 1) : '0.0' }}%）
+                        （@if ($measurement->capacity_bytes)使用率 {{ number_format($bytes / $measurement->capacity_bytes * 100, 1) }}% / @endif全体の {{ $measurement->total_bytes > 0 ? number_format($bytes / $measurement->total_bytes * 100, 1) : '0.0' }}%）
                     </td>
                 </tr>
             @endforeach
@@ -86,8 +86,8 @@
                 @endphp
                 <tr>
                     @if ($wordpressTable)
-                        {{-- 一覧は選択中のブログの分を出すため、ブログを選んでいなければリンクにしない --}}
-                        <td>@if ($selectedBlog)<a href="{{ route('database.wordpress-records.index', ['table' => $table['name']]) }}">{{ $wordpressTable['label'] }}</a>@else{{ $wordpressTable['label'] }}@endif（{{ $table['name'] }}）</td>
+                        {{-- ほかのテーブルと同じく、BlogOS の DB のテーブルの一覧へつなぐ（取り込んだWordPressのデータの一覧へは移らない。D-131-01） --}}
+                        <td><a href="{{ route('database.tables.index', ['table' => $table['name']]) }}">{{ $wordpressTable['label'] }}</a>（{{ $table['name'] }}）</td>
                     @elseif ($wordpressTables !== [])
                         {{-- BlogOS の DB のほかのテーブルも「日本語名（テーブル名）」で、日本語名を一覧へのリンクにする（日本語名がなければテーブル名のリンク。D-80） --}}
                         <td><a href="{{ route('database.tables.index', ['table' => $table['name']]) }}">{{ \App\Support\DatabaseTables::label($table['name']) ?? $table['name'] }}</a>@if (\App\Support\DatabaseTables::label($table['name']))（{{ $table['name'] }}）@endif</td>

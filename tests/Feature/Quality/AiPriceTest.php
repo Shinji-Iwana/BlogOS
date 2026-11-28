@@ -230,7 +230,7 @@ class AiPriceTest extends TestCase
         $html = $this->get(route('ai.prices.index'))->assertOk()
             ->assertSee('<h1>OpenAI API料金表情報 <span class="tip"', false)
             ->assertDontSee('トップページに戻る')
-            ->assertSee('文字の入力 $0.6・音声の出力 $16', false)
+            ->assertSee('文字の入力 $0.6 / 音声の出力 $16', false)
             ->assertSee('<h2>音声の操作のモデル <span class="tip"', false)
             ->getContent();
         $this->assertMatchesRegularExpression('/>WordPress API情報<\/a><\/li>\s*<li><a href="' . preg_quote(route('ai.prices.index'), '/') . '"\s*>OpenAI API料金表情報<\/a>/', $html);

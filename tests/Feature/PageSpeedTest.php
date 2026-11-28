@@ -159,7 +159,7 @@ class PageSpeedTest extends TestCase
             ->assertSee(route('pagespeed.runs.index'));
 
         $this->get(route('activities.index'))->assertOk()
-            ->assertSeeInOrder(['PageSpeed Insights の測定を終了：携帯：成功『記事1』（パフォーマンス 72・SEO 92）', 'PageSpeed Insights の測定を開始：携帯『記事1』']);
+            ->assertSeeInOrder(['PageSpeed Insights の測定を終了：携帯：成功『記事1』（パフォーマンス 72 / SEO 92）', 'PageSpeed Insights の測定を開始：携帯『記事1』']);
     }
 
     protected function succeededRun(?Post $post, string $strategy, int $performance, array $audits = []): PageSpeedRun
@@ -185,7 +185,7 @@ class PageSpeedTest extends TestCase
                 'デスクトップ', 'score-gauge-good', '>95</span>', '良好', 'パフォーマンス', '<table class="data">'], false)
             // 4つの区分の点数は円グラフだけで出し、表には出さない（D-82-05）
             ->assertDontSee('45（不良）')->assertSeeInOrder(['<table class="data">', 'LCP', '3.2秒'], false)
-            ->assertSee('改善が必要（LCP 2.9秒・INP 180ms・CLS 0.05）')
+            ->assertSee('改善が必要（LCP 2.9秒 / INP 180ms / CLS 0.05）')
             ->assertSee('携帯：合格しなかった項目（1件）')
             ->assertSee('今すぐ測定');
 
@@ -229,7 +229,7 @@ class PageSpeedTest extends TestCase
                 '<h2>記事のまとめ', 'class="score-gauge-rows"', '記事の平均', '2件の平均', 'score-gauge-mid', '>60.0</span>', 'パフォーマンス', '<table class="data">'], false)
             // パフォーマンスの平均 (80 + 40) / 2
             ->assertSeeInOrder(['パフォーマンス', '60', '0件', '1件', '1件'])
-            ->assertSeeInOrder(['画像要素に [alt] 属性が指定されていません', 'ユーザー補助・SEO', '2件'])
+            ->assertSeeInOrder(['画像要素に [alt] 属性が指定されていません', 'ユーザー補助 / SEO', '2件'])
             // 記事ごとの最新の結果は、点数の低い順
             ->assertSeeInOrder(['記事2', '記事1'])
             ->assertSee(route('articles.show', ['type' => 'posts', 'id' => $first->id]));

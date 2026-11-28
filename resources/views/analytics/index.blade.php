@@ -30,9 +30,9 @@
             <th>GA4</th>
             <td>
                 @if ($site['ga4'])
-                    表示回数 {{ number_format($site['ga4']->views) }}・セッション {{ number_format($site['ga4']->sessions) }}
-                    ・エンゲージメントのあったセッション {{ number_format($site['ga4']->engaged_sessions) }}
-                    ・平均エンゲージメント時間 {{ $site['ga4']->sessions > 0 ? round($site['ga4']->engagement_duration / $site['ga4']->sessions) : 0 }}秒/セッション
+                    表示回数 {{ number_format($site['ga4']->views) }} / セッション {{ number_format($site['ga4']->sessions) }}
+                    / エンゲージメントのあったセッション {{ number_format($site['ga4']->engaged_sessions) }}
+                    / 平均エンゲージメント時間 {{ $site['ga4']->sessions > 0 ? round($site['ga4']->engagement_duration / $site['ga4']->sessions) : 0 }}秒/セッション
                 @else
                     データなし
                 @endif
@@ -42,9 +42,9 @@
             <th>Search Console</th>
             <td>
                 @if ($site['search_console'])
-                    クリック {{ number_format($site['search_console']->clicks) }}・表示回数 {{ number_format($site['search_console']->impressions) }}
-                    ・CTR {{ $site['search_console']->impressions > 0 ? round($site['search_console']->clicks / $site['search_console']->impressions * 100, 2) : 0 }}%
-                    ・平均掲載順位 {{ $site['search_console']->position !== null ? round($site['search_console']->position, 1) : '-' }}
+                    クリック {{ number_format($site['search_console']->clicks) }} / 表示回数 {{ number_format($site['search_console']->impressions) }}
+                    / CTR {{ $site['search_console']->impressions > 0 ? round($site['search_console']->clicks / $site['search_console']->impressions * 100, 2) : 0 }}%
+                    / 平均掲載順位 {{ $site['search_console']->position !== null ? round($site['search_console']->position, 1) : '-' }}
                 @else
                     データなし
                 @endif
@@ -55,8 +55,8 @@
             <td>
                 @if ($site['adsense'])
                     見積もり収益 {{ number_format($site['adsense']->earnings, 2) }} {{ $site['adsense']->currency_code }}
-                    ・ページビュー {{ number_format($site['adsense']->page_views) }}・表示回数 {{ number_format($site['adsense']->impressions) }}・クリック {{ number_format($site['adsense']->clicks) }}
-                    ・ページRPM {{ $site['adsense']->page_views > 0 ? number_format($site['adsense']->earnings / $site['adsense']->page_views * 1000, 2) : 0 }}
+                    / ページビュー {{ number_format($site['adsense']->page_views) }} / 表示回数 {{ number_format($site['adsense']->impressions) }} / クリック {{ number_format($site['adsense']->clicks) }}
+                    / ページRPM {{ $site['adsense']->page_views > 0 ? number_format($site['adsense']->earnings / $site['adsense']->page_views * 1000, 2) : 0 }}
                 @else
                     データなし
                 @endif

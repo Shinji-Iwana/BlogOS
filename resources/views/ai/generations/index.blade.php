@@ -10,9 +10,9 @@
 
     <p>
         <a href="{{ route('ai.generations.create', ['mode' => 'new_article']) }}">AIで新規記事の案を作る</a>
-        ・<a href="{{ route('ai.generations.create', ['mode' => 'structure']) }}">AIで記事の構成を作る</a>
-        ・<a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
-        ・<a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
+        / <a href="{{ route('ai.generations.create', ['mode' => 'structure']) }}">AIで記事の構成を作る</a>
+        / <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a>
+        / <a href="{{ route('ai.settings.edit') }}">AIの設定（自動の再評価）</a>
     </p>
 
     @include('partials.flash')
@@ -30,7 +30,7 @@
                         <td>{{ $generation->purpose->label() }}{{ $generation->revision_scope ? '（' . $generation->revision_scope->label() . '）' : '' }}</td>
                         <td>{{ $generation->draft ? '編集案 #' . $generation->draft->id : (($generation->post ?? $generation->page)?->title_raw ?? '（新規）') }}</td>
                         <td>{{ $generation->status->label() }}</td>
-                        <td>{{ $generation->execution_method->label() }}・{{ $generation->model ?? '-' }}</td>
+                        <td>{{ $generation->execution_method->label() }} / {{ $generation->model ?? '-' }}</td>
                         <td>{{ \App\Support\DisplayTime::format($generation->created_at) }}</td>
                     </tr>
                 @empty

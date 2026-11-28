@@ -8,7 +8,7 @@
 
     <h1>記事の実績と次にやること</h1>
 
-    <p><a href="{{ route('analytics.index') }}">分析</a>・<a href="{{ route('google.index-status') }}">インデックスの登録状態</a>・<a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a></p>
+    <p><a href="{{ route('analytics.index') }}">分析</a> / <a href="{{ route('google.index-status') }}">インデックスの登録状態</a> / <a href="{{ route('ai.batches.index') }}">AIまとめて実行履歴一覧</a></p>
 
     @include('partials.flash')
 
@@ -23,13 +23,13 @@
         <p>
             期間：
             @foreach ([28, 90] as $option)
-                <a href="{{ route('analytics.performance', ['days' => $option, 'action' => $action, 'sort' => $sort]) }}">@if ($days === $option)<strong>{{ $option }}日</strong>@else{{ $option }}日@endif</a>@if (! $loop->last)・@endif
+                <a href="{{ route('analytics.performance', ['days' => $option, 'action' => $action, 'sort' => $sort]) }}">@if ($days === $option)<strong>{{ $option }}日</strong>@else{{ $option }}日@endif</a>@if (! $loop->last) / @endif
             @endforeach
-            ・並び順：
+            / 並び順：
             @if ($sort === 'affiliate')
-                <a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action]) }}">次にやることがある順</a>・<strong>アフィリエイトのクリックの多い順</strong>
+                <a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action]) }}">次にやることがある順</a> / <strong>アフィリエイトのクリックの多い順</strong>
             @else
-                <strong>次にやることがある順</strong>・<a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action, 'sort' => 'affiliate']) }}">アフィリエイトのクリックの多い順</a>
+                <strong>次にやることがある順</strong> / <a href="{{ route('analytics.performance', ['days' => $days, 'action' => $action, 'sort' => 'affiliate']) }}">アフィリエイトのクリックの多い順</a>
             @endif
         </p>
         <p class="text-muted">
@@ -85,7 +85,7 @@
                                 @if ($evaluation)
                                     <a href="{{ route('evaluations.show', ['id' => $evaluation->id]) }}">{{ $evaluation->score !== null ? number_format($evaluation->score, 1) . '点' : '-' }}</a>
                                     @if ($evaluation->axis_scores)
-                                        <br><span class="text-muted">{{ isset($evaluation->axis_scores['ctr']) ? number_format((float) $evaluation->axis_scores['ctr']) . '%' : '-' }}・{{ isset($evaluation->axis_scores['intent']) ? number_format((float) $evaluation->axis_scores['intent']) . '%' : '-' }}</span>
+                                        <br><span class="text-muted">{{ isset($evaluation->axis_scores['ctr']) ? number_format((float) $evaluation->axis_scores['ctr']) . '%' : '-' }} / {{ isset($evaluation->axis_scores['intent']) ? number_format((float) $evaluation->axis_scores['intent']) . '%' : '-' }}</span>
                                     @endif
                                 @else
                                     未評価

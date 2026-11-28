@@ -137,7 +137,7 @@ class AiBatchTest extends TestCase
             ->getContent();
         // 品質診断の組も、診断の後の改修の組も、同じ書き方（料金・「none（推論なし）」・モデルで選べない推論の深さ。D-105-02）
         foreach (['model" id="batch-model" data-model="batch' => 'reasoning_effort" id="batch-effort" data-effort="batch', 'follow_up_model" data-model="follow-up' => 'follow_up_reasoning_effort" data-effort="follow-up'] as $model => $effort) {
-            $this->assertMatchesRegularExpression('/<select name="' . preg_quote($model, '/') . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+・出力 \$[\d.]+）<\/option>/', $page);
+            $this->assertMatchesRegularExpression('/<select name="' . preg_quote($model, '/') . '">\s*<option value="gpt-6-luna" data-efforts="none,low,medium,high"[^>]*>gpt-6-luna（入力 \$[\d.]+ \/ 出力 \$[\d.]+）<\/option>/', $page);
             $this->assertMatchesRegularExpression('/<select name="' . preg_quote($effort, '/') . '">\s*<option value="none"[^>]*>none（推論なし）<\/option>/', $page);
         }
         $this->assertStringNotContainsString('/ 1Mトークン）', $page);
@@ -212,7 +212,7 @@ class AiBatchTest extends TestCase
         Http::assertSentCount(7);
         $this->get(route('drafts.edit', ['id' => $draft->id]))->assertOk()->assertSee('改修前（記事の最新の評価）')->assertSee('この編集案の評価');
 
-        $this->get(route('ai.batches.show', ['id' => $diagnosis->id]))->assertOk()->assertSee("まとめて実行 #{$revision->id}（3件・完了）");
+        $this->get(route('ai.batches.show', ['id' => $diagnosis->id]))->assertOk()->assertSee("まとめて実行 #{$revision->id}（3件 / 完了）");
         $this->get(route('ai.batches.show', ['id' => $revision->id]))->assertOk()->assertSee('元の品質診断')->assertSee('編集案 #');
     }
 

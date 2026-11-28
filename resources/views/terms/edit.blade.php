@@ -26,7 +26,7 @@
     <h1>{{ $typeName }}：{{ $label }}</h1>
 
     <p>
-        @if ($type === 'categories')<a href="{{ route('categories.index') }}">カテゴリの一覧に戻る</a>・@endif
+        @if ($type === 'categories')<a href="{{ route('categories.index') }}">カテゴリの一覧に戻る</a> / @endif
         <a href="{{ route('database.wordpress-records.show', ['table' => $type, 'id' => $record->id]) }}">DBの値と変更履歴</a>
     </p>
 

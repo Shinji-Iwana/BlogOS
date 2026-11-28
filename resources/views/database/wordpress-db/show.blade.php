@@ -16,8 +16,8 @@
     <p class="text-warn">DB：{{ $schema }}（WordPress の DB。読むだけで、書き換えません）</p>
 
     @php
-        // つながる先のリンクを「・」でつなぐ（「（」「）」の内側に空白が入らないよう、1つの文字列にする。文字は e() で書き換えてから出す）
-        $relationLinks = fn (array $items) => collect($items)->map(fn ($item) => $item['url'] ? '<a href="' . e($item['url']) . '">' . e($item['text']) . '</a>' : e($item['text']))->implode('・');
+        // つながる先のリンクを「 / 」でつなぐ（D-132-02）（「（」「）」の内側に空白が入らないよう、1つの文字列にする。文字は e() で書き換えてから出す）
+        $relationLinks = fn (array $items) => collect($items)->map(fn ($item) => $item['url'] ? '<a href="' . e($item['url']) . '">' . e($item['text']) . '</a>' : e($item['text']))->implode(' / ');
     @endphp
 
     {{-- ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01） --}}

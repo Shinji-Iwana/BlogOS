@@ -10,11 +10,12 @@
 
     <h1>{{ $label ? "{$label}（{$table}）" : $table }}#{{ $record->{$primaryKey} }}</h1>
 
-    <p><a href="{{ route('database.tables.index', ['table' => $table]) }}">一覧に戻る</a></p>
+    {{-- 上のリンクは「（テーブルの日本語名）一覧へ」（日本語名がなければテーブル名。WordPress の DB のテーブルの詳細と同じ形。D-132-03） --}}
+    <p><a href="{{ route('database.tables.index', ['table' => $table]) }}">{{ $label ?? $table }}一覧へ</a></p>
 
     @php
-        // つながる先のリンクを「・」でつなぐ（「（」「）」の内側に空白が入らないよう、1つの文字列にする。文字は e() で書き換えてから出す）
-        $relationLinks = fn (array $items) => collect($items)->map(fn ($item) => $item['url'] ? '<a href="' . e($item['url']) . '">' . e($item['text']) . '</a>' : e($item['text']))->implode('・');
+        // つながる先のリンクを「 / 」でつなぐ（D-132-02）（「（」「）」の内側に空白が入らないよう、1つの文字列にする。文字は e() で書き換えてから出す）
+        $relationLinks = fn (array $items) => collect($items)->map(fn ($item) => $item['url'] ? '<a href="' . e($item['url']) . '">' . e($item['text']) . '</a>' : e($item['text']))->implode(' / ');
     @endphp
 
     {{-- ページ内のパネルの題名は日本語だけ（英字の札を付けない。D-117-01） --}}
